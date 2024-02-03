@@ -1,0 +1,9 @@
+{
+    "dependencies": {
+        "@types/polka": "^0.5.7",
+        "polka": "^0.5.2"
+    },
+    "scripts": {
+        "dev": "bun --watch index.ts"
+    }
+}
