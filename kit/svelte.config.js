@@ -12,7 +12,8 @@ const config = {
 		inspector: true
 	},
 	kit: {
-		adapter: adapter()
+		adapter: adapter(),
+		csrf: false
 	}
 };
 export default config;
