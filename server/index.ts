@@ -1,9 +1,11 @@
 import polka from 'polka';
 
+const port = process.env.PORT ?? 3000
+
 polka()
   .get('/', (req, res) => {
     res.end(`Hello World`);
   })
-  .listen(3000, () => {
-    console.log(`> Running on localhost:3000`);
+  .listen(port, () => {
+    console.log(`> Running on :${port}`);
   });
