@@ -7,12 +7,13 @@ const config = {
 	// Consult https://kit.svelte.dev/docs/integrations#preprocessors
 	// for more information about preprocessors
 	preprocess: [vitePreprocess()],
-	
+
 	vitePlugin: {
-		inspector: true,
+		inspector: true
 	},
 	kit: {
-		adapter: adapter()
+		adapter: adapter(),
+		csrf: false
 	}
 };
 export default config;
