@@ -8,11 +8,13 @@
     "zod": "^3.22.4"
   },
   "scripts": {
-    "build": "cd kit && bun run installBuild",
-    "dev": "bun --watch index.ts",
-    "start": "bun run index.ts"
+    "build": "cd svelte && bun run installBuild",
+    "dev": "concurrently \"DEV=TRUE bun --watch src/index.ts\" \"cd svelte && bun run dev\" -n Server,Kit -c blue,yellow",
+    "start": "bun run src/index.ts"
   },
   "devDependencies": {
-    "@types/bun": "^1.0.8"
+    "@types/bun": "^1.0.8",
+    "concurrently": "^8.2.2",
+    "http-proxy-middleware": "^2.0.6"
   }
 }
