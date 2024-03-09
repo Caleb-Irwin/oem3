@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "installBuild": "bun i && vite build",
     "start": "bun build/index.js",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -16,7 +17,7 @@
   "devDependencies": {
     "@skeletonlabs/skeleton": "2.8.0",
     "@skeletonlabs/tw-plugin": "0.3.1",
-    "@sveltejs/adapter-auto": "^3.0.0",
+    "@sveltejs/adapter-node": "^5.0.1",
     "@sveltejs/kit": "^2.0.0",
     "@sveltejs/vite-plugin-svelte": "^3.0.0",
     "@tailwindcss/forms": "0.5.7",
@@ -32,7 +33,6 @@
     "prettier": "^3.1.1",
     "prettier-plugin-svelte": "^3.1.2",
     "svelte": "^4.2.7",
-    "svelte-adapter-bun": "^0.5.2",
     "svelte-check": "^3.6.0",
     "tailwindcss": "3.4.1",
     "tslib": "^2.4.1",
@@ -43,6 +43,7 @@
   },
   "type": "module",
   "dependencies": {
-    "@floating-ui/dom": "1.6.1"
+    "@floating-ui/dom": "1.6.1",
+    "@trpc/client": "next"
   }
 }
