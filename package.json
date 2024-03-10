@@ -1,0 +1,7 @@
+{
+    "scripts": {
+        "dev": "cd server && bun run dev",
+        "build": "cd server && bun run build",
+        "start": "cd server && bun run start"
+    }
+}

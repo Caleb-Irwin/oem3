@@ -8,7 +8,7 @@
     "zod": "^3.22.4"
   },
   "scripts": {
-    "build": "cd ../svelte && bun run installBuild",
+    "build": "bun install && cd ../svelte && bun run installBuild",
     "dev": "concurrently \"DEV=TRUE bun --watch src/index.ts\" \"cd ../svelte && bun run dev\" -n Server,Kit -c blue,yellow",
     "start": "bun run src/index.ts"
   },
