@@ -1,7 +1,16 @@
 {
-    "scripts": {
-        "dev": "cd server && bun run dev",
-        "build": "cd server && bun run build",
-        "start": "cd server && bun run start"
-    }
+  "scripts": {
+    "dev": "cd server && bun run dev",
+    "build": "cd server && bun run build",
+    "start": "cd server && bun run start"
+  },
+  "name": "oem3",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
 }
