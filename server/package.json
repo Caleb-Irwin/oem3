@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@trpc/server": "^10.45.1",
+    "@trpc/server": "next",
     "@types/polka": "^0.5.7",
     "poka": "^1.1.0",
     "polka": "^0.5.2",
@@ -8,8 +8,8 @@
     "zod": "^3.22.4"
   },
   "scripts": {
-    "build": "cd svelte && bun run installBuild",
-    "dev": "concurrently \"DEV=TRUE bun --watch src/index.ts\" \"cd svelte && bun run dev\" -n Server,Kit -c blue,yellow",
+    "build": "cd ../svelte && bun run installBuild",
+    "dev": "concurrently \"DEV=TRUE bun --watch src/index.ts\" \"cd ../svelte && bun run dev\" -n Server,Kit -c blue,yellow",
     "start": "bun run src/index.ts"
   },
   "devDependencies": {

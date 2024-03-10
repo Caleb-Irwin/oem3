@@ -1,4 +1,3 @@
-//@ts-expect-error
 import { initTRPC } from "@trpc/server";
 import * as trpcExpress from "@trpc/server/adapters/express";
 

@@ -3,9 +3,17 @@ import * as trpcExpress from "@trpc/server/adapters/express";
 import { createContext, router } from "./trpc";
 import { userRouter } from "./routers/user";
 import { kit } from "./kitMiddleware";
+import { PORT, DEV } from "./config";
 
-const DEV = process.env["DEV"] === "TRUE",
-  PORT = process.env["PORT"] ?? "3000";
+const app = polka();
+
+app.use("/", (req, res, next) => {
+  if (req.path.startsWith("/trpc")) {
+    next();
+    return;
+  }
+  kit(req, res, next);
+});
 
 const appRouter = router({
   user: userRouter,
@@ -13,7 +21,7 @@ const appRouter = router({
 
 export type AppRouter = typeof appRouter;
 
-const app = polka();
+export type Test = number | string;
 
 app.use(
   "/trpc",
@@ -23,8 +31,6 @@ app.use(
   })
 );
 
-app.use(await kit(PORT, DEV));
-
 app.listen(PORT, () => {
-  console.log(`> Running on port ${PORT} in ${DEV ? "DEV" : "PROD"} mode`);
+  console.log(`Running on port ${PORT} in ${DEV ? "DEV" : "PROD"} mode`);
 });
