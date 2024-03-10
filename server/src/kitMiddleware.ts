@@ -6,7 +6,7 @@ export async function genKit() {
     ? `https://${process.env["RAILWAY_PUBLIC_DOMAIN"]}`
     : `http://localhost:${PORT}`;
   return (
-    //@ts-expect-error no type for sveltekit handler
+    // Will not show TS error after first build
     (await import("../../svelte/build/handler")).handler
   );
 }

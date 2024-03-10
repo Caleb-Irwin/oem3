@@ -7,7 +7,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 export const handleFetch: HandleFetch = async ({ request, fetch }) => {
 	if (request.url.startsWith('http://server/')) {
-		request = new Request(request.url.replace('http://server/', 'http://localhost:3000/'), request);
+		request = new Request(
+			request.url.replace('http://server/', `http://localhost:${process.env['PORT']}/`),
+			request
+		);
 	}
 
 	return fetch(request);
