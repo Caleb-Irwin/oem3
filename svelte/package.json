@@ -44,6 +44,7 @@
   "type": "module",
   "dependencies": {
     "@floating-ui/dom": "1.6.1",
-    "@trpc/client": "next"
+    "@trpc/client": "next",
+    "jwt-decode": "^4.0.0"
   }
 }

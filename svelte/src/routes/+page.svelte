@@ -17,6 +17,7 @@
 		<form
 			class="card p-4"
 			method="POST"
+			action="?/login"
 			use:enhance={() => {
 				logingIn = true;
 				return async ({ update }) => {

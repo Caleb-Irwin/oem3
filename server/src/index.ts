@@ -28,6 +28,7 @@ app.use(
   trpcExpress.createExpressMiddleware({
     router: appRouter,
     createContext,
+    allowBatching: true,
   })
 );
 

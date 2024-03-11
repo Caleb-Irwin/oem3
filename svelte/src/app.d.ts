@@ -1,9 +1,18 @@
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
 // and what to do when importing types
-declare namespace App {
-	// interface Locals {}
-	// interface PageData {}
-	// interface Error {}
-	// interface Platform {}
+import { getClient } from '$lib/client';
+import type { jwtFields } from '../../server/src/routers/user';
+
+declare global {
+	namespace App {
+		interface Locals {
+			client: ReturnType<typeof getClient>;
+			user: jwtFields | null;
+		}
+
+		// interface PageData {}
+		// interface Error {}
+		// interface Platform {}
+	}
 }

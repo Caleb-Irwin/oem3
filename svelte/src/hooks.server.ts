@@ -1,17 +1,10 @@
-import type { Handle, HandleFetch } from '@sveltejs/kit';
+import { jwtDecode } from 'jwt-decode';
+import { getClient } from '$lib/client';
+import type { Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	const response = await resolve(event);
-	return response;
-};
-
-export const handleFetch: HandleFetch = async ({ request, fetch }) => {
-	if (request.url.startsWith('http://server/')) {
-		request = new Request(
-			request.url.replace('http://server/', `http://localhost:${process.env['PORT']}/`),
-			request
-		);
-	}
-
-	return fetch(request);
+	const token = event.cookies.get('jwt') ?? '';
+	event.locals.client = getClient(token);
+	event.locals.user = token === '' ? null : jwtDecode(token);
+	return await resolve(event);
 };
