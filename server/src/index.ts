@@ -4,6 +4,10 @@ import { createContext, router } from "./trpc";
 import { userRouter } from "./routers/user";
 import { kit } from "./kitMiddleware";
 import { PORT, DEV } from "./config";
+import { migrate } from "../db";
+
+//@ts-expect-error bun allows this
+await migrate();
 
 const app = polka();
 

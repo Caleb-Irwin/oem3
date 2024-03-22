@@ -1,0 +1,75 @@
+{
+  "id": "498ae3b4-f03f-460d-a028-b0e4ff6e9eb3",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "5",
+  "dialect": "pg",
+  "tables": {
+    "users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "username": {
+          "name": "username",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "password_hash": {
+          "name": "password_hash",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "permissionLevel": {
+          "name": "permissionLevel",
+          "type": "permissionLevel",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "username_idx": {
+          "name": "username_idx",
+          "columns": [
+            "username"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "users_username_unique": {
+          "name": "users_username_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "username"
+          ]
+        }
+      }
+    }
+  },
+  "enums": {
+    "permissionLevel": {
+      "name": "permissionLevel",
+      "values": {
+        "admin": "admin",
+        "general": "general",
+        "viewer": "viewer",
+        "public": "public"
+      }
+    }
+  },
+  "schemas": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

@@ -22,7 +22,7 @@ export const actions = {
 		} catch (cause) {
 			if (isTRPCClientError(cause)) {
 				return fail(400, {
-					msg: cause.message ?? JSON.parse(cause.message)[0].message
+					msg: cause.message[0] === '[' ? JSON.parse(cause.message)[0].message : cause.message
 				});
 			} else {
 				return fail(400, { msg: 'Something bad happened. Try again' });
