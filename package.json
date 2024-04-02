@@ -2,7 +2,8 @@
   "scripts": {
     "dev": "cd server && bun run dev",
     "build": "cd server && bun run build",
-    "start": "cd server && bun run start"
+    "start": "cd server && bun run start",
+    "preview": "cd server && bun run preview"
   },
   "name": "oem3",
   "module": "index.ts",

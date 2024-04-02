@@ -41,7 +41,13 @@
 			</label>
 			<label class="label my-1">
 				<span>Password</span>
-				<input class="input" type="text" placeholder="******" name="password" disabled={logingIn} />
+				<input
+					class="input"
+					type="password"
+					placeholder="******"
+					name="password"
+					disabled={logingIn}
+				/>
 			</label>
 			<button type="submit" class="btn variant-filled-primary w-full mt-1" disabled={logingIn}
 				>Login</button

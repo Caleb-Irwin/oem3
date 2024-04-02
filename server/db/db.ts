@@ -4,8 +4,8 @@ import {
   serial,
   uniqueIndex,
   varchar,
-  boolean,
 } from "drizzle-orm/pg-core";
+import { z } from "zod";
 
 export const permissionLevelEnum = pgEnum("permissionLevel", [
   "admin",
@@ -13,6 +13,9 @@ export const permissionLevelEnum = pgEnum("permissionLevel", [
   "viewer",
   "public",
 ]);
+
+export const permissionLevelEnumZod = z.enum(permissionLevelEnum.enumValues);
+export type PermissionLevel = z.infer<typeof permissionLevelEnumZod>;
 
 export const users = pgTable(
   "users",

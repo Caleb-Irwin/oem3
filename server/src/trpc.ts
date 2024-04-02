@@ -12,17 +12,25 @@ export function createContext({
   cookies: Cookies;
 } {
   const cookies = new Cookies(req, res);
-  const userToken = cookies.get("jwt") ?? req.headers.authorization;
-  if (userToken && jwt.verify(userToken, "secret")) {
+  try {
+    const userToken = cookies.get("jwt") ?? req.headers.authorization;
+    const user = userToken
+      ? (jwt.verify(userToken, "secret") as jwtFields)
+      : undefined;
+    if (userToken && user) {
+      return {
+        user,
+        cookies,
+      };
+    }
+  } catch (e) {
+    console.log(e);
+  } finally {
     return {
-      user: jwt.decode(userToken) as jwtFields,
+      user: null,
       cookies,
     };
   }
-  return {
-    user: null,
-    cookies,
-  };
 }
 type Context = Awaited<ReturnType<typeof createContext>>;
 const t = initTRPC.context<Context>().create();

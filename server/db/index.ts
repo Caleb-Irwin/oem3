@@ -1,6 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate as m } from "drizzle-orm/node-postgres/migrator";
 import { Client } from "pg";
+import * as schema from "./db";
 
 const connect = async (depth = 0): Promise<InstanceType<typeof Client>> => {
   try {
@@ -20,7 +21,7 @@ const connect = async (depth = 0): Promise<InstanceType<typeof Client>> => {
 //@ts-expect-error Bun allows this
 const client = await connect();
 
-export const db = drizzle(client);
+export const db = drizzle(client, { schema });
 
 export const migrate = async () =>
   await m(db, { migrationsFolder: "./drizzle" });
