@@ -1,8 +1,9 @@
-import { initTRPC } from "@trpc/server";
+import { TRPCError, initTRPC } from "@trpc/server";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import Cookies from "cookies";
 import jwt from "jsonwebtoken";
 import { jwtFields } from "./routers/user";
+import { env } from "bun";
 
 export function createContext({
   req,
@@ -14,18 +15,23 @@ export function createContext({
   const cookies = new Cookies(req, res);
   try {
     const userToken = cookies.get("jwt") ?? req.headers.authorization;
+
     const user = userToken
-      ? (jwt.verify(userToken, "secret") as jwtFields)
+      ? (jwt.verify(userToken, env["JWT_SECRET"]) as jwtFields)
       : undefined;
-    if (userToken && user) {
+
+    if (userToken && user)
       return {
         user,
         cookies,
       };
-    }
+    else
+      return {
+        user: null,
+        cookies,
+      };
   } catch (e) {
     console.log(e);
-  } finally {
     return {
       user: null,
       cookies,
@@ -37,3 +43,9 @@ const t = initTRPC.context<Context>().create();
 
 export const router = t.router;
 export const publicProcedure = t.procedure;
+
+export const adminProcedure = publicProcedure.use((opts) => {
+  const { ctx } = opts;
+  if (ctx.user && ctx.user.permissionLevel === "admin") return opts.next();
+  else throw new TRPCError({ code: "UNAUTHORIZED" });
+});

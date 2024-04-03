@@ -1,10 +1,10 @@
 import polka from "polka";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { createContext, router } from "./trpc";
-import { userRouter } from "./routers/user";
 import { kit } from "./kitMiddleware";
 import { PORT, DEV } from "./config";
 import { migrate } from "../db";
+import { appRouter } from "./appRouter";
 
 //@ts-expect-error bun allows this
 await migrate();
@@ -19,13 +19,7 @@ app.use("/", (req, res, next) => {
   kit(req, res, next);
 });
 
-const appRouter = router({
-  user: userRouter,
-});
-
 export type AppRouter = typeof appRouter;
-
-export type Test = number | string;
 
 app.use(
   "/trpc",

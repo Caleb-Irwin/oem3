@@ -20,8 +20,7 @@ export type PermissionLevel = z.infer<typeof permissionLevelEnumZod>;
 export const users = pgTable(
   "users",
   {
-    id: serial("id").primaryKey(),
-    username: varchar("username", { length: 256 }).unique(),
+    username: varchar("username", { length: 256 }).unique().primaryKey(),
     passwordHash: varchar("password_hash", { length: 256 }),
     permissionLevel: permissionLevelEnum("permissionLevel"),
   },

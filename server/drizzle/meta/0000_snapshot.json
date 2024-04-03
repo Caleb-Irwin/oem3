@@ -1,5 +1,5 @@
 {
-  "id": "498ae3b4-f03f-460d-a028-b0e4ff6e9eb3",
+  "id": "1dd9f0f7-db6a-4ff0-940e-875c741a8fcc",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -8,17 +8,11 @@
       "name": "users",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
         "username": {
           "name": "username",
           "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": true
         },
         "password_hash": {
           "name": "password_hash",

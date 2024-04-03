@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { getClient } from '$lib/client';
+import { getServerClient } from '$lib/client.server';
 import type { Handle } from '@sveltejs/kit';
 import type { jwtFields } from '../../server/src/routers/user';
 import { env } from '$env/dynamic/private';
@@ -11,6 +11,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 	} catch (e) {
 		event.locals.user = null;
 	}
-	event.locals.client = getClient(token);
+	event.locals.client = getServerClient(token);
 	return await resolve(event);
 };

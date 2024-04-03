@@ -5,8 +5,7 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "users" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"username" varchar(256),
+	"username" varchar(256) PRIMARY KEY NOT NULL,
 	"password_hash" varchar(256),
 	"permissionLevel" "permissionLevel",
 	CONSTRAINT "users_username_unique" UNIQUE("username")
