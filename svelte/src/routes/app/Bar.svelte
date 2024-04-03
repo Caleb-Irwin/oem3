@@ -1,5 +1,5 @@
 <script>
-	import Form from '$lib/Form.svelte';
+	import Bttn from '$lib/Button.svelte';
 	import { client } from '$lib/client';
 	import { AppBar } from '@skeletonlabs/skeleton';
 </script>
@@ -8,8 +8,6 @@
 	<svelte:fragment slot="lead">(icon)</svelte:fragment>
 	(title)
 	<svelte:fragment slot="trail">
-		<Form action={client.user.logout} class="flex justify-center" invalidateAll>
-			<button class="btn variant-filled-primary">Logout</button>
-		</Form>
+		<Bttn action={client.user.logout} invalidateAll>Logout</Bttn>
 	</svelte:fragment>
 </AppBar>
