@@ -1,15 +1,12 @@
 <script lang="ts">
 	import Form from '$lib/Form.svelte';
+	import { client } from '$lib/client';
 	import Users from './Users.svelte';
 </script>
 
 <div class="container h-full mx-auto flex justify-center items-center flex-col">
 	<Users />
-	<Form
-		class="mt-2 card p-4"
-		action={(client) => client.users.create.mutate}
-		res={() => location.reload()}
-	>
+	<Form class="mt-2 card p-4" action={client.users.create} successMessage="User Created">
 		<label class="label">
 			<span>Username</span>
 			<input class="input" type="text" placeholder="user1234" id="username" name="username" />

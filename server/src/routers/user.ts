@@ -23,8 +23,7 @@ export const userRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { username, password } = input,
-        passwordHash = await Bun.password.hash(password);
+      const { username, password } = input;
       let token: string;
 
       if (username === "admin") {
@@ -38,7 +37,8 @@ export const userRouter = router({
             code: "BAD_REQUEST",
             message: "Incorrect Username",
           });
-        if (passwordHash === user.passwordHash)
+
+        if (await Bun.password.verify(password, user.passwordHash))
           token = sign(user.username, user.permissionLevel);
       }
 

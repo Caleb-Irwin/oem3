@@ -1,10 +1,6 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import type { ActionData } from './$types';
-
-	export let form: ActionData;
-
-	let logingIn = false;
+	import Form from '$lib/Form.svelte';
+	import { client } from '$lib/client';
 </script>
 
 <svelte:head>
@@ -14,44 +10,16 @@
 <div class="container h-full mx-auto flex justify-center items-center">
 	<div class="space-y-5">
 		<h1 class="h1 text-center">OEM3</h1>
-		<form
-			class="card p-4"
-			method="POST"
-			action="?/login"
-			use:enhance={() => {
-				logingIn = true;
-				return async ({ update }) => {
-					await update();
-					logingIn = false;
-				};
-			}}
-		>
-			{#if form?.msg && !logingIn}
-				<p class="card variant-soft-error p-2 text-center">{form.msg}</p>
-			{/if}
+		<Form class="card p-4" action={client.user.login} successMessage={'Welcome'} invalidateAll>
 			<label class="label my-1">
 				<span>Username</span>
-				<input
-					class="input"
-					type="text"
-					placeholder="username"
-					name="username"
-					disabled={logingIn}
-				/>
+				<input class="input" type="text" placeholder="username" name="username" />
 			</label>
 			<label class="label my-1">
 				<span>Password</span>
-				<input
-					class="input"
-					type="password"
-					placeholder="******"
-					name="password"
-					disabled={logingIn}
-				/>
+				<input class="input" type="password" placeholder="******" name="password" />
 			</label>
-			<button type="submit" class="btn variant-filled-primary w-full mt-1" disabled={logingIn}
-				>Login</button
-			>
-		</form>
+			<button type="submit" class="btn variant-filled-primary w-full mt-1">Login</button>
+		</Form>
 	</div>
 </div>

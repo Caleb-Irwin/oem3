@@ -10,9 +10,10 @@
 		<p class="text-center">
 			Welcome <span class="font-semibold">{data.user.username}</span>. Your permission level is
 			<span class="font-semibold">{data.user.permissionLevel}</span>.
+			<br />
+			{#if data.user.permissionLevel === 'admin'}
+				<a href="/app/admin" class="text-center underline">Admin Panel</a>
+			{/if}
 		</p>
-		<form action="/?/logout" method="post" class="flex justify-center">
-			<button class="btn variant-filled-primary">Logout</button>
-		</form>
 	</div>
 </div>

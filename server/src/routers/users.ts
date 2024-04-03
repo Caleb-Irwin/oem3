@@ -32,7 +32,7 @@ export const usersRouter = router({
 
       await db.insert(users).values({
         username: opts.input.username,
-        passwordHash: Bun.hash(opts.input.password).toString(),
+        passwordHash: await Bun.password.hash(opts.input.password),
         permissionLevel: opts.input.permissionLevel,
       });
     }),
