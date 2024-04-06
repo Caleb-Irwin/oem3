@@ -6,9 +6,14 @@ import { env } from "bun";
 import { db } from "../../db";
 import { TRPCError } from "@trpc/server";
 
-export interface jwtFields {
+interface jwtFieldsInput {
   username: string;
   permissionLevel: PermissionLevel;
+}
+
+export interface jwtFields extends jwtFieldsInput {
+  exp: number;
+  iat: number;
 }
 
 export const userRouter = router({
@@ -60,7 +65,7 @@ export const userRouter = router({
 
 function sign(username: string, permissionLevel: PermissionLevel): string {
   return jwt.sign(
-    { username, permissionLevel } satisfies jwtFields,
+    { username, permissionLevel } satisfies jwtFieldsInput,
     env["JWT_SECRET"],
     {
       expiresIn: "12h",

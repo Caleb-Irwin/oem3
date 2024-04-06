@@ -25,4 +25,7 @@
 			</li>
 		{/each}
 	</ul>
+	{#if $allUsers === undefined}
+		<div class="variant-glass h-16 w-full animate-pulse"></div>
+	{/if}
 </div>
