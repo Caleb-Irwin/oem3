@@ -4,8 +4,12 @@ import { adminProcedure, router } from "../trpc";
 import { permissionLevelEnumZod, users } from "../../db/db";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
+import { eventSubscription } from "../utils/eventSubscription";
+
+const { onUpdate, update } = eventSubscription();
 
 export const usersRouter = router({
+  onUpdate,
   all: adminProcedure.query(async () => {
     return await db.query.users.findMany();
   }),
@@ -36,10 +40,12 @@ export const usersRouter = router({
         passwordHash: await Bun.password.hash(opts.input.password),
         permissionLevel: opts.input.permissionLevel,
       });
+      update();
     }),
   delete: adminProcedure
     .input(z.object({ username: z.string() }))
     .mutation(async ({ input: { username } }) => {
       await db.delete(users).where(eq(users.username, username));
+      update();
     }),
 });

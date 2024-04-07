@@ -1,41 +1,54 @@
 import { TRPCError, initTRPC } from "@trpc/server";
-import * as trpcExpress from "@trpc/server/adapters/express";
+import { CreateExpressContextOptions } from "@trpc/server/adapters/express";
+import { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import Cookies from "cookies";
 import jwt from "jsonwebtoken";
 import { jwtFields } from "./routers/user";
 import { env } from "bun";
 
-export function createContext({
-  req,
-  res,
-}: trpcExpress.CreateExpressContextOptions): {
+export function createContext(
+  ctx: CreateExpressContextOptions | CreateWSSContextFnOptions
+): {
   user?: jwtFields;
-  cookies: Cookies;
+  cookies?: Cookies;
 } {
-  const cookies = new Cookies(req, res);
-  try {
-    const userToken = cookies.get("jwt") ?? req.headers.authorization;
+  if (ctx.res["protocol"]) {
+    const { res, req } = ctx as CreateWSSContextFnOptions;
+    console.log("WS (trpc)");
+    // TODO WebSocket authentication
+    return {
+      user: undefined,
+      cookies: undefined,
+    };
+  } else {
+    const { res, req } = ctx as CreateExpressContextOptions;
+    console.log("Express (trpc)");
 
-    const user = userToken
-      ? (jwt.verify(userToken, env["JWT_SECRET"]) as jwtFields)
-      : undefined;
+    const cookies = new Cookies(req, res);
+    try {
+      const userToken = cookies.get("jwt") ?? req.headers.authorization;
 
-    if (userToken && user)
-      return {
-        user,
-        cookies,
-      };
-    else
+      const user = userToken
+        ? (jwt.verify(userToken, env["JWT_SECRET"]) as jwtFields)
+        : undefined;
+
+      if (userToken && user)
+        return {
+          user,
+          cookies,
+        };
+      else
+        return {
+          user: null,
+          cookies,
+        };
+    } catch (e) {
+      console.log(e);
       return {
         user: null,
         cookies,
       };
-  } catch (e) {
-    console.log(e);
-    return {
-      user: null,
-      cookies,
-    };
+    }
   }
 }
 type Context = Awaited<ReturnType<typeof createContext>>;

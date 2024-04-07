@@ -1,9 +1,9 @@
 <script lang="ts">
 	import Form from '$lib/Form.svelte';
-	import { client, query } from '$lib/client';
+	import { client, sub } from '$lib/client';
 	import { Trash2 } from 'lucide-svelte';
 
-	const allUsers = query(client.users.all);
+	const allUsers = sub(client.users.all, client.users.onUpdate);
 </script>
 
 <div class="card p-4">
