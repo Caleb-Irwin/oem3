@@ -23,7 +23,7 @@ export const client = createTRPCClient<AppRouter>({
 			false: browser
 				? wsLink({
 						client: createWSClient({
-							url: `/trpc`
+							url: `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/trpc`
 						})
 					})
 				: httpBatchLink({

@@ -11,7 +11,7 @@ const connect = async (depth = 0): Promise<InstanceType<typeof Client>> => {
     await client.connect();
     return client;
   } catch (e) {
-    if ((e.code === "ECONNREFUSED" || e.code === "57P03") && depth < 50) {
+    if ((e.code === "ECONNREFUSED" || e.code === "57P03") && depth < 60) {
       await new Promise((res) => setTimeout(res, 500));
       return connect(depth + 1);
     } else console.log("Caught Error", e);
