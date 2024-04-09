@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Form from '$lib/Form.svelte';
 	import { client, sub } from '$lib/client';
-	import { Trash2 } from 'lucide-svelte';
+	import Trash2 from 'lucide-svelte/icons/trash-2';
 
 	const allUsers = sub(client.users.all, client.users.onUpdate);
 </script>

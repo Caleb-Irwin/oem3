@@ -1,4 +1,4 @@
-import { adminProcedure } from "../trpc";
+import { publicProcedure } from "../trpc";
 import { observable } from "@trpc/server/observable";
 
 export const eventSubscription = () => {
@@ -8,14 +8,11 @@ export const eventSubscription = () => {
 
   return {
     update,
-    onUpdate: adminProcedure.subscription(() => {
+    onUpdate: publicProcedure.subscription(() => {
       return observable<null>((emit) => {
-        console.log("+Sub");
-
         const id = crypto.randomUUID();
         subs.set(id, () => emit.next(null));
         return () => {
-          console.log("-Sub");
           subs.delete(id);
         };
       });

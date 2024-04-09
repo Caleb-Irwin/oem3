@@ -11,19 +11,23 @@
 
 	export let action: { mutate: (input: any) => Promise<T> },
 		res: (output: T) => Promise<void> | void = (ouput) => undefined,
-		successMessage: string | null = null;
+		successMessage: string | null = null,
+		noReset = false;
 
-	let disabled = false;
+	let disabled = false,
+		formEl: HTMLFormElement;
 
 	const toastStore = getToastStore();
 </script>
 
 <form
 	class={formClass}
+	bind:this={formEl}
 	on:submit|preventDefault={async (e) => {
 		disabled = true;
 		try {
 			await res(await action.mutate(Object.fromEntries(new FormData(e.currentTarget))));
+			if (!noReset) formEl.reset();
 			if (successMessage !== null)
 				toastStore.trigger({
 					message: successMessage,

@@ -12,43 +12,38 @@ export function createContext(
   user?: jwtFields;
   cookies?: Cookies;
 } {
-  if (ctx.res["protocol"]) {
-    const { res, req } = ctx as CreateWSSContextFnOptions;
-    console.log("WS (trpc)");
-    // TODO WebSocket authentication
+  if ((ctx as CreateWSSContextFnOptions).req.headers.upgrade === "websocket") {
     return {
       user: undefined,
-      cookies: undefined,
     };
-  } else {
-    const { res, req } = ctx as CreateExpressContextOptions;
-    console.log("Express (trpc)");
+  }
 
-    const cookies = new Cookies(req, res);
-    try {
-      const userToken = cookies.get("jwt") ?? req.headers.authorization;
+  const { res, req } = ctx as CreateExpressContextOptions,
+    cookies = new Cookies(req, res);
 
-      const user = userToken
-        ? (jwt.verify(userToken, env["JWT_SECRET"]) as jwtFields)
-        : undefined;
+  try {
+    const userToken = cookies.get("jwt") ?? req.headers.authorization;
 
-      if (userToken && user)
-        return {
-          user,
-          cookies,
-        };
-      else
-        return {
-          user: null,
-          cookies,
-        };
-    } catch (e) {
-      console.log(e);
+    const user = userToken
+      ? (jwt.verify(userToken, env["JWT_SECRET"]) as jwtFields)
+      : undefined;
+
+    if (userToken && user)
+      return {
+        user,
+        cookies,
+      };
+    else
       return {
         user: null,
         cookies,
       };
-    }
+  } catch (e) {
+    console.log(e);
+    return {
+      user: null,
+      cookies,
+    };
   }
 }
 type Context = Awaited<ReturnType<typeof createContext>>;

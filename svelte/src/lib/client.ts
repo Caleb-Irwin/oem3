@@ -20,15 +20,13 @@ export const client = createTRPCClient<AppRouter>({
 			true: httpBatchLink({
 				url: '/trpc'
 			}),
-			false: browser
-				? wsLink({
-						client: createWSClient({
+			false: wsLink({
+				client: browser
+					? createWSClient({
 							url: `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/trpc`
 						})
-					})
-				: httpBatchLink({
-						url: '/trpc'
-					})
+					: (undefined as unknown as ReturnType<typeof createWSClient>)
+			})
 		})
 	]
 });
@@ -71,6 +69,7 @@ export const sub = <I, O, SO>(
 				q.query(args[0] as I).then((v) => set(v));
 			},
 			onError(e) {
+				console.warn(e);
 				getToastStore().trigger({
 					message: isTRPCClientError(e)
 						? e.message[0] === '['
