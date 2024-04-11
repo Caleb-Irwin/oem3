@@ -5,6 +5,7 @@ import { permissionLevelEnumZod, users } from "../../db/db";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { eventSubscription } from "../utils/eventSubscription";
+import { usersKv } from "../utils/kv";
 
 const { onUpdate, update } = eventSubscription();
 
@@ -48,4 +49,10 @@ export const usersRouter = router({
       await db.delete(users).where(eq(users.username, username));
       update();
     }),
+  invalidateAll: adminProcedure.mutation(async () => {
+    await usersKv.set(
+      "onlyValidAfterSeconds",
+      Math.round(Date.now() / 1000).toString()
+    );
+  }),
 });

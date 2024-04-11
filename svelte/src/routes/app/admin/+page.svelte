@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Button from '$lib/Button.svelte';
 	import Form from '$lib/Form.svelte';
 	import { client } from '$lib/client';
 	import UserList from './UserList.svelte';
@@ -26,5 +27,13 @@
 			</label>
 			<button class="btn variant-filled-primary w-full mt-2">Create New User</button>
 		</Form>
+		<Button
+			action={client.users.invalidateAll}
+			confirm
+			successMessage="All Sessions Invalidated"
+			class="btn variant-filled-secondary flex mt-4"
+		>
+			Invalidate All Sessions
+		</Button>
 	</div>
 </div>

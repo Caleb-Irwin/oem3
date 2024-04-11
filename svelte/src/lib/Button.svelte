@@ -8,9 +8,17 @@
 
 	export let action: { mutate: (input: any) => Promise<T> },
 		res: (output: T) => Promise<void> | void = (ouput) => undefined,
-		successMessage: string | null = null;
+		successMessage: string | null = null,
+		confirm: boolean | string = false;
 </script>
 
-<Form {action} {res} class="flex justify-center" invalidateAll={invalidateAllFlag} {successMessage}>
+<Form
+	{action}
+	{res}
+	class="flex justify-center"
+	invalidateAll={invalidateAllFlag}
+	{successMessage}
+	{confirm}
+>
 	<button class={btnClass}><slot /></button>
 </Form>

@@ -1,8 +1,8 @@
 <script lang="ts" generics="T extends any">
 	import { invalidateAll } from '$app/navigation';
 
-	import { getToastStore } from '@skeletonlabs/skeleton';
-	import { isTRPCClientError } from './client';
+	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
+	import { handleTRPCError } from './client';
 
 	let formClass = '';
 	export { formClass as class };
@@ -12,21 +12,34 @@
 	export let action: { mutate: (input: any) => Promise<T> },
 		res: (output: T) => Promise<void> | void = (ouput) => undefined,
 		successMessage: string | null = null,
-		noReset = false;
+		noReset = false,
+		confirm: boolean | string = false;
 
 	let disabled = false,
 		formEl: HTMLFormElement;
 
-	const toastStore = getToastStore();
+	const toastStore = getToastStore(),
+		modalStore = getModalStore();
 </script>
 
 <form
 	class={formClass}
 	bind:this={formEl}
 	on:submit|preventDefault={async (e) => {
+		const formData = Object.fromEntries(new FormData(e.currentTarget));
+		if (confirm !== false) {
+			const confirmed = await new Promise((response) =>
+				modalStore.trigger({
+					type: 'confirm',
+					title: confirm === true ? 'Are you sure?' : confirm.toString(),
+					response
+				})
+			);
+			if (!confirmed) return;
+		}
 		disabled = true;
 		try {
-			await res(await action.mutate(Object.fromEntries(new FormData(e.currentTarget))));
+			await res(await action.mutate(formData));
 			if (!noReset) formEl.reset();
 			if (successMessage !== null)
 				toastStore.trigger({
@@ -35,17 +48,7 @@
 				});
 			if (invalidateAllFlag) await invalidateAll();
 		} catch (e) {
-			toastStore.trigger({
-				message: isTRPCClientError(e)
-					? e.message[0] === '['
-						? JSON.parse(e.message)[0].message
-						: e.message
-					: 'Error Occured',
-				background: 'variant-filled-error'
-			});
-			if (!isTRPCClientError(e)) {
-				console.log(e);
-			}
+			handleTRPCError(e);
 		}
 		disabled = false;
 	}}

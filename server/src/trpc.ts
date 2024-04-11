@@ -5,13 +5,14 @@ import Cookies from "cookies";
 import jwt from "jsonwebtoken";
 import { jwtFields } from "./routers/user";
 import { env } from "bun";
+import { usersKv } from "./utils/kv";
 
-export function createContext(
+export async function createContext(
   ctx: CreateExpressContextOptions | CreateWSSContextFnOptions
-): {
+): Promise<{
   user?: jwtFields;
   cookies?: Cookies;
-} {
+}> {
   if ((ctx as CreateWSSContextFnOptions).req.headers.upgrade === "websocket") {
     return {
       user: undefined,
@@ -28,7 +29,11 @@ export function createContext(
       ? (jwt.verify(userToken, env["JWT_SECRET"]) as jwtFields)
       : undefined;
 
-    if (userToken && user)
+    if (
+      userToken &&
+      user &&
+      user.iat > parseInt((await usersKv.get("onlyValidAfterSeconds")) ?? "0")
+    )
       return {
         user,
         cookies,
