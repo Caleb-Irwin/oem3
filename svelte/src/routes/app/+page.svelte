@@ -14,6 +14,7 @@
 			{#if data.user.permissionLevel === 'admin'}
 				<a href="/app/admin" class="text-center underline">Admin Panel</a>
 			{/if}
+			<a href="/app/shelf" class="text-center underline">Shelf</a>
 		</p>
 	</div>
 </div>

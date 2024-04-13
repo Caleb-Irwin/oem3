@@ -48,6 +48,9 @@
     "@floating-ui/dom": "1.6.1",
     "@trpc/client": "next",
     "@trpc/server": "next",
-    "jsonwebtoken": "^9.0.2"
+    "canvg": "^4.0.1",
+    "jsbarcode": "^3.11.6",
+    "jsonwebtoken": "^9.0.2",
+    "jspdf": "^2.5.1"
   }
 }
