@@ -47,7 +47,7 @@ export const labelsRouter = router({
           })
           .returning({ id: labelSheets.id });
         update();
-        return id;
+        return id[0];
       }),
     del: generalProcedure
       .input(

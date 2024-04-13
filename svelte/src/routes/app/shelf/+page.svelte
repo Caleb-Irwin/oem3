@@ -27,7 +27,8 @@
 
 	const allSheets = sub(client.labels.sheet.all, client.labels.sheet.onUpdate);
 	const modalStore = getModalStore();
-	let sheetId: number = -1;
+	let sheetId: number = -1,
+		newSheet: number | undefined;
 	$: currentSheet = ($allSheets || []).filter(({ id }) => id === sheetId)[0];
 	$: {
 		if (
@@ -35,17 +36,35 @@
 			$allSheets.length > 0 &&
 			(sheetId === -1 || !$allSheets.map(({ id }) => id).includes(sheetId))
 		)
-			sheetId = $allSheets[0].id;
+			sheetId = $allSheets[$allSheets.length - 1].id;
+	}
+	$: {
+		if (newSheet && $allSheets && $allSheets.map(({ id }) => id).includes(newSheet)) {
+			sheetId = newSheet;
+			newSheet = undefined;
+		}
 	}
 </script>
 
 <div class="h-full w-full grid place-content-center">
 	<div class="flex">
-		<div class="pl-2 grid place-content-center">
+		<div class="pr-2 grid place-content-center">
 			<button
 				class="btn btn-icon btn-icon-sm variant-glass-primary text-primary-500"
-				on:click={() => modalStore.trigger({ type: 'component', component: { ref: AddSheet } })}
-				><Plus /></button
+				on:click={() =>
+					modalStore.trigger({
+						type: 'component',
+						component: {
+							ref: AddSheet,
+							props: {
+								res:
+									//@ts-ignore
+									(n) => {
+										newSheet = n;
+									}
+							}
+						}
+					})}><Plus /></button
 			>
 		</div>
 		<select class="select" bind:value={sheetId} placeholder="Choose Sheet">
