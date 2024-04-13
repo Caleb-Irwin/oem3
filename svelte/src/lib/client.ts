@@ -51,12 +51,8 @@ export const handleTRPCError = (e: unknown) => {
 			? JSON.parse(e.message)[0].message
 			: e.message
 		: 'Error Occured';
-
 	toastTrigger(message);
-
-	if (!isTRPCClientError(e)) {
-		console.log(e);
-	}
+	console.warn(e);
 };
 
 export const query = <I, O>(

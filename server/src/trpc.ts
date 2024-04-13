@@ -51,7 +51,7 @@ export async function createContext(
     };
   }
 }
-type Context = Awaited<ReturnType<typeof createContext>>;
+export type Context = Awaited<ReturnType<typeof createContext>>;
 const t = initTRPC.context<Context>().create();
 
 export const router = t.router;
@@ -60,5 +60,28 @@ export const publicProcedure = t.procedure;
 export const adminProcedure = publicProcedure.use((opts) => {
   const { ctx } = opts;
   if (ctx.user && ctx.user.permissionLevel === "admin") return opts.next();
+  else throw new TRPCError({ code: "UNAUTHORIZED" });
+});
+
+export const generalProcedure = publicProcedure.use((opts) => {
+  const { ctx } = opts;
+  if (
+    ctx.user &&
+    (ctx.user.permissionLevel === "general" ||
+      ctx.user.permissionLevel === "admin")
+  )
+    return opts.next();
+  else throw new TRPCError({ code: "UNAUTHORIZED" });
+});
+
+export const viewerProcedure = publicProcedure.use((opts) => {
+  const { ctx } = opts;
+  if (
+    ctx.user &&
+    (ctx.user.permissionLevel === "viewer" ||
+      ctx.user.permissionLevel === "general" ||
+      ctx.user.permissionLevel === "admin")
+  )
+    return opts.next();
   else throw new TRPCError({ code: "UNAUTHORIZED" });
 });

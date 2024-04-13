@@ -1,4 +1,4 @@
-<script lang="ts" generics="T extends any">
+<script lang="ts" generics="T extends any, I extends object">
 	import { invalidateAll } from '$app/navigation';
 
 	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
@@ -9,11 +9,13 @@
 	let invalidateAllFlag = false;
 	export { invalidateAllFlag as invalidateAll };
 
-	export let action: { mutate: (input: any) => Promise<T> },
+	export let action: { mutate: (input: I) => Promise<T> },
 		res: (output: T) => Promise<void> | void = (ouput) => undefined,
 		successMessage: string | null = null,
 		noReset = false,
-		confirm: boolean | string = false;
+		confirm: boolean | string = false,
+		input: Partial<I> = {},
+		modalMode = false;
 
 	let disabled = false,
 		formEl: HTMLFormElement;
@@ -39,7 +41,8 @@
 		}
 		disabled = true;
 		try {
-			await res(await action.mutate(formData));
+			//@ts-ignore
+			await res(await action.mutate({ ...input, ...formData }));
 			if (!noReset) formEl.reset();
 			if (successMessage !== null)
 				toastStore.trigger({
@@ -51,6 +54,7 @@
 			handleTRPCError(e);
 		}
 		disabled = false;
+		if (modalMode) modalStore.close();
 	}}
 >
 	<fieldset {disabled}>

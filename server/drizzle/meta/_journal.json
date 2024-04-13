@@ -15,6 +15,20 @@
       "when": 1712810927310,
       "tag": "0001_wonderful_squirrel_girl",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1713032471586,
+      "tag": "0002_lucky_green_goblin",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1713032632057,
+      "tag": "0003_quick_bloodaxe",
+      "breakpoints": true
     }
   ]
 }

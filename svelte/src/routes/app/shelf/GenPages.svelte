@@ -74,15 +74,14 @@
 				{sf}
 				{wordWidth}
 				svgCallback={async (svg) => {
-					console.log('svgCallback');
-
 					await pdf.addPage(svg);
 					index++;
 					await ((ms) => new Promise((res) => setTimeout(res, ms)))(50);
 					if (index !== pages.length) page = pages[index];
 					else {
-						pdf.save(fileTitle);
 						running = false;
+						page = undefined;
+						pdf.save(fileTitle);
 					}
 				}}
 			/>
