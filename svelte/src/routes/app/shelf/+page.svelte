@@ -9,14 +9,10 @@
 	import Pencil from 'lucide-svelte/icons/pencil';
 	import Button from '$lib/Button.svelte';
 	import ChangeSheetName from './ChangeSheetName.svelte';
-
-	let total = 50,
-		auxText = 'test',
-		sf = 3,
-		fileTitle = 'labels';
+	import Download from './Download.svelte';
 
 	$: labels = (() => {
-		const arr = new Array<Label>(total);
+		const arr = new Array<Label>(250);
 		arr.fill({
 			barcode: '123456789012',
 			name: 'Test Tag Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test A B C D E F G H I J K L M N O P',
@@ -46,11 +42,11 @@
 	}
 </script>
 
-<div class="h-full w-full grid place-content-center">
-	<div class="flex">
+<div class="h-full w-full p-4 flex flex-col items-center">
+	<div class="flex w-full max-w-lg card p-3">
 		<div class="pr-2 grid place-content-center">
 			<button
-				class="btn btn-icon btn-icon-sm variant-glass-primary text-primary-500"
+				class="btn btn-icon variant-glass-primary text-primary-500"
 				on:click={() =>
 					modalStore.trigger({
 						type: 'component',
@@ -78,7 +74,7 @@
 		</select>
 		<div class="pl-2 grid place-content-center">
 			<button
-				class="btn btn-icon btn-icon-sm variant-glass-secondary text-secondary-500"
+				class="btn btn-icon variant-glass-secondary text-secondary-500"
 				on:click={() =>
 					modalStore.trigger({
 						type: 'component',
@@ -88,33 +84,12 @@
 		</div>
 		<div class="pl-2 grid place-content-center">
 			<Button
-				class="btn btn-icon btn-icon-sm variant-glass-error text-error-500"
+				class="btn btn-icon variant-glass-error text-error-500"
 				action={client.labels.sheet.del}
 				input={{ id: sheetId }}
 				confirm="Delete Forever?"><Trash_2 /></Button
 			>
 		</div>
 	</div>
-
-	<div class="card max-w-sm p-4 flex flex-col items-center">
-		<h4 class="h4 font-semibold w-full">Generate Labels</h4>
-		<label class="label w-full py-1">
-			<span>Dummy Label Count</span>
-			<input type="number" bind:value={total} class="input" />
-		</label>
-		<label class="label w-full py-1">
-			<span>Auxillary Text</span>
-			<input type="text" bind:value={auxText} class="input" />
-		</label>
-		<label class="label w-full py-1">
-			<span>Scale Factor</span>
-			<input type="number" bind:value={sf} class="input" />
-		</label>
-		<label class="label w-full py-1 pb-4">
-			<span>File Title</span>
-			<input type="text" bind:value={fileTitle} class="input" />
-		</label>
-
-		<GenPages {labels} {sf} {auxText} {fileTitle} />
-	</div>
+	<Download {labels} name={currentSheet?.name ?? ''} />
 </div>

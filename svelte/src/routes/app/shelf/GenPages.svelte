@@ -5,7 +5,8 @@
 	import { tick } from 'svelte';
 	import { WordWidth } from './wordWidth';
 	import { genPDF } from './genPdf';
-	import { ProgressBar, ProgressRadial } from '@skeletonlabs/skeleton';
+	import { ProgressBar } from '@skeletonlabs/skeleton';
+	import Download from 'lucide-svelte/icons/download';
 
 	export let labels: Label[],
 		auxText = '',
@@ -29,7 +30,7 @@
 </script>
 
 <button
-	class="btn variant-filled-primary w-full"
+	class="btn variant-ghost-primary w-full flex-grow"
 	on:click={() => {
 		page = undefined;
 		running = true;
@@ -43,7 +44,7 @@
 	{#if running}
 		<ProgressBar height="h-6" value={index} max={pages.length} track="bg-primary-900" />
 	{:else}
-		Download
+		<span><Download /></span><span>Download</span>
 	{/if}
 </button>
 <svg width="0" height="0">
