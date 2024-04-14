@@ -68,20 +68,20 @@ export const query = <I, O>(
 	return { subscribe };
 };
 
-export const sub = <I, O, SO>(
+export const sub = <I, O, SI, SO>(
 	q: { query: (input: I) => Promise<O> },
 	{
 		subscribe: sub
 	}: {
 		subscribe: (
-			param: void,
+			param: SI,
 			opts: {
 				onData?: (data: SO) => void;
 				onError?: (err: TRPCClientError<any>) => void;
 			}
 		) => any;
 	},
-	...args: I extends void ? [] : [I]
+	...args: I extends void ? (SI extends void ? [] : [undefined, SI]) : [I, SI | void]
 ): Readable<O | undefined> => {
 	const { subscribe, set } = writable<O | undefined>(undefined);
 
@@ -89,7 +89,7 @@ export const sub = <I, O, SO>(
 		q.query(args[0] as I)
 			.then((v) => set(v))
 			.catch(handleTRPCError);
-		sub(undefined, {
+		sub(args[1] as SI, {
 			onData(data) {
 				q.query(args[0] as I).then((v) => set(v));
 			},

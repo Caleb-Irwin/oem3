@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { InferSelectModel, relations } from "drizzle-orm";
 import {
   pgTable,
   pgEnum,
@@ -78,6 +78,7 @@ export const labels = pgTable(
     barcode: varchar("barcode", { length: 256 }),
     name: varchar("name", { length: 256 }),
     priceCents: integer("price_cents"),
+    qbId: varchar("qbId", { length: 256 }),
   },
   (labels) => {
     return {
@@ -90,3 +91,5 @@ export const labels = pgTable(
 export const labelsRelations = relations(labelSheets, ({ one }) => ({
   sheet: one(labelSheets),
 }));
+
+export type Label = InferSelectModel<typeof labels>;

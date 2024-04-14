@@ -1,27 +1,15 @@
 <script lang="ts">
-	import type { Label } from './types';
-	import GenPages from './GenPages.svelte';
 	import { client, sub } from '$lib/client';
 	import AddSheet from './AddSheet.svelte';
-	import { getModalStore } from '@skeletonlabs/skeleton';
+	import { ProgressBar, getModalStore } from '@skeletonlabs/skeleton';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Trash_2 from 'lucide-svelte/icons/trash-2';
 	import Pencil from 'lucide-svelte/icons/pencil';
 	import Button from '$lib/Button.svelte';
 	import ChangeSheetName from './ChangeSheetName.svelte';
-	import Download from './Download.svelte';
+	import Sheet from './Sheet.svelte';
 
-	$: labels = (() => {
-		const arr = new Array<Label>(250);
-		arr.fill({
-			barcode: '123456789012',
-			name: 'Test Tag Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test A B C D E F G H I J K L M N O P',
-			price: 0.99
-		});
-		return arr;
-	})();
-
-	const allSheets = sub(client.labels.sheet.all, client.labels.sheet.onUpdate);
+	const allSheets = sub(client.labels.sheet.all, client.labels.onUpdate);
 	const modalStore = getModalStore();
 	let sheetId: number = -1,
 		newSheet: number | undefined;
@@ -91,5 +79,18 @@
 			>
 		</div>
 	</div>
-	<Download {labels} name={currentSheet?.name ?? ''} />
+
+	{#if $allSheets !== undefined && $allSheets.length === 0}
+		<p class="p-2 text-lg">No Label Sheets — Create One!</p>
+	{/if}
+
+	{#if currentSheet}
+		{#key currentSheet}
+			<Sheet sheetId={currentSheet.id} sheetName={currentSheet.name ?? ''} />
+		{/key}
+	{:else}
+		<div class="w-full max-w-lg py-2">
+			<ProgressBar />
+		</div>
+	{/if}
 </div>

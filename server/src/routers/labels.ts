@@ -9,18 +9,8 @@ import { eventSubscription } from "../utils/eventSubscription";
 const { onUpdate, update } = eventSubscription();
 
 export const labelsRouter = router({
-  // all: viewerProcedure
-  //   .input(
-  //     z.object({
-  //       sheetId: z.number().int(),
-  //     })
-  //   )
-  //   .query(async ({ ctx, input: { sheetId: id } }) => {
-  //     await checkSheetPermissions(ctx, id);
-  //     return await db.query.labels.findMany({ where: eq(labels.sheet, id) });
-  //   }),
+  onUpdate,
   sheet: {
-    onUpdate,
     all: viewerProcedure.query(async ({ ctx }) => {
       const allSheets = await db.query.labelSheets.findMany();
       return allSheets.filter(
@@ -70,7 +60,7 @@ export const labelsRouter = router({
       .mutation(async ({ ctx, input: { id } }) => {
         await checkSheetPermissions(ctx, id);
         await db.delete(labels).where(eq(labels.sheet, id));
-        update();
+        update(id.toString());
       }),
     rename: generalProcedure
       .input(
@@ -88,6 +78,77 @@ export const labelsRouter = router({
         update();
       }),
   },
+  all: viewerProcedure
+    .input(
+      z.object({
+        sheetId: z.number().int(),
+      })
+    )
+    .query(async ({ ctx, input: { sheetId: id } }) => {
+      await checkSheetPermissions(ctx, id);
+      return await db.query.labels.findMany({ where: eq(labels.sheet, id) });
+    }),
+  add: generalProcedure
+    .input(
+      z.object({
+        sheetId: z.number().int(),
+        name: z.string(),
+        barcode: z.string().min(1),
+        price: z.coerce.number().gte(0),
+        qbId: z.string().optional(),
+      })
+    )
+    .mutation(
+      async ({ ctx, input: { sheetId, name, price, barcode, qbId } }) => {
+        await checkSheetPermissions(ctx, sheetId);
+        await db.insert(labels).values({
+          sheet: sheetId,
+          name,
+          priceCents: Math.round(price * 100),
+          barcode,
+          qbId,
+        });
+        update(sheetId.toString());
+      }
+    ),
+  edit: generalProcedure
+    .input(
+      z.object({
+        sheetId: z.number().int(),
+        id: z.number().int(),
+        name: z.string(),
+        barcode: z.string().min(1),
+        price: z.coerce.number().gte(0),
+        qbId: z.string().optional(),
+      })
+    )
+    .mutation(
+      async ({ ctx, input: { sheetId, id, name, price, barcode, qbId } }) => {
+        await checkSheetPermissions(ctx, sheetId);
+        await db
+          .update(labels)
+          .set({
+            name,
+            priceCents: Math.round(price * 100),
+            barcode,
+            qbId,
+          })
+          .where(eq(labels.id, id));
+        update(sheetId.toString());
+      }
+    ),
+  del: generalProcedure
+    .input(
+      z.object({
+        sheetId: z.number().int(),
+        id: z.number().int(),
+      })
+    )
+    .mutation(async ({ ctx, input: { id, sheetId } }) => {
+      await checkSheetPermissions(ctx, sheetId);
+      await db.delete(labels).where(eq(labels.id, id));
+      update(sheetId.toString());
+    }),
 });
 
 const checkSheetPermissions = async (

@@ -1,21 +1,30 @@
+import { z } from "zod";
 import { publicProcedure } from "../trpc";
 import { observable } from "@trpc/server/observable";
 
 export const eventSubscription = () => {
-  let subs = new Map();
+  let subs = new Map<string, { next: () => void; topic: string }>();
 
-  const update = () => subs.forEach((emit) => emit());
+  const update = (updateTopic = "default") =>
+    subs.forEach(({ next, topic }) => {
+      if (updateTopic === topic) next();
+    });
 
   return {
     update,
-    onUpdate: publicProcedure.subscription(() => {
-      return observable<null>((emit) => {
-        const id = crypto.randomUUID();
-        subs.set(id, () => emit.next(null));
-        return () => {
-          subs.delete(id);
-        };
-      });
-    }),
+    onUpdate: publicProcedure
+      .input(z.string().default("default"))
+      .subscription(({ input: topic }) => {
+        return observable<null>((emit) => {
+          const id = crypto.randomUUID();
+          subs.set(id, {
+            next: () => emit.next(null),
+            topic,
+          });
+          return () => {
+            subs.delete(id);
+          };
+        });
+      }),
   };
 };

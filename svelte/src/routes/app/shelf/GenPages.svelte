@@ -30,7 +30,7 @@
 </script>
 
 <button
-	class="btn variant-ghost-primary w-full flex-grow"
+	class="btn variant-glass-primary w-full flex-grow text-secondary-500"
 	on:click={() => {
 		page = undefined;
 		running = true;
@@ -39,7 +39,7 @@
 		index = 0;
 		page = pages[index];
 	}}
-	disabled={running}
+	disabled={running || labels.length === 0}
 >
 	{#if running}
 		<ProgressBar height="h-6" value={index} max={pages.length} track="bg-primary-900" />

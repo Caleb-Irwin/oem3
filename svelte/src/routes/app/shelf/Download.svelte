@@ -37,7 +37,7 @@
 	<div class="flex w-full max-w-lg">
 		<div class="pr-2 grid place-content-center">
 			<button
-				class="btn btn-icon btn-icon variant-glass-secondary text-secondary-500"
+				class="btn btn-icon variant-glass-secondary text-secondary-500"
 				on:click={() => (settingsOpen = !settingsOpen)}><Settings /></button
 			>
 		</div>

@@ -25,7 +25,7 @@
 </script>
 
 <form
-	class={formClass}
+	class={(modalMode ? 'card max-w-md p-4 flex flex-col items-center ' : '') + formClass}
 	bind:this={formEl}
 	on:submit|preventDefault={async (e) => {
 		const formData = Object.fromEntries(new FormData(e.currentTarget));

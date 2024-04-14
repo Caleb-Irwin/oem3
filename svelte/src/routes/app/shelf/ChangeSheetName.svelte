@@ -5,13 +5,7 @@
 	export let id: number, current: string;
 </script>
 
-<Form
-	action={client.labels.sheet.rename}
-	input={{ id }}
-	class="card max-w-sm p-4 flex flex-col items-center"
-	successMessage="Renamed"
-	modalMode
->
+<Form action={client.labels.sheet.rename} input={{ id }} successMessage="Renamed" modalMode>
 	<h4 class="h4 font-semibold w-full">Rename</h4>
 	<label class="label w-full py-1">
 		<span>Name</span>

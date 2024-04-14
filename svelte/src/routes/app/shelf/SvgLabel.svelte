@@ -37,9 +37,10 @@
 		}, Promise.resolve(0));
 
 		if (lines.length > 3) lines[2] = lines[2].slice(0, lines[2].length - 3) + '...';
+		if (lines.length < 3) lines.push(line.join(''));
 		if (lines.length < 3) lines.unshift('');
 		if (lines.length < 3) lines.unshift('');
-		if (lines.length < 3) lines.unshift('');
+		console.log(lines);
 
 		lines = lines;
 

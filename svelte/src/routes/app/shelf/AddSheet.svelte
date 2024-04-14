@@ -7,7 +7,6 @@
 
 <Form
 	action={client.labels.sheet.add}
-	class="card max-w-sm p-4 flex flex-col items-center"
 	successMessage="Sheet Created"
 	res={({ id }) => res(id)}
 	modalMode
