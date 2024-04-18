@@ -54,7 +54,9 @@
 		<select class="select" bind:value={sheetId} placeholder="Choose Sheet">
 			{#if $allSheets}
 				{#each $allSheets as sheet}
-					<option value={sheet.id}>{sheet.name} ({sheet.owner})</option>
+					<option value={sheet.id}
+						>{sheet.name} ({sheet.owner + (sheet.public ? '' : '; private')})</option
+					>
 				{/each}
 			{:else}
 				<option value={-1}>Loading...</option>
@@ -81,14 +83,14 @@
 	</div>
 
 	{#if $allSheets !== undefined && $allSheets.length === 0}
-		<p class="p-2 text-lg">No Label Sheets — Create One!</p>
+		<p class="p-4 text-xl">No Label Sheets — Create One!</p>
 	{/if}
 
 	{#if currentSheet}
 		{#key currentSheet}
 			<Sheet sheetId={currentSheet.id} sheetName={currentSheet.name ?? ''} />
 		{/key}
-	{:else}
+	{:else if !($allSheets !== undefined && $allSheets.length === 0)}
 		<div class="w-full max-w-lg py-2">
 			<ProgressBar />
 		</div>

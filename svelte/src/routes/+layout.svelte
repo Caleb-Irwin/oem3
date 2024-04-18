@@ -1,17 +1,24 @@
 <script lang="ts">
 	import '../app.postcss';
 	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
-	import { Modal, Toast, getToastStore, storePopup } from '@skeletonlabs/skeleton';
+	import { Modal, Toast, getModalStore, getToastStore, storePopup } from '@skeletonlabs/skeleton';
 	import { initializeStores } from '@skeletonlabs/skeleton';
 	import { setToastTrigger } from '$lib/client';
+	import { onNavigate } from '$app/navigation';
 
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 	initializeStores();
 	const toastStore = getToastStore();
-	setToastTrigger((message) => toastStore.trigger({ message, background: 'variant-filled-error' }));
+	setToastTrigger((message) =>
+		toastStore.trigger({ message, hoverable: true, background: 'variant-filled-error' })
+	);
+	const modalStore = getModalStore();
+	onNavigate(() => {
+		modalStore.clear();
+	});
 </script>
 
-<Toast />
 <Modal />
+<Toast zIndex="z-[1000]" />
 
 <slot />

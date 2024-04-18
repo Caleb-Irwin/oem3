@@ -19,8 +19,8 @@
 	<label class="label w-full py-1">
 		<span>Sharing</span>
 		<select class="select" name="isPublic">
-			<option value="public">Public</option>
 			<option value="">Private</option>
+			<option value="public">Public</option>
 		</select>
 	</label>
 	<button class="btn variant-filled-primary w-full">Add</button>

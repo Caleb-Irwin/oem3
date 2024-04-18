@@ -10,7 +10,8 @@
 		res: (output: T) => Promise<void> | void = (ouput) => undefined,
 		successMessage: string | null = null,
 		confirm: boolean | string = false,
-		input: Partial<I> = {};
+		input: Partial<I> = {},
+		disabled = false;
 </script>
 
 <Form
@@ -22,5 +23,5 @@
 	{confirm}
 	{input}
 >
-	<button class={btnClass}><slot /></button>
+	<button class={btnClass} {disabled}><slot /></button>
 </Form>

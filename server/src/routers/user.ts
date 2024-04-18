@@ -1,10 +1,11 @@
 import { router, publicProcedure } from "../trpc";
 import { z } from "zod";
 import jwt from "jsonwebtoken";
-import { PermissionLevel } from "../../db/db";
+import { PermissionLevel, users } from "../../db/db";
 import { env } from "bun";
 import { db } from "../../db";
 import { TRPCError } from "@trpc/server";
+import { eq } from "drizzle-orm";
 
 interface jwtFieldsInput {
   username: string;
@@ -32,7 +33,19 @@ export const userRouter = router({
       let token: string;
 
       if (username === "admin") {
-        if (password === env["ADMIN_PASSWORD"]) token = sign(username, "admin");
+        if (password === env["ADMIN_PASSWORD"]) {
+          token = sign(username, "admin");
+          if (
+            (await db.query.users.findFirst({
+              where: eq(users.username, "admin"),
+            })) === undefined
+          )
+            await db.insert(users).values({
+              username: "admin",
+              passwordHash: "",
+              permissionLevel: "admin",
+            });
+        }
       } else {
         const user = await db.query.users.findFirst({
           where: (users, { eq }) => eq(users.username, username),

@@ -50,11 +50,11 @@
 					background: 'variant-filled-success'
 				});
 			if (invalidateAllFlag) await invalidateAll();
+			if (modalMode) modalStore.close();
 		} catch (e) {
 			handleTRPCError(e);
 		}
 		disabled = false;
-		if (modalMode) modalStore.close();
 	}}
 >
 	<fieldset {disabled}>

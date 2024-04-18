@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Form from '$lib/Form.svelte';
+	import Button from '$lib/Button.svelte';
 	import { client, sub } from '$lib/client';
 	import Trash2 from 'lucide-svelte/icons/trash-2';
 
@@ -12,16 +12,17 @@
 		{#each $allUsers ?? [] as user}
 			<li class="variant-glass p-2 rounded-sm my-1 flex items-center">
 				<span class="font-semibold text-surface-100">{user.username}</span>
-				<span class="text-surface-200 pl-2">
-					{user.permissionLevel === 'general' ? '' : user.permissionLevel}</span
-				>
+				<span class="text-surface-200 pl-2"> {user.permissionLevel}</span>
 				<span class="flex-grow"></span>
-				<Form action={client.users.delete} successMessage={`Removed "${user.username}"`}>
-					<input type="hidden" value={user.username} name="username" />
-					<button class="btn btn-icon">
-						<Trash2 />
-					</button>
-				</Form>
+				<Button
+					class="btn btn-icon"
+					action={client.users.delete}
+					successMessage={`Removed "${user.username}"`}
+					input={{ username: user.username }}
+					disabled={user.username === 'admin'}
+				>
+					<Trash2 />
+				</Button>
 			</li>
 		{/each}
 	</ul>

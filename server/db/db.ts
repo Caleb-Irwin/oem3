@@ -57,7 +57,9 @@ export const labelSheets = pgTable(
     id: serial("id").primaryKey(),
     name: varchar("name", { length: 128 }),
     public: boolean("public"),
-    owner: varchar("owner", { length: 256 }).references(() => users.username),
+    owner: varchar("owner", { length: 256 }).references(() => users.username, {
+      onDelete: "cascade",
+    }),
   },
   (labelSheet) => {
     return {
@@ -74,7 +76,9 @@ export const labels = pgTable(
   "labels",
   {
     id: serial("id").primaryKey(),
-    sheet: integer("sheet").references(() => labelSheets.id),
+    sheet: integer("sheet").references(() => labelSheets.id, {
+      onDelete: "cascade",
+    }),
     barcode: varchar("barcode", { length: 256 }),
     name: varchar("name", { length: 256 }),
     priceCents: integer("price_cents"),

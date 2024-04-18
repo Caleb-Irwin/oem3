@@ -31,13 +31,9 @@
 
 	<ul class="w-full my-4 max-w-6xl">
 		{#each $sheet ?? [] as label, i}
-			<li
-				class="p-0.5 m-0.5 px-1 rounded-sm flex items-center {i % 2 === 0
-					? 'bg-surface-600'
-					: 'bg-surface-800'}"
-			>
+			<li class="m-0.5 rounded-sm flex {i % 2 === 0 ? 'bg-surface-600' : 'bg-surface-800'}">
 				<button
-					class="btn btn-icon btn-icon-sm text-gray-400"
+					class="p-0.5 px-1 btn btn-icon btn-icon-sm text-gray-400"
 					on:click={() =>
 						modalStore.trigger({
 							type: 'component',
@@ -45,7 +41,7 @@
 						})}><Pencil /></button
 				>
 				<button
-					class="grid grid-cols-2 lg:grid-cols-6 flex-grow px-1"
+					class="grid place-content-center grid-cols-2 lg:grid-cols-6 flex-grow px-1"
 					on:click={() =>
 						modalStore.trigger({
 							type: 'component',
