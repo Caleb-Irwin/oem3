@@ -8,6 +8,7 @@
 	import Button from '$lib/Button.svelte';
 	import ChangeSheetName from './ChangeSheetName.svelte';
 	import Sheet from './Sheet.svelte';
+	import { browser } from '$app/environment';
 
 	const allSheets = sub(client.labels.sheet.all, client.labels.onUpdate);
 	const modalStore = getModalStore();
@@ -20,13 +21,22 @@
 			$allSheets.length > 0 &&
 			(sheetId === -1 || !$allSheets.map(({ id }) => id).includes(sheetId))
 		)
-			sheetId = $allSheets[$allSheets.length - 1].id;
+			if (sheetId === -1 && browser && localStorage.getItem('lastSheetId')) {
+				const sheetIdStore = parseInt(localStorage.getItem('lastSheetId') ?? '0');
+				if ($allSheets.map(({ id }) => id).includes(sheetIdStore)) sheetId = sheetIdStore;
+				else sheetId = $allSheets[$allSheets.length - 1].id;
+			} else {
+				sheetId = $allSheets[$allSheets.length - 1].id;
+			}
 	}
 	$: {
 		if (newSheet && $allSheets && $allSheets.map(({ id }) => id).includes(newSheet)) {
 			sheetId = newSheet;
 			newSheet = undefined;
 		}
+	}
+	$: {
+		if (browser && sheetId >= 0) localStorage.setItem('lastSheetId', sheetId.toString());
 	}
 </script>
 
@@ -68,7 +78,14 @@
 				on:click={() =>
 					modalStore.trigger({
 						type: 'component',
-						component: { ref: ChangeSheetName, props: { id: sheetId, current: currentSheet.name } }
+						component: {
+							ref: ChangeSheetName,
+							props: {
+								id: sheetId,
+								current: currentSheet.name,
+								isPublic: currentSheet.public ? 'public' : ''
+							}
+						}
 					})}><Pencil /></button
 			>
 		</div>

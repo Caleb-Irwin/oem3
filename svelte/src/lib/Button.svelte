@@ -17,7 +17,7 @@
 <Form
 	{action}
 	{res}
-	class="flex justify-center"
+	class="grid place-content-center"
 	invalidateAll={invalidateAllFlag}
 	{successMessage}
 	{confirm}

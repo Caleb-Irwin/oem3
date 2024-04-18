@@ -67,13 +67,14 @@ export const labelsRouter = router({
         z.object({
           id: z.number().int(),
           name: z.string().min(1),
+          isPublic: z.coerce.boolean(),
         })
       )
-      .mutation(async ({ ctx, input: { id, name } }) => {
+      .mutation(async ({ ctx, input: { id, name, isPublic } }) => {
         await checkSheetPermissions(ctx, id);
         await db
           .update(labelSheets)
-          .set({ name })
+          .set({ name, public: isPublic })
           .where(eq(labelSheets.id, id));
         update();
       }),

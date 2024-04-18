@@ -60,8 +60,10 @@
 					action={client.labels.del}
 					input={{ id: label.id, sheetId }}
 					confirm="Delete?"
-					class="btn btn-icon btn-icon-sm text-error-500"><Trash_2 /></Button
+					class="btn btn-icon btn-icon-sm text-error-500"
 				>
+					<Trash_2 />
+				</Button>
 			</li>
 		{:else}
 			<p class="text-center text-lg italic">Empty Sheet</p>
