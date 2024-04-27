@@ -14,7 +14,7 @@
 	>
 	<a href="/" class="font-semibold text-2xl">OEM3</a>
 	<svelte:fragment slot="trail">
-		<Bttn action={client.user.logout} class="btn btn-icon variant-filled-secondary" invalidateAll
+		<Bttn action={client.user.logout} class="btn btn-icon variant-filled-primary" invalidateAll
 			><LogOut /></Bttn
 		>
 	</svelte:fragment>

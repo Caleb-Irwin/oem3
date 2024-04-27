@@ -20,6 +20,7 @@
 					successMessage={`Removed "${user.username}"`}
 					input={{ username: user.username }}
 					disabled={user.username === 'admin'}
+					confirm="Delete user and all accompanying date?"
 				>
 					<Trash2 />
 				</Button>
