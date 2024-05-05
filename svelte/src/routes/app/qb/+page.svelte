@@ -1,29 +1,11 @@
 <script lang="ts">
-	import UploadFile from '$lib/UploadFile.svelte';
+	import Files from '$lib/Files.svelte';
 	import { client } from '$lib/client';
-	import { getModalStore } from '@skeletonlabs/skeleton';
-	import Upload from 'lucide-svelte/icons/upload';
-
-	const modalStore = getModalStore();
 </script>
 
-<div class="w-full flex place-content-center p-10">
-	<button
-		class="btn variant-filled-primary btn-icon"
-		on:click={() => {
-			modalStore.trigger({
-				type: 'component',
-				component: {
-					ref: UploadFile,
-					props: {
-						action: client.qb.upload,
-						titleType: 'QuickBooks',
-						accept: '.CSV'
-					}
-				}
-			});
-		}}
-	>
-		<Upload />
-	</button>
+<h1 class="text-center h2 p-2 pt-4">QuickBooks</h1>
+<div class="w-full flex place-content-center p-2">
+	<div class="max-w-xl">
+		<Files filesRouter={client.qb.files} />
+	</div>
 </div>

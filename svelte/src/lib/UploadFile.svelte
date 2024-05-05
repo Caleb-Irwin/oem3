@@ -3,7 +3,9 @@
 	import { onMount } from 'svelte';
 
 	export let action: {
-			mutate: (input: any) => Promise<never>;
+			upload: {
+				mutate: (input: any) => Promise<never>;
+			};
 		},
 		titleType: string,
 		accept: string | undefined = undefined;
@@ -15,7 +17,7 @@
 	});
 </script>
 
-<Form {action} modalMode successMessage="Uploaded File">
+<Form action={action.upload} modalMode successMessage="Uploaded File">
 	<h4 class="h4 font-semibold w-full">Upload {titleType} File</h4>
 	<input class="input p-1 my-1" type="file" name="file" bind:this={fileInput} {accept} />
 	<label class="label my-1">

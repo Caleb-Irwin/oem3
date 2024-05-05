@@ -1,9 +1,9 @@
 import { TRPCError } from "@trpc/server";
 import { router } from "../../trpc";
-import { upload } from "../../utils/files";
+import { fileProcedures } from "../../utils/files";
 
 export const qbRouter = router({
-  ...upload("qb", async (blob, fileType) => {
+  ...fileProcedures("qb", async (blob, fileType) => {
     if (fileType !== "text/csv")
       throw new TRPCError({
         message: "Invalid File Type (CSV Only)",
