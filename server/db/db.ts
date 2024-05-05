@@ -9,6 +9,7 @@ import {
   serial,
   boolean,
   integer,
+  bigint,
 } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
@@ -97,3 +98,25 @@ export const labelsRelations = relations(labelSheets, ({ one }) => ({
 }));
 
 export type Label = InferSelectModel<typeof labels>;
+
+export const files = pgTable(
+  "files",
+  {
+    id: serial("id").primaryKey(),
+    name: varchar("name", { length: 256 }),
+    type: varchar("type", { length: 256 }),
+    author: varchar("author", { length: 256 }).references(
+      () => users.username,
+      {
+        onDelete: "set null",
+      }
+    ),
+    content: text("content"),
+    uploadedTime: bigint("uploadedTime", { mode: "number" }),
+  },
+  (files) => {
+    return {
+      idIndex: index("files_id_idx").on(files.id),
+    };
+  }
+);

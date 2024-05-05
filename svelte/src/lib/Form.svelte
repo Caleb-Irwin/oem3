@@ -22,6 +22,17 @@
 
 	const toastStore = getToastStore(),
 		modalStore = getModalStore();
+
+	const readFile = async (file: File): Promise<string> =>
+		new Promise((res, rej) => {
+			const reader = new FileReader();
+			reader.addEventListener('load', (event) => {
+				if (event.target === null) rej(new Error('event.target is null'));
+				else res(event.target?.result as string);
+			});
+			reader.addEventListener('error', (err) => rej(err));
+			reader.readAsDataURL(file);
+		});
 </script>
 
 <form
@@ -41,6 +52,10 @@
 		}
 		disabled = true;
 		try {
+			if (formData.file instanceof File) {
+				formData.fileName = formData.file.name;
+				formData.file = await readFile(formData.file);
+			}
 			//@ts-ignore
 			await res(await action.mutate({ ...input, ...formData }));
 			if (!noReset) formEl.reset();

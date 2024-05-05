@@ -43,6 +43,13 @@
       "when": 1713401134000,
       "tag": "0005_furry_venus",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1714875453582,
+      "tag": "0006_same_ser_duncan",
+      "breakpoints": true
     }
   ]
 }
