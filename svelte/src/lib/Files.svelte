@@ -7,16 +7,16 @@
 	import { client, sub } from './client';
 	import type { FileRouterType } from '../../../server/src/utils/files';
 
-	export let filesRouter: FileRouterType;
+	export let filesRouter: FileRouterType, title: string;
 
 	const files = sub(filesRouter.get, filesRouter.onUpdate);
 
 	const modalStore = getModalStore();
 </script>
 
-<div class="card p-4">
+<div class="w-full card p-4">
 	<div class="flex items-center pb-2">
-		<h3 class="h3">Files</h3>
+		<h3 class="h3">Files: {title}</h3>
 		<div class="flex-grow"></div>
 		<button
 			class="btn btn-sm variant-filled-primary max-w-48"
@@ -76,6 +76,8 @@
 					<Trash_2 />
 				</Button>
 			</li>
+		{:else}
+			<p class="text-center">{$files ? 'No Files' : 'Loading...'}</p>
 		{/each}
 	</ul>
 </div>

@@ -5,7 +5,7 @@
 
 <h1 class="text-center h2 p-2 pt-4">QuickBooks</h1>
 <div class="w-full flex place-content-center p-2">
-	<div class="max-w-xl">
-		<Files filesRouter={client.qb.files} />
+	<div class="w-full max-w-xl">
+		<Files filesRouter={client.qb.files} title="QuickBooks Items" />
 	</div>
 </div>
