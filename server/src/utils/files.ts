@@ -61,6 +61,14 @@ export const fileProcedures = (
           orderBy: [desc(files.uploadedTime)],
         });
       }),
+      download: generalProcedure
+        .input(z.object({ fileId: z.number().int() }))
+        .query(async ({ input: { fileId } }) => {
+          return await db.query.files.findFirst({
+            where: eq(files.id, fileId),
+            columns: { content: true },
+          });
+        }),
     }),
   };
 };
@@ -86,5 +94,8 @@ export type FileRouterType = {
   };
   del: {
     mutate: (input: inputs["del"]) => Promise<outputs["del"]>;
+  };
+  download: {
+    query: (input: inputs["download"]) => Promise<outputs["download"]>;
   };
 };

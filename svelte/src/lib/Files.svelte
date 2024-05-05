@@ -48,7 +48,20 @@
 					>Apply</button
 				>
 				<p class="flex-grow">
-					<span class="font-semibold">#{file.id}: {file.name}</span> <br />
+					<span class="font-semibold"
+						>#{file.id}
+						<button
+							on:click={async () => {
+								const link = document.createElement('a');
+								link.download = file.name ?? 'default file name';
+								link.href = (await filesRouter.download.query({ fileId: file.id }))?.content ?? '';
+								document.body.appendChild(link);
+								link.click();
+								document.body.removeChild(link);
+							}}
+							class="underline">{file.name}</button
+						></span
+					> <br />
 					<span class="text-sm">
 						uploaded by {file.author} at
 						{new Date(file.uploadedTime ?? 0).toLocaleString()}</span
