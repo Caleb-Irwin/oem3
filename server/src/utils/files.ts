@@ -4,12 +4,18 @@ import { files } from "./files.table";
 import { generalProcedure, router } from "../trpc";
 import { desc, eq } from "drizzle-orm";
 import { eventSubscription } from "./eventSubscription";
-import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
+import {
+  TRPCError,
+  type inferRouterInputs,
+  type inferRouterOutputs,
+} from "@trpc/server";
 import { TRPCClientError } from "@trpc/client";
+import type { RunWorker } from "./managedWorker";
 
 export const fileProcedures = (
   type: string,
-  verifyFunction: (blob: string, fileType: string) => Promise<void>
+  verifyFunction: (blob: string, fileType: string) => Promise<void>,
+  runWorker: RunWorker
 ) => {
   const { onUpdate, update } = eventSubscription();
 
@@ -17,10 +23,16 @@ export const fileProcedures = (
     files: router({
       onUpdate,
       upload: generalProcedure
-        .input(z.object({ file: z.string(), fileName: z.string() }))
+        .input(
+          z.object({
+            file: z.string(),
+            fileName: z.string(),
+            processFile: z.coerce.boolean(),
+          })
+        )
         .mutation(
           async ({
-            input: { file, fileName },
+            input: { file, fileName, processFile },
             ctx: {
               user: { username },
             },
@@ -44,6 +56,20 @@ export const fileProcedures = (
             )[0];
 
             update();
+
+            if (processFile) {
+              try {
+                await runWorker({ fileId });
+              } catch (e: any) {
+                throw new TRPCError({
+                  code: "CONFLICT",
+                  message:
+                    'Uploaded file, but could not process due to "' +
+                    (e.message ?? "unknown reason") +
+                    '"',
+                });
+              }
+            }
 
             return { fileId };
           }

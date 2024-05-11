@@ -6,8 +6,20 @@
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { client, sub } from './client';
 	import type { FileRouterType } from '../../../server/src/utils/files';
+	import type { Resolver } from '@trpc/client';
 
-	export let filesRouter: FileRouterType, title: string;
+	export let filesRouter: FileRouterType,
+		title: string,
+		applyMutation: {
+			mutate: Resolver<{
+				input: {
+					fileId: number;
+				};
+				output: never;
+				errorShape: any;
+				transformer: false;
+			}>;
+		};
 
 	const files = sub(filesRouter.get, filesRouter.onUpdate);
 
@@ -44,8 +56,11 @@
 	<ul class="rounded-lg">
 		{#each $files ?? [] as file, i}
 			<li class="py-0.5 px-2 flex items-center {i % 2 === 0 ? 'bg-surface-600' : 'bg-surface-800'}">
-				<button class="btn btn-sm variant-filled-primary mr-3" on:click={() => alert('TODO')}
-					>Apply</button
+				<Button
+					action={applyMutation}
+					input={{ fileId: file.id }}
+					successMessage="Processing Started"
+					class="btn btn-sm variant-filled-primary mr-3">Apply</Button
 				>
 				<p class="flex-grow">
 					<span class="font-semibold"

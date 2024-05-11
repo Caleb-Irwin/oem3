@@ -23,8 +23,8 @@
 	<label class="label my-1">
 		<span>Mode</span>
 		<select class="select" name="processFile" id="">
-			<option value="true">Process File</option>
-			<option value="false">Only Upload</option>
+			<option value="1">Process File</option>
+			<option value="">Only Upload</option>
 		</select>
 	</label>
 	<button class="btn variant-filled-primary w-full">Upload</button>
