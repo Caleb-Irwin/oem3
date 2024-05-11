@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS "qb_qbId_idx" ON "qb" ("qb_id");

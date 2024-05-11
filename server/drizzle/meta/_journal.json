@@ -57,6 +57,13 @@
       "when": 1715387235777,
       "tag": "0007_skinny_jean_grey",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1715391886889,
+      "tag": "0008_loving_tattoo",
+      "breakpoints": true
     }
   ]
 }
