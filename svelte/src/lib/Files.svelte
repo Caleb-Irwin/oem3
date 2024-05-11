@@ -16,7 +16,7 @@
 
 <div class="w-full card p-4">
 	<div class="flex items-center pb-2">
-		<h3 class="h3">Files: {title}</h3>
+		<h4 class="h4 font-semibold">Files: {title}</h4>
 		<div class="flex-grow"></div>
 		<button
 			class="btn btn-sm variant-filled-primary max-w-48"
