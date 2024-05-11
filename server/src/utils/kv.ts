@@ -3,7 +3,7 @@ import { db } from "../db";
 import { kv } from "./kv.table";
 
 export class KV<T extends string> {
-  private map = new Map<T, string>();
+  private map = new Map<T, string | null>();
   private namespace: string;
   private inited = false;
 

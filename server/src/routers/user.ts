@@ -2,10 +2,10 @@ import { router, publicProcedure } from "../trpc";
 import { z } from "zod";
 import jwt from "jsonwebtoken";
 import { type PermissionLevel, users } from "./users.table";
-import { env } from "bun";
 import { db } from "../db";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
+import { ADMIN_PASSWORD, JWT_SECRET } from "../env";
 
 interface jwtFieldsInput {
   username: string;
@@ -30,10 +30,10 @@ export const userRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const { username, password } = input;
-      let token: string;
+      let token: string = "";
 
       if (username === "admin") {
-        if (password === env["ADMIN_PASSWORD"]) {
+        if (password === ADMIN_PASSWORD) {
           token = sign(username, "admin");
           if (
             (await db.query.users.findFirst({
@@ -56,30 +56,34 @@ export const userRouter = router({
             message: "Incorrect Username",
           });
 
-        if (await Bun.password.verify(password, user.passwordHash))
+        if (
+          user.passwordHash &&
+          user.permissionLevel &&
+          (await Bun.password.verify(password, user.passwordHash))
+        )
           token = sign(user.username, user.permissionLevel);
       }
 
-      if (!token) {
+      if (token === "") {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Incorrect Password",
         });
       }
 
-      ctx.cookies.set("jwt", token);
+      ctx.cookies?.set("jwt", token);
 
       return { token };
     }),
   logout: publicProcedure.mutation(({ ctx }) => {
-    ctx.cookies.set("jwt", "", { expires: new Date() });
+    ctx.cookies?.set("jwt", "", { expires: new Date() });
   }),
 });
 
 function sign(username: string, permissionLevel: PermissionLevel): string {
   return jwt.sign(
     { username, permissionLevel } satisfies jwtFieldsInput,
-    env["JWT_SECRET"],
+    JWT_SECRET,
     {
       expiresIn: "12h",
     }

@@ -19,5 +19,4 @@ async function devKit() {
   });
 }
 
-//@ts-expect-error Bun allows this!
 export const kit = await genKit();

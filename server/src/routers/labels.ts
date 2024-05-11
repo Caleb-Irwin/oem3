@@ -1,6 +1,11 @@
 import { TRPCError } from "@trpc/server";
 import { db } from "../db";
-import { Context, generalProcedure, router, viewerProcedure } from "../trpc";
+import {
+  type Context,
+  generalProcedure,
+  router,
+  viewerProcedure,
+} from "../trpc";
 import { z } from "zod";
 import { labelSheets, labels } from "./labels.table";
 import { eq } from "drizzle-orm";
@@ -159,6 +164,9 @@ const checkSheetPermissions = async (
   const sheet = await db.query.labelSheets.findFirst({
     where: (labelSheets, { eq }) => eq(labelSheets.id, id),
   });
+
+  if (!sheet || ctx.user === null) throw new TRPCError({ code: "BAD_REQUEST" });
+
   if (
     ctx.user.permissionLevel === "admin" ||
     sheet.public ||

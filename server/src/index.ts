@@ -8,7 +8,6 @@ import { appRouter } from "./appRouter";
 import { WebSocketServer } from "ws";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
 
-//@ts-expect-error bun allows this
 await migrate();
 
 const app = polka();

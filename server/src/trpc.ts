@@ -1,21 +1,21 @@
 import { TRPCError, initTRPC } from "@trpc/server";
-import { CreateExpressContextOptions } from "@trpc/server/adapters/express";
-import { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
+import { type CreateExpressContextOptions } from "@trpc/server/adapters/express";
+import { type CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import Cookies from "cookies";
 import jwt from "jsonwebtoken";
-import { jwtFields } from "./routers/user";
-import { env } from "bun";
+import { type jwtFields } from "./routers/user";
 import { usersKv } from "./utils/kv";
+import { JWT_SECRET } from "./env";
 
 export async function createContext(
   ctx: CreateExpressContextOptions | CreateWSSContextFnOptions
 ): Promise<{
-  user?: jwtFields;
+  user: jwtFields | null;
   cookies?: Cookies;
 }> {
   if ((ctx as CreateWSSContextFnOptions).req.headers.upgrade === "websocket") {
     return {
-      user: undefined,
+      user: null,
     };
   }
 
@@ -26,7 +26,7 @@ export async function createContext(
     const userToken = cookies.get("jwt") ?? req.headers.authorization;
 
     const user = userToken
-      ? (jwt.verify(userToken, env["JWT_SECRET"]) as jwtFields)
+      ? (jwt.verify(userToken, JWT_SECRET) as unknown as jwtFields)
       : undefined;
 
     if (
@@ -57,13 +57,19 @@ const t = initTRPC.context<Context>().create();
 export const router = t.router;
 export const publicProcedure = t.procedure;
 
-export const adminProcedure = publicProcedure.use((opts) => {
+export const adminProcedure = publicProcedure.use<{
+  user: jwtFields;
+  cookies: Cookies;
+}>((opts) => {
   const { ctx } = opts;
   if (ctx.user && ctx.user.permissionLevel === "admin") return opts.next();
   else throw new TRPCError({ code: "UNAUTHORIZED" });
 });
 
-export const generalProcedure = publicProcedure.use((opts) => {
+export const generalProcedure = publicProcedure.use<{
+  user: jwtFields;
+  cookies: Cookies;
+}>((opts) => {
   const { ctx } = opts;
   if (
     ctx.user &&
@@ -74,7 +80,10 @@ export const generalProcedure = publicProcedure.use((opts) => {
   else throw new TRPCError({ code: "UNAUTHORIZED" });
 });
 
-export const viewerProcedure = publicProcedure.use((opts) => {
+export const viewerProcedure = publicProcedure.use<{
+  user: jwtFields;
+  cookies: Cookies;
+}>((opts) => {
   const { ctx } = opts;
   if (
     ctx.user &&
