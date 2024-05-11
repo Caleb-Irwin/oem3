@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -8,6 +9,7 @@ import {
   text,
   varchar,
 } from "drizzle-orm/pg-core";
+import { uniref } from "../../db.schema";
 
 export const qbItemTypeEnum = pgEnum("qb_item_type", [
   "Service",
@@ -49,6 +51,7 @@ export const qb = pgTable(
     um: qbUmEnum("um"),
     preferredVendor: varchar("preferred_vendor", { length: 256 }),
     deleted: boolean("deleted").default(false).notNull(),
+    lastUpdated: integer("lastUpdated").notNull(),
   },
   (qb) => {
     return {
@@ -56,3 +59,7 @@ export const qb = pgTable(
     };
   }
 );
+
+export const qbRelations = relations(qb, ({ one }) => ({
+  qbItem: one(uniref, { fields: [qb.id], references: [uniref.qb] }),
+}));
