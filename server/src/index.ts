@@ -3,7 +3,7 @@ import * as trpcExpress from "@trpc/server/adapters/express";
 import { createContext } from "./trpc";
 import { kit } from "./kitMiddleware";
 import { PORT, DEV } from "./config";
-import { migrate } from "../db";
+import { migrate } from "./db";
 import { appRouter } from "./appRouter";
 import { WebSocketServer } from "ws";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";

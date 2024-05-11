@@ -1,9 +1,9 @@
 import { router, publicProcedure } from "../trpc";
 import { z } from "zod";
 import jwt from "jsonwebtoken";
-import { PermissionLevel, users } from "../../db/db";
+import { type PermissionLevel, users } from "./users.table";
 import { env } from "bun";
-import { db } from "../../db";
+import { db } from "../db";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 

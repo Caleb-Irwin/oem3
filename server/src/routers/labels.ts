@@ -1,8 +1,8 @@
 import { TRPCError } from "@trpc/server";
-import { db } from "../../db";
+import { db } from "../db";
 import { Context, generalProcedure, router, viewerProcedure } from "../trpc";
 import { z } from "zod";
-import { labelSheets, labels } from "../../db/db";
+import { labelSheets, labels } from "./labels.table";
 import { eq } from "drizzle-orm";
 import { eventSubscription } from "../utils/eventSubscription";
 

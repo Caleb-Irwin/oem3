@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { db } from "../../db";
+import { db } from "../db";
 import { adminProcedure, router } from "../trpc";
-import { permissionLevelEnumZod, users } from "../../db/db";
+import { permissionLevelEnumZod, users } from "./users.table";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { eventSubscription } from "../utils/eventSubscription";

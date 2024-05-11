@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { db } from "../../db";
-import { files } from "../../db/db";
+import { db } from "../db";
+import { files } from "./files.table";
 import { generalProcedure, router } from "../trpc";
 import { desc, eq } from "drizzle-orm";
 import { eventSubscription } from "./eventSubscription";

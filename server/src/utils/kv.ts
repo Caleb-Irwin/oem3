@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { db } from "../../db";
-import { kv } from "../../db/db";
+import { db } from "../db";
+import { kv } from "./kv.table";
 
 export class KV<T extends string> {
   private map = new Map<T, string>();
@@ -14,7 +14,7 @@ export class KV<T extends string> {
     const res = await db.query.kv.findMany({
       where: (kv, { eq }) => eq(kv.namespace, this.namespace),
     });
-    res.forEach(({ key, value }) => this.map.set(key, value));
+    res.forEach(({ key, value }) => this.map.set(key as T, value));
   }
   async get(key: T) {
     if (!this.inited) await this.init();
