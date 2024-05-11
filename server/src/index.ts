@@ -41,3 +41,5 @@ applyWSSHandler<AppRouter>({
   router: appRouter,
   createContext,
 });
+
+console.log("Bun Version: " + Bun.version);

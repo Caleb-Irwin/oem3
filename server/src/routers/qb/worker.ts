@@ -11,7 +11,7 @@ work(
     let i = 0;
     while (i < 10) {
       incrementProgress(10);
-      await Bun.sleep(1000);
+      await Bun.sleep(100);
       i++;
     }
   }
