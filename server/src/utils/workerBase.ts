@@ -37,24 +37,33 @@ export const work = async (
 
   self.onmessage = async (event: MessageEvent) => {
     try {
-      const fileId = event.data.fileId;
-      if (typeof fileId !== "number")
-        throw new Error("No fileId was provided!");
-      const fileRecord = await db.query.files.findFirst({
-        where: eq(files.id, fileId),
-      });
-      if (!fileRecord?.content) throw new Error("No file with id " + fileId);
-      const total = await verify({ db, fileBlob: fileRecord.content });
-      sendMessage("verifyed");
-      let done = 0;
-      await processFunc({
-        db,
-        fileBlob: fileRecord.content,
-        incrementProgress: (by = 1) => {
-          done += by;
-          sendMessage("progress", (done / (total <= 0 ? 1 : total)).toString());
+      await db.transaction(
+        async (tx) => {
+          const fileId = event.data.fileId;
+          if (typeof fileId !== "number")
+            throw new Error("No fileId was provided!");
+          const fileRecord = await tx.query.files.findFirst({
+            where: eq(files.id, fileId),
+          });
+          if (!fileRecord?.content)
+            throw new Error("No file with id " + fileId);
+          const total = await verify({ db: tx, fileBlob: fileRecord.content });
+          sendMessage("verifyed");
+          let done = 0;
+          await processFunc({
+            db: tx,
+            fileBlob: fileRecord.content,
+            incrementProgress: (by = 1) => {
+              done += by;
+              sendMessage(
+                "progress",
+                (done / (total <= 0 ? 1 : total)).toString()
+              );
+            },
+          });
         },
-      });
+        { isolationLevel: "repeatable read" }
+      );
       sendMessage("done");
       await client.end();
       process.exit();
