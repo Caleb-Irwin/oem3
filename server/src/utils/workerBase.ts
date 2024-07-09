@@ -4,14 +4,23 @@ import { Client } from "pg";
 import { POSTGRESQL } from "../env";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "../db.schema";
+import { createChangeset } from "./changeset";
 
 export interface WorkerMessage {
-  type: "ready" | "verifyed" | "progress" | "done" | "error";
+  type:
+    | "ready"
+    | "verified"
+    | "progress"
+    | "done"
+    | "changesetUpdate"
+    | "error";
   msg?: string;
 }
 
 export const work = async (
   self: Worker,
+  changesetType: (typeof schema.changesetType.enumValues)[number],
+
   verify: (params: {
     db: NodePgDatabase<typeof schema>;
     fileBlob: string;
@@ -20,6 +29,7 @@ export const work = async (
     db: NodePgDatabase<typeof schema>;
     fileBlob: string;
     incrementProgress: (by?: number) => void;
+    changeset: Awaited<ReturnType<typeof createChangeset>>;
   }) => Promise<void>
 ) => {
   const sendMessage = (
@@ -36,19 +46,28 @@ export const work = async (
   const db = drizzle(client, { schema });
 
   self.onmessage = async (event: MessageEvent) => {
+    let changeset: Awaited<ReturnType<typeof createChangeset>> | undefined =
+      undefined;
+
     try {
+      const fileId = event.data.fileId;
+      changeset = await createChangeset(changesetType, fileId, () =>
+        sendMessage("changesetUpdate")
+      );
       await db.transaction(
         async (tx) => {
-          const fileId = event.data.fileId;
+          changeset = changeset as Awaited<ReturnType<typeof createChangeset>>;
           if (typeof fileId !== "number")
             throw new Error("No fileId was provided!");
+
           const fileRecord = await tx.query.files.findFirst({
             where: eq(files.id, fileId),
           });
           if (!fileRecord?.content)
             throw new Error("No file with id " + fileId);
           const total = await verify({ db: tx, fileBlob: fileRecord.content });
-          sendMessage("verifyed");
+          sendMessage("verified");
+
           let done = 0;
           await processFunc({
             db: tx,
@@ -60,7 +79,9 @@ export const work = async (
                 (done / (total <= 0 ? 1 : total)).toString()
               );
             },
+            changeset,
           });
+          changeset.setStatus("current");
         },
         { isolationLevel: "repeatable read" }
       );
@@ -69,6 +90,7 @@ export const work = async (
       process.exit();
     } catch (e: any) {
       sendMessage("error", e["message"] ?? "Unknown Error Occurred");
+      if (changeset) changeset.setStatus("error");
       console.log(e);
       process.exit();
     }

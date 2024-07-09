@@ -7,11 +7,12 @@ declare var self: Worker;
 
 work(
   self,
+  "qb",
   async ({ fileBlob }) => {
     return atob(fileBlob.slice(fileBlob.indexOf("base64,") + 7)).split("\n")
       .length;
   },
-  async ({ incrementProgress, fileBlob, db }) => {
+  async ({ incrementProgress, fileBlob, changeset, db }) => {
     const res = Papa.parse(
       atob(fileBlob.slice(fileBlob.indexOf("base64,") + 7)),
       { header: true }
@@ -32,6 +33,9 @@ work(
       .process(async (item) => {
         if (item.Type !== "Inventory Part") return;
         const prev = await getQBItem.execute({ qbId: item.Item });
+        if (!prev)
+          changeset.add({ type: "create", data: JSON.stringify(item), db });
+        else changeset.add({ type: "nop", db });
       });
   }
 );

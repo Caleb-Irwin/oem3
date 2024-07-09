@@ -1,0 +1,1 @@
+ALTER TYPE "changeset_status_type" ADD VALUE 'error';

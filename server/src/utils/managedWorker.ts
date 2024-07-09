@@ -3,10 +3,15 @@ import { generalProcedure, router } from "../trpc";
 import { eventSubscription } from "./eventSubscription";
 import type { WorkerMessage } from "./workerBase";
 import { TRPCError } from "@trpc/server";
+import { getChangeset } from "./changeset";
+import type { changesetType } from "./changeset.table";
 
 export type RunWorker = (data: { fileId: number }) => Promise<void>;
 
-export const managedWorker = (workerUrl: string) => {
+export const managedWorker = (
+  workerUrl: string,
+  changeset: (typeof changesetType.enumValues)[number] | null
+) => {
   const { onUpdate, update } = eventSubscription();
 
   const status = {
@@ -25,7 +30,7 @@ export const managedWorker = (workerUrl: string) => {
       return new Promise<void>((res, rej) => {
         const worker = new Worker(workerUrl);
         let done = false,
-          verifyed = false;
+          verified = false;
 
         worker.onmessage = (event) => {
           const msg: WorkerMessage = event.data;
@@ -35,15 +40,17 @@ export const managedWorker = (workerUrl: string) => {
           } else if (msg.type === "done") {
             done = true;
             update();
-          } else if (msg.type === "verifyed") {
+          } else if (msg.type === "verified") {
             status.progress = 0;
             update();
-            verifyed = true;
+            verified = true;
             res();
           } else if (msg.type === "progress") {
             status.progress = parseFloat(msg.msg ?? "0");
             update();
-          } else if (verifyed) {
+          } else if (msg.type === "changesetUpdate") {
+            update("changeset");
+          } else if (verified) {
             rej(msg.msg ?? "Error in worker");
           } else {
             status.running = false;
@@ -59,7 +66,7 @@ export const managedWorker = (workerUrl: string) => {
             : "Worker closed before completing task";
           status.error = done ? false : true;
           update();
-          if (!verifyed) rej("Worker closed before completing task");
+          if (!verified) rej("Worker closed before completing task");
         });
       });
     };
@@ -79,6 +86,9 @@ export const managedWorker = (workerUrl: string) => {
         }),
       status: generalProcedure.query(() => {
         return status;
+      }),
+      changeset: generalProcedure.query(async () => {
+        return changeset ? await getChangeset(changeset) : null;
       }),
       onUpdate,
     }),

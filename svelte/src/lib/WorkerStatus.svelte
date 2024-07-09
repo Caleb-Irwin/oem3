@@ -18,7 +18,7 @@
 
 <div class="card p-4">
 	<div class="flex items-center">
-		<h4 class="pr-2 h4 font-semibold">Worker Status</h4>
+		<h4 class="pr-2 h4 font-semibold">Worker</h4>
 
 		{#if $status?.error}
 			<div class="text-error-600">

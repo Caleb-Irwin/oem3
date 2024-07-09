@@ -4,7 +4,8 @@ import { fileProcedures } from "../../utils/files";
 import { managedWorker } from "../../utils/managedWorker";
 
 const { worker, runWorker } = managedWorker(
-  new URL("worker.ts", import.meta.url).href
+  new URL("worker.ts", import.meta.url).href,
+  "qb"
 );
 
 export const qbRouter = router({
