@@ -11,6 +11,7 @@ import PromisePool from "@supercharge/promise-pool";
 import { getTableConfig } from "drizzle-orm/pg-core";
 import type { genDiffer } from "./changeset.helpers";
 import { uniref } from "./uniref.table";
+import { insertHistory } from "./history";
 
 export const createChangeset = async (
   table: ChangesetTable,
@@ -81,10 +82,21 @@ export const createChangeset = async (
                 lastUpdated: timeStamp,
               })
               .returning({ id: table.id });
-            await db.insert(uniref).values({
-              qb: res[0].id,
-              resourceType: name,
+            const uniRes = await db
+              .insert(uniref)
+              .values({
+                qb: res[0].id,
+                resourceType: name,
+              })
+              .returning({ id: uniref.uniId });
+            await insertHistory({
+              db,
+              entryType: "create",
+              uniref: uniRes[0].id,
+              data: next,
+              created: timeStamp,
             });
+
             summary["create"]++;
           } else {
             const { diff: diffRes, type } = diff(prev, next);
@@ -105,12 +117,23 @@ export const createChangeset = async (
                 .update(table)
                 .set({ ...diffRes, deleted: false, lastUpdated: timeStamp })
                 .where(eq(table.id, prev.id));
+              await insertHistory({
+                db,
+                entryType: "update",
+                uniref: prev.uniref.uniId,
+                data: diffRes,
+                prev: prev,
+                created: timeStamp,
+              });
               summary["update"]++;
             }
           }
         });
       const deletedItems = await db.query[name].findMany({
         where: lt(table.lastUpdated, timeStamp),
+        with: {
+          uniref: true,
+        },
       });
       await PromisePool.withConcurrency(100)
         .for(deletedItems)
@@ -119,6 +142,12 @@ export const createChangeset = async (
             .update(table)
             .set({ lastUpdated: timeStamp, deleted: true })
             .where(eq(table.id, item.id));
+          await insertHistory({
+            db,
+            entryType: "delete",
+            uniref: item.uniref.uniId,
+            created: timeStamp,
+          });
         });
 
       await db

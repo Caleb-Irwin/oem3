@@ -5,3 +5,4 @@ export * from "./routers/users.table";
 export * from "./routers/qb/table";
 export * from "./utils/uniref.table";
 export * from "./utils/changeset.table";
+export * from "./utils/history.table";
