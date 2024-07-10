@@ -28,6 +28,7 @@ export const changesets = pgTable("changesets", {
   file: integer("file").references(() => files.id, {
     onDelete: "set null",
   }),
+  summary: text("summary"),
   created: bigint("uploadedTime", { mode: "number" }).notNull(),
 });
 

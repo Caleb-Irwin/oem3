@@ -1,0 +1,1 @@
+ALTER TABLE "changesets" ADD COLUMN "summary" text;

@@ -22,6 +22,7 @@ export const createChangeset = async (
   notifier();
 
   return {
+    id: changeset.id,
     add: async ({
       db,
       uniref,
@@ -40,6 +41,13 @@ export const createChangeset = async (
         data,
         created: Date.now(),
       });
+    },
+    setSummary: async (summary: { type: string; count: number }[]) => {
+      await db
+        .update(changesets)
+        .set({ summary: JSON.stringify(summary) })
+        .where(eq(changesets.id, changeset.id));
+      notifier();
     },
     setStatus: async (
       status: (typeof changesetStatusType.enumValues)[number]
