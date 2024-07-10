@@ -55,5 +55,5 @@ export const qb = pgTable(
 );
 
 export const qbRelations = relations(qb, ({ one }) => ({
-  qbItem: one(uniref, { fields: [qb.id], references: [uniref.qb] }),
+  uniref: one(uniref, { fields: [qb.id], references: [uniref.qb] }),
 }));

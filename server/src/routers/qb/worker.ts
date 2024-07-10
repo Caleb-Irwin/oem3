@@ -22,13 +22,18 @@ work(
     );
 
     const getQBItem = db.query.qb
-      .findFirst({ where: eq(qb.qbId, sql.placeholder("qbId")) })
+      .findFirst({
+        where: eq(qb.qbId, sql.placeholder("qbId")),
+        with: {
+          uniref: true,
+        },
+      })
       .prepare("qb-item");
 
     await changeset.process<
       QbItemRaw,
       typeof qb.$inferInsert,
-      typeof qb.$inferSelect
+      Exclude<Awaited<ReturnType<typeof getQBItem.execute>>, undefined>
     >({
       db,
       rawItems: (res.data as QbItemRaw[]).filter(

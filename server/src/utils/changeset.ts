@@ -10,6 +10,7 @@ import {
 import PromisePool from "@supercharge/promise-pool";
 import { getTableConfig } from "drizzle-orm/pg-core";
 import type { genDiffer } from "./changeset.helpers";
+import { uniref } from "./uniref.table";
 
 export const createChangeset = async (
   table: ChangesetTable,
@@ -45,7 +46,7 @@ export const createChangeset = async (
     process: async <
       Raw extends object,
       ItemInsert extends object,
-      Item extends { id: number } & ItemInsert
+      Item extends { id: number; uniref: { uniId: number } } & ItemInsert
     >({
       db,
       rawItems,
@@ -73,9 +74,16 @@ export const createChangeset = async (
           const next = transform(raw),
             prev = await getPrevious(next);
           if (!prev) {
-            await db.insert(table).values({
-              ...(next as any),
-              lastUpdated: timeStamp,
+            const res = await db
+              .insert(table)
+              .values({
+                ...(next as any),
+                lastUpdated: timeStamp,
+              })
+              .returning({ id: table.id });
+            await db.insert(uniref).values({
+              qb: res[0].id,
+              resourceType: name,
             });
             summary["create"]++;
           } else {
