@@ -43,19 +43,23 @@ work(
       getPrevious: async (item) => {
         return await getQBItem.execute({ qbId: item.qbId });
       },
-      diff: genDiffer("quantityOnHand", [
-        "desc",
-        "type",
-        "costCents",
-        "priceCents",
-        "salesTaxCode",
-        "purchaseTaxCode",
-        "quantityOnSalesOrder",
-        "quantityOnPurchaseOrder",
-        "um",
-        "account",
-        "preferredVendor",
-      ]),
+      diff: genDiffer(
+        ["quantityOnHand", "quantityOnPurchaseOrder", "quantityOnSalesOrder"],
+        [
+          "desc",
+          "type",
+          "costCents",
+          "priceCents",
+          "salesTaxCode",
+          "purchaseTaxCode",
+          "quantityOnHand",
+          "quantityOnSalesOrder",
+          "quantityOnPurchaseOrder",
+          "um",
+          "account",
+          "preferredVendor",
+        ]
+      ),
       progress,
     });
   }

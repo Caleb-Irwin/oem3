@@ -26,7 +26,7 @@ export const history = pgTable(
       onDelete: "set null",
     }),
     uniref: integer("uniref")
-      .references(() => uniref.uniId)
+      .references(() => uniref.uniId, { onDelete: "cascade" })
       .notNull(),
     data: text("data"),
     created: bigint("created", { mode: "number" }).notNull(),

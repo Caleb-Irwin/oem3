@@ -9,7 +9,7 @@ export const enforceEnum = <T extends string[]>(
 };
 
 export const genDiffer = <Select extends Insert, Insert extends object>(
-  inventoryKey: keyof Insert,
+  inventoryKeys: (keyof Insert)[],
   diffKeys: (keyof Insert)[]
 ) => {
   return (
@@ -21,14 +21,15 @@ export const genDiffer = <Select extends Insert, Insert extends object>(
   } => {
     const diff: Partial<Insert> = {};
     let type: "nop" | "inventory" | "more" = "nop";
-    if (prev[inventoryKey] !== next[inventoryKey]) {
-      diff[inventoryKey] = next[inventoryKey];
-      type = "inventory";
-    }
     diffKeys.forEach((key) => {
       if (prev[key] !== next[key]) {
         diff[key] = next[key] as any;
-        type = "more";
+        type =
+          type !== "more"
+            ? inventoryKeys.includes(key)
+              ? "inventory"
+              : "more"
+            : "more";
       }
     });
     return {

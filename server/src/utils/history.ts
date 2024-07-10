@@ -7,6 +7,7 @@ export const insertHistory = async <T extends object>({
   entryType,
   data,
   prev,
+  exclude = [],
   created,
 }: {
   db: typeof DB;
@@ -14,6 +15,7 @@ export const insertHistory = async <T extends object>({
   entryType: EntryType;
   data?: Partial<T> | null;
   prev?: T;
+  exclude?: (keyof T)[];
   created: number;
 }) => {
   await db.insert(history).values({
@@ -24,12 +26,14 @@ export const insertHistory = async <T extends object>({
         ? JSON.stringify(data)
         : entryType === "update" && data
         ? JSON.stringify(
-            Object.entries(data).map(([key, newValue]) => [
-              key,
-              //@ts-expect-error
-              prev[key],
-              newValue,
-            ])
+            Object.entries(data)
+              .map(([key, newValue]): [string, any, any] => [
+                key,
+                //@ts-expect-error
+                prev[key],
+                newValue,
+              ])
+              .filter(([key]) => !exclude.includes(key as keyof T))
           )
         : null,
     created,

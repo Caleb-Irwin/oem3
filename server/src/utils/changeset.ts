@@ -54,6 +54,7 @@ export const createChangeset = async (
       transform,
       getPrevious,
       diff,
+      excludeFromHistory,
       progress,
     }: {
       db: typeof DB;
@@ -61,6 +62,7 @@ export const createChangeset = async (
       transform: (raw: Raw) => ItemInsert;
       getPrevious: (current: ItemInsert) => Promise<Item | undefined>;
       diff: ReturnType<typeof genDiffer<Item, ItemInsert>>;
+      excludeFromHistory?: (keyof ItemInsert)[];
       progress: (amountDone: number) => void;
     }) => {
       const total = rawItems.length;
@@ -95,6 +97,7 @@ export const createChangeset = async (
               uniref: uniRes[0].id,
               data: next,
               created: timeStamp,
+              exclude: excludeFromHistory,
             });
 
             summary["create"]++;
@@ -123,6 +126,7 @@ export const createChangeset = async (
                 uniref: prev.uniref.uniId,
                 data: diffRes,
                 prev: prev,
+                exclude: excludeFromHistory,
                 created: timeStamp,
               });
               summary["update"]++;
