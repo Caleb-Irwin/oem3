@@ -1,23 +1,32 @@
-import { desc, eq } from "drizzle-orm";
-import { db } from "../db";
+import { desc, eq, lt } from "drizzle-orm";
+import { db as DB } from "../db";
 import {
-  changeType,
   changesetStatusType,
   changesetType,
   changesets,
+  type ChangesetTable,
+  type ChangesetType,
 } from "./changeset.table";
-import type { qb } from "../db.schema";
+import PromisePool from "@supercharge/promise-pool";
+import { getTableConfig } from "drizzle-orm/pg-core";
+import type { genDiffer } from "./changeset.helpers";
 
 export const createChangeset = async (
-  type: (typeof changesetType.enumValues)[number],
+  table: ChangesetTable,
   file: number,
   notifier: () => void
 ) => {
+  const name = getTableConfig(table).name as ChangesetType;
+
   const timeStamp = Date.now(),
     changeset = (
-      await db
-        .insert(changesets)
-        .values({ type, file, created: timeStamp, status: "generating" })
+      await DB.insert(changesets)
+        .values({
+          type: name,
+          file,
+          created: timeStamp,
+          status: "generating",
+        })
         .returning()
     )[0];
   notifier();
@@ -30,58 +39,80 @@ export const createChangeset = async (
     delete: 0,
   };
 
-  let trxDb: typeof db, table: typeof qb;
-
   return {
     id: changeset.id,
     time: timeStamp,
-    start: async (trx: typeof trxDb, tableToModify: typeof table) => {
-      trxDb = trx;
-      table = tableToModify;
-    },
-    change: async ({
-      id,
-      type,
-      data,
+    process: async <
+      Raw extends object,
+      ItemInsert extends object,
+      Item extends { id: number } & ItemInsert
+    >({
+      db,
+      rawItems,
+      transform,
+      getPrevious,
+      diff,
+      progress,
     }: {
-      id: number | null;
-      type: (typeof changeType.enumValues)[number];
-      data?: Partial<typeof table.$inferInsert> | null;
+      db: typeof DB;
+      rawItems: Raw[];
+      transform: (raw: Raw) => ItemInsert;
+      getPrevious: (current: ItemInsert) => Promise<Item | undefined>;
+      diff: ReturnType<typeof genDiffer<Item, ItemInsert>>;
+      progress: (amountDone: number) => void;
     }) => {
-      summary[type]++;
-      if (type === "nop" && id) {
-        await trxDb
-          .update(table)
-          .set({ deleted: false, lastUpdated: timeStamp })
-          .where(eq(table.id, id));
-      } else if (type === "inventoryUpdate" && id) {
-        await trxDb
-          .update(table)
-          .set({ ...data, deleted: false, lastUpdated: timeStamp })
-          .where(eq(table.id, id));
-      } else if (type === "update" && id) {
-        await trxDb
-          .update(table)
-          .set({ ...data, deleted: false, lastUpdated: timeStamp })
-          .where(eq(table.id, id));
-      } else if (type === "create") {
-        await trxDb
-          .insert(table)
-          .values({
-            ...(data as typeof table.$inferInsert),
-            lastUpdated: timeStamp,
-          });
-      } else if (type === "delete" && id) {
-        await trxDb
-          .update(table)
-          .set({ lastUpdated: timeStamp, deleted: true })
-          .where(eq(table.id, id));
-      } else {
-        console.log("Invalid change type", type, id);
-        throw new Error("Invalid change type");
-      }
-    },
-    done: async () => {
+      const total = rawItems.length;
+      let taskCount = 0;
+      await PromisePool.withConcurrency(100)
+        .for(rawItems)
+        .onTaskFinished(() => {
+          taskCount++;
+          if (taskCount % 500 === 0) progress(taskCount / total);
+        })
+        .process(async (raw) => {
+          const next = transform(raw),
+            prev = await getPrevious(next);
+          if (!prev) {
+            await db.insert(table).values({
+              ...(next as any),
+              lastUpdated: timeStamp,
+            });
+            summary["create"]++;
+          } else {
+            const { diff: diffRes, type } = diff(prev, next);
+            if (type === "nop") {
+              await db
+                .update(table)
+                .set({ deleted: false, lastUpdated: timeStamp })
+                .where(eq(table.id, prev.id));
+              summary["nop"]++;
+            } else if (type === "inventory") {
+              await db
+                .update(table)
+                .set({ ...diffRes, deleted: false, lastUpdated: timeStamp })
+                .where(eq(table.id, prev.id));
+              summary["inventoryUpdate"]++;
+            } else {
+              await db
+                .update(table)
+                .set({ ...diffRes, deleted: false, lastUpdated: timeStamp })
+                .where(eq(table.id, prev.id));
+              summary["update"]++;
+            }
+          }
+        });
+      const deletedItems = await db.query[name].findMany({
+        where: lt(table.lastUpdated, timeStamp),
+      });
+      await PromisePool.withConcurrency(100)
+        .for(deletedItems)
+        .process(async (item) => {
+          await db
+            .update(table)
+            .set({ lastUpdated: timeStamp, deleted: true })
+            .where(eq(table.id, item.id));
+        });
+
       await db
         .update(changesets)
         .set({ summary: JSON.stringify(summary) })
@@ -91,8 +122,7 @@ export const createChangeset = async (
     setStatus: async (
       status: (typeof changesetStatusType.enumValues)[number]
     ) => {
-      await db
-        .update(changesets)
+      await DB.update(changesets)
         .set({ status })
         .where(eq(changesets.id, changeset.id));
       notifier();
@@ -103,7 +133,7 @@ export const createChangeset = async (
 export const getChangeset = async (
   type: (typeof changesetType.enumValues)[number]
 ) => {
-  return await db.query.changesets.findFirst({
+  return await DB.query.changesets.findFirst({
     where: eq(changesets.type, type),
     orderBy: desc(changesets.created),
   });

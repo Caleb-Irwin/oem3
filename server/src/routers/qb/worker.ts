@@ -1,18 +1,21 @@
 import { work } from "../../utils/workerBase";
 import Papa from "papaparse";
-import { PromisePool } from "@supercharge/promise-pool";
 import { qb, qbItemTypeEnum, qbUmEnum, taxCodeEnum } from "./table";
-import { eq, lt, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
+import {
+  enforceEnum,
+  genDiffer,
+  removeNaN,
+} from "../../utils/changeset.helpers";
 declare var self: Worker;
 
 work(
   self,
-  "qb",
-  async ({ fileBlob }) => {
-    return atob(fileBlob.slice(fileBlob.indexOf("base64,") + 7)).split("\n")
-      .length;
+  qb,
+  async () => {
+    return;
   },
-  async ({ incrementProgress, fileBlob, changeset, db }) => {
+  async ({ fileBlob, changeset, progress, db }) => {
     const res = Papa.parse(
       atob(fileBlob.slice(fileBlob.indexOf("base64,") + 7)),
       { header: true }
@@ -22,54 +25,34 @@ work(
       .findFirst({ where: eq(qb.qbId, sql.placeholder("qbId")) })
       .prepare("qb-item");
 
-    let taskCount = 0;
-    changeset.start(db, qb);
-
-    await PromisePool.withConcurrency(100)
-      .for(res.data as QbItemRaw[])
-      .onTaskFinished(() => {
-        taskCount++;
-        if (taskCount % 500 === 0) incrementProgress(500);
-      })
-      .process(async (item) => {
-        if (item.Type !== "Inventory Part") return;
-        const prev = await getQBItem.execute({ qbId: item.Item }),
-          next = transformQBItem(item);
-        if (!prev)
-          await changeset.change({
-            type: "create",
-            id: null,
-            data: next,
-          });
-        else {
-          const { diff, type } = diffQBItems(prev, next);
-          if (type === "nop")
-            await changeset.change({ type: "nop", id: prev.id });
-          else if (type === "inventory")
-            await changeset.change({
-              type: "inventoryUpdate",
-              id: prev.id,
-              data: diff,
-            });
-          else
-            await changeset.change({
-              type: "update",
-              id: prev.id,
-              data: diff,
-            });
-        }
-      });
-
-    const deletedItems = await db.query.qb.findMany({
-      where: lt(qb.lastUpdated, changeset.time),
+    await changeset.process<
+      QbItemRaw,
+      typeof qb.$inferInsert,
+      typeof qb.$inferSelect
+    >({
+      db,
+      rawItems: (res.data as QbItemRaw[]).filter(
+        (item) => item.Type === "Inventory Part"
+      ),
+      transform: transformQBItem,
+      getPrevious: async (item) => {
+        return await getQBItem.execute({ qbId: item.qbId });
+      },
+      diff: genDiffer("quantityOnHand", [
+        "desc",
+        "type",
+        "costCents",
+        "priceCents",
+        "salesTaxCode",
+        "purchaseTaxCode",
+        "quantityOnSalesOrder",
+        "quantityOnPurchaseOrder",
+        "um",
+        "account",
+        "preferredVendor",
+      ]),
+      progress,
     });
-    await PromisePool.withConcurrency(100)
-      .for(deletedItems)
-      .process(async (item) => {
-        await changeset.change({ type: "delete", id: item.id });
-      });
-
-    await changeset.done();
   }
 );
 
@@ -105,55 +88,6 @@ const getUM = (umStr: string): (typeof qbUmEnum.enumValues)[number] | null => {
   if (um.includes("pk")) return "pk";
   if (um.includes("cs")) return "cs";
   return null;
-};
-
-const removeNaN = (num: number) => (isNaN(num) ? null : num);
-
-const enforceEnum = <T extends string[]>(
-  str: string,
-  values: T
-): T[number] | null => {
-  if (!values.includes(str)) return null;
-  return str;
-};
-
-const diffQBItems = (
-  prev: typeof qb.$inferSelect,
-  next: typeof qb.$inferInsert
-): {
-  diff: Partial<typeof qb.$inferInsert>;
-  type: "nop" | "inventory" | "more";
-} => {
-  const diff: Partial<typeof qb.$inferInsert> = {};
-  let type: "nop" | "inventory" | "more" = "nop";
-  if (prev.quantityOnHand !== next.quantityOnHand) {
-    diff.quantityOnHand = next.quantityOnHand;
-    type = "inventory";
-  }
-  (
-    [
-      "desc",
-      "type",
-      "costCents",
-      "priceCents",
-      "salesTaxCode",
-      "purchaseTaxCode",
-      "quantityOnSalesOrder",
-      "quantityOnPurchaseOrder",
-      "um",
-      "account",
-      "preferredVendor",
-    ] as (keyof typeof qb.$inferInsert)[]
-  ).forEach((key) => {
-    if (prev[key] !== next[key]) {
-      diff[key] = next[key] as any;
-      type = "more";
-    }
-  });
-  return {
-    type,
-    diff,
-  };
 };
 
 export interface QbItemRaw {

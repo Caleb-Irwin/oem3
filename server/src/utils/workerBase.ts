@@ -19,16 +19,15 @@ export interface WorkerMessage {
 
 export const work = async (
   self: Worker,
-  changesetType: (typeof schema.changesetType.enumValues)[number],
-
+  changesetTable: schema.ChangesetTable,
   verify: (params: {
     db: NodePgDatabase<typeof schema>;
     fileBlob: string;
-  }) => Promise<number>,
+  }) => Promise<void>,
   processFunc: (params: {
     db: NodePgDatabase<typeof schema>;
     fileBlob: string;
-    incrementProgress: (by?: number) => void;
+    progress: (percentDone: number) => void;
     changeset: Awaited<ReturnType<typeof createChangeset>>;
   }) => Promise<void>
 ) => {
@@ -51,7 +50,7 @@ export const work = async (
 
     try {
       const fileId = event.data.fileId;
-      changeset = await createChangeset(changesetType, fileId, () =>
+      changeset = await createChangeset(changesetTable, fileId, () =>
         sendMessage("changesetUpdate")
       );
       await db.transaction(
@@ -65,19 +64,13 @@ export const work = async (
           });
           if (!fileRecord?.content)
             throw new Error("No file with id " + fileId);
-          const total = await verify({ db: tx, fileBlob: fileRecord.content });
+          await verify({ db: tx, fileBlob: fileRecord.content });
           sendMessage("verified");
-
-          let done = 0;
           await processFunc({
             db: tx,
             fileBlob: fileRecord.content,
-            incrementProgress: (by = 1) => {
-              done += by;
-              sendMessage(
-                "progress",
-                (done / (total <= 0 ? 1 : total)).toString()
-              );
+            progress: (amountDone) => {
+              sendMessage("progress", amountDone.toString());
             },
             changeset,
           });

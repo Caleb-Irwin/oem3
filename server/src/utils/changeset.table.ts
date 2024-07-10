@@ -7,6 +7,7 @@ import {
   integer,
 } from "drizzle-orm/pg-core";
 import { files } from "./files.table";
+import type { qb } from "../db.schema";
 
 export const changesetType = pgEnum("changeset_type", ["qb"]),
   changesetStatusType = pgEnum("changeset_status_type", [
@@ -17,6 +18,8 @@ export const changesetType = pgEnum("changeset_type", ["qb"]),
     "partiallyCancelled",
     "error",
   ]);
+export type ChangesetType = (typeof changesetType.enumValues)[number];
+export type ChangesetTable = typeof qb;
 
 export const changesets = pgTable("changesets", {
   id: serial("id").primaryKey(),
@@ -28,11 +31,3 @@ export const changesets = pgTable("changesets", {
   summary: text("summary"),
   created: bigint("uploadedTime", { mode: "number" }).notNull(),
 });
-
-export const changeType = pgEnum("change_type", [
-  "nop",
-  "create",
-  "delete",
-  "update",
-  "inventoryUpdate",
-]);
