@@ -1,0 +1,1 @@
+ALTER TABLE "qb" ALTER COLUMN "lastUpdated" SET DATA TYPE bigint;

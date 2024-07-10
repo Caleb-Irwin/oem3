@@ -8,6 +8,7 @@ import {
   serial,
   text,
   varchar,
+  bigint,
 } from "drizzle-orm/pg-core";
 import { uniref } from "../../db.schema";
 
@@ -44,7 +45,7 @@ export const qb = pgTable(
     um: qbUmEnum("um"),
     preferredVendor: varchar("preferred_vendor", { length: 256 }),
     deleted: boolean("deleted").default(false).notNull(),
-    lastUpdated: integer("lastUpdated").notNull(),
+    lastUpdated: bigint("lastUpdated", { mode: "number" }).notNull(),
   },
   (qb) => {
     return {

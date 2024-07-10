@@ -32,19 +32,13 @@
 		>;
 
 	let summary: { [type: string]: number };
-	$: summary = JSON.parse($changeset?.summary ?? '[]').reduce(
-		(acc: Record<string, number>, { type, count }: { type: string; count: number }) => {
-			acc[type] = count;
-			return acc;
-		},
-		{} as Record<string, number>
-	);
+	$: summary = JSON.parse($changeset?.summary ?? '{}');
 </script>
 
 <div class="card p-4">
 	<div class="flex justify-between pb-2 items-center">
 		<h4 class="pr-2 h4 font-semibold">Changeset {$changeset ? '#' + $changeset?.id : ''}</h4>
-		<button class="btn btn-icon btn-icon-sm"><History /></button>
+		<button class="btn btn-icon btn-icon-sm" on:click={() => alert('todo')}><History /></button>
 	</div>
 
 	{#if $changeset}

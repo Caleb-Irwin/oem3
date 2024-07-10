@@ -3,9 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
-    "installBuild": "bun i && vite build",
+    "dev": "bunx --bun vite dev",
+    "build": "bunx --bun vite build",
+    "installBuild": "bun i && bunx --bun vite build",
     "start": "bun build/index.js",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",

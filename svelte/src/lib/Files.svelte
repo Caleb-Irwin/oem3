@@ -3,7 +3,7 @@
 	import Upload from 'lucide-svelte/icons/upload';
 	import Button from './Button.svelte';
 	import UploadFile from '$lib/UploadFile.svelte';
-	import { getModalStore } from '@skeletonlabs/skeleton';
+	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
 	import { client, sub } from './client';
 	import type { FileRouterType } from '../../../server/src/utils/files';
 	import type { Resolver } from '@trpc/client';
@@ -23,7 +23,8 @@
 
 	const files = sub(filesRouter.get, filesRouter.onUpdate);
 
-	const modalStore = getModalStore();
+	const modalStore = getModalStore(),
+		toastStore = getToastStore();
 </script>
 
 <div class="w-full card p-4">
@@ -67,6 +68,10 @@
 						>#{file.id}
 						<button
 							on:click={async () => {
+								toastStore.trigger({
+									message: 'Downloading',
+									background: 'variant-filled-success'
+								});
 								const link = document.createElement('a');
 								link.download = file.name ?? 'default file name';
 								link.href = (await filesRouter.download.query({ fileId: file.id }))?.content ?? '';

@@ -2,8 +2,7 @@ import { work } from "../../utils/workerBase";
 import Papa from "papaparse";
 import { PromisePool } from "@supercharge/promise-pool";
 import { qb, qbItemTypeEnum, qbUmEnum, taxCodeEnum } from "./table";
-import { eq, sql } from "drizzle-orm";
-import { changes } from "../../db.schema";
+import { eq, lt, sql } from "drizzle-orm";
 declare var self: Worker;
 
 work(
@@ -23,59 +22,54 @@ work(
       .findFirst({ where: eq(qb.qbId, sql.placeholder("qbId")) })
       .prepare("qb-item");
 
-    let i = 0;
+    let taskCount = 0;
+    changeset.start(db, qb);
 
     await PromisePool.withConcurrency(100)
       .for(res.data as QbItemRaw[])
       .onTaskFinished(() => {
-        i++;
-        if (i % 500 === 0) incrementProgress(500);
+        taskCount++;
+        if (taskCount % 500 === 0) incrementProgress(500);
       })
       .process(async (item) => {
         if (item.Type !== "Inventory Part") return;
         const prev = await getQBItem.execute({ qbId: item.Item }),
           next = transformQBItem(item);
         if (!prev)
-          await changeset.add({
+          await changeset.change({
             type: "create",
-            data: JSON.stringify(next),
-            db,
+            id: null,
+            data: next,
           });
         else {
           const { diff, type } = diffQBItems(prev, next);
           if (type === "nop")
-            await changeset.add({ type: "nop", uniref: prev.id, db });
+            await changeset.change({ type: "nop", id: prev.id });
           else if (type === "inventory")
-            await changeset.add({
+            await changeset.change({
               type: "inventoryUpdate",
-              data: JSON.stringify(diff),
-              uniref: prev.id,
-              db,
+              id: prev.id,
+              data: diff,
             });
           else
-            await changeset.add({
+            await changeset.change({
               type: "update",
-              data: JSON.stringify(diff),
-              uniref: prev.id,
-              db,
+              id: prev.id,
+              data: diff,
             });
         }
       });
 
-    // db.select({ id: qb.id })
-    //   .from(qb)
-    //   .leftJoin(changes, eq(changes.uniref, qb.id));
+    const deletedItems = await db.query.qb.findMany({
+      where: lt(qb.lastUpdated, changeset.time),
+    });
+    await PromisePool.withConcurrency(100)
+      .for(deletedItems)
+      .process(async (item) => {
+        await changeset.change({ type: "delete", id: item.id });
+      });
 
-    await changeset.setSummary(
-      await db
-        .select({
-          type: changes.type,
-          count: sql<number>`count(${changes.id})`,
-        })
-        .from(changes)
-        .groupBy(changes.type)
-        .where(eq(changes.set, changeset.id))
-    );
+    await changeset.done();
   }
 );
 
@@ -84,32 +78,43 @@ const transformQBItem = (item: QbItemRaw): typeof qb.$inferInsert => {
     qbId: item.Item,
     desc: item.Description,
     type: item.Type as (typeof qbItemTypeEnum.enumValues)[number],
-    costCents: Math.round(100 * parseFloat(item.Cost) || -1),
-    priceCents: Math.round(100 * parseFloat(item.Price) || -1),
-    salesTaxCode: item[
-      "Sales Tax Code"
-    ] as (typeof taxCodeEnum.enumValues)[number],
-    purchaseTaxCode: item[
-      "Purchase Tax Code"
-    ] as (typeof taxCodeEnum.enumValues)[number],
-    quantityOnSalesOrder: parseInt(item["Quantity On Sales Order"], 10),
-    quantityOnPurchaseOrder: parseInt(item["Quantity On Purchase Order"], 10),
+    costCents: removeNaN(Math.round(100 * parseFloat(item.Cost) || -1)) ?? -1,
+    priceCents: removeNaN(Math.round(100 * parseFloat(item.Price) || -1)) ?? -1,
+    salesTaxCode: enforceEnum(item["Sales Tax Code"], taxCodeEnum.enumValues),
+    purchaseTaxCode: enforceEnum(
+      item["Purchase Tax Code"],
+      taxCodeEnum.enumValues
+    ),
+    quantityOnSalesOrder: removeNaN(
+      parseInt(item["Quantity On Sales Order"], 10)
+    ),
+    quantityOnPurchaseOrder: removeNaN(
+      parseInt(item["Quantity On Purchase Order"], 10)
+    ),
     um: getUM(item["U/M"]),
     account: item.Account,
-    quantityOnHand: parseInt(item["Quantity On Hand"], 10),
+    quantityOnHand: removeNaN(parseInt(item["Quantity On Hand"], 10)),
     preferredVendor: item["Preferred Vendor"],
     lastUpdated: 0,
   };
 };
 
-const getUM = (
-  umStr: string
-): (typeof qbUmEnum.enumValues)[number] | undefined => {
+const getUM = (umStr: string): (typeof qbUmEnum.enumValues)[number] | null => {
   const um = umStr.toLowerCase();
   if (um.includes("ea")) return "ea";
   if (um.includes("pk")) return "pk";
   if (um.includes("cs")) return "cs";
-  return undefined;
+  return null;
+};
+
+const removeNaN = (num: number) => (isNaN(num) ? null : num);
+
+const enforceEnum = <T extends string[]>(
+  str: string,
+  values: T
+): T[number] | null => {
+  if (!values.includes(str)) return null;
+  return str;
 };
 
 const diffQBItems = (
@@ -137,7 +142,6 @@ const diffQBItems = (
       "quantityOnPurchaseOrder",
       "um",
       "account",
-      "quantityOnHand",
       "preferredVendor",
     ] as (keyof typeof qb.$inferInsert)[]
   ).forEach((key) => {
