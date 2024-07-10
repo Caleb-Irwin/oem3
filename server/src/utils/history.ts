@@ -1,9 +1,12 @@
 import { db as DB } from "../db";
 import { history, type EntryType } from "./history.table";
+import type { ResourceType } from "./uniref.table";
 
 export const insertHistory = async <T extends object>({
   db = DB,
   uniref,
+  resourceType,
+  changeset = undefined,
   entryType,
   data,
   prev,
@@ -12,6 +15,8 @@ export const insertHistory = async <T extends object>({
 }: {
   db: typeof DB;
   uniref: number;
+  resourceType: ResourceType;
+  changeset?: number | undefined;
   entryType: EntryType;
   data?: Partial<T> | null;
   prev?: T;
@@ -20,6 +25,8 @@ export const insertHistory = async <T extends object>({
 }) => {
   await db.insert(history).values({
     uniref,
+    resourceType,
+    changeset,
     entryType,
     data:
       entryType === "create"

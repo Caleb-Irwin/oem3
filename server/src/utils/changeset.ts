@@ -30,6 +30,14 @@ export const createChangeset = async (
           status: "generating",
         })
         .returning()
+    )[0],
+    { uniId } = (
+      await DB.insert(uniref)
+        .values({
+          resourceType: "changeset",
+          changeset: changeset.id,
+        })
+        .returning({ uniId: uniref.uniId })
     )[0];
   notifier();
 
@@ -93,8 +101,10 @@ export const createChangeset = async (
               .returning({ id: uniref.uniId });
             await insertHistory({
               db,
+              resourceType: "qb",
               entryType: "create",
               uniref: uniRes[0].id,
+              changeset: changeset.id,
               data: next,
               created: timeStamp,
               exclude: excludeFromHistory,
@@ -122,8 +132,10 @@ export const createChangeset = async (
                 .where(eq(table.id, prev.id));
               await insertHistory({
                 db,
+                resourceType: "qb",
                 entryType: "update",
                 uniref: prev.uniref.uniId,
+                changeset: changeset.id,
                 data: diffRes,
                 prev: prev,
                 exclude: excludeFromHistory,
@@ -148,8 +160,11 @@ export const createChangeset = async (
             .where(eq(table.id, item.id));
           await insertHistory({
             db,
+            resourceType: "qb",
+
             entryType: "delete",
             uniref: item.uniref.uniId,
+            changeset: changeset.id,
             created: timeStamp,
           });
         });
@@ -158,6 +173,16 @@ export const createChangeset = async (
         .update(changesets)
         .set({ summary: JSON.stringify(summary) })
         .where(eq(changesets.id, changeset.id));
+      insertHistory({
+        db,
+        resourceType: "changeset",
+        uniref: uniId,
+        changeset: changeset.id,
+        created: timeStamp,
+        entryType: "create",
+        data: summary,
+      });
+
       notifier();
     },
     setStatus: async (

@@ -127,6 +127,20 @@
       "when": 1720641294182,
       "tag": "0017_brown_harrier",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1720642927351,
+      "tag": "0018_amazing_fallen_one",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "5",
+      "when": 1720643462990,
+      "tag": "0019_minor_stingray",
+      "breakpoints": true
     }
   ]
 }
