@@ -25,5 +25,9 @@ export const uniref = pgTable(
 );
 
 export const unirefRelations = relations(uniref, ({ one }) => ({
-  qbItem: one(qb, { fields: [uniref.qb], references: [qb.id] }),
+  qbData: one(qb, { fields: [uniref.qb], references: [qb.id] }),
+  changesetData: one(changesets, {
+    fields: [uniref.changeset],
+    references: [changesets.id],
+  }),
 }));

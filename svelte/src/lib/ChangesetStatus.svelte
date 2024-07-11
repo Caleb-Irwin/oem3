@@ -24,7 +24,7 @@
 						| 'partiallyCancelled';
 					id: number;
 					file: number | null;
-					summary: string;
+					summary: string | null;
 					created: number;
 			  }
 			| null
