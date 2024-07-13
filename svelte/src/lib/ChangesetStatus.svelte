@@ -1,7 +1,11 @@
 <script lang="ts">
 	import WorkerStatus from '$lib/WorkerStatus.svelte';
 	import type { Readable } from 'svelte/store';
-	import History from 'lucide-svelte/icons/history';
+	import HistoryIcon from 'lucide-svelte/icons/history';
+	import { getModalStore } from '@skeletonlabs/skeleton';
+	import Suspense from './Suspense.svelte';
+	import { client } from './client';
+	import History from './History.svelte';
 
 	export let status: Readable<
 			| {
@@ -33,12 +37,29 @@
 
 	let summary: { [type: string]: number };
 	$: summary = JSON.parse($changeset?.summary ?? '{}');
+
+	const modalStore = getModalStore();
 </script>
 
 <div class="card p-4">
 	<div class="flex justify-between pb-2 items-center">
 		<h4 class="pr-2 h4 font-semibold">Changeset {$changeset ? '#' + $changeset?.id : ''}</h4>
-		<button class="btn btn-icon btn-icon-sm" on:click={() => alert('todo')}><History /></button>
+		<button
+			class="btn btn-icon btn-icon-sm"
+			on:click={() =>
+				modalStore.trigger({
+					type: 'component',
+					component: {
+						ref: Suspense,
+						props: {
+							component: History,
+							promise: (async () => {
+								return { history: await client.resources.getChangsets.query() };
+							})()
+						}
+					}
+				})}><HistoryIcon /></button
+		>
 	</div>
 
 	{#if $changeset}

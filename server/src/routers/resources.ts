@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { generalProcedure, router } from "../trpc";
+import { router, viewerProcedure } from "../trpc";
 import { db } from "../db";
 import { desc, eq } from "drizzle-orm";
 import { history, uniref } from "../db.schema";
 
 export const resourcesRouter = router({
-  get: generalProcedure
+  get: viewerProcedure
     .input(
       z.object({
         uniId: z.number().int(),
@@ -30,4 +30,10 @@ export const resourcesRouter = router({
       }
       return res;
     }),
+  getChangsets: viewerProcedure.query(async () => {
+    return await db.query.history.findMany({
+      where: eq(history.resourceType, "changeset"),
+      orderBy: desc(history.created),
+    });
+  }),
 });
