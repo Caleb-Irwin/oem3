@@ -1,4 +1,4 @@
-import { desc, eq, lt } from "drizzle-orm";
+import { and, desc, eq, lt } from "drizzle-orm";
 import { db as DB } from "../db";
 import {
   changesetStatusType,
@@ -55,7 +55,11 @@ export const createChangeset = async (
     process: async <
       Raw extends object,
       ItemInsert extends object,
-      Item extends { id: number; uniref: { uniId: number } } & ItemInsert
+      Item extends {
+        id: number;
+        uniref: { uniId: number };
+        deleted: boolean;
+      } & ItemInsert
     >({
       db,
       rawItems,
@@ -109,7 +113,6 @@ export const createChangeset = async (
               created: timeStamp,
               exclude: excludeFromHistory,
             });
-
             summary["create"]++;
           } else {
             const { diff: diffRes, type } = diff(prev, next);
@@ -118,7 +121,20 @@ export const createChangeset = async (
                 .update(table)
                 .set({ deleted: false, lastUpdated: timeStamp })
                 .where(eq(table.id, prev.id));
-              summary["nop"]++;
+              if (prev.deleted) {
+                await insertHistory({
+                  db,
+                  resourceType: "qb",
+                  entryType: "update",
+                  uniref: prev.uniref.uniId,
+                  changeset: changeset.id,
+                  data: { deleted: false } as Partial<Item>,
+                  prev: prev,
+                  exclude: excludeFromHistory,
+                  created: timeStamp,
+                });
+                summary["update"]++;
+              } else summary["nop"]++;
             } else if (type === "inventory") {
               await db
                 .update(table)
@@ -145,12 +161,14 @@ export const createChangeset = async (
             }
           }
         });
+
       const deletedItems = await db.query[name].findMany({
-        where: lt(table.lastUpdated, timeStamp),
+        where: and(lt(table.lastUpdated, timeStamp), eq(table.deleted, false)),
         with: {
           uniref: true,
         },
       });
+
       await PromisePool.withConcurrency(100)
         .for(deletedItems)
         .process(async (item) => {
@@ -161,19 +179,19 @@ export const createChangeset = async (
           await insertHistory({
             db,
             resourceType: "qb",
-
             entryType: "delete",
             uniref: item.uniref.uniId,
             changeset: changeset.id,
             created: timeStamp,
           });
+          summary["delete"]++;
         });
 
       await db
         .update(changesets)
         .set({ summary: JSON.stringify(summary) })
         .where(eq(changesets.id, changeset.id));
-      insertHistory({
+      await insertHistory({
         db,
         resourceType: "changeset",
         uniref: uniId,
