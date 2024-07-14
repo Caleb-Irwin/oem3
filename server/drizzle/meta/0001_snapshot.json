@@ -1,10 +1,8 @@
 {
-  "id": "437f66c8-f14b-4c88-9573-63cae69cf543",
-  "prevId": "1dd9f0f7-db6a-4ff0-940e-875c741a8fcc",
-  "version": "5",
-  "dialect": "pg",
+  "version": "7",
+  "dialect": "postgresql",
   "tables": {
-    "kv": {
+    "public.kv": {
       "name": "kv",
       "schema": "",
       "columns": {
@@ -35,11 +33,19 @@
       },
       "indexes": {
         "kv_id_idx": {
-          "name": "kv_id_idx",
           "columns": [
-            "key"
+            {
+              "expression": "key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "isUnique": false
+          "with": {},
+          "name": "kv_id_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
         }
       },
       "foreignKeys": {},
@@ -47,14 +53,14 @@
       "uniqueConstraints": {
         "kv_id_unique": {
           "name": "kv_id_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "id"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       }
     },
-    "users": {
+    "public.users": {
       "name": "users",
       "schema": "",
       "columns": {
@@ -79,11 +85,19 @@
       },
       "indexes": {
         "username_idx": {
-          "name": "username_idx",
           "columns": [
-            "username"
+            {
+              "expression": "username",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "isUnique": true
+          "with": {},
+          "name": "username_idx",
+          "isUnique": true,
+          "method": "btree",
+          "concurrently": false
         }
       },
       "foreignKeys": {},
@@ -91,29 +105,32 @@
       "uniqueConstraints": {
         "users_username_unique": {
           "name": "users_username_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "username"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       }
     }
   },
   "enums": {
-    "permissionLevel": {
+    "public.permissionLevel": {
       "name": "permissionLevel",
-      "values": {
-        "admin": "admin",
-        "general": "general",
-        "viewer": "viewer",
-        "public": "public"
-      }
+      "schema": "public",
+      "values": [
+        "admin",
+        "general",
+        "viewer",
+        "public"
+      ]
     }
   },
   "schemas": {},
   "_meta": {
-    "columns": {},
     "schemas": {},
-    "tables": {}
-  }
+    "tables": {},
+    "columns": {}
+  },
+  "id": "437f66c8-f14b-4c88-9573-63cae69cf543",
+  "prevId": "1dd9f0f7-db6a-4ff0-940e-875c741a8fcc"
 }

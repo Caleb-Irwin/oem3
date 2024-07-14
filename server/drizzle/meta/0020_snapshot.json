@@ -1,4 +1,6 @@
 {
+  "id": "2d6abd15-8ad5-4274-9c8a-aaebd4d98d6a",
+  "prevId": "9dd84cc6-e12f-4f7c-a108-e58b61d9a444",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -45,6 +47,7 @@
       },
       "indexes": {
         "files_id_idx": {
+          "name": "files_id_idx",
           "columns": [
             {
               "expression": "id",
@@ -53,26 +56,25 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "files_id_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "files_author_users_username_fk": {
           "name": "files_author_users_username_fk",
           "tableFrom": "files",
+          "tableTo": "users",
           "columnsFrom": [
             "author"
           ],
-          "tableTo": "users",
           "columnsTo": [
             "username"
           ],
-          "onUpdate": "no action",
-          "onDelete": "set null"
+          "onDelete": "set null",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -109,6 +111,7 @@
       },
       "indexes": {
         "kv_id_idx": {
+          "name": "kv_id_idx",
           "columns": [
             {
               "expression": "key",
@@ -117,11 +120,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "kv_id_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -129,10 +131,10 @@
       "uniqueConstraints": {
         "kv_id_unique": {
           "name": "kv_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "id"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       }
     },
@@ -167,6 +169,7 @@
       },
       "indexes": {
         "labelSheet_id_idx": {
+          "name": "labelSheet_id_idx",
           "columns": [
             {
               "expression": "id",
@@ -175,26 +178,25 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "labelSheet_id_idx",
           "isUnique": true,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "labelSheets_owner_users_username_fk": {
           "name": "labelSheets_owner_users_username_fk",
           "tableFrom": "labelSheets",
+          "tableTo": "users",
           "columnsFrom": [
             "owner"
           ],
-          "tableTo": "users",
           "columnsTo": [
             "username"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -243,6 +245,7 @@
       },
       "indexes": {
         "labels_id_idx": {
+          "name": "labels_id_idx",
           "columns": [
             {
               "expression": "id",
@@ -251,13 +254,13 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "labels_id_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "labels_sheet_idx": {
+          "name": "labels_sheet_idx",
           "columns": [
             {
               "expression": "sheet",
@@ -266,26 +269,25 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "labels_sheet_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "labels_sheet_labelSheets_id_fk": {
           "name": "labels_sheet_labelSheets_id_fk",
           "tableFrom": "labels",
+          "tableTo": "labelSheets",
           "columnsFrom": [
             "sheet"
           ],
-          "tableTo": "labelSheets",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -310,12 +312,14 @@
         "permissionLevel": {
           "name": "permissionLevel",
           "type": "permissionLevel",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": false
         }
       },
       "indexes": {
         "username_idx": {
+          "name": "username_idx",
           "columns": [
             {
               "expression": "username",
@@ -324,11 +328,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "username_idx",
           "isUnique": true,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -336,10 +339,10 @@
       "uniqueConstraints": {
         "users_username_unique": {
           "name": "users_username_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "username"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       }
     },
@@ -369,6 +372,7 @@
         "type": {
           "name": "type",
           "type": "qb_item_type",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
@@ -387,12 +391,14 @@
         "sales_tax_code": {
           "name": "sales_tax_code",
           "type": "tax_code",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": false
         },
         "purchase_tax_code": {
           "name": "purchase_tax_code",
           "type": "tax_code",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": false
         },
@@ -423,6 +429,7 @@
         "um": {
           "name": "um",
           "type": "qb_um",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": false
         },
@@ -448,6 +455,7 @@
       },
       "indexes": {
         "qb_qbId_idx": {
+          "name": "qb_qbId_idx",
           "columns": [
             {
               "expression": "qb_id",
@@ -456,11 +464,10 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "qb_qbId_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -480,6 +487,13 @@
         "resource_type": {
           "name": "resource_type",
           "type": "resource_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "changeset": {
+          "name": "changeset",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false
         },
@@ -492,6 +506,7 @@
       },
       "indexes": {
         "resource_type_idx": {
+          "name": "resource_type_idx",
           "columns": [
             {
               "expression": "uniId",
@@ -500,13 +515,28 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "resource_type_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
+        },
+        "uniref_changesets_idx": {
+          "name": "uniref_changesets_idx",
+          "columns": [
+            {
+              "expression": "changeset",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         },
         "uniref_qb_idx": {
+          "name": "uniref_qb_idx",
           "columns": [
             {
               "expression": "qb",
@@ -515,26 +545,38 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "uniref_qb_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
-        "uniref_qb_qb_id_fk": {
-          "name": "uniref_qb_qb_id_fk",
+        "uniref_changeset_changesets_id_fk": {
+          "name": "uniref_changeset_changesets_id_fk",
           "tableFrom": "uniref",
+          "tableTo": "changesets",
           "columnsFrom": [
-            "qb"
+            "changeset"
           ],
-          "tableTo": "qb",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "uniref_qb_qb_id_fk": {
+          "name": "uniref_qb_qb_id_fk",
+          "tableFrom": "uniref",
+          "tableTo": "qb",
+          "columnsFrom": [
+            "qb"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -553,12 +595,14 @@
         "type": {
           "name": "type",
           "type": "changeset_type",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
         "status": {
           "name": "status",
           "type": "changeset_status_type",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
@@ -586,19 +630,255 @@
         "changesets_file_files_id_fk": {
           "name": "changesets_file_files_id_fk",
           "tableFrom": "changesets",
+          "tableTo": "files",
           "columnsFrom": [
             "file"
           ],
-          "tableTo": "files",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "set null"
+          "onDelete": "set null",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
+    },
+    "public.history": {
+      "name": "history",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "entry_type": {
+          "name": "entry_type",
+          "type": "history_entry_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "set": {
+          "name": "set",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "uniref": {
+          "name": "uniref",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "resource_type": {
+          "name": "resource_type",
+          "type": "resource_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created": {
+          "name": "created",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "history_changes_set_idx": {
+          "name": "history_changes_set_idx",
+          "columns": [
+            {
+              "expression": "set",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "history_uniref_idx": {
+          "name": "history_uniref_idx",
+          "columns": [
+            {
+              "expression": "uniref",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "history_resource_type_idx": {
+          "name": "history_resource_type_idx",
+          "columns": [
+            {
+              "expression": "resource_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "history_created_idx": {
+          "name": "history_created_idx",
+          "columns": [
+            {
+              "expression": "created",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "history_entry_type_idx": {
+          "name": "history_entry_type_idx",
+          "columns": [
+            {
+              "expression": "entry_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "history_set_changesets_id_fk": {
+          "name": "history_set_changesets_id_fk",
+          "tableFrom": "history",
+          "tableTo": "changesets",
+          "columnsFrom": [
+            "set"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "history_uniref_uniref_uniId_fk": {
+          "name": "history_uniref_uniref_uniId_fk",
+          "tableFrom": "history",
+          "tableTo": "uniref",
+          "columnsFrom": [
+            "uniref"
+          ],
+          "columnsTo": [
+            "uniId"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.search": {
+      "name": "search",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "uniref": {
+          "name": "uniref",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "resource_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "keyInfo": {
+          "name": "keyInfo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "otherInfo": {
+          "name": "otherInfo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "search_index": {
+          "name": "search_index",
+          "columns": [
+            {
+              "expression": "(\n          setweight(to_tsvector('english', \"keyInfo\"), 'A') ||\n          setweight(to_tsvector('english', \"otherInfo\"), 'B')\n      )",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gin",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "search_uniref_uniref_uniId_fk": {
+          "name": "search_uniref_uniref_uniId_fk",
+          "tableFrom": "search",
+          "tableTo": "uniref",
+          "columnsFrom": [
+            "uniref"
+          ],
+          "columnsTo": [
+            "uniId"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "search_uniref_unique": {
+          "name": "search_uniref_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "uniref"
+          ]
+        }
+      }
     }
   },
   "enums": {
@@ -650,18 +930,8 @@
       "name": "resource_type",
       "schema": "public",
       "values": [
+        "changeset",
         "qb"
-      ]
-    },
-    "public.change_type": {
-      "name": "change_type",
-      "schema": "public",
-      "values": [
-        "nop",
-        "create",
-        "delete",
-        "update",
-        "inventoryUpdate"
       ]
     },
     "public.changeset_status_type": {
@@ -682,14 +952,21 @@
       "values": [
         "qb"
       ]
+    },
+    "public.history_entry_type": {
+      "name": "history_entry_type",
+      "schema": "public",
+      "values": [
+        "create",
+        "delete",
+        "update"
+      ]
     }
   },
   "schemas": {},
   "_meta": {
+    "columns": {},
     "schemas": {},
-    "tables": {},
-    "columns": {}
-  },
-  "id": "e1627f7a-bbc8-441f-b485-7b2d4c8d78c7",
-  "prevId": "ed37a09b-f1be-4868-99fe-bb1e9b3cd6f7"
+    "tables": {}
+  }
 }

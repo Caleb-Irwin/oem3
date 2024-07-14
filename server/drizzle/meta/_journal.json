@@ -141,6 +141,13 @@
       "when": 1720643462990,
       "tag": "0019_minor_stingray",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1720917335754,
+      "tag": "0020_crazy_gamora",
+      "breakpoints": true
     }
   ]
 }

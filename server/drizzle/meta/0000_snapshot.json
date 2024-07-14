@@ -1,10 +1,8 @@
 {
-  "id": "1dd9f0f7-db6a-4ff0-940e-875c741a8fcc",
-  "prevId": "00000000-0000-0000-0000-000000000000",
-  "version": "5",
-  "dialect": "pg",
+  "version": "7",
+  "dialect": "postgresql",
   "tables": {
-    "users": {
+    "public.users": {
       "name": "users",
       "schema": "",
       "columns": {
@@ -29,11 +27,19 @@
       },
       "indexes": {
         "username_idx": {
-          "name": "username_idx",
           "columns": [
-            "username"
+            {
+              "expression": "username",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "isUnique": true
+          "with": {},
+          "name": "username_idx",
+          "isUnique": true,
+          "method": "btree",
+          "concurrently": false
         }
       },
       "foreignKeys": {},
@@ -41,29 +47,32 @@
       "uniqueConstraints": {
         "users_username_unique": {
           "name": "users_username_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "username"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       }
     }
   },
   "enums": {
-    "permissionLevel": {
+    "public.permissionLevel": {
       "name": "permissionLevel",
-      "values": {
-        "admin": "admin",
-        "general": "general",
-        "viewer": "viewer",
-        "public": "public"
-      }
+      "schema": "public",
+      "values": [
+        "admin",
+        "general",
+        "viewer",
+        "public"
+      ]
     }
   },
   "schemas": {},
   "_meta": {
-    "columns": {},
     "schemas": {},
-    "tables": {}
-  }
+    "tables": {},
+    "columns": {}
+  },
+  "id": "1dd9f0f7-db6a-4ff0-940e-875c741a8fcc",
+  "prevId": "00000000-0000-0000-0000-000000000000"
 }

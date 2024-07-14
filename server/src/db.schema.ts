@@ -6,3 +6,4 @@ export * from "./routers/qb/table";
 export * from "./utils/uniref.table";
 export * from "./utils/changeset.table";
 export * from "./utils/history.table";
+export * from "./routers/search/table";

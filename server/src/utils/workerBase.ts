@@ -19,7 +19,7 @@ export interface WorkerMessage {
 
 export const work = async (
   self: Worker,
-  changesetTable: schema.ChangesetTable,
+  changesetTable: schema.ChangesetTable | null,
   verify: (params: {
     db: NodePgDatabase<typeof schema>;
     fileBlob: string;
@@ -50,9 +50,10 @@ export const work = async (
 
     try {
       const fileId = event.data.fileId;
-      changeset = await createChangeset(changesetTable, fileId, () =>
-        sendMessage("changesetUpdate")
-      );
+      if (changesetTable)
+        changeset = await createChangeset(changesetTable, fileId, () =>
+          sendMessage("changesetUpdate")
+        );
       await db.transaction(
         async (tx) => {
           changeset = changeset as Awaited<ReturnType<typeof createChangeset>>;
@@ -74,7 +75,7 @@ export const work = async (
             },
             changeset,
           });
-          changeset.setStatus("current");
+          if (changeset) changeset.setStatus("current");
         },
         { isolationLevel: "repeatable read" }
       );

@@ -1,10 +1,8 @@
 {
-  "id": "5253666b-b35e-423f-9f4c-97fde5572ea2",
-  "prevId": "eb7cb863-23e2-4b22-a40b-78fdbf737214",
-  "version": "5",
-  "dialect": "pg",
+  "version": "7",
+  "dialect": "postgresql",
   "tables": {
-    "files": {
+    "public.files": {
       "name": "files",
       "schema": "",
       "columns": {
@@ -47,32 +45,40 @@
       },
       "indexes": {
         "files_id_idx": {
-          "name": "files_id_idx",
           "columns": [
-            "id"
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "isUnique": false
+          "with": {},
+          "name": "files_id_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "files_author_users_username_fk": {
           "name": "files_author_users_username_fk",
           "tableFrom": "files",
-          "tableTo": "users",
           "columnsFrom": [
             "author"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "username"
           ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "set null"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "kv": {
+    "public.kv": {
       "name": "kv",
       "schema": "",
       "columns": {
@@ -103,11 +109,19 @@
       },
       "indexes": {
         "kv_id_idx": {
-          "name": "kv_id_idx",
           "columns": [
-            "key"
+            {
+              "expression": "key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "isUnique": false
+          "with": {},
+          "name": "kv_id_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
         }
       },
       "foreignKeys": {},
@@ -115,14 +129,14 @@
       "uniqueConstraints": {
         "kv_id_unique": {
           "name": "kv_id_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "id"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       }
     },
-    "labelSheets": {
+    "public.labelSheets": {
       "name": "labelSheets",
       "schema": "",
       "columns": {
@@ -153,32 +167,40 @@
       },
       "indexes": {
         "labelSheet_id_idx": {
-          "name": "labelSheet_id_idx",
           "columns": [
-            "id"
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "isUnique": true
+          "with": {},
+          "name": "labelSheet_id_idx",
+          "isUnique": true,
+          "method": "btree",
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "labelSheets_owner_users_username_fk": {
           "name": "labelSheets_owner_users_username_fk",
           "tableFrom": "labelSheets",
-          "tableTo": "users",
           "columnsFrom": [
             "owner"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "username"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "labels": {
+    "public.labels": {
       "name": "labels",
       "schema": "",
       "columns": {
@@ -221,39 +243,55 @@
       },
       "indexes": {
         "labels_id_idx": {
-          "name": "labels_id_idx",
           "columns": [
-            "id"
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "isUnique": false
+          "with": {},
+          "name": "labels_id_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
         },
         "labels_sheet_idx": {
-          "name": "labels_sheet_idx",
           "columns": [
-            "sheet"
+            {
+              "expression": "sheet",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "isUnique": false
+          "with": {},
+          "name": "labels_sheet_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "labels_sheet_labelSheets_id_fk": {
           "name": "labels_sheet_labelSheets_id_fk",
           "tableFrom": "labels",
-          "tableTo": "labelSheets",
           "columnsFrom": [
             "sheet"
           ],
+          "tableTo": "labelSheets",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "users": {
+    "public.users": {
       "name": "users",
       "schema": "",
       "columns": {
@@ -278,11 +316,19 @@
       },
       "indexes": {
         "username_idx": {
-          "name": "username_idx",
           "columns": [
-            "username"
+            {
+              "expression": "username",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "isUnique": true
+          "with": {},
+          "name": "username_idx",
+          "isUnique": true,
+          "method": "btree",
+          "concurrently": false
         }
       },
       "foreignKeys": {},
@@ -290,14 +336,14 @@
       "uniqueConstraints": {
         "users_username_unique": {
           "name": "users_username_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "username"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       }
     },
-    "qb": {
+    "public.qb": {
       "name": "qb",
       "schema": "",
       "columns": {
@@ -402,18 +448,26 @@
       },
       "indexes": {
         "qb_qbId_idx": {
-          "name": "qb_qbId_idx",
           "columns": [
-            "qb_id"
+            {
+              "expression": "qb_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "isUnique": false
+          "with": {},
+          "name": "qb_qbId_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "uniref": {
+    "public.uniref": {
       "name": "uniref",
       "schema": "",
       "columns": {
@@ -438,39 +492,55 @@
       },
       "indexes": {
         "resource_type_idx": {
-          "name": "resource_type_idx",
           "columns": [
-            "uniId"
+            {
+              "expression": "uniId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "isUnique": false
+          "with": {},
+          "name": "resource_type_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
         },
         "uniref_qb_idx": {
-          "name": "uniref_qb_idx",
           "columns": [
-            "qb"
+            {
+              "expression": "qb",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "isUnique": false
+          "with": {},
+          "name": "uniref_qb_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "uniref_qb_qb_id_fk": {
           "name": "uniref_qb_qb_id_fk",
           "tableFrom": "uniref",
-          "tableTo": "qb",
           "columnsFrom": [
             "qb"
           ],
+          "tableTo": "qb",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "changes": {
+    "public.changes": {
       "name": "changes",
       "schema": "",
       "columns": {
@@ -513,52 +583,68 @@
       },
       "indexes": {
         "changes_set_idx": {
-          "name": "changes_set_idx",
           "columns": [
-            "set"
+            {
+              "expression": "set",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "isUnique": false
+          "with": {},
+          "name": "changes_set_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
         },
         "changes_uniref_idx": {
-          "name": "changes_uniref_idx",
           "columns": [
-            "uniref"
+            {
+              "expression": "uniref",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "isUnique": false
+          "with": {},
+          "name": "changes_uniref_idx",
+          "isUnique": false,
+          "method": "btree",
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "changes_set_changesets_id_fk": {
           "name": "changes_set_changesets_id_fk",
           "tableFrom": "changes",
-          "tableTo": "changesets",
           "columnsFrom": [
             "set"
           ],
+          "tableTo": "changesets",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "changes_uniref_uniref_uniId_fk": {
           "name": "changes_uniref_uniref_uniId_fk",
           "tableFrom": "changes",
-          "tableTo": "uniref",
           "columnsFrom": [
             "uniref"
           ],
+          "tableTo": "uniref",
           "columnsTo": [
             "uniId"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "changesets": {
+    "public.changesets": {
       "name": "changesets",
       "schema": "",
       "columns": {
@@ -592,15 +678,15 @@
         "changesets_file_files_id_fk": {
           "name": "changesets_file_files_id_fk",
           "tableFrom": "changesets",
-          "tableTo": "files",
           "columnsFrom": [
             "file"
           ],
+          "tableTo": "files",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "set null"
         }
       },
       "compositePrimaryKeys": {},
@@ -608,73 +694,82 @@
     }
   },
   "enums": {
-    "permissionLevel": {
+    "public.permissionLevel": {
       "name": "permissionLevel",
-      "values": {
-        "admin": "admin",
-        "general": "general",
-        "viewer": "viewer",
-        "public": "public"
-      }
+      "schema": "public",
+      "values": [
+        "admin",
+        "general",
+        "viewer",
+        "public"
+      ]
     },
-    "qb_item_type": {
+    "public.qb_item_type": {
       "name": "qb_item_type",
-      "values": {
-        "Service": "Service",
-        "Inventory Part": "Inventory Part",
-        "Inventory Assembly": "Inventory Assembly",
-        "Non-inventory Part": "Non-inventory Part",
-        "Other Charge": "Other Charge",
-        "Subtotal": "Subtotal",
-        "Group": "Group",
-        "Discount": "Discount",
-        "Sales Tax Item": "Sales Tax Item",
-        "Sales Tax Group": "Sales Tax Group"
-      }
+      "schema": "public",
+      "values": [
+        "Service",
+        "Inventory Part",
+        "Inventory Assembly",
+        "Non-inventory Part",
+        "Other Charge",
+        "Subtotal",
+        "Group",
+        "Discount",
+        "Sales Tax Item",
+        "Sales Tax Group"
+      ]
     },
-    "qb_um": {
+    "public.qb_um": {
       "name": "qb_um",
-      "values": {
-        "ea": "ea",
-        "pk": "pk",
-        "cs": "cs"
-      }
+      "schema": "public",
+      "values": [
+        "ea",
+        "pk",
+        "cs"
+      ]
     },
-    "tax_code": {
+    "public.tax_code": {
       "name": "tax_code",
-      "values": {
-        "S": "S",
-        "G": "G",
-        "E": "E"
-      }
+      "schema": "public",
+      "values": [
+        "S",
+        "G",
+        "E"
+      ]
     },
-    "resource_type": {
+    "public.resource_type": {
       "name": "resource_type",
-      "values": {
-        "qb": "qb"
-      }
+      "schema": "public",
+      "values": [
+        "qb"
+      ]
     },
-    "change_type": {
+    "public.change_type": {
       "name": "change_type",
-      "values": {
-        "nop": "nop",
-        "create": "create",
-        "delete": "delete",
-        "update": "update",
-        "inventoryUpdate": "inventoryUpdate"
-      }
+      "schema": "public",
+      "values": [
+        "nop",
+        "create",
+        "delete",
+        "update",
+        "inventoryUpdate"
+      ]
     },
-    "changeset_type": {
+    "public.changeset_type": {
       "name": "changeset_type",
-      "values": {
-        "qb": "qb"
-      }
+      "schema": "public",
+      "values": [
+        "qb"
+      ]
     }
   },
   "schemas": {},
   "_meta": {
-    "columns": {},
     "schemas": {},
-    "tables": {}
-  }
+    "tables": {},
+    "columns": {}
+  },
+  "id": "5253666b-b35e-423f-9f4c-97fde5572ea2",
+  "prevId": "eb7cb863-23e2-4b22-a40b-78fdbf737214"
 }

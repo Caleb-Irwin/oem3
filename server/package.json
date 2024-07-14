@@ -5,7 +5,7 @@
     "@trpc/server": "next",
     "@types/polka": "^0.5.7",
     "cookies": "^0.9.1",
-    "drizzle-orm": "^0.30.1",
+    "drizzle-orm": "^0.31.4",
     "jsonwebtoken": "^9.0.2",
     "papaparse": "^5.4.1",
     "pg": "^8.11.3",
@@ -18,7 +18,7 @@
     "build": "bun install && cd ../svelte && bun run installBuild",
     "dev": "concurrently \"DEV=TRUE bun --watch src/index.ts\" \"cd ../svelte && bun run dev\" \"docker-compose up\" -n Server,Kit,DB -c blue,yellow,green",
     "start": "bun run src/index.ts",
-    "generate": "drizzle-kit generate:pg",
+    "generate": "drizzle-kit generate",
     "preview": "concurrently \"bun run start\" \"docker-compose up\" -n Server,DB -c blue,green"
   },
   "devDependencies": {
@@ -29,7 +29,7 @@
     "@types/pg": "^8.11.2",
     "@types/ws": "^8.5.10",
     "concurrently": "^8.2.2",
-    "drizzle-kit": "^0.20.14",
+    "drizzle-kit": "^0.22.8",
     "http-proxy-middleware": "^2.0.6"
   }
 }
