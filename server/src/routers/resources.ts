@@ -2,7 +2,7 @@ import { z } from "zod";
 import { router, viewerProcedure } from "../trpc";
 import { db } from "../db";
 import { desc, eq } from "drizzle-orm";
-import { history, uniref } from "../db.schema";
+import { history, resourceTypeEnum, uniref } from "../db.schema";
 
 export const resourcesRouter = router({
   get: viewerProcedure
@@ -36,4 +36,16 @@ export const resourcesRouter = router({
       orderBy: desc(history.created),
     });
   }),
+  getUniId: viewerProcedure
+    .input(
+      z.object({
+        type: z.enum(resourceTypeEnum.enumValues),
+        id: z.number().int(),
+      })
+    )
+    .query(async ({ input: { id, type } }) => {
+      return await db.query.uniref.findFirst({
+        where: eq(uniref[type], id),
+      });
+    }),
 });
