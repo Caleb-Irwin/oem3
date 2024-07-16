@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Form from '$lib/Form.svelte';
+	import { ProgressBar } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 
 	export let action: {
@@ -27,5 +28,7 @@
 			<option value="">Only Upload</option>
 		</select>
 	</label>
-	<button class="btn variant-filled-primary w-full">Upload</button>
+	<button class="btn variant-filled-primary w-full flex flex-col justify-center"
+		>Upload <button class="w-full hidden disabled:block pt-1"><ProgressBar /></button>
+	</button>
 </Form>
