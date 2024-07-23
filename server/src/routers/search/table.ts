@@ -28,5 +28,5 @@ export const search = pgTable(
 );
 
 export const searchRelations = relations(search, ({ one }) => ({
-  uniref: one(uniref),
+  uniref: one(uniref, { fields: [search.uniId], references: [uniref.uniId] }),
 }));

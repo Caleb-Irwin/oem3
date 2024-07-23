@@ -1,8 +1,8 @@
 <script lang="ts">
+	import Search from '$lib/Search.svelte';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
-	import Search from 'lucide-svelte/icons/search';
 </script>
 
 <div class="container h-full mx-auto flex flex-col justify-center items-center">
@@ -13,18 +13,7 @@
 			<span class="font-semibold">{data.user.permissionLevel}</span>.
 		</p>
 	</div>
-	<form class="p-2 m-2 mb-3 h-20 max-w-2xl form w-full flex">
-		<div class="input-group input-group-divider grid-cols-[1fr_auto_auto]">
-			<input type="text" placeholder="Search Query" disabled />
-			<select disabled>
-				<option>All</option>
-				<option>QB</option>
-			</select>
-			<button class="variant-filled-primary w-16" disabled>
-				<Search />
-			</button>
-		</div>
-	</form>
+	<Search />
 	<div class="w-full grid grid-cols-1 lg:grid-cols-2">
 		<a href="/app/shelf" class="card card-hover p-6 m-2">
 			<h3 class="font-semibold text-2xl">Shelf</h3>

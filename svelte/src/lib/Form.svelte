@@ -15,7 +15,8 @@
 		noReset = false,
 		confirm: boolean | string = false,
 		input: Partial<I> = {},
-		modalMode = false;
+		modalMode = false,
+		center = false;
 
 	let disabled = false,
 		formEl: HTMLFormElement;
@@ -72,7 +73,7 @@
 		disabled = false;
 	}}
 >
-	<fieldset {disabled}>
+	<fieldset class={center ? 'flex place-content-center' : ''} {disabled}>
 		<slot />
 	</fieldset>
 </form>

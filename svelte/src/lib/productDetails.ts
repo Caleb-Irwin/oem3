@@ -1,5 +1,9 @@
 import type { qb as qbTable } from '../../../server/src/db.schema';
 
+export interface RawProduct {
+	qbData: typeof qbTable.$inferSelect | null;
+}
+
 export interface Product {
 	idText: string;
 	name: string;
@@ -8,13 +12,12 @@ export interface Product {
 	stock: number | null;
 	deleted: boolean;
 	description: string | undefined;
+	imageUrl: string | undefined;
 	lastUpdated: number;
 	other: { [key: string]: string };
 }
 
-export const productDetails = (raw: {
-	qbData: typeof qbTable.$inferSelect | null;
-}): Product | undefined => {
+export const productDetails = (raw: RawProduct): Product | undefined => {
 	const { format } = new Intl.NumberFormat('en-CA', {
 		style: 'currency',
 		currency: 'CAD'
@@ -29,6 +32,7 @@ export const productDetails = (raw: {
 			stock: qb.quantityOnHand,
 			deleted: qb.deleted,
 			description: undefined,
+			imageUrl: undefined,
 			lastUpdated: qb.lastUpdated,
 			other: {
 				Cost: format(qb.costCents / 100),
