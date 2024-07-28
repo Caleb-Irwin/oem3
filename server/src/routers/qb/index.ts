@@ -3,10 +3,11 @@ import { router } from "../../trpc";
 import { fileProcedures } from "../../utils/files";
 import { managedWorker } from "../../utils/managedWorker";
 
-const { worker, runWorker } = managedWorker(
+const { worker, runWorker, hook } = managedWorker(
   new URL("worker.ts", import.meta.url).href,
   "qb"
 );
+export const qbHook = hook;
 
 export const qbRouter = router({
   ...fileProcedures(

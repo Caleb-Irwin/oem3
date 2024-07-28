@@ -19,13 +19,7 @@
 		changeset: Readable<
 			| {
 					type: 'qb';
-					status:
-						| 'error'
-						| 'generating'
-						| 'current'
-						| 'completed'
-						| 'cancelled'
-						| 'partiallyCancelled';
+					status: 'generating' | 'completed';
 					id: number;
 					file: number | null;
 					summary: string | null;
@@ -66,10 +60,10 @@
 		<p class="text-sm pb-2">
 			Created at {new Date($changeset.created ?? 0).toLocaleString()} based on file #{$changeset.file}
 		</p>
-		{#if $changeset?.status === 'generating' || $changeset?.status === 'error'}
+		{#if $changeset?.status === 'generating'}
 			<WorkerStatus {status} />
 		{/if}
-		{#if $changeset.status === 'current'}
+		{#if $changeset.status === 'completed'}
 			<h5 class="font-semibold text-lg">Changes</h5>
 			<ul class="p-2 flex w-full justify-between">
 				<li class="text-center">

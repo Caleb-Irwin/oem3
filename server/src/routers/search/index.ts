@@ -4,10 +4,12 @@ import { managedWorker } from "../../utils/managedWorker";
 import { desc, sql } from "drizzle-orm";
 import { search } from "./table";
 import { db } from "../../db";
+import { qbHook } from "../qb";
 
 const { worker } = managedWorker(
   new URL("worker.ts", import.meta.url).href,
-  null
+  "search",
+  [qbHook]
 );
 export const searchRouter = router({
   worker,

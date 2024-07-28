@@ -1,7 +1,6 @@
 import { and, desc, eq, lt } from "drizzle-orm";
 import { db as DB } from "../db";
 import {
-  changesetStatusType,
   changesetType,
   changesets,
   type ChangesetTable,
@@ -200,14 +199,9 @@ export const createChangeset = async (
         entryType: "create",
         data: summary,
       });
-
-      notifier();
-    },
-    setStatus: async (
-      status: (typeof changesetStatusType.enumValues)[number]
-    ) => {
-      await DB.update(changesets)
-        .set({ status })
+      await db
+        .update(changesets)
+        .set({ status: "completed" })
         .where(eq(changesets.id, changeset.id));
       notifier();
     },

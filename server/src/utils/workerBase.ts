@@ -1,36 +1,32 @@
 import { eq } from "drizzle-orm";
 import { files } from "./files.table";
-import { Client } from "pg";
-import { POSTGRESQL } from "../env";
-import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "../db.schema";
 import { createChangeset } from "./changeset";
+import { db, type db as dbType } from "../db";
 
 export interface WorkerMessage {
-  type:
-    | "ready"
-    | "verified"
-    | "progress"
-    | "done"
-    | "changesetUpdate"
-    | "error";
+  type: "ready" | "started" | "progress" | "done" | "changesetUpdate" | "error";
   msg?: string;
 }
-
-export const work = async (
-  self: Worker,
-  changesetTable: schema.ChangesetTable | null,
-  verify: (params: {
-    db: NodePgDatabase<typeof schema>;
-    fileBlob: string;
-  }) => Promise<void>,
-  processFunc: (params: {
-    db: NodePgDatabase<typeof schema>;
-    fileBlob: string;
+export type HostMessage = {} | { fileId: number };
+type StartMessage = MessageEvent<HostMessage>;
+interface WorkerParams {
+  self: Worker;
+  process: (params: {
+    db: typeof dbType;
+    message: StartMessage;
     progress: (percentDone: number) => void;
-    changeset: Awaited<ReturnType<typeof createChangeset>>;
-  }) => Promise<void>
-) => {
+    utils: {
+      getFileBlob: (fileId: number | undefined) => Promise<string>;
+      createChangeset: (
+        changesetTable: schema.ChangesetTable,
+        fileId: number | undefined
+      ) => Promise<Awaited<ReturnType<typeof createChangeset>>>;
+    };
+  }) => Promise<void>;
+}
+
+export const work = async ({ self, process: processFunc }: WorkerParams) => {
   const sendMessage = (
     type: WorkerMessage["type"],
     msg?: WorkerMessage["msg"]
@@ -38,53 +34,41 @@ export const work = async (
     self.postMessage({ type, msg });
   };
 
-  const client = new Client({
-    connectionString: POSTGRESQL,
-  });
-  await client.connect();
-  const db = drizzle(client, { schema });
-
-  self.onmessage = async (event: MessageEvent) => {
-    let changeset: Awaited<ReturnType<typeof createChangeset>> | undefined =
-      undefined;
-
+  self.onmessage = async (event: StartMessage) => {
     try {
-      const fileId = event.data.fileId;
-      if (changesetTable)
-        changeset = await createChangeset(changesetTable, fileId, () =>
-          sendMessage("changesetUpdate")
-        );
-      await db.transaction(
-        async (tx) => {
-          changeset = changeset as Awaited<ReturnType<typeof createChangeset>>;
-          if (typeof fileId !== "number")
-            throw new Error("No fileId was provided!");
-
-          const fileRecord = await tx.query.files.findFirst({
-            where: eq(files.id, fileId),
-          });
-          if (!fileRecord?.content)
-            throw new Error("No file with id " + fileId);
-          await verify({ db: tx, fileBlob: fileRecord.content });
-          sendMessage("verified");
-          await processFunc({
-            db: tx,
-            fileBlob: fileRecord.content,
-            progress: (amountDone) => {
-              sendMessage("progress", amountDone.toString());
-            },
-            changeset,
-          });
-          if (changeset) changeset.setStatus("current");
+      sendMessage("started");
+      await processFunc({
+        db,
+        message: event,
+        progress: (amountDone) => {
+          sendMessage("progress", amountDone.toString());
         },
-        { isolationLevel: "repeatable read" }
-      );
+        utils: {
+          getFileBlob: async (fileId) => {
+            if (typeof fileId !== "number")
+              throw new Error("No fileId was provided!");
+
+            const fileRecord = await db.query.files.findFirst({
+              where: eq(files.id, fileId),
+            });
+            if (!fileRecord?.content)
+              throw new Error("No file with id " + fileId);
+            return fileRecord.content as string;
+          },
+          createChangeset: async (changesetTable, fileId) => {
+            if (!changesetTable) throw new Error("No changesetTable provided!");
+            if (typeof fileId !== "number")
+              throw new Error("No fileId was provided!");
+            return await createChangeset(changesetTable, fileId, () =>
+              sendMessage("changesetUpdate")
+            );
+          },
+        },
+      });
       sendMessage("done");
-      await client.end();
       process.exit();
     } catch (e: any) {
       sendMessage("error", e["message"] ?? "Unknown Error Occurred");
-      if (changeset) changeset.setStatus("error");
       console.log(e);
       process.exit();
     }

@@ -1,12 +1,11 @@
 import { work } from "../../utils/workerBase";
 declare var self: Worker;
 
-work(
+work({
   self,
-  null,
-  async () => {},
-  async ({ db, progress }) => {
+  process: async ({ db, progress }) => {
     progress(0);
+    console.log("TODO: implement search worker");
     return;
-  }
-);
+  },
+});

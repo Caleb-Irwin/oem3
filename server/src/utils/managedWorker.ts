@@ -1,27 +1,34 @@
 import { z } from "zod";
 import { generalProcedure, router } from "../trpc";
 import { eventSubscription } from "./eventSubscription";
-import type { WorkerMessage } from "./workerBase";
+import type { HostMessage, WorkerMessage } from "./workerBase";
 import { TRPCError } from "@trpc/server";
 import { getChangeset } from "./changeset";
-import type { changesetType } from "./changeset.table";
+import { changesetType } from "./changeset.table";
+import { KV } from "./kv";
 
-export type RunWorker = (data: { fileId: number }) => Promise<void>;
+export type RunWorker = (data: HostMessage, time?: number) => Promise<void>;
+export type PostRunHook = (cb: () => void) => void;
 
 export const managedWorker = (
   workerUrl: string,
-  changeset: (typeof changesetType.enumValues)[number] | null
+  name: (typeof changesetType.enumValues)[number] | string,
+  runAfter: PostRunHook[] = []
 ) => {
-  const { onUpdate, update } = eventSubscription();
-
-  const status = {
+  const changeset = changesetType.enumValues.includes(name as any)
+      ? (name as (typeof changesetType.enumValues)[number])
+      : null,
+    { onUpdate, update } = eventSubscription(),
+    kv = new KV(name),
+    status = {
       running: false,
       error: false,
       message: "Not running",
       progress: -1,
     },
-    runWorker: RunWorker = async (data: { fileId: number }) => {
-      if (status.running) throw new Error("Already Processsing");
+    postRunCallbacks: (() => void)[] = [],
+    runWorker: RunWorker = async (data, time = Date.now()) => {
+      if (status.running) throw new Error("Already Processing");
       status.running = true;
       status.error = false;
       status.message = "Starting";
@@ -30,7 +37,7 @@ export const managedWorker = (
       return new Promise<void>((res, rej) => {
         const worker = new Worker(workerUrl);
         let done = false,
-          verified = false;
+          started = false;
 
         worker.onmessage = (event) => {
           const msg: WorkerMessage = event.data;
@@ -40,17 +47,17 @@ export const managedWorker = (
           } else if (msg.type === "done") {
             done = true;
             update();
-          } else if (msg.type === "verified") {
+          } else if (msg.type === "started") {
             status.progress = 0;
             update();
-            verified = true;
+            started = true;
             res();
           } else if (msg.type === "progress") {
             status.progress = parseFloat(msg.msg ?? "0");
             update();
           } else if (msg.type === "changesetUpdate") {
             update("changeset");
-          } else if (verified) {
+          } else if (started) {
             rej(msg.msg ?? "Error in worker");
           } else {
             status.running = false;
@@ -59,17 +66,38 @@ export const managedWorker = (
           }
         };
 
-        worker.addEventListener("close", () => {
+        worker.addEventListener("close", async () => {
+          await kv.set("lastRan", time.toString());
           status.running = false;
           status.message = done
             ? "Completed"
             : "Worker closed before completing task";
           status.error = done ? false : true;
           update();
-          if (!verified) rej("Worker closed before completing task");
+          if (done) {
+            postRunCallbacks.forEach((cb) => cb());
+          }
+          if (!started) rej("Worker closed before completing task");
+          if (
+            ((await kv.get("lastStaled"))
+              ? parseInt((await kv.get("lastStaled")) as string)
+              : Number.NEGATIVE_INFINITY) >
+            parseInt((await kv.get("lastRan")) as string)
+          ) {
+            runWorker({}, time);
+          }
         });
       });
     };
+
+  runAfter.forEach((setCb) =>
+    setCb(async () => {
+      const time = Date.now();
+      await kv.set("lastStaled", time.toString());
+      if (status.running) return;
+      runWorker({}, time);
+    })
+  );
 
   return {
     runWorker,
@@ -92,5 +120,8 @@ export const managedWorker = (
       }),
       onUpdate,
     }),
+    hook: (cb: () => void) => {
+      postRunCallbacks.push(cb);
+    },
   };
 };

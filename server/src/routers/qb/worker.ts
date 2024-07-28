@@ -9,61 +9,65 @@ import {
 } from "../../utils/changeset.helpers";
 declare var self: Worker;
 
-work(
+work({
   self,
-  qb,
-  async () => {
-    return;
-  },
-  async ({ fileBlob, changeset, progress, db }) => {
-    const res = Papa.parse(
-      atob(fileBlob.slice(fileBlob.indexOf("base64,") + 7)),
-      { header: true }
-    );
+  process: async ({
+    db,
+    progress,
+    message,
+    utils: { createChangeset, getFileBlob },
+  }) => {
+    const changeset = await createChangeset(qb, message.data.fileId),
+      fileBlob = await getFileBlob(message.data.fileId),
+      res = Papa.parse(atob(fileBlob.slice(fileBlob.indexOf("base64,") + 7)), {
+        header: true,
+      });
 
-    const getQBItem = db.query.qb
-      .findFirst({
-        where: eq(qb.qbId, sql.placeholder("qbId")),
-        with: {
-          uniref: true,
+    await db.transaction(async (db) => {
+      const getQBItem = db.query.qb
+        .findFirst({
+          where: eq(qb.qbId, sql.placeholder("qbId")),
+          with: {
+            uniref: true,
+          },
+        })
+        .prepare("qb-item");
+
+      await changeset.process<
+        QbItemRaw,
+        typeof qb.$inferInsert,
+        Exclude<Awaited<ReturnType<typeof getQBItem.execute>>, undefined>
+      >({
+        db,
+        rawItems: (res.data as QbItemRaw[]).filter(
+          (item) => item.Type === "Inventory Part"
+        ),
+        transform: transformQBItem,
+        getPrevious: async (item) => {
+          return await getQBItem.execute({ qbId: item.qbId });
         },
-      })
-      .prepare("qb-item");
-
-    await changeset.process<
-      QbItemRaw,
-      typeof qb.$inferInsert,
-      Exclude<Awaited<ReturnType<typeof getQBItem.execute>>, undefined>
-    >({
-      db,
-      rawItems: (res.data as QbItemRaw[]).filter(
-        (item) => item.Type === "Inventory Part"
-      ),
-      transform: transformQBItem,
-      getPrevious: async (item) => {
-        return await getQBItem.execute({ qbId: item.qbId });
-      },
-      diff: genDiffer(
-        ["quantityOnHand", "quantityOnPurchaseOrder", "quantityOnSalesOrder"],
-        [
-          "desc",
-          "type",
-          "costCents",
-          "priceCents",
-          "salesTaxCode",
-          "purchaseTaxCode",
-          "quantityOnHand",
-          "quantityOnSalesOrder",
-          "quantityOnPurchaseOrder",
-          "um",
-          "account",
-          "preferredVendor",
-        ]
-      ),
-      progress,
+        diff: genDiffer(
+          ["quantityOnHand", "quantityOnPurchaseOrder", "quantityOnSalesOrder"],
+          [
+            "desc",
+            "type",
+            "costCents",
+            "priceCents",
+            "salesTaxCode",
+            "purchaseTaxCode",
+            "quantityOnHand",
+            "quantityOnSalesOrder",
+            "quantityOnPurchaseOrder",
+            "um",
+            "account",
+            "preferredVendor",
+          ]
+        ),
+        progress,
+      });
     });
-  }
-);
+  },
+});
 
 const transformQBItem = (item: QbItemRaw): typeof qb.$inferInsert => {
   return {

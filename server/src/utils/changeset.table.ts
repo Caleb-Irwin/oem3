@@ -12,11 +12,7 @@ import type { qb } from "../db.schema";
 export const changesetType = pgEnum("changeset_type", ["qb"]),
   changesetStatusType = pgEnum("changeset_status_type", [
     "generating",
-    "current",
     "completed",
-    "cancelled",
-    "partiallyCancelled",
-    "error",
   ]);
 export type ChangesetType = (typeof changesetType.enumValues)[number];
 export type ChangesetTable = typeof qb;
