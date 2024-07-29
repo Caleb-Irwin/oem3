@@ -62,16 +62,18 @@ export const createChangeset = async (
     >({
       db,
       rawItems,
+      prevItems,
       transform,
-      getPrevious,
+      extractId,
       diff,
       excludeFromHistory,
       progress,
     }: {
       db: typeof DB;
       rawItems: Raw[];
+      prevItems: Map<number | string, Item>;
       transform: (raw: Raw) => ItemInsert;
-      getPrevious: (current: ItemInsert) => Promise<Item | undefined>;
+      extractId: (current: ItemInsert) => number | string;
       diff: ReturnType<typeof genDiffer<Item, ItemInsert>>;
       excludeFromHistory?: (keyof ItemInsert)[];
       progress: (amountDone: number) => void;
@@ -86,7 +88,9 @@ export const createChangeset = async (
         })
         .process(async (raw) => {
           const next = transform(raw),
-            prev = await getPrevious(next);
+            prevId = extractId(next),
+            prev = prevItems.get(prevId);
+
           if (!prev) {
             const res = await db
               .insert(table)
@@ -114,13 +118,14 @@ export const createChangeset = async (
             });
             summary["create"]++;
           } else {
+            prevItems.delete(prevId);
             const { diff: diffRes, type } = diff(prev, next);
             if (type === "nop") {
-              await db
-                .update(table)
-                .set({ deleted: false, lastUpdated: timeStamp })
-                .where(eq(table.id, prev.id));
               if (prev.deleted) {
+                await db
+                  .update(table)
+                  .set({ deleted: false, lastUpdated: timeStamp })
+                  .where(eq(table.id, prev.id));
                 await insertHistory({
                   db,
                   resourceType: "qb",
@@ -161,12 +166,9 @@ export const createChangeset = async (
           }
         });
 
-      const deletedItems = await db.query[name].findMany({
-        where: and(lt(table.lastUpdated, timeStamp), eq(table.deleted, false)),
-        with: {
-          uniref: true,
-        },
-      });
+      const deletedItems = Array.from(prevItems.values()).filter(
+        (v) => !v.deleted
+      );
 
       await PromisePool.withConcurrency(100)
         .for(deletedItems)

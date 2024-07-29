@@ -1,7 +1,6 @@
 import { work } from "../../utils/workerBase";
 import Papa from "papaparse";
 import { qb, qbItemTypeEnum, qbUmEnum, taxCodeEnum } from "./table";
-import { eq, sql } from "drizzle-orm";
 import {
   enforceEnum,
   genDiffer,
@@ -17,35 +16,33 @@ work({
     message,
     utils: { createChangeset, getFileBlob },
   }) => {
-    const changeset = await createChangeset(qb, message.data.fileId),
-      fileBlob = await getFileBlob(message.data.fileId),
+    const fileId = (message.data as { fileId: number }).fileId,
+      changeset = await createChangeset(qb, fileId),
+      fileBlob = await getFileBlob(fileId),
       res = Papa.parse(atob(fileBlob.slice(fileBlob.indexOf("base64,") + 7)), {
         header: true,
       });
 
     await db.transaction(async (db) => {
-      const getQBItem = db.query.qb
-        .findFirst({
-          where: eq(qb.qbId, sql.placeholder("qbId")),
-          with: {
-            uniref: true,
-          },
-        })
-        .prepare("qb-item");
+      const prevItems = new Map(
+        (await db.query.qb.findMany({ with: { uniref: true } })).map((item) => [
+          item.qbId,
+          item,
+        ])
+      );
 
       await changeset.process<
         QbItemRaw,
         typeof qb.$inferInsert,
-        Exclude<Awaited<ReturnType<typeof getQBItem.execute>>, undefined>
+        Exclude<ReturnType<typeof prevItems.get>, undefined>
       >({
         db,
         rawItems: (res.data as QbItemRaw[]).filter(
           (item) => item.Type === "Inventory Part"
         ),
+        prevItems,
         transform: transformQBItem,
-        getPrevious: async (item) => {
-          return await getQBItem.execute({ qbId: item.qbId });
-        },
+        extractId: (item) => item.qbId,
         diff: genDiffer(
           ["quantityOnHand", "quantityOnPurchaseOrder", "quantityOnSalesOrder"],
           [
