@@ -35,7 +35,8 @@
 		<div class="{grid ? 'px-1' : 'px-2'} flex-grow-[10] w-full basis-12">
 			<a
 				href={'/app/resource/' + rawProduct.uniId}
-				class="font-semibold hover:underline block w-full">{product.name}</a
+				class="font-semibold hover:underline block w-full {product.name ? '' : 'italic'}"
+				>{product.name || 'Unnamed Item'}</a
 			>
 			<p class="my-1">
 				<span class="text-lg">

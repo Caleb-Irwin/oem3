@@ -58,5 +58,3 @@ function getSubStrings(str: string, length = 3): string {
   }
   return res + " " + getSubStrings(str, length + 1);
 }
-
-console.log(getSubStrings("1234567890"));

@@ -24,8 +24,8 @@
 {:else}
 	{#if product}
 		<div class="card m-2 p-6">
-			<h1 class="h1">
-				{product.name}
+			<h1 class="h1 {product.name ? '' : 'italic'}">
+				{product.name || 'Unnamed Item'}
 			</h1>
 			<h2 class="py-2 h2 font-semibold flex flex-wrap align-middle">
 				<span>
