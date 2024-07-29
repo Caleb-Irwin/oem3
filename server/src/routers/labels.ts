@@ -143,6 +143,28 @@ export const labelsRouter = router({
         update(sheetId.toString());
       }
     ),
+  duplicate: generalProcedure
+    .input(
+      z.object({
+        sheetId: z.number().int(),
+        id: z.number().int(),
+      })
+    )
+    .mutation(async ({ ctx, input: { sheetId, id } }) => {
+      await checkSheetPermissions(ctx, sheetId);
+      const label = await db.query.labels.findFirst({
+        where: (labels, { eq }) => eq(labels.id, id),
+      });
+      if (!label) throw new TRPCError({ code: "BAD_REQUEST" });
+      await db.insert(labels).values({
+        sheet: sheetId,
+        name: label.name,
+        priceCents: label.priceCents,
+        barcode: label.barcode,
+        qbId: label.qbId,
+      });
+      update(sheetId.toString());
+    }),
   del: generalProcedure
     .input(
       z.object({

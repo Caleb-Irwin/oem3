@@ -7,6 +7,7 @@
 	import Trash_2 from 'lucide-svelte/icons/trash-2';
 	import Pencil from 'lucide-svelte/icons/pencil';
 	import Plus from 'lucide-svelte/icons/plus';
+	import Copy from 'lucide-svelte/icons/copy';
 	import Button from '$lib/Button.svelte';
 	import Search from '$lib/Search.svelte';
 
@@ -33,6 +34,12 @@
 	<ul class="w-full my-4 max-w-6xl">
 		{#each $sheet ?? [] as label, i}
 			<li class="m-0.5 rounded-sm flex {i % 2 === 0 ? 'bg-surface-600' : 'bg-surface-800'}">
+				<Button
+					action={client.labels.duplicate}
+					class="p-0.5 px-1 btn btn-icon btn-icon-sm text-gray-400"
+					successMessage="Duplicated Label"
+					input={{ id: label.id, sheetId }}><Copy /></Button
+				>
 				<button
 					class="p-0.5 px-1 btn btn-icon btn-icon-sm text-gray-400"
 					on:click={() =>
