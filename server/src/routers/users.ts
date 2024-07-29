@@ -43,6 +43,26 @@ export const usersRouter = router({
       });
       update();
     }),
+  changePassword: adminProcedure
+    .input(
+      z.object({
+        username: z.string(),
+        password: z.string().min(8, "Password must be at least 8 characters"),
+      })
+    )
+    .mutation(async ({ input: { username, password } }) => {
+      const user = await db.query.users.findFirst({
+        where: (users, { eq }) => eq(users.username, username),
+      });
+
+      if (!user)
+        throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+
+      await db
+        .update(users)
+        .set({ passwordHash: await Bun.password.hash(password) })
+        .where(eq(users.username, username));
+    }),
   delete: adminProcedure
     .input(z.object({ username: z.string() }))
     .mutation(async ({ input: { username } }) => {

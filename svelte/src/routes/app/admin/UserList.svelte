@@ -1,9 +1,13 @@
 <script lang="ts">
 	import Button from '$lib/Button.svelte';
 	import { client, sub } from '$lib/client';
+	import Pencil from 'lucide-svelte/icons/pencil';
 	import Trash2 from 'lucide-svelte/icons/trash-2';
+	import ChangePassword from './ChangePassword.svelte';
+	import { getModalStore } from '@skeletonlabs/skeleton';
 
 	const allUsers = sub(client.users.all, client.users.onUpdate);
+	const modalStore = getModalStore();
 </script>
 
 <div class="card p-4">
@@ -14,6 +18,17 @@
 				<span class="font-semibold text-surface-100">{user.username}</span>
 				<span class="text-surface-200 pl-2"> {user.permissionLevel}</span>
 				<span class="flex-grow"></span>
+				<button
+					class="btn btn-icon"
+					disabled={user.username === 'admin'}
+					on:click={() =>
+						modalStore.trigger({
+							type: 'component',
+							component: { ref: ChangePassword, props: { username: user.username } }
+						})}
+				>
+					<Pencil />
+				</button>
 				<Button
 					class="btn btn-icon"
 					action={client.users.delete}
