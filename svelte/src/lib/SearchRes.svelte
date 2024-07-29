@@ -63,10 +63,12 @@
 			<ItemRow
 				rawProduct={uniref}
 				{grid}
-				select={async (selection) => {
-					select ? await select(selection) : undefined;
-					modalStore.close();
-				}}
+				select={select
+					? async (selection) => {
+							await select(selection);
+							modalStore.close();
+						}
+					: undefined}
 			/>
 		{/each}
 		{#if res.more}
