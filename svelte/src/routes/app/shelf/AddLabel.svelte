@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Form from '$lib/Form.svelte';
 	import { client } from '$lib/client';
-	import type { Label } from '../../../../../server/db/db';
+	import type { Label } from '../../../../../server/src/db.schema';
 
 	export let sheetId: number,
 		edit = false,

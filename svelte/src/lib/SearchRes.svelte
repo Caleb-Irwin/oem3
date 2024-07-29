@@ -60,7 +60,14 @@
     "
 	>
 		{#each res.results as { uniref }}
-			<ItemRow rawProduct={uniref} {grid} {select} />
+			<ItemRow
+				rawProduct={uniref}
+				{grid}
+				select={async (selection) => {
+					select ? await select(selection) : undefined;
+					modalStore.close();
+				}}
+			/>
 		{/each}
 		{#if res.more}
 			<p class="pt-2 text-center">More results available - TODO</p>

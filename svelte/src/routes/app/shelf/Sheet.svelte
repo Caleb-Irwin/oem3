@@ -8,6 +8,7 @@
 	import Pencil from 'lucide-svelte/icons/pencil';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Button from '$lib/Button.svelte';
+	import Search from '$lib/Search.svelte';
 
 	export let sheetId: number, sheetName: string;
 	const sheet = sub(client.labels.all, client.labels.onUpdate, { sheetId }, sheetId.toString()),
@@ -70,9 +71,34 @@
 		{/each}
 	</ul>
 
-	<div class="flex">
+	<div class="flex flex-wrap md:flex-nowrap justify-center">
+		<Search
+			microQB
+			select={async (selection) => {
+				const res = await client.resources.get.query({ uniId: selection.uniref });
+				if (res?.qbData) {
+					modalStore.trigger({
+						type: 'component',
+						component: {
+							ref: AddLabel,
+							props: {
+								sheetId,
+								label: {
+									barcode: res.qbData.qbId.includes(':')
+										? res.qbData.qbId.split(':')[1]
+										: res.qbData.qbId,
+									name: res.qbData.desc,
+									priceCents: res.qbData.priceCents,
+									qbId: res.qbData.qbId
+								}
+							}
+						}
+					});
+				}
+			}}
+		/>
 		<button
-			class="btn variant-ghost-primary mr-2 text-primary-500"
+			class="btn variant-ghost-primary mx-2 mt-1 md:mt-0 text-primary-500 h-14"
 			on:click={() =>
 				modalStore.trigger({
 					type: 'component',
@@ -83,7 +109,7 @@
 			<span>Add Label</span>
 		</button>
 		<Button
-			class="btn variant-ghost-error text-error-500"
+			class="btn variant-ghost-error text-error-500 mt-1 md:mt-0 h-14"
 			action={client.labels.sheet.clear}
 			input={{ id: sheetId }}
 			confirm={'Delete All Labels?'}
