@@ -1,4 +1,4 @@
-import { and, desc, eq, lt } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db as DB } from "../db";
 import {
   changesetType,
