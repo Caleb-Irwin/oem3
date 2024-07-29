@@ -12,5 +12,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		event.locals.user = null;
 	}
 	event.locals.client = getServerClient(token);
-	return await resolve(event);
+	const res = await resolve(event);
+	res.headers.set('Cache-Control', 'private');
+	return res;
 };

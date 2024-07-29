@@ -6,7 +6,7 @@
 	export let labels: Label[],
 		name: string = 'labels';
 
-	let auxText = `${new Date().getMonth()}/${new Date().getFullYear().toString().slice(2)}`,
+	let auxText = `${new Date().getMonth() + 1}/${new Date().getFullYear().toString().slice(2)}`,
 		sf = 3,
 		fileTitle = 'labels',
 		settingsOpen = false;
