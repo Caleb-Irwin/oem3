@@ -25,9 +25,13 @@ work({
           const baseId = item.qbId.includes(":")
               ? item.qbId.split(":")[1]
               : item.qbId,
-            keyInfo = `${baseId.includes(" ") ? "" : baseId}`,
+            keyInfo = `${
+              baseId.includes(" ") || baseId.includes("-") ? "" : baseId
+            }`,
             otherInfo = `${item.desc} ${
-              !baseId.includes(" ") ? getSubStrings(baseId) : baseId
+              !baseId.includes(" ") && baseId.length < 20
+                ? getSubStrings(baseId)
+                : baseId
             }`;
           await db
             .insert(search)
