@@ -7,3 +7,4 @@ export * from "./utils/uniref.table";
 export * from "./utils/changeset.table";
 export * from "./utils/history.table";
 export * from "./routers/search/table";
+export * from "./routers/guild/table";

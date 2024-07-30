@@ -18,7 +18,7 @@
 		>,
 		changeset: Readable<
 			| {
-					type: 'qb';
+					type: 'qb' | 'guild';
 					status: 'generating' | 'completed';
 					id: number;
 					file: number | null;

@@ -24,7 +24,7 @@
 	<label class="label my-1">
 		<span>Mode</span>
 		<select class="select" name="processFile" id="">
-			<option value="1">Process File</option>
+			<option value="1">Apply File</option>
 			<option value="">Only Upload</option>
 		</select>
 	</label>

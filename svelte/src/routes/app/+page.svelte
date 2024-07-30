@@ -24,7 +24,12 @@
 		<a href="/app/qb" class="card card-hover p-6 m-2">
 			<h3 class="font-semibold text-2xl">QuickBooks</h3>
 		</a>
-		<a href="/app/" class="card p-6 m-2 cursor-not-allowed text-surface-400">
+		<a
+			href="/app/guild"
+			class="card p-6 m-2 {data.user.permissionLevel !== 'admin'
+				? 'cursor-not-allowed text-surface-400'
+				: ''}"
+		>
 			<h3 class="font-semibold text-2xl">Guild</h3>
 		</a>
 		<a href="/app/" class="card p-6 m-2 cursor-not-allowed text-surface-400">

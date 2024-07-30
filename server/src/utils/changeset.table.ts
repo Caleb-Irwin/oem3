@@ -9,7 +9,7 @@ import {
 import { files } from "./files.table";
 import type { qb } from "../db.schema";
 
-export const changesetType = pgEnum("changeset_type", ["qb"]),
+export const changesetType = pgEnum("changeset_type", ["qb", "guild"]),
   changesetStatusType = pgEnum("changeset_status_type", [
     "generating",
     "completed",

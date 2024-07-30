@@ -148,6 +148,13 @@
       "when": 1720917335754,
       "tag": "0020_crazy_gamora",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1722376810262,
+      "tag": "0021_curved_johnny_storm",
+      "breakpoints": true
     }
   ]
 }

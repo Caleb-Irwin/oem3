@@ -78,15 +78,13 @@ const transformQBItem = (item: QbItemRaw): typeof qb.$inferInsert => {
       item["Purchase Tax Code"],
       taxCodeEnum.enumValues
     ),
-    quantityOnSalesOrder: removeNaN(
-      parseInt(item["Quantity On Sales Order"], 10)
-    ),
+    quantityOnSalesOrder: removeNaN(parseInt(item["Quantity On Sales Order"])),
     quantityOnPurchaseOrder: removeNaN(
-      parseInt(item["Quantity On Purchase Order"], 10)
+      parseInt(item["Quantity On Purchase Order"])
     ),
     um: getUM(item["U/M"]),
     account: item.Account,
-    quantityOnHand: removeNaN(parseInt(item["Quantity On Hand"], 10)),
+    quantityOnHand: removeNaN(parseInt(item["Quantity On Hand"])),
     preferredVendor: item["Preferred Vendor"],
     lastUpdated: 0,
   };

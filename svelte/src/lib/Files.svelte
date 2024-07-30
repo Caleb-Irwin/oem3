@@ -19,7 +19,8 @@
 				errorShape: any;
 				transformer: false;
 			}>;
-		};
+		},
+		acceptFileType: string;
 
 	const files = sub(filesRouter.get, filesRouter.onUpdate);
 
@@ -40,8 +41,8 @@
 						ref: UploadFile,
 						props: {
 							action: filesRouter,
-							titleType: 'QuickBooks',
-							accept: '.CSV'
+							titleType: title,
+							accept: acceptFileType
 						}
 					}
 				});
