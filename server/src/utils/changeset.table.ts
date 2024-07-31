@@ -7,7 +7,8 @@ import {
   integer,
 } from "drizzle-orm/pg-core";
 import { files } from "./files.table";
-import type { guild, qb } from "../db.schema";
+import { uniref, type guild, type qb } from "../db.schema";
+import { relations } from "drizzle-orm";
 
 export const changesetType = pgEnum("changeset_type", ["qb", "guild"]),
   changesetStatusType = pgEnum("changeset_status_type", [
@@ -27,3 +28,10 @@ export const changesets = pgTable("changesets", {
   summary: text("summary"),
   created: bigint("uploadedTime", { mode: "number" }).notNull(),
 });
+
+export const changesetsRelation = relations(changesets, ({ one }) => ({
+  uniref: one(uniref, {
+    fields: [changesets.id],
+    references: [uniref.changeset],
+  }),
+}));

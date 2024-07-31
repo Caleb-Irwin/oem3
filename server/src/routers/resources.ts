@@ -2,7 +2,13 @@ import { z } from "zod";
 import { router, viewerProcedure } from "../trpc";
 import { db } from "../db";
 import { desc, eq } from "drizzle-orm";
-import { changesetType, history, resourceTypeEnum, uniref } from "../db.schema";
+import {
+  changesets,
+  changesetType,
+  history,
+  resourceTypeEnum,
+  uniref,
+} from "../db.schema";
 
 export const resourceWith = {
   changesetData: true as true,
@@ -36,10 +42,24 @@ export const resourcesRouter = router({
   getChangesets: viewerProcedure
     .input(z.object({ type: z.enum(changesetType.enumValues) }))
     .query(async ({ input: { type } }) => {
-      return await db.query.history.findMany({
-        where: eq(history.resourceType, "changeset"),
-        orderBy: desc(history.created),
-      });
+      return (
+        await Promise.all(
+          (
+            await db.query.changesets.findMany({
+              where: eq(changesets.type, type),
+              with: {
+                uniref: true,
+              },
+              orderBy: desc(changesets.created),
+            })
+          ).map(
+            async (line) =>
+              await db.query.history.findFirst({
+                where: eq(history.uniref, line.uniref.uniId),
+              })
+          )
+        )
+      ).filter((v) => typeof v === "object");
     }),
   getUniId: viewerProcedure
     .input(

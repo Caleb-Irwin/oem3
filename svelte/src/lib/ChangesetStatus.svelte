@@ -48,7 +48,11 @@
 						props: {
 							component: History,
 							promise: (async () => {
-								return { history: await client.resources.getChangesets.query() };
+								return {
+									history: await client.resources.getChangesets.query({
+										type: $changeset?.type ?? 'qb'
+									})
+								};
 							})()
 						}
 					}
