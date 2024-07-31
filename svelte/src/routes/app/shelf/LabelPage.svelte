@@ -36,7 +36,7 @@
 		width={612 * sf}
 		viewBox="0 0 612 792"
 		fill="none"
-		font-family="Arial"
+		font-family="Sans,Arial"
 		xmlns="http://www.w3.org/2000/svg"
 	>
 		<rect width="612" height="792" fill="#F5F5F5" />

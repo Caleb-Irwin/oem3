@@ -40,7 +40,7 @@
 		if (lines.length < 3) lines.push(line.join(''));
 		if (lines.length < 3) lines.unshift('');
 		if (lines.length < 3) lines.unshift('');
-		console.log(lines);
+		// console.log(lines);
 
 		lines = lines;
 

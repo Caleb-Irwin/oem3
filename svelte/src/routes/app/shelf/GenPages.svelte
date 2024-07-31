@@ -55,7 +55,8 @@
 		dominant-baseline="middle"
 		text-anchor="middle"
 		style="font-size: 10px; fill: black;"
-	>
+		font-family="Sans,Arial"
+		>ß
 		<tspan
 			style="font-size: 10px;"
 			x="50%"
