@@ -21,15 +21,18 @@
 				list.push(elem);
 				list.push(' ');
 				return list;
-			}, []);
+			}, [])
+			.filter((v) => v !== '');
 
 		let line: string[] = [];
+		console.log(phrase);
+
 		await phrase.reduce(async (totalProm, elem) => {
 			const total = await totalProm;
 			const newTotal = total + (await wordWidth.get(elem));
 			if (total < 185 && newTotal >= 185) {
 				lines.push(line.join(''));
-				line = [];
+				line = [elem];
 				return 0;
 			}
 			line.push(elem);
@@ -40,10 +43,8 @@
 		if (lines.length < 3) lines.push(line.join(''));
 		if (lines.length < 3) lines.unshift('');
 		if (lines.length < 3) lines.unshift('');
-		// console.log(lines);
 
 		lines = lines;
-
 		await tick();
 		loadedCB();
 	};

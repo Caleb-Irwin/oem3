@@ -33,7 +33,6 @@ export class WordWidth {
 		if (!len) {
 			len = await this.measureWord(word);
 			this.wordMap.set(word, len);
-			// console.log(word, len);
 		}
 		res(len);
 		this.processing = false;
