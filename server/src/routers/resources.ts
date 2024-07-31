@@ -4,6 +4,12 @@ import { db } from "../db";
 import { desc, eq } from "drizzle-orm";
 import { history, resourceTypeEnum, uniref } from "../db.schema";
 
+export const resourceWith = {
+  changesetData: true as true,
+  qbData: true as true,
+  guildData: true as true,
+};
+
 export const resourcesRouter = router({
   get: viewerProcedure
     .input(
@@ -16,10 +22,7 @@ export const resourcesRouter = router({
       const res =
         (await db.query.uniref.findFirst({
           where: eq(uniref.uniId, uniId),
-          with: {
-            changesetData: true,
-            qbData: true,
-          },
+          with: resourceWith,
         })) ?? null;
       if (res && includeHistory) {
         const historyRes = await db.query.history.findMany({
@@ -30,7 +33,7 @@ export const resourcesRouter = router({
       }
       return res;
     }),
-  getChangsets: viewerProcedure.query(async () => {
+  getChangesets: viewerProcedure.query(async () => {
     return await db.query.history.findMany({
       where: eq(history.resourceType, "changeset"),
       orderBy: desc(history.created),

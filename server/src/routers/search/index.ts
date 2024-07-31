@@ -5,6 +5,7 @@ import { desc, sql } from "drizzle-orm";
 import { search } from "./table";
 import { db } from "../../db";
 import { qbHook } from "../qb";
+import { resourceWith } from "../resources";
 
 const { worker } = managedWorker(
   new URL("worker.ts", import.meta.url).href,
@@ -42,10 +43,7 @@ export const searchRouter = router({
         orderBy: () => desc(sql`rank`),
         with: {
           uniref: {
-            with: {
-              changesetData: true,
-              qbData: true,
-            },
+            with: resourceWith,
           },
         },
         limit: PAGE_SIZE + 1,

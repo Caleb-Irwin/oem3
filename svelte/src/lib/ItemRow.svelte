@@ -45,13 +45,15 @@
 				<span class="chip variant-soft-tertiary">
 					{product.sku}
 				</span>
-				<span
-					class="cursor-default chip m-1 {(product?.stock ?? 0) > 0
-						? 'variant-filled-secondary'
-						: 'variant-filled-warning'}"
-				>
-					{product.stock} in stock
-				</span>
+				{#if product.stock !== null}
+					<span
+						class="cursor-default chip m-1 {(product?.stock ?? 0) > 0
+							? 'variant-filled-secondary'
+							: 'variant-filled-warning'}"
+					>
+						{product.stock} in stock
+					</span>
+				{/if}
 				{#if product.deleted}
 					<span class="cursor-default chip m-1 variant-filled-error"> Deleted </span>
 				{/if}
