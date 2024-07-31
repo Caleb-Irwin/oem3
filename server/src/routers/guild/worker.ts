@@ -1,13 +1,77 @@
-import { enforceEnum, removeNaN } from "../../utils/changeset.helpers";
+import {
+  enforceEnum,
+  genDiffer,
+  removeNaN,
+} from "../../utils/changeset.helpers";
 import { work } from "../../utils/workerBase";
-import { guildUmEnum, type guild } from "./table";
+import { guild, guildUmEnum } from "./table";
+import * as xlsx from "xlsx";
 
 declare var self: Worker;
 
 work({
   self,
-  process: async ({}) => {
-    console.log("TODO Implement Guild Worker");
+  process: async ({
+    db,
+    message,
+    progress,
+    utils: { getFileBlob, createChangeset },
+  }) => {
+    const fileId = (message.data as { fileId: number }).fileId,
+      changeset = await createChangeset(guild, fileId),
+      blob = await getFileBlob(fileId),
+      workbook = xlsx.read(blob.slice(blob.indexOf(";base64,") + 8)),
+      worksheet = workbook.Sheets[workbook.SheetNames[0]],
+      guildObjects = xlsx.utils.sheet_to_json(worksheet);
+
+    await db.transaction(async (db) => {
+      const prevItems = new Map(
+        (await db.query.guild.findMany({ with: { uniref: true } })).map(
+          (item) => [item.gid, item]
+        )
+      );
+      await changeset.process({
+        db,
+        rawItems: guildObjects as GuildRaw[],
+        prevItems,
+        transform: transformGuild,
+        extractId: (g) => g.gid,
+        diff: genDiffer(
+          [],
+          [
+            "gid",
+            "upc",
+            "spr",
+            "basics",
+            "cis",
+            "priceL0Cents",
+            "priceL1Cents",
+            "priceRetailCents",
+            "memberPriceCents",
+            "dropshipPriceCents",
+            "shortDesc",
+            "longDesc",
+            "imageURL",
+            "vendor",
+            "webCategory",
+            "webCategory1Desc",
+            "webCategory2Desc",
+            "webCategory3Desc",
+            "webCategory4Desc",
+            "um",
+            "standardPackQty",
+            "masterPackQty",
+            "freightFlag",
+            "weightGrams",
+            "heavyGoodsChargeSkCents",
+            "minOrderQty",
+            "guildDateChanged",
+          ]
+        ),
+        excludeFromHistory: [],
+        progress,
+      });
+    });
   },
 });
 

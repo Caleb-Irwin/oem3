@@ -4,6 +4,7 @@
     "@trpc/client": "^10.45.2",
     "@trpc/server": "next",
     "@types/polka": "^0.5.7",
+    "@types/xlsx": "^0.0.36",
     "cookies": "^0.9.1",
     "drizzle-orm": "^0.31.4",
     "jsonwebtoken": "^9.0.2",
@@ -12,6 +13,7 @@
     "polka": "^0.5.2",
     "trpc-bun-adapter": "^1.1.0",
     "ws": "^8.16.0",
+    "xlsx": "^0.18.5",
     "zod": "^3.23.8"
   },
   "scripts": {

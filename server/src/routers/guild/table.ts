@@ -8,6 +8,8 @@ import {
   text,
   varchar,
 } from "drizzle-orm/pg-core";
+import { uniref } from "../../db.schema";
+import { relations } from "drizzle-orm";
 
 export const guildUmEnum = pgEnum("guild_um", [
   "bx",
@@ -59,3 +61,7 @@ export const guild = pgTable("guild", {
   deleted: boolean("deleted").default(false).notNull(),
   lastUpdated: bigint("lastUpdated", { mode: "number" }).notNull(),
 });
+
+export const guildRelations = relations(guild, ({ one }) => ({
+  uniref: one(uniref, { fields: [guild.id], references: [uniref.guild] }),
+}));

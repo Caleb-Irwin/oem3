@@ -102,13 +102,14 @@ export const createChangeset = async (
             const uniRes = await db
               .insert(uniref)
               .values({
-                qb: res[0].id,
+                qb: name === "qb" ? res[0].id : null,
+                guild: name === "guild" ? res[0].id : null,
                 resourceType: name,
               })
               .returning({ id: uniref.uniId });
             await insertHistory({
               db,
-              resourceType: "qb",
+              resourceType: name,
               entryType: "create",
               uniref: uniRes[0].id,
               changeset: changeset.id,
@@ -128,7 +129,7 @@ export const createChangeset = async (
                   .where(eq(table.id, prev.id));
                 await insertHistory({
                   db,
-                  resourceType: "qb",
+                  resourceType: name,
                   entryType: "update",
                   uniref: prev.uniref.uniId,
                   changeset: changeset.id,
@@ -152,7 +153,7 @@ export const createChangeset = async (
                 .where(eq(table.id, prev.id));
               await insertHistory({
                 db,
-                resourceType: "qb",
+                resourceType: name,
                 entryType: "update",
                 uniref: prev.uniref.uniId,
                 changeset: changeset.id,
@@ -179,7 +180,7 @@ export const createChangeset = async (
             .where(eq(table.id, item.id));
           await insertHistory({
             db,
-            resourceType: "qb",
+            resourceType: name,
             entryType: "delete",
             uniref: item.uniref.uniId,
             changeset: changeset.id,
