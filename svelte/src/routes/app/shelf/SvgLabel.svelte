@@ -30,7 +30,7 @@
 		await phrase.reduce(async (totalProm, elem) => {
 			const total = await totalProm;
 			const newTotal = total + (await wordWidth.get(elem));
-			if (total < 185 && newTotal >= 185) {
+			if (total < 150 && newTotal >= 150) {
 				lines.push(line.join(''));
 				line = [elem];
 				return 0;
