@@ -11,7 +11,11 @@
 		loadedCB: () => void,
 		wordWidth: WordWidth;
 
-	let lines: string[] = [];
+	let lines: string[][] = [[], [], []],
+		tooLong = false;
+
+	const lineLength = async (line: string[]) =>
+		(await Promise.all(line.map(async (w) => await wordWidth.get(w)))).reduce((a, b) => a + b, 0);
 
 	const computeLines = async (): Promise<undefined> => {
 		const phrase = label?.name
@@ -24,25 +28,30 @@
 			}, [])
 			.filter((v) => v !== '');
 
-		let line: string[] = [];
-		console.log(phrase);
-
-		await phrase.reduce(async (totalProm, elem) => {
-			const total = await totalProm;
-			const newTotal = total + (await wordWidth.get(elem));
-			if (total < 150 && newTotal >= 150) {
-				lines.push(line.join(''));
-				line = [elem];
-				return 0;
+		lines[0] = phrase;
+		while (
+			(await lineLength(lines[0])) > 180 ||
+			(await lineLength(lines[1])) > 180 ||
+			(await lineLength(lines[2])) > 180
+		) {
+			if ((await lineLength(lines[0])) > 180) {
+				lines[1].unshift(lines[0].pop() as string);
 			}
-			line.push(elem);
-			return newTotal;
-		}, Promise.resolve(0));
+			if ((await lineLength(lines[1])) > 180) {
+				lines[2].unshift(lines[1].pop() as string);
+			}
+			if ((await lineLength(lines[2])) > 180) {
+				tooLong = true;
+				console.log('too long', lines[2].pop());
+			}
+		}
 
-		if (lines.length > 3) lines[2] = lines[2].slice(0, lines[2].length - 3) + '...';
-		if (lines.length < 3) lines.push(line.join(''));
-		if (lines.length < 3) lines.unshift('');
-		if (lines.length < 3) lines.unshift('');
+		if (lines[1].length === 0) {
+			lines.unshift([]);
+		}
+		if (lines[2].length === 0) {
+			lines.unshift([]);
+		}
 
 		lines = lines;
 		await tick();
@@ -66,13 +75,15 @@
 		style="font-size: 10px; fill: black;"
 	>
 		<tspan style="font-size: 10px;" x="50%" dominant-baseline="middle" text-anchor="middle" y="6"
-			>{lines[0]}</tspan
+			>{lines[0].join('')}</tspan
 		>
 		<tspan style="font-size: 10px;" x="50%" dominant-baseline="middle" text-anchor="middle" y="17">
-			{lines[1]}</tspan
+			{lines[1].join('')}</tspan
 		>
 		<tspan style="font-size: 10px;" x="50%" dominant-baseline="middle" text-anchor="middle" y="28">
-			{lines[2]}</tspan
+			{!tooLong
+				? lines[2].join('')
+				: lines[2].join('').substring(0, lines[2].join('').length - 3) + '...'}</tspan
 		>
 		<tspan
 			x="50%"
