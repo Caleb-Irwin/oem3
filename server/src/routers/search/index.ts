@@ -6,11 +6,12 @@ import { search } from "./table";
 import { db } from "../../db";
 import { qbHook } from "../qb";
 import { resourceWith } from "../resources";
+import { guildHook } from "../guild";
 
 const { worker } = managedWorker(
   new URL("worker.ts", import.meta.url).href,
   "search",
-  [qbHook]
+  [qbHook, guildHook]
 );
 export const searchRouter = router({
   worker,
@@ -32,10 +33,12 @@ export const searchRouter = router({
         setweight(to_tsvector('english', ${search.otherInfo}), 'B')), to_tsquery('english', ${processedQuery})`;
 
       const res = await db.query.search.findMany({
-        where: sql`(
+        where: sql`(${
+          queryType === "all" ? sql`TRUE` : sql`${search.type} = ${queryType}`
+        }) AND ((
             setweight(to_tsvector('english', ${search.keyInfo}), 'A') ||
             setweight(to_tsvector('english', ${search.otherInfo}), 'B')
-            ) @@ to_tsquery('english', ${processedQuery})`,
+            ) @@ to_tsquery('english', ${processedQuery}))`,
         extras: {
           rank: sql`ts_rank(${matchQuery})`.as("rank"),
           rankCd: sql`ts_rank_cd(${matchQuery})`.as("rank_cd"),

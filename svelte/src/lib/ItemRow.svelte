@@ -24,7 +24,10 @@
 				href={'/app/resource/' + rawProduct.uniId}
 			>
 				<img
-					src={product.imageUrl}
+					src={product.imageUrl.startsWith('https://shopofficeonline.com/ProductImages/') &&
+					product.imageUrl.endsWith('.jpg')
+						? `/app/resource/guildThumb/${product.imageUrl.slice(product.imageUrl.indexOf('https://shopofficeonline.com/ProductImages/') + 43)}`
+						: product.imageUrl}
 					alt="Image for {product.sku}"
 					class="w-full rounded-sm"
 					loading="lazy"

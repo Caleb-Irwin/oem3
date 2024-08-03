@@ -60,9 +60,9 @@
 				</select>
 			{:else}
 				<select name="type" bind:value={queryType}>
-					<option value="all" disabled>All</option>
+					<option value="all">All</option>
 					<option value="qb">QB</option>
-					<option value="guild" disabled>Guild</option>
+					<option value="guild">Guild</option>
 					<option value="shopify" disabled>Shopify</option>
 					<option value="spr" disabled>SPR</option>
 				</select>

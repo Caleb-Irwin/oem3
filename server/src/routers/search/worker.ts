@@ -1,56 +1,91 @@
 import { desc, gt } from "drizzle-orm";
 import { KV } from "../../utils/kv";
 import { work } from "../../utils/workerBase";
-import { qb } from "../qb/table";
 import PromisePool from "@supercharge/promise-pool";
 import { search } from "./table";
+import { guild, qb, type ResourceType } from "../../db.schema";
+import { getTableConfig } from "drizzle-orm/pg-core";
 declare var self: Worker;
 
 work({
   self,
   process: async ({ db }) => {
-    const kv = new KV("searchIndexing"),
-      lastSearchUpdate = parseInt((await kv.get("lastSearchUpdate")) ?? "0");
-    let newLastSearchUpdate: string = lastSearchUpdate.toString();
-
-    await db.transaction(async (db) => {
-      const toUpdate = await db.query.qb.findMany({
-        with: { uniref: true },
-        where: gt(qb.lastUpdated, lastSearchUpdate),
-        orderBy: desc(qb.lastUpdated),
-      });
-      await PromisePool.for(toUpdate)
-        .withConcurrency(100)
-        .process(async (item) => {
-          const baseId = item.qbId.includes(":")
-              ? item.qbId.split(":")[1]
-              : item.qbId,
-            keyInfo = `${
-              baseId.includes(" ") || baseId.includes("-") ? "" : baseId
-            }`,
-            otherInfo = `${item.desc} ${
-              !baseId.includes(" ") && baseId.length < 20
-                ? getSubStrings(baseId)
-                : baseId
-            }`;
-          await db
-            .insert(search)
-            .values({
-              uniId: item.uniref.uniId,
-              type: "qb",
-              keyInfo,
-              otherInfo,
-            })
-            .onConflictDoUpdate({
-              target: search.uniId,
-              set: { keyInfo, otherInfo },
-            });
+    const kv = new KV("searchIndexing");
+    async function updateSearchIndex<T extends typeof qb | typeof guild>(
+      searchTable: T,
+      infoFunc: (item: T["$inferSelect"]) => {
+        keyInfo: string;
+        otherInfo: string;
+      }
+    ) {
+      const resourceName = getTableConfig(searchTable).name as ResourceType,
+        lastSearchUpdate = parseInt(
+          (await kv.get("lastSearchUpdate/" + resourceName)) ?? "0"
+        );
+      let newLastSearchUpdate: string = lastSearchUpdate.toString();
+      await db.transaction(async (db) => {
+        const toUpdate = await (resourceName === "qb"
+          ? db.query.qb
+          : db.query.guild
+        ).findMany({
+          with: { uniref: true },
+          where: gt(searchTable.lastUpdated, lastSearchUpdate),
+          orderBy: desc(searchTable.lastUpdated),
         });
-      newLastSearchUpdate = String(
-        toUpdate[0]?.lastUpdated ?? lastSearchUpdate
+        await PromisePool.for(toUpdate)
+          .withConcurrency(100)
+          .process(async (item) => {
+            const { keyInfo, otherInfo } = infoFunc(item);
+            await db
+              .insert(search)
+              .values({
+                uniId: item.uniref.uniId,
+                type: resourceName,
+                keyInfo,
+                otherInfo,
+              })
+              .onConflictDoUpdate({
+                target: search.uniId,
+                set: { keyInfo, otherInfo },
+              });
+          });
+        newLastSearchUpdate = String(
+          toUpdate[0]?.lastUpdated ?? lastSearchUpdate
+        );
+      });
+      await kv.set(
+        "lastSearchUpdate/" + resourceName,
+        newLastSearchUpdate as string
       );
-    });
-    await kv.set("lastSearchUpdate", newLastSearchUpdate as string);
+    }
+
+    await Promise.all([
+      updateSearchIndex(qb, (item) => {
+        const baseId = item.qbId.includes(":")
+          ? item.qbId.split(":")[1]
+          : item.qbId;
+        return {
+          keyInfo: `${
+            baseId.includes(" ") || baseId.includes("-") ? "" : baseId
+          }`,
+          otherInfo: `${item.desc} ${
+            !baseId.includes(" ") && baseId.length < 20
+              ? getSubStrings(baseId)
+              : baseId
+          }`,
+        };
+      }),
+      updateSearchIndex(guild, (item) => {
+        return {
+          keyInfo: `${item.gid} ${item.upc ?? ""} ${item.basics ?? ""} ${
+            item.cis ?? ""
+          } ${item.spr ?? ""}`,
+          otherInfo: `${item.shortDesc} ${item.longDesc} ${getSubStrings(
+            item.gid
+          )} ${getSubStrings(item.upc ?? "")}`,
+        };
+      }),
+    ]);
   },
 });
 

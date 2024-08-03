@@ -13,6 +13,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 	event.locals.client = getServerClient(token);
 	const res = await resolve(event);
-	res.headers.set('Cache-Control', 'private');
+	if (res.headers.get('Content-Type')?.startsWith('text/html'))
+		res.headers.set('Cache-Control', 'private');
 	return res;
 };

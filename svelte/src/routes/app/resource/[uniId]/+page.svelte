@@ -26,7 +26,9 @@
 		<div class="card m-2 p-4">
 			<div class="flex flex-col md:flex-row">
 				{#if product.imageUrl}
-					<img src={product.imageUrl} alt="" class="rounded m-2 p-2 bg-white" />
+					<div class="p-2 w-full flex justify-center md:block md:min-w-96 md:max-w-96">
+						<img src={product.imageUrl} alt="" class="rounded p-2 bg-white w-full" />
+					</div>
 				{/if}
 				<div class="p-2">
 					<h1 class="h1 {product.name ? '' : 'italic'}">
