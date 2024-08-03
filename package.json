@@ -13,8 +13,5 @@
     "start": "cd server && bun run start",
     "preview": "cd server && bun run preview"
   },
-  "type": "module",
-  "engines": {
-    "npm": ">=10.0.0"
-  }
+  "type": "module"
 }
