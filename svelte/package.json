@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "bunx --bun vite dev",
     "build": "bunx --bun vite build",
-    "installBuild": "bun i && bunx --bun vite build",
+    "installBuild": "bun i && bun add sharp && bunx --bun vite build",
     "start": "bun build/index.js",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
