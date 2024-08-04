@@ -13,5 +13,8 @@
     "start": "cd server && bun run start",
     "preview": "cd server && bun run preview"
   },
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "svelte-intersection-observer": "^1.0.0"
+  }
 }

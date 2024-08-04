@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Search from 'lucide-svelte/icons/search';
-	import { client } from './client';
-	import Form from './Form.svelte';
+	import { client } from '../client';
+	import Form from '../Form.svelte';
 	import { focusTrap, getModalStore } from '@skeletonlabs/skeleton';
 	import SearchRes from './SearchRes.svelte';
 	import { tick } from 'svelte';
@@ -15,7 +15,7 @@
 		focus: boolean = false;
 	const response = async (prev: { query: string; queryType: typeof queryType }) => {
 		query = '';
-		queryType = prev.queryType;
+		queryType = '' as typeof queryType;
 		await tick();
 		query = prev.query;
 		queryType = prev.queryType;

@@ -2,15 +2,18 @@
 	import Pencil from 'lucide-svelte/icons/pencil';
 	import LayoutGrid from 'lucide-svelte/icons/layout-grid';
 	import Rows3 from 'lucide-svelte/icons/rows-3';
-	import { client } from './client';
-	import ItemRow, { type SelectFunc } from './ItemRow.svelte';
+	import { client } from '../client';
+	import { type SelectFunc } from '../ItemRow.svelte';
 	import { onMount } from 'svelte';
 	import { getModalStore } from '@skeletonlabs/skeleton';
+	import SearchPage from './SearchPage.svelte';
 
 	export let res: Awaited<ReturnType<typeof client.search.search.query>>;
 	export let select: SelectFunc;
 
-	let grid = false;
+	let grid = false,
+		count = res.count,
+		more = res.more;
 
 	onMount(() => {
 		if (localStorage.getItem('grid')) {
@@ -31,9 +34,7 @@
 			{`Search Results For "${res.query}"`}
 
 			<button on:click={edit} class="hover:text-primary-500"><Pencil /></button>
-			<span class="text-primary-500"
-				>{res.count}{res.more ? '+' : ''} Result{res.count === 1 ? '' : 's'}</span
-			>
+			<span class="text-primary-500">{count}{more ? '+' : ''} Result{count === 1 ? '' : 's'}</span>
 		</span>
 		<span class="flex-grow min-w-4" />
 		<div class="flex flex-col sm:flex-row rounded-full p-1 variant-outline-primary border-[1px]">
@@ -53,26 +54,13 @@
 			>
 		</div>
 	</h1>
-	<div
-		class="grid gap-2 {grid
-			? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 '
-			: 'grid-cols-1'}
-    "
-	>
-		{#each res.results as { uniref }}
-			<ItemRow
-				rawProduct={uniref}
-				{grid}
-				select={select
-					? async (selection) => {
-							await select(selection);
-							modalStore.close();
-						}
-					: undefined}
-			/>
-		{/each}
-		{#if res.more}
-			<p class="pt-2 text-center">More results available - TODO</p>
-		{/if}
-	</div>
+	<SearchPage
+		{res}
+		{grid}
+		{select}
+		increaseTotal={(newCount, isMore) => {
+			count = newCount;
+			more = isMore;
+		}}
+	/>
 </div>
