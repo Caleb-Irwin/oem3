@@ -99,13 +99,13 @@ export const createChangeset = async (
                 lastUpdated: timeStamp,
               })
               .returning({ id: table.id });
+            const uniResObj: typeof uniref.$inferInsert = {
+              resourceType: name,
+            };
+            uniResObj[name] = res[0].id;
             const uniRes = await db
               .insert(uniref)
-              .values({
-                qb: name === "qb" ? res[0].id : null,
-                guild: name === "guild" ? res[0].id : null,
-                resourceType: name,
-              })
+              .values(uniResObj)
               .returning({ id: uniref.uniId });
             await insertHistory({
               db,

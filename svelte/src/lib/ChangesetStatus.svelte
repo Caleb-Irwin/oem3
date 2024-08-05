@@ -6,6 +6,7 @@
 	import Suspense from './Suspense.svelte';
 	import { client } from './client';
 	import History from './History.svelte';
+	import type { changesets } from '../../../server/src/db.schema';
 
 	export let status: Readable<
 			| {
@@ -16,18 +17,8 @@
 			  }
 			| undefined
 		>,
-		changeset: Readable<
-			| {
-					type: 'qb' | 'guild';
-					status: 'generating' | 'completed';
-					id: number;
-					file: number | null;
-					summary: string | null;
-					created: number;
-			  }
-			| null
-			| undefined
-		>;
+		changeset: Readable<typeof changesets.$inferSelect | null | undefined>,
+		name: string;
 
 	let summary: { [type: string]: number };
 	$: summary = JSON.parse($changeset?.summary ?? '{}');
@@ -37,7 +28,7 @@
 
 <div class="card p-4">
 	<div class="flex justify-between pb-2 items-center">
-		<h4 class="pr-2 h4 font-semibold">Changeset {$changeset ? '#' + $changeset?.id : ''}</h4>
+		<h4 class="pr-2 h4 font-semibold">{name} Changeset {$changeset ? '#' + $changeset?.id : ''}</h4>
 		<button
 			class="btn btn-icon btn-icon-sm"
 			on:click={() =>

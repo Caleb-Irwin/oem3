@@ -8,6 +8,7 @@
 <div class="w-full flex flex-col items-center p-2">
 	<div class="w-full max-w-xl mb-2">
 		<ChangesetStatus
+			name="QuickBooks"
 			status={sub(client.qb.worker.status, client.qb.worker.onUpdate)}
 			changeset={sub(client.qb.worker.changeset, client.qb.worker.onUpdate)}
 		/>

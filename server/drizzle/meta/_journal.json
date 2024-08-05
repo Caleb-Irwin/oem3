@@ -155,6 +155,34 @@
       "when": 1722376810262,
       "tag": "0021_curved_johnny_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1722822183197,
+      "tag": "0022_blushing_kronos",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1722824220672,
+      "tag": "0023_large_the_twelve",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1722824255299,
+      "tag": "0024_even_santa_claus",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1722824734186,
+      "tag": "0025_futuristic_morlocks",
+      "breakpoints": true
     }
   ]
 }

@@ -7,16 +7,20 @@ import {
   integer,
 } from "drizzle-orm/pg-core";
 import { files } from "./files.table";
-import { uniref, type guild, type qb } from "../db.schema";
+import { guildInventory, uniref, type guild, type qb } from "../db.schema";
 import { relations } from "drizzle-orm";
 
-export const changesetType = pgEnum("changeset_type", ["qb", "guild"]),
+export const changesetType = pgEnum("changeset_type", [
+    "qb",
+    "guild",
+    "guildInventory",
+  ]),
   changesetStatusType = pgEnum("changeset_status_type", [
     "generating",
     "completed",
   ]);
 export type ChangesetType = (typeof changesetType.enumValues)[number];
-export type ChangesetTable = typeof qb | typeof guild;
+export type ChangesetTable = typeof qb | typeof guild | typeof guildInventory;
 
 export const changesets = pgTable("changesets", {
   id: serial("id").primaryKey(),

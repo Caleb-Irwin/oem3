@@ -3,6 +3,7 @@ import { router } from "../../trpc";
 import { fileProcedures } from "../../utils/files";
 import { managedWorker } from "../../utils/managedWorker";
 import * as xlsx from "xlsx";
+import { inventoryRouter } from "./inventory";
 
 const { worker, runWorker, hook } = managedWorker(
   new URL("worker.ts", import.meta.url).href,
@@ -11,6 +12,7 @@ const { worker, runWorker, hook } = managedWorker(
 export const guildHook = hook;
 
 export const guildRouter = router({
+  inventory: inventoryRouter,
   ...fileProcedures(
     "guild",
     async (blob, fileType) => {
