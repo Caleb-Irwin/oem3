@@ -1,9 +1,6 @@
-import type { qb as qbTable, guild as guildTable } from '../../../server/src/db.schema';
+import type { client } from './client';
 
-export interface RawProduct {
-	qbData: typeof qbTable.$inferSelect | null;
-	guildData: typeof guildTable.$inferSelect | null;
-}
+export type RawProduct = Exclude<Awaited<ReturnType<typeof client.resources.get.query>>, null>;
 
 export interface Product {
 	idText: string;
@@ -82,6 +79,28 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 					guild.webCategory3Desc +
 					' > ' +
 					guild.webCategory4Desc
+			}
+		};
+	}
+	if (raw.guildInventoryData) {
+		const inventory = raw.guildInventoryData;
+		return {
+			idText: 'Guild#' + inventory.gid,
+			name: inventory.gid,
+			sku: inventory.sku ?? 'Unknown',
+			price: '',
+			deleted: inventory.deleted,
+			stock: inventory.onHand,
+			lastUpdated: inventory.lastUpdated,
+			description: undefined,
+			imageUrl: undefined,
+			other: {
+				'UPC#': inventory.upc,
+				'SPR#': inventory.spr,
+				'Basics#': inventory.basics,
+				'CIS#': inventory.cis,
+				'Unit of Measure': inventory.um,
+				'Qty/UoM': inventory.qtyPerUm ? inventory.qtyPerUm.toString() : null
 			}
 		};
 	}

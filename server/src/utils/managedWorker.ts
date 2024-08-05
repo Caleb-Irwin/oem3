@@ -35,7 +35,9 @@ export const managedWorker = (
       status.progress = -1;
       update();
       return new Promise<void>((res, rej) => {
-        const worker = new Worker(workerUrl);
+        const worker = new Worker(workerUrl, {
+          smol: true,
+        });
         let done = false,
           started = false;
 

@@ -14,6 +14,7 @@ export const resourceWith = {
   changesetData: true as true,
   qbData: true as true,
   guildData: true as true,
+  guildInventoryData: true as true,
 };
 
 export const resourcesRouter = router({

@@ -7,19 +7,25 @@ import { db } from "../../db";
 import { qbHook } from "../qb";
 import { resourceWith } from "../resources";
 import { guildHook } from "../guild";
+import { guildInventoryHook } from "../guild/inventory";
+import { changesetType } from "../../db.schema";
 
 const { worker } = managedWorker(
   new URL("worker.ts", import.meta.url).href,
   "search",
-  [qbHook, guildHook]
+  [qbHook, guildHook, guildInventoryHook]
 );
+
+const queryTypeValues = ["all", ...changesetType.enumValues] as const;
+export type QueryType = (typeof queryTypeValues)[number];
+
 export const searchRouter = router({
   worker,
   search: viewerProcedure
     .input(
       z.object({
         query: z.string(),
-        type: z.enum(["all", "qb", "guild", "shopify", "spr"]),
+        type: z.enum(queryTypeValues),
         page: z.number().int().default(0),
       })
     )

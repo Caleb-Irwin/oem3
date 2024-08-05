@@ -5,13 +5,14 @@
 	import { focusTrap, getModalStore } from '@skeletonlabs/skeleton';
 	import SearchRes from './SearchRes.svelte';
 	import { tick } from 'svelte';
+	import type { QueryType } from '../../../../server/src/routers/search';
 
 	export let select: undefined | ((selection: { uniref: number }) => any) = undefined,
 		microQB = false;
 
 	const modalStore = getModalStore();
 	let query: string,
-		queryType: 'all' | 'qb' | 'guild' | 'shopify' | 'spr',
+		queryType: QueryType,
 		focus: boolean = false;
 	const response = async (prev: { query: string; queryType: typeof queryType }) => {
 		query = '';
@@ -63,6 +64,7 @@
 					<option value="all">All</option>
 					<option value="qb">QB</option>
 					<option value="guild">Guild</option>
+					<option value="guildInventory">Gld Inv</option>
 					<option value="shopify" disabled>Shopify</option>
 					<option value="spr" disabled>SPR</option>
 				</select>

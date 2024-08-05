@@ -64,8 +64,11 @@ function transformGuildInventory(
     spr: item["SPR#"],
     basics: item["Basics#"],
     cis: item["CIS#"],
-    um: enforceEnum(item["Unit of Measure"], guildUmEnum.enumValues),
-    qtyPerUm: removeNaN(parseInt(item["Unit of Measure"])),
+    um: enforceEnum(
+      item["Unit of Measure"].toLowerCase(),
+      guildUmEnum.enumValues
+    ),
+    qtyPerUm: removeNaN(parseInt(item["Qty/UoM"])),
     lastUpdated: 0,
   };
 }
