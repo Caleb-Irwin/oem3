@@ -9,7 +9,6 @@ import {
   resourceTypeEnum,
   uniref,
 } from "../db.schema";
-import sharp from "sharp";
 
 export const resourceWith = {
   changesetData: true as true,
@@ -75,18 +74,5 @@ export const resourcesRouter = router({
       return await db.query.uniref.findFirst({
         where: eq(uniref[type], id),
       });
-    }),
-  getGuildThumb: viewerProcedure
-    .input(z.object({ gid: z.string() }))
-    .query(async ({ input: { gid } }) => {
-      const res = await fetch(
-        `https://shopofficeonline.com/ProductImages/${gid}.jpg`
-      );
-      const resBuffer = await res.arrayBuffer();
-      const jpgBuffer = await sharp(resBuffer)
-        .resize(256, 256)
-        .toFormat("jpeg", { quality: 80 })
-        .toBuffer();
-      return jpgBuffer;
     }),
 });
