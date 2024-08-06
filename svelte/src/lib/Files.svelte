@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Trash_2 from 'lucide-svelte/icons/trash-2';
 	import Upload from 'lucide-svelte/icons/upload';
+	import CloudDownload from 'lucide-svelte/icons/cloud-download';
 	import Button from './Button.svelte';
 	import UploadFile from '$lib/UploadFile.svelte';
 	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
@@ -20,6 +21,16 @@
 				transformer: false;
 			}>;
 		},
+		cloudSyncMutation:
+			| {
+					mutate: Resolver<{
+						input: {};
+						output: { message: string };
+						errorShape: any;
+						transformer: false;
+					}>;
+			  }
+			| undefined = undefined,
 		acceptFileType: string;
 
 	const files = sub(filesRouter.get, filesRouter.onUpdate);
@@ -32,6 +43,17 @@
 	<div class="flex items-center pb-2">
 		<h4 class="h4 font-semibold">Files: {title}</h4>
 		<div class="flex-grow"></div>
+		{#if cloudSyncMutation}
+			<Button
+				action={cloudSyncMutation}
+				res={({ message }) => {
+					toastStore.trigger({ message, background: 'variant-filled-success' });
+				}}
+				class="btn btn-icon btn-icon-sm variant-filled-primary mr-1.5"
+			>
+				<CloudDownload />
+			</Button>
+		{/if}
 		<button
 			class="btn btn-sm variant-filled-primary max-w-48"
 			on:click={() => {

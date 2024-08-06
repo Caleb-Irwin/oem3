@@ -13,9 +13,9 @@ export const guildHook = hook;
 
 export const guildRouter = router({
   inventory: inventoryRouter,
-  ...fileProcedures(
+  files: fileProcedures(
     "guild",
-    async (blob, fileType) => {
+    async (dataUrl, fileType) => {
       console.log(fileType);
 
       if (
@@ -26,7 +26,9 @@ export const guildRouter = router({
           message: "Invalid File Type (XLSX Only)",
           code: "BAD_REQUEST",
         });
-      const workbook = xlsx.read(blob.slice(blob.indexOf(";base64,") + 8)),
+      const workbook = xlsx.read(
+          dataUrl.slice(dataUrl.indexOf(";base64,") + 8)
+        ),
         worksheet = workbook.Sheets[workbook.SheetNames[0]],
         guildObjects = xlsx.utils.sheet_to_json(worksheet);
       [

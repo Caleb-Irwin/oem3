@@ -40,6 +40,7 @@
 				title="Guild Inventory"
 				applyMutation={client.guild.inventory.worker.run}
 				acceptFileType=".CSV"
+				cloudSyncMutation={client.guild.inventory.files.cloudDownload}
 			/>
 		</div>
 	</div>

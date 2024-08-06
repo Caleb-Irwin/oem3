@@ -14,12 +14,12 @@ work({
     db,
     progress,
     message,
-    utils: { createChangeset, getFileBlob },
+    utils: { createChangeset, getFileDataUrl },
   }) => {
     const fileId = (message.data as { fileId: number }).fileId,
       changeset = await createChangeset(qb, fileId),
-      fileBlob = await getFileBlob(fileId),
-      res = Papa.parse(atob(fileBlob.slice(fileBlob.indexOf("base64,") + 7)), {
+      dataUrl = await getFileDataUrl(fileId),
+      res = Papa.parse(atob(dataUrl.slice(dataUrl.indexOf("base64,") + 7)), {
         header: true,
       });
 

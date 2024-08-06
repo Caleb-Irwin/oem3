@@ -15,12 +15,12 @@ work({
     db,
     message,
     progress,
-    utils: { getFileBlob, createChangeset },
+    utils: { getFileDataUrl, createChangeset },
   }) => {
     const fileId = (message.data as { fileId: number }).fileId,
       changeset = await createChangeset(guild, fileId),
-      blob = await getFileBlob(fileId),
-      workbook = xlsx.read(blob.slice(blob.indexOf(";base64,") + 8)),
+      dataUrl = await getFileDataUrl(fileId),
+      workbook = xlsx.read(dataUrl.slice(dataUrl.indexOf(";base64,") + 8)),
       worksheet = workbook.Sheets[workbook.SheetNames[0]],
       guildObjects = xlsx.utils.sheet_to_json(worksheet);
 

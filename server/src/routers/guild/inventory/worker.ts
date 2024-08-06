@@ -16,13 +16,13 @@ work({
     db,
     message,
     progress,
-    utils: { getFileBlob, createChangeset },
+    utils: { getFileDataUrl, createChangeset },
   }) => {
     const fileId = (message.data as { fileId: number }).fileId,
       changeset = await createChangeset(guildInventory, fileId),
-      blob = await getFileBlob(fileId),
+      dataUrl = await getFileDataUrl(fileId),
       res = Papa.parse(
-        atob(blob.slice(blob.indexOf("base64,") + 7)).replace("ï»¿", ""),
+        atob(dataUrl.slice(dataUrl.indexOf("base64,") + 7)).replace("ï»¿", ""),
         {
           header: true,
         }
@@ -45,7 +45,17 @@ work({
         extractId: (item) => item.gid,
         diff: genDiffer(
           ["onHand"],
-          ["gid", "sku", "upc", "spr", "basics", "cis", "um", "qtyPerUm"]
+          [
+            "gid",
+            "onHand",
+            "sku",
+            "upc",
+            "spr",
+            "basics",
+            "cis",
+            "um",
+            "qtyPerUm",
+          ]
         ),
         progress,
       });

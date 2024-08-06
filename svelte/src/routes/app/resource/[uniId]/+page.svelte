@@ -30,7 +30,7 @@
 						<img src={product.imageUrl} alt="" class="rounded p-2 bg-white w-full" />
 					</div>
 				{/if}
-				<div class="p-2">
+				<div class="p-2 w-full">
 					<h1 class="h1 {product.name ? '' : 'italic'}">
 						{product.name || 'Unnamed Item'}
 					</h1>

@@ -17,7 +17,7 @@ interface WorkerParams {
     message: StartMessage;
     progress: (percentDone: number) => void;
     utils: {
-      getFileBlob: (fileId: number | undefined) => Promise<string>;
+      getFileDataUrl: (fileId: number | undefined) => Promise<string>;
       createChangeset: (
         changesetTable: schema.ChangesetTable,
         fileId: number | undefined
@@ -44,7 +44,7 @@ export const work = async ({ self, process: processFunc }: WorkerParams) => {
           sendMessage("progress", amountDone.toString());
         },
         utils: {
-          getFileBlob: async (fileId) => {
+          getFileDataUrl: async (fileId) => {
             if (typeof fileId !== "number")
               throw new Error("No fileId was provided!");
 

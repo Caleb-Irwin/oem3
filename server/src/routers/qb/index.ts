@@ -10,19 +10,18 @@ const { worker, runWorker, hook } = managedWorker(
 export const qbHook = hook;
 
 export const qbRouter = router({
-  ...fileProcedures(
+  files: fileProcedures(
     "qb",
-    async (blob, fileType) => {
+    async (fileDataUrl, fileType) => {
       if (fileType !== "text/csv")
         throw new TRPCError({
           message: "Invalid File Type (CSV Only)",
           code: "BAD_REQUEST",
         });
 
-      const csvStart = atob(blob.slice(blob.indexOf(";base64,") + 8)).slice(
-          0,
-          1000
-        ),
+      const csvStart = atob(
+          fileDataUrl.slice(fileDataUrl.indexOf(";base64,") + 8)
+        ).slice(0, 1000),
         headers = csvStart.split("\n")[0].replaceAll(/"/g, "").split(",");
 
       [
