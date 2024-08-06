@@ -9,11 +9,12 @@ import { resourceWith } from "../resources";
 import { guildHook } from "../guild";
 import { guildInventoryHook } from "../guild/inventory";
 import { changesetType } from "../../db.schema";
+import { guildFlyerHook } from "../guild/flyer";
 
 const { worker } = managedWorker(
   new URL("worker.ts", import.meta.url).href,
   "search",
-  [qbHook, guildHook, guildInventoryHook]
+  [qbHook, guildHook, guildInventoryHook, guildFlyerHook]
 );
 
 const queryTypeValues = ["all", ...changesetType.enumValues] as const;

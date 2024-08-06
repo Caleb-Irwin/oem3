@@ -72,7 +72,8 @@
 					<option value="all">All</option>
 					<option value="qb">QB</option>
 					<option value="guild">Guild</option>
-					<option value="guildInventory">Gld Inv</option>
+					<option value="guildInventory">G. Inv.</option>
+					<option value="guildFlyer">G. Flyer</option>
 					<option value="shopify" disabled>Shopify</option>
 					<option value="spr" disabled>SPR</option>
 				</select>

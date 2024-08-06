@@ -5,6 +5,7 @@ import PromisePool from "@supercharge/promise-pool";
 import { search } from "./table";
 import {
   guild,
+  guildFlyer,
   guildInventory,
   qb,
   type ChangesetTable,
@@ -38,6 +39,7 @@ work({
             qb: db.query.qb,
             guild: db.query.guild,
             guildInventory: db.query.guildInventory,
+            guildFlyer: db.query.guildFlyer,
           }[resourceName] as typeof db.query.qb
         ).findMany({
           with: { uniref: true },
@@ -104,6 +106,12 @@ work({
         otherInfo: `${getSubStrings(item.gid)} ${getSubStrings(
           item.upc ?? ""
         )}`,
+      };
+    });
+    await updateSearchIndex(guildFlyer, (item) => {
+      return {
+        keyInfo: `${item.gid}`,
+        otherInfo: `${item.vendorCode} ${getSubStrings(item.gid)}}`,
       };
     });
   },

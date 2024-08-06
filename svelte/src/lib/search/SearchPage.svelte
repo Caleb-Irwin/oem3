@@ -6,6 +6,7 @@
 
 	export let res: Awaited<ReturnType<typeof client.search.search.query>>,
 		grid: boolean,
+		all: boolean,
 		select: SelectFunc,
 		increaseTotal: (newCount: number, isMore: boolean) => void;
 	const modalStore = getModalStore();
@@ -38,6 +39,7 @@
 			<ItemRow
 				rawProduct={uniref}
 				{grid}
+				{all}
 				select={select
 					? async (selection) => {
 							await select(selection);

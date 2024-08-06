@@ -7,6 +7,7 @@
 
 	export let rawProduct: { uniId: number } & RawProduct,
 		grid = false,
+		all = false,
 		select: SelectFunc;
 
 	let product = productDetails(rawProduct);
@@ -42,15 +43,20 @@
 				>{product.name || 'Unnamed Item'}</a
 			>
 			<p class="my-1">
-				<span class="text-lg">
+				<span class="text-lg {product.comparePrice ? 'text-primary-600' : ''}">
 					{product.price}
 				</span>
-				<span class="chip variant-soft-tertiary">
+				{#if product.comparePrice}
+					<span class="pl-1 text-lg line-through">
+						{product.comparePrice}
+					</span>
+				{/if}
+				<span class="chip variant-soft-tertiary m-0.5">
 					{product.sku}
 				</span>
 				{#if product.stock !== null}
 					<span
-						class="cursor-default chip m-1 {(product?.stock ?? 0) > 0
+						class="cursor-default chip m-0.5 {(product?.stock ?? 0) > 0
 							? 'variant-filled-secondary'
 							: 'variant-filled-warning'}"
 					>
@@ -58,7 +64,10 @@
 					</span>
 				{/if}
 				{#if product.deleted}
-					<span class="cursor-default chip m-1 variant-filled-error"> Deleted </span>
+					<span class="cursor-default chip m-0.5 variant-filled-error"> Deleted </span>
+				{/if}
+				{#if all}
+					<span class="cursor-default chip m-0.5 variant-filled-surface"> {product.idText} </span>
 				{/if}
 			</p>
 		</div>

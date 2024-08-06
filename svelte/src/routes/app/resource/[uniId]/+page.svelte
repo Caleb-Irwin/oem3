@@ -35,9 +35,14 @@
 						{product.name || 'Unnamed Item'}
 					</h1>
 					<h2 class="py-2 h2 font-semibold flex flex-wrap align-middle">
-						<span>
+						<span class={product.comparePrice ? 'text-primary-600' : ''}>
 							{product.price}
 						</span>
+						{#if product.comparePrice}
+							<span class="pl-1 line-through">
+								{product.comparePrice}
+							</span>
+						{/if}
 						<span class="flex-grow" />
 						<span class="cursor-default chip text-md variant-soft-tertiary m-1">
 							{product.sku}

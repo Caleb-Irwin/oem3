@@ -6,6 +6,7 @@ export interface Product {
 	idText: string;
 	name: string;
 	price: string;
+	comparePrice?: string | null;
 	sku: string;
 	stock: number | null;
 	deleted: boolean;
@@ -85,7 +86,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 	if (raw.guildInventoryData) {
 		const inventory = raw.guildInventoryData;
 		return {
-			idText: 'Guild#' + inventory.gid,
+			idText: 'GuildInventory#' + inventory.id,
 			name: inventory.gid,
 			sku: inventory.sku ?? 'Unknown',
 			price: '',
@@ -101,6 +102,31 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				'CIS#': inventory.cis,
 				'Unit of Measure': inventory.um,
 				'Qty/UoM': inventory.qtyPerUm ? inventory.qtyPerUm.toString() : null
+			}
+		};
+	}
+	if (raw.guildFlyerData) {
+		const flyer = raw.guildFlyerData;
+		return {
+			idText: 'GuildFlyer#' + flyer.id,
+			name: flyer.gid,
+			sku: flyer.gid,
+			price: format((flyer.flyerPriceL1Cents as number) / 100),
+			comparePrice: format((flyer.regularPriceL1Cents as number) / 100),
+			stock: null,
+			deleted: flyer.deleted,
+			lastUpdated: flyer.lastUpdated,
+			description: undefined,
+			imageUrl: undefined,
+			other: {
+				'Start Date': new Date(flyer.startDate as number).toLocaleDateString('en-CA'),
+				'End Date': new Date(flyer.endDate as number).toLocaleDateString('en-CA'),
+				'Flyer Number': flyer.flyerNumber?.toString() ?? '',
+				'Vendor Code': flyer.vendorCode,
+				'Flyer Cost': format((flyer.flyerCostCents as number) / 100),
+				'Flyer Price L0': format((flyer.flyerPriceL0Cents as number) / 100),
+				'Flyer Price Retail': format((flyer.flyerPriceRetailCents as number) / 100),
+				'Regular Price L0': format((flyer.regularPriceL0Cents as number) / 100)
 			}
 		};
 	}

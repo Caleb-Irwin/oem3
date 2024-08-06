@@ -58,6 +58,7 @@
 		{res}
 		{grid}
 		{select}
+		all={res.queryType === 'all'}
 		increaseTotal={(newCount, isMore) => {
 			count = newCount;
 			more = isMore;
