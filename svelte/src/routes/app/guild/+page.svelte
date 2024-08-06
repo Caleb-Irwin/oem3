@@ -5,7 +5,7 @@
 </script>
 
 <h1 class="text-center h2 p-2 pt-4">Guild</h1>
-<div class="w-full flex flex-col lg:flex-row justify-center items-center p-2">
+<div class="w-full flex flex-col lg:flex-row justify-center p-2">
 	<div class="p-2 w-full lg:w-auto flex flex-col items-center">
 		<div class="w-full max-w-xl mb-2">
 			<ChangesetStatus

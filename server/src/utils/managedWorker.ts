@@ -36,6 +36,7 @@ export const managedWorker = (
       update();
       return new Promise<void>((res, rej) => {
         const worker = new Worker(workerUrl, {
+          //@ts-ignore Due to svelte check
           smol: true,
         });
         let done = false,

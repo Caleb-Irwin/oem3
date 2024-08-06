@@ -15,6 +15,7 @@
 		queryType: QueryType,
 		focus: boolean = false;
 	const response = async (prev: { query: string; queryType: typeof queryType }) => {
+		if (prev === undefined) return;
 		query = '';
 		queryType = '' as typeof queryType;
 		await tick();
@@ -36,6 +37,13 @@
 				ref: SearchRes,
 				props: { res, select }
 			}
+		});
+		tick().then(async () => {
+			const prevQueryType = queryType;
+			//@ts-ignore
+			queryType = '';
+			await tick();
+			queryType = prevQueryType;
 		});
 	}}
 	class="w-full"

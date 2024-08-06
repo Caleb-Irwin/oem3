@@ -42,7 +42,7 @@
 <div class="w-full card p-4">
 	<div class="flex items-center pb-2">
 		<h4 class="h4 font-semibold">Files: {title}</h4>
-		<div class="flex-grow"></div>
+		<div class="flex-grow min-w-2"></div>
 		{#if cloudSyncMutation}
 			<Button
 				action={cloudSyncMutation}

@@ -6,7 +6,7 @@ export async function genKit() {
     ? `https://${process.env["RAILWAY_PUBLIC_DOMAIN"]}`
     : `http://localhost:${PORT}`;
   return (
-    // Will not show TS error after first build
+    // @ts-expect-error Will not show TS error after first build
     (await import("../../svelte/build/handler")).handler
   );
 }
