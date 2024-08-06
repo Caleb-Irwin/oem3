@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "cd server && bun run dev",
-    "build": "cd server && bun run build",
+    "build": "apt-get install lib32stdc++6 && cd server && bun run build",
     "start": "cd server && bun run start",
     "preview": "cd server && bun run preview"
   },
