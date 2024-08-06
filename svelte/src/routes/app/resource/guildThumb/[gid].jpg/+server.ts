@@ -1,13 +1,16 @@
 import type { RequestHandler } from './$types';
-import Jimp from 'jimp';
+
+import * as sharp from 'sharp';
 
 export const GET: RequestHandler = async ({ fetch, params }) => {
 	const res = await fetch(`https://shopofficeonline.com/ProductImages/${params.gid}.jpg`);
 	const resBuffer = await res.arrayBuffer();
-	const jpg = await Jimp.read(Buffer.from(resBuffer));
-	jpg.resize(256, Jimp.AUTO);
-	jpg.quality(80);
-	return new Response(new Blob([await jpg.getBufferAsync('image/jpeg')], { type: 'image/jpeg' }), {
+	const jpgBuffer = await sharp
+		.default(resBuffer)
+		.resize(160, 160)
+		.toFormat('jpeg', { quality: 80 })
+		.toBuffer();
+	return new Response(new Blob([jpgBuffer], { type: 'image/jpeg' }), {
 		headers: { 'Cache-Control': 'public, max-age=86400' }
 	});
 };
