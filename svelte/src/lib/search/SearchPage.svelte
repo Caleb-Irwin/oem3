@@ -15,8 +15,6 @@
 	let moreRes: Awaited<ReturnType<typeof client.search.search.query>> | undefined = undefined;
 	const handleIntersect = async () => {
 		if (res.more) {
-			console.log(res.page, 'getting more');
-
 			moreRes = await client.search.search.query({
 				query: res.query,
 				type: res.queryType,

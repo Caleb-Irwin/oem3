@@ -5,6 +5,7 @@ import * as schema from "./db.schema";
 import { POSTGRESQL } from "./env";
 
 const connect = async (depth = 0): Promise<InstanceType<typeof Client>> => {
+  if (depth > 0) console.log("Connecting to DB (try " + (depth + 1) + ")");
   try {
     const client = new Client({
       connectionString: POSTGRESQL,

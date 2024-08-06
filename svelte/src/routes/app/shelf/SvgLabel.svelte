@@ -42,7 +42,6 @@
 			}
 			if ((await lineLength(lines[2])) > 180) {
 				tooLong = true;
-				console.log('too long', lines[2].pop());
 			}
 		}
 
