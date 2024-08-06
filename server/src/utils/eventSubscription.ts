@@ -3,12 +3,12 @@ import { publicProcedure } from "../trpc";
 import { observable } from "@trpc/server/observable";
 
 export const eventSubscription = () => {
-  let subs = new Map<string, { next: () => void; topic: string }>();
-
-  const update = (updateTopic = "default") =>
+  const subs = new Map<string, { next: () => void; topic: string }>();
+  const update = (updateTopic = "default") => {
     subs.forEach(({ next, topic }) => {
       if (updateTopic === topic) next();
     });
+  };
 
   return {
     update,

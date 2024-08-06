@@ -77,7 +77,7 @@
 		</button>
 	</div>
 
-	<ul class="rounded-lg">
+	<ul class="rounded-lg max-h-64 overflow-y-auto">
 		{#each $files ?? [] as file, i}
 			<li class="py-0.5 px-2 flex items-center {i % 2 === 0 ? 'bg-surface-600' : 'bg-surface-800'}">
 				<Button
@@ -87,7 +87,7 @@
 					class="btn btn-sm variant-filled-primary mr-3">Apply</Button
 				>
 				<p class="flex-grow">
-					<span class="font-semibold"
+					<span class="font-semibold flex items-center"
 						>#{file.id}
 						<button
 							on:click={async () => {
@@ -102,9 +102,9 @@
 								link.click();
 								document.body.removeChild(link);
 							}}
-							class="underline">{file.name}</button
+							class="pl-1.5 underline">{file.name}</button
 						></span
-					> <br />
+					>
 					<span class="text-sm">
 						uploaded by {file.author} at
 						{new Date(file.uploadedTime ?? 0).toLocaleString()}</span
@@ -114,6 +114,7 @@
 					action={client.qb.files.del}
 					input={{ fileId: file.id }}
 					confirm
+					successMessage="Deleted"
 					class="btn-icon btn-icon-sm  text-error-600 ml-2"
 				>
 					<Trash_2 />

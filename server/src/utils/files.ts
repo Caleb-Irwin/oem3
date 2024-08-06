@@ -17,7 +17,7 @@ export const fileProcedures = (
   verifyFunction: (dataUrl: string, fileType: string) => Promise<void>,
   runWorker: RunWorker,
   cloudDownload:
-    | (() => Promise<{ name: string; dataUrl: string } | null>)
+    | (() => Promise<{ name: string; dataUrl: string; apply?: boolean } | null>)
     | undefined = undefined
 ) => {
   const { onUpdate, update } = eventSubscription();
@@ -82,8 +82,8 @@ export const fileProcedures = (
     del: generalProcedure
       .input(z.object({ fileId: z.number().int() }))
       .mutation(async ({ input: { fileId } }) => {
-        await db.delete(files).where(eq(files.id, fileId));
         update();
+        await db.delete(files).where(eq(files.id, fileId));
       }),
     get: generalProcedure.query(async () => {
       return await db.query.files.findMany({
@@ -114,7 +114,7 @@ export const fileProcedures = (
           input: {
             file: file.dataUrl,
             fileName: file.name,
-            processFile: true,
+            processFile: file.apply ?? true,
           },
           ctx,
         });

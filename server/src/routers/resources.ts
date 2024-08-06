@@ -15,6 +15,7 @@ export const resourceWith = {
   qbData: true as true,
   guildData: true as true,
   guildInventoryData: true as true,
+  guildFlyerData: true as true,
 };
 
 export const resourcesRouter = router({

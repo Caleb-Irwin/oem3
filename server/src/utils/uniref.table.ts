@@ -2,12 +2,14 @@ import { index, integer, pgEnum, pgTable, serial } from "drizzle-orm/pg-core";
 import { changesets, guild, qb } from "../db.schema";
 import { relations } from "drizzle-orm";
 import { guildInventory } from "../routers/guild/inventory/table";
+import { guildFlyer } from "../routers/guild/flyer/table";
 
 export const resourceTypeEnum = pgEnum("resource_type", [
   "changeset",
   "qb",
   "guild",
   "guildInventory",
+  "guildFlyer",
 ]);
 export type ResourceType = (typeof resourceTypeEnum.enumValues)[number];
 
@@ -27,6 +29,9 @@ export const uniref = pgTable(
         onDelete: "cascade",
       }
     ),
+    guildFlyer: integer("guildFlyer").references(() => guildFlyer.id, {
+      onDelete: "cascade",
+    }),
   },
   (uniref) => {
     return {
@@ -37,6 +42,7 @@ export const uniref = pgTable(
       guildInventoryIndex: index("uniref_guildInventory_idx").on(
         uniref.guildInventory
       ),
+      guildFlyerIndex: index("uniref_guildFlyer_idx").on(uniref.guildFlyer),
     };
   }
 );
@@ -47,6 +53,10 @@ export const unirefRelations = relations(uniref, ({ one }) => ({
   guildInventoryData: one(guildInventory, {
     fields: [uniref.guildInventory],
     references: [guildInventory.id],
+  }),
+  guildFlyerData: one(guildFlyer, {
+    fields: [uniref.guildFlyer],
+    references: [guildFlyer.id],
   }),
   changesetData: one(changesets, {
     fields: [uniref.changeset],

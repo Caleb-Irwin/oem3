@@ -26,11 +26,12 @@
 	const modalStore = getModalStore();
 </script>
 
-<div class="card p-4">
+<div class="card p-4 min-w-72">
 	<div class="flex justify-between pb-2 items-center">
 		<h4 class="pr-2 h4 font-semibold">{name} Changeset {$changeset ? '#' + $changeset?.id : ''}</h4>
 		<button
 			class="btn btn-icon btn-icon-sm"
+			disabled={!$changeset}
 			on:click={() =>
 				modalStore.trigger({
 					type: 'component',

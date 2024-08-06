@@ -1,0 +1,1 @@
+ALTER TABLE "guildFlyer" ADD CONSTRAINT "guildFlyer_gid_unique" UNIQUE("gid");

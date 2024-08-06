@@ -21,7 +21,6 @@ export const guildInventory = pgTable("guildInventory", {
   cis: varchar("cis", { length: 256 }),
   qtyPerUm: integer("qty_per_um"),
   um: guildUmEnum("um"),
-  timeUpdated: bigint("time_updated", { mode: "number" }),
   deleted: boolean("deleted").default(false).notNull(),
   lastUpdated: bigint("lastUpdated", { mode: "number" }).notNull(),
 });

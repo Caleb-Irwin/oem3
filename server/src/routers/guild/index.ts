@@ -4,6 +4,7 @@ import { fileProcedures } from "../../utils/files";
 import { managedWorker } from "../../utils/managedWorker";
 import * as xlsx from "xlsx";
 import { inventoryRouter } from "./inventory";
+import { flyerRouter } from "./flyer";
 
 const { worker, runWorker, hook } = managedWorker(
   new URL("worker.ts", import.meta.url).href,
@@ -13,11 +14,10 @@ export const guildHook = hook;
 
 export const guildRouter = router({
   inventory: inventoryRouter,
+  flyer: flyerRouter,
   files: fileProcedures(
     "guild",
     async (dataUrl, fileType) => {
-      console.log(fileType);
-
       if (
         fileType !==
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
