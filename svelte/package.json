@@ -49,12 +49,10 @@
     "@floating-ui/dom": "1.6.1",
     "@trpc/client": "next",
     "@trpc/server": "next",
-    "@types/sharp": "^0.32.0",
     "canvg": "^4.0.1",
     "jimp": "^0.22.12",
     "jsbarcode": "^3.11.6",
     "jsonwebtoken": "^9.0.2",
-    "jspdf": "^2.5.1",
-    "sharp": "^0.33.4"
+    "jspdf": "^2.5.1"
   }
 }
