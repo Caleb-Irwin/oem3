@@ -15,8 +15,8 @@
 	<ul>
 		{#each $allUsers ?? [] as user}
 			<li class="variant-glass p-2 rounded-sm my-1 flex items-center">
-				<span class="font-semibold text-surface-100">{user.username}</span>
-				<span class="text-surface-200 pl-2"> {user.permissionLevel}</span>
+				<span class="font-semibold text-surface-800 dark:text-surface-100">{user.username}</span>
+				<span class="text-surface-600 dark:text-surface-200 pl-2"> {user.permissionLevel}</span>
 				<span class="flex-grow"></span>
 				<button
 					class="btn btn-icon"

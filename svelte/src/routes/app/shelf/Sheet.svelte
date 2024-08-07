@@ -33,7 +33,11 @@
 
 	<ul class="w-full my-4 max-w-6xl">
 		{#each $sheet ?? [] as label, i}
-			<li class="m-0.5 rounded-sm flex {i % 2 === 0 ? 'bg-surface-600' : 'bg-surface-800'}">
+			<li
+				class="m-0.5 rounded-sm flex {i % 2 === 0
+					? 'bg-surface-100 dark:bg-surface-600'
+					: 'bg-surface-200 dark:bg-surface-800'}"
+			>
 				<Button
 					action={client.labels.duplicate}
 					class="p-0.5 px-1 btn btn-icon btn-icon-sm text-gray-400"
@@ -60,7 +64,8 @@
 					<span class="col-span-1 text-center font-semibold"
 						>{formatPrice((label.priceCents ?? 0) / 100)}</span
 					>
-					<span class="col-span-1 flex-grow text-center font-semibold text-gray-300"
+					<span
+						class="col-span-1 flex-grow text-center font-semibold text-gray-800 dark:text-gray-300"
 						>{label.barcode}</span
 					>
 				</button>

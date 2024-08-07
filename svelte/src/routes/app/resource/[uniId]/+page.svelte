@@ -66,11 +66,18 @@
 					{/if}
 					<div class="grid grid-cols-2">
 						{#each Object.entries(product.other) as [key, value], i}
-							<p class="text-right font-semibold p-0.5 pr-1 {i % 2 === 0 ? 'bg-surface-500' : ''}">
+							<p
+								class="text-right font-semibold p-0.5 pr-1 {i % 2 === 0
+									? 'bg-surface-200 dark:bg-surface-500'
+									: ''}"
+							>
 								{key}
 							</p>
 							<p
-								class="p-0.5 {i % 2 === 0 ? 'bg-surface-500' : ''}{value === null ? 'italic' : ''}"
+								class="p-0.5 {i % 2 === 0 ? 'bg-surface-200 dark:bg-surface-500' : ''}{value ===
+								null
+									? 'italic'
+									: ''}"
 							>
 								{value ?? 'Undefined'}
 							</p>
