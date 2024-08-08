@@ -29,11 +29,14 @@
 			.filter((v) => v !== '');
 
 		lines[0] = phrase;
+		let loops = 0;
 		while (
-			(await lineLength(lines[0])) > 180 ||
-			(await lineLength(lines[1])) > 180 ||
-			(await lineLength(lines[2])) > 180
+			loops < 50 &&
+			((await lineLength(lines[0])) > 180 ||
+				(await lineLength(lines[1])) > 180 ||
+				(await lineLength(lines[2])) > 180)
 		) {
+			loops++;
 			if ((await lineLength(lines[0])) > 180) {
 				lines[1].unshift(lines[0].pop() as string);
 			}
@@ -42,6 +45,7 @@
 			}
 			if ((await lineLength(lines[2])) > 180) {
 				tooLong = true;
+				lines[2].pop();
 			}
 		}
 
