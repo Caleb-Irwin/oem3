@@ -44,7 +44,7 @@ export async function createContext(
         cookies,
       };
   } catch (e) {
-    console.log(e);
+    if ((e as any)["name"] !== "TokenExpiredError") console.log(e);
     return {
       user: null,
       cookies,

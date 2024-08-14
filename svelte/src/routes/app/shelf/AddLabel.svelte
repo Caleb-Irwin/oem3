@@ -16,9 +16,8 @@
 	<h4 class="h4 font-semibold w-full">{edit ? 'Edit' : 'New'} Label</h4>
 	<label class="label w-full py-1">
 		<span>Name</span>
-		<input
-			type="text"
-			class="input"
+		<textarea
+			class="textarea h-28"
 			name="name"
 			placeholder="Product Name"
 			value={label?.name ?? ''}

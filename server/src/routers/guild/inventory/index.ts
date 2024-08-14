@@ -57,7 +57,8 @@ const files = fileProcedures(
       new Date(res.headers.get("Last-Modified") as string).toLocaleString(
         "en-CA",
         { timeZone: "America/Regina" }
-      );
+      ) +
+      ".csv";
 
     if ((await kv.get("lastDownloadedName")) === encodeURIComponent(name))
       return null;

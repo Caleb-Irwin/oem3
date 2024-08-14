@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "@shopify/admin-api-client": "^1.0.1",
+    "@shopify/shopify-api": "^11.2.0",
     "@supercharge/promise-pool": "^3.2.0",
     "@trpc/client": "^10.45.2",
     "@trpc/server": "next",
@@ -21,7 +23,8 @@
     "dev": "concurrently \"DEV=TRUE bun --watch src/index.ts\" \"cd ../svelte && bun run dev\" \"docker-compose up\" -n Server,Kit,DB -c blue,yellow,green",
     "start": "bun run src/index.ts",
     "generate": "drizzle-kit generate",
-    "preview": "concurrently \"bun run start\" \"docker-compose up\" -n Server,DB -c blue,green"
+    "preview": "concurrently \"bun run start\" \"docker-compose up\" -n Server,DB -c blue,green",
+    "graphql-codegen": "graphql-codegen"
   },
   "devDependencies": {
     "@types/bun": "^1.1.1",
@@ -32,7 +35,8 @@
     "@types/ws": "^8.5.10",
     "concurrently": "^8.2.2",
     "drizzle-kit": "^0.22.8",
-    "http-proxy-middleware": "^2.0.6"
+    "http-proxy-middleware": "^2.0.6",
+    "@shopify/api-codegen-preset": "^1.0.1"
   },
   "trustedDependencies": [
     "sharp"

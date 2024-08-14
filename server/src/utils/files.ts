@@ -14,7 +14,7 @@ import type { RunWorker } from "./managedWorker";
 
 export const fileProcedures = (
   type: string,
-  verifyFunction: (dataUrl: string, fileType: string) => Promise<void>,
+  verifyFunction: (dataUrl: string, fileType: string) => Promise<void> | void,
   runWorker: RunWorker,
   cloudDownload:
     | (() => Promise<{ name: string; dataUrl: string; apply?: boolean } | null>)

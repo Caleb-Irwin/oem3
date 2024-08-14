@@ -6,6 +6,7 @@ import { qbRouter } from "./routers/qb";
 import { resourcesRouter } from "./routers/resources";
 import { searchRouter } from "./routers/search";
 import { guildRouter } from "./routers/guild";
+import { shopifyRouter } from "./routers/shopify";
 
 export const appRouter = router({
   user: userRouter,
@@ -15,4 +16,5 @@ export const appRouter = router({
   search: searchRouter,
   qb: qbRouter,
   guild: guildRouter,
+  shopify: shopifyRouter,
 });

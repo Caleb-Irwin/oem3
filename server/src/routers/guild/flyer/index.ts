@@ -95,7 +95,9 @@ export const flyerRouter = router({
         dateStyle: "medium",
       })} to ${endDate.toLocaleDateString("en-CA", {
         dateStyle: "medium",
-      })} Flyer (${fileName.slice(0, fileName.indexOf("."))})`;
+      })} Flyer (${fileName.slice(0, fileName.indexOf("."))}).${fileName.slice(
+        fileName.indexOf(".") + 1
+      )}`;
 
       await kv.set("lastDownloadedName", encodeURIComponent(fileName));
       return { name, dataUrl, apply: false };

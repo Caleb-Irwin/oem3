@@ -12,7 +12,6 @@ services:
     build: .
     ports:
       - 3000:3000
+    env_file: ./docker.env
     environment:
       POSTGRESQL: postgres://postgres:example@psql:5432/postgres
-      ADMIN_PASSWORD: oem3-password
-      JWT_SECRET: 123abcdetc-preview
