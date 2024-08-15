@@ -29615,7 +29615,10 @@ export type Mutation = {
   productBundleCreate?: Maybe<ProductBundleCreatePayload>;
   /** Updates a componentized product. */
   productBundleUpdate?: Maybe<ProductBundleUpdatePayload>;
-  /** Changes the status of a product. This allows you to set the availability of the product across all channels. */
+  /**
+   * Changes the status of a product. This allows you to set the availability of the product across all channels.
+   * @deprecated Use `productUpdate` instead.
+   */
   productChangeStatus?: Maybe<ProductChangeStatusPayload>;
   /**
    * Creates a product.
@@ -30166,7 +30169,14 @@ export type Mutation = {
   storeCreditAccountCredit?: Maybe<StoreCreditAccountCreditPayload>;
   /** Creates a debit transaction that decreases the store credit account balance by the given amount. */
   storeCreditAccountDebit?: Maybe<StoreCreditAccountDebitPayload>;
-  /** Creates a storefront access token. An app can have a maximum of 100 active storefront access tokens for each shop. */
+  /**
+   * Creates a storefront access token for use with the [Storefront API](https://shopify.dev/docs/api/storefront).
+   *
+   * An app can have a maximum of 100 active storefront access tokens for each shop.
+   *
+   * [Get started with the Storefront API](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/getting-started).
+   *
+   */
   storefrontAccessTokenCreate?: Maybe<StorefrontAccessTokenCreatePayload>;
   /** Deletes a storefront access token. */
   storefrontAccessTokenDelete?: Maybe<StorefrontAccessTokenDeletePayload>;
@@ -41278,6 +41288,8 @@ export type ProductVariantsBulkCreateUserError = DisplayableError & {
 
 /** Possible error codes that can be returned by `ProductVariantsBulkCreateUserError`. */
 export enum ProductVariantsBulkCreateUserErrorCode {
+  /** Cannot set name for an option value linked to a metafield. */
+  CannotSetNameForLinkedOptionValue = 'CANNOT_SET_NAME_FOR_LINKED_OPTION_VALUE',
   /** Variant price must be greater than or equal to zero. */
   GreaterThanOrEqualTo = 'GREATER_THAN_OR_EQUAL_TO',
   /** Invalid input detected. */
@@ -52030,8 +52042,12 @@ export type StoreCreditAccountTransactionEdge = {
 
 /**
  * A token that's used to delegate unauthenticated access scopes to clients that need to access
- * the unauthenticated Storefront API. An app can have a maximum of 100 active storefront access
+ * the unauthenticated [Storefront API](https://shopify.dev/docs/api/storefront).
+ *
+ * An app can have a maximum of 100 active storefront access
  * tokens for each shop.
+ *
+ * [Get started with the Storefront API](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/getting-started).
  *
  */
 export type StorefrontAccessToken = Node & {

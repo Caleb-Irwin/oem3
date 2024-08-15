@@ -1,5 +1,5 @@
 import { index, integer, pgEnum, pgTable, serial } from "drizzle-orm/pg-core";
-import { changesets, guild, qb } from "../db.schema";
+import { changesets, guild, qb, shopify } from "../db.schema";
 import { relations } from "drizzle-orm";
 import { guildInventory } from "../routers/guild/inventory/table";
 import { guildFlyer } from "../routers/guild/flyer/table";
@@ -10,6 +10,7 @@ export const resourceTypeEnum = pgEnum("resource_type", [
   "guild",
   "guildInventory",
   "guildFlyer",
+  "shopify",
 ]);
 export type ResourceType = (typeof resourceTypeEnum.enumValues)[number];
 
@@ -32,6 +33,9 @@ export const uniref = pgTable(
     guildFlyer: integer("guildFlyer").references(() => guildFlyer.id, {
       onDelete: "cascade",
     }),
+    shopify: integer("shopify").references(() => shopify.id, {
+      onDelete: "cascade",
+    }),
   },
   (uniref) => {
     return {
@@ -43,6 +47,7 @@ export const uniref = pgTable(
         uniref.guildInventory
       ),
       guildFlyerIndex: index("uniref_guildFlyer_idx").on(uniref.guildFlyer),
+      shopifyIndex: index("uniref_shopify_idx").on(uniref.shopify),
     };
   }
 );
@@ -61,5 +66,9 @@ export const unirefRelations = relations(uniref, ({ one }) => ({
   changesetData: one(changesets, {
     fields: [uniref.changeset],
     references: [changesets.id],
+  }),
+  shopifyData: one(shopify, {
+    fields: [uniref.shopify],
+    references: [shopify.id],
   }),
 }));

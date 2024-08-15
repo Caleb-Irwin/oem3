@@ -1,0 +1,1 @@
+ALTER TABLE "shopify" RENAME COLUMN "vInventoryPolicyAllow" TO "vInventoryPolicyContinue";

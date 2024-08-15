@@ -48,7 +48,6 @@ work({
             "regularPriceL1Cents",
           ]
         ),
-        excludeFromHistory: [],
         progress,
       });
     });

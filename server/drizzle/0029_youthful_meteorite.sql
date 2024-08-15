@@ -1,0 +1,1 @@
+ALTER TABLE "shopify" ADD COLUMN "productId" varchar(128) NOT NULL;

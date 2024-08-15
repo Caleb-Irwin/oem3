@@ -15,9 +15,9 @@ export const shopifyHook = hook;
 const verify = (dataUrl: string, fileType: string) => {
   if (fileType !== "application/jsonl")
     throw new Error("Invalid File Type (JSON Only)");
-  const firstLine = atob(dataUrl.slice(dataUrl.indexOf(";base64,") + 8))
-    .slice(0, 2000)
-    .split("\n")[0];
+  const firstLine = atob(dataUrl.slice(dataUrl.indexOf(";base64,") + 8)).split(
+    "\n"
+  )[0];
   const data = JSON.parse(firstLine);
   if (!(data.id || data.subjectId)) {
     console.log(data);
@@ -34,7 +34,10 @@ export const shopifyRouter = router({
       { client } = shopifyConnect(),
       bulkOperationCreateRes = await client.request(bulkQueryMutation, {
         variables: {
-          query: productsQuery(new Date(lastUpdatedAt)),
+          query: productsQuery.replaceAll(
+            "$lastUpdatedAtISOString",
+            new Date(lastUpdatedAt).toISOString()
+          ),
         },
       });
 
@@ -94,9 +97,9 @@ export const shopifyRouter = router({
   }),
 });
 
-const productsQuery = (lastUpdatedAt: InstanceType<typeof Date>) => `#graphql
+const productsQuery = `#graphql
   query recentlyUpdatedProducts {
-    products(query: "updated_at:>'${lastUpdatedAt.toISOString()}'") {
+    products(query: "updated_at:>'$lastUpdatedAtISOString'") {
       edges {
         node {
           id
@@ -150,7 +153,7 @@ const productsQuery = (lastUpdatedAt: InstanceType<typeof Date>) => `#graphql
         }
       }
     }
-    deletionEvents(subjectTypes: PRODUCT, query: "occurred_at:>'${lastUpdatedAt.toISOString()}'") {
+    deletionEvents(subjectTypes: PRODUCT, query: "occurred_at:>'$lastUpdatedAtISOString'") {
       edges {
         node {
           occurredAt
@@ -193,3 +196,15 @@ const pollBulkQueryQuery = `#graphql
     }
   }
 `;
+
+const productQueryType = async () => {
+  const client = shopifyConnect().client;
+  return await client.request(productsQuery);
+};
+type BulkRes = Exclude<
+  Awaited<ReturnType<typeof productQueryType>>["data"],
+  undefined
+>;
+export type Product = BulkRes["products"]["edges"][0]["node"];
+export type Variant = Product["variants"]["edges"][0]["node"];
+export type DeletionEvent = BulkRes["deletionEvents"]["edges"][0]["node"];

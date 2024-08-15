@@ -10,3 +10,4 @@ export * from "./routers/search/table";
 export * from "./routers/guild/table";
 export * from "./routers/guild/inventory/table";
 export * from "./routers/guild/flyer/table";
+export * from "./routers/shopify/table";

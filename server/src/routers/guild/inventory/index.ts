@@ -54,10 +54,9 @@ const files = fileProcedures(
 
     const name =
       "Inventory @ " +
-      new Date(res.headers.get("Last-Modified") as string).toLocaleString(
-        "en-CA",
-        { timeZone: "America/Regina" }
-      ) +
+      new Date(res.headers.get("Last-Modified") as string)
+        .toLocaleString("en-CA", { timeZone: "America/Regina" })
+        .replaceAll(".", "") +
       ".csv";
 
     if ((await kv.get("lastDownloadedName")) === encodeURIComponent(name))

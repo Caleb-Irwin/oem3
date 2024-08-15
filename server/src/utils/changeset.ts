@@ -68,6 +68,7 @@ export const createChangeset = async (
       diff,
       excludeFromHistory,
       progress,
+      customDeletedItems = undefined,
     }: {
       db: typeof DB;
       rawItems: Raw[];
@@ -77,6 +78,7 @@ export const createChangeset = async (
       diff: ReturnType<typeof genDiffer<Item, ItemInsert>>;
       excludeFromHistory?: (keyof ItemInsert)[];
       progress: (amountDone: number) => void;
+      customDeletedItems?: Item[] | undefined;
     }) => {
       const total = rawItems.length;
       let taskCount = 0;
@@ -167,9 +169,9 @@ export const createChangeset = async (
           }
         });
 
-      const deletedItems = Array.from(prevItems.values()).filter(
-        (v) => !v.deleted
-      );
+      const deletedItems = customDeletedItems
+        ? customDeletedItems
+        : Array.from(prevItems.values()).filter((v) => !v.deleted);
 
       await PromisePool.withConcurrency(100)
         .for(deletedItems)

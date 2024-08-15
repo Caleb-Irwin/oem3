@@ -10,6 +10,7 @@ import { files } from "./files.table";
 import {
   guildFlyer,
   guildInventory,
+  shopify,
   uniref,
   type guild,
   type qb,
@@ -21,6 +22,7 @@ export const changesetType = pgEnum("changeset_type", [
     "guild",
     "guildInventory",
     "guildFlyer",
+    "shopify",
   ]),
   changesetStatusType = pgEnum("changeset_status_type", [
     "generating",
@@ -31,7 +33,8 @@ export type ChangesetTable =
   | typeof qb
   | typeof guild
   | typeof guildInventory
-  | typeof guildFlyer;
+  | typeof guildFlyer
+  | typeof shopify;
 
 export const changesets = pgTable("changesets", {
   id: serial("id").primaryKey(),
