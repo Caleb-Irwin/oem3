@@ -4019,20 +4019,35 @@ export type CheckoutBrandingColorGlobal = {
   /** A color used for interaction, like links and focus states. */
   accent?: Maybe<Scalars['String']['output']>;
   /**
-   * A color strongly associated with the merchant, currently used for elements
-   * like primary and secondary buttons.
+   * A color that's strongly associated with the merchant. Currently used for
+   * primary buttons, for example **Pay now**, and secondary buttons, for example **Buy again**.
    *
    */
   brand?: Maybe<Scalars['String']['output']>;
-  /** A semantic color used for components that communicate critical content. */
+  /**
+   * A semantic color used for components that communicate critical content. For example, a blocking error such as the requirement to enter a valid credit card number.
+   *
+   */
   critical?: Maybe<Scalars['String']['output']>;
-  /** A color used to highlight certain areas of the user interface. */
+  /**
+   * A color used to highlight certain areas of the user interface. For example, the [`Text`](https://shopify.dev/docs/api/checkout-ui-extensions/latest/components/titles-and-text/text#textprops-propertydetail-appearance) component.
+   *
+   */
   decorative?: Maybe<Scalars['String']['output']>;
-  /** A semantic color used for components that communicate informative content. */
+  /**
+   * A semantic color used for components that communicate general, informative content.
+   *
+   */
   info?: Maybe<Scalars['String']['output']>;
-  /** A semantic color used for components that communicate successful actions. */
+  /**
+   * A semantic color used for components that communicate successful actions or a positive state.
+   *
+   */
   success?: Maybe<Scalars['String']['output']>;
-  /** A semantic color used for components that display content that requires attention. */
+  /**
+   * A semantic color used for components that display content that requires attention. For example, something that might be wrong, but not blocking.
+   *
+   */
   warning?: Maybe<Scalars['String']['output']>;
 };
 
@@ -4041,20 +4056,35 @@ export type CheckoutBrandingColorGlobalInput = {
   /** A color used for interaction, like links and focus states. */
   accent?: InputMaybe<Scalars['String']['input']>;
   /**
-   * A color strongly associated with the merchant, currently used for elements
-   * like primary and secondary buttons.
+   * A color that's strongly associated with the merchant. Currently used for
+   * primary buttons, such as **Pay now**, and secondary buttons, such as **Buy again**.
    *
    */
   brand?: InputMaybe<Scalars['String']['input']>;
-  /** A semantic color used for components that communicate critical content. */
+  /**
+   * A semantic color used for components that communicate critical content. For example, a blocking error such as the requirement to enter a valid credit card number.
+   *
+   */
   critical?: InputMaybe<Scalars['String']['input']>;
-  /** A color used to highlight certain areas of the user interface. */
+  /**
+   * A color used to highlight certain areas of the user interface. For example, the [`Text`](https://shopify.dev/docs/api/checkout-ui-extensions/latest/components/titles-and-text/text#textprops-propertydetail-appearance) component.
+   *
+   */
   decorative?: InputMaybe<Scalars['String']['input']>;
-  /** A semantic color used for components that communicate informative content. */
+  /**
+   * A semantic color used for components that communicate general, informative content.
+   *
+   */
   info?: InputMaybe<Scalars['String']['input']>;
-  /** A semantic color used for components that communicate successful actions. */
+  /**
+   * A semantic color used for components that communicate successful actions or a positive state.
+   *
+   */
   success?: InputMaybe<Scalars['String']['input']>;
-  /** A semantic color used for components that display content that requires attention. */
+  /**
+   * A semantic color used for components that display content that requires attention. For example, something that might be wrong, but not blocking.
+   *
+   */
   warning?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -4092,35 +4122,59 @@ export type CheckoutBrandingColorRolesInput = {
 };
 
 /**
- * A base set of color customizations that is applied to an area of Checkout, from which every component
- * pulls its colors from.
+ * A base set of color customizations that's applied to an area of Checkout, from which every component
+ * pulls its colors.
  *
  */
 export type CheckoutBrandingColorScheme = {
   __typename?: 'CheckoutBrandingColorScheme';
-  /** The main colors of a scheme. */
+  /**
+   * The main colors of a scheme. Used for the surface background, text, links, and more.
+   *
+   */
   base?: Maybe<CheckoutBrandingColorRoles>;
-  /** The colors of form controls. */
+  /**
+   * The colors of form controls, such as the [`TextField`](https://shopify.dev/docs/api/checkout-ui-extensions/latest/components/forms/textfield) and [`ChoiceList`](https://shopify.dev/docs/api/checkout-ui-extensions/latest/components/forms/choicelist) components.
+   *
+   */
   control?: Maybe<CheckoutBrandingControlColorRoles>;
-  /** The colors of the primary button. */
+  /**
+   * The colors of the primary button. For example, the main payment, or **Pay now** button.
+   *
+   */
   primaryButton?: Maybe<CheckoutBrandingButtonColorRoles>;
-  /** The colors of the secondary button. */
+  /**
+   * The colors of the secondary button, which is used for secondary actions. For example, **Buy again**.
+   *
+   */
   secondaryButton?: Maybe<CheckoutBrandingButtonColorRoles>;
 };
 
 /**
- * The input fields for a base set of color customizations that is applied to an area of Checkout, from which
- * every component pulls its colors from.
+ * The input fields for a base set of color customizations that's applied to an area of Checkout, from which
+ * every component pulls its colors.
  *
  */
 export type CheckoutBrandingColorSchemeInput = {
-  /** The main colors of a scheme. */
+  /**
+   * The main colors of a scheme. Used for the surface background, text, links, and more.
+   *
+   */
   base?: InputMaybe<CheckoutBrandingColorRolesInput>;
-  /** The colors of form controls. */
+  /**
+   * The colors of form controls, such as the [`TextField`](https://shopify.dev/docs/api/checkout-ui-extensions/latest/components/forms/textfield) and [`ChoiceList`](https://shopify.dev/docs/api/checkout-ui-extensions/latest/components/forms/choicelist) components.
+   *
+   */
   control?: InputMaybe<CheckoutBrandingControlColorRolesInput>;
-  /** The colors of the primary button. */
+  /**
+   * The colors of the primary button. For example, the main payment, or **Pay now** button.
+   *
+   */
   primaryButton?: InputMaybe<CheckoutBrandingButtonColorRolesInput>;
-  /** The colors of the secondary button. */
+  /**
+   * The colors of the secondary button, which is used for secondary actions. For example, **Buy again**.
+   *
+   */
   secondaryButton?: InputMaybe<CheckoutBrandingButtonColorRolesInput>;
 };
 

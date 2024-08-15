@@ -1,0 +1,1 @@
+ALTER TABLE "shopify" ADD COLUMN "imageUrl" varchar(255);

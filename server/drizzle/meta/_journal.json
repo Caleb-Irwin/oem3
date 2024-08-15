@@ -218,6 +218,13 @@
       "when": 1723744775841,
       "tag": "0030_awesome_white_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1723755040856,
+      "tag": "0031_faulty_wrecker",
+      "breakpoints": true
     }
   ]
 }

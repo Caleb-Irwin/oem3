@@ -141,7 +141,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			deleted: shopify.deleted,
 			lastUpdated: shopify.lastUpdated,
 			description: shopify.htmlDescription ?? '',
-			imageUrl: undefined /* shopify.imageUrl,*/,
+			imageUrl: shopify.imageUrl ?? undefined,
 			other: {
 				Handle: shopify.handle,
 				Status: shopify.status,
@@ -165,10 +165,10 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				'Product Id': shopify.productId,
 				'Variant Id': shopify.variantId,
 				'Shopify Published At': shopify.publishedAt
-					? new Date(shopify.publishedAt as number).toLocaleDateString('en-CA')
+					? new Date(shopify.publishedAt as number).toLocaleString('en-CA')
 					: 'Unknown',
 				'Updated At': shopify.updatedAt
-					? new Date(shopify.updatedAt as number).toLocaleDateString('en-CA')
+					? new Date(shopify.updatedAt as number).toLocaleString('en-CA')
 					: 'Unknown'
 			}
 		};

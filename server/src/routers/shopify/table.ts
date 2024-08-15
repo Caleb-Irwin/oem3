@@ -25,6 +25,7 @@ export const shopify = pgTable("shopify", {
   htmlDescription: text("htmlDescription"),
   imageId: varchar("imageId", { length: 128 }),
   imageAltText: text("imageAltText"),
+  imageUrl: varchar("imageUrl", { length: 255 }),
   totalInventory: integer("totalInventory"),
   tagsJsonArr: text("tagsJsonArr"),
   hasOnlyDefaultVariant: boolean("hasOnlyDefaultVariant").notNull(),

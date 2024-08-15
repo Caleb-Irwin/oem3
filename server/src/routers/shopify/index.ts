@@ -114,6 +114,7 @@ const productsQuery = `#graphql
           featuredImage {
             id
             altText
+            url
           }
           totalInventory
           variants(first: 1) {
