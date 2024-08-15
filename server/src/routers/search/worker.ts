@@ -8,6 +8,7 @@ import {
   guildFlyer,
   guildInventory,
   qb,
+  shopify,
   type ChangesetTable,
   type ResourceType,
 } from "../../db.schema";
@@ -40,6 +41,7 @@ work({
             guild: db.query.guild,
             guildInventory: db.query.guildInventory,
             guildFlyer: db.query.guildFlyer,
+            shopify: db.query.shopify,
           }[resourceName] as typeof db.query.qb
         ).findMany({
           with: { uniref: true },
@@ -112,6 +114,14 @@ work({
       return {
         keyInfo: `${item.gid}`,
         otherInfo: `${item.vendorCode} ${getSubStrings(item.gid)}}`,
+      };
+    });
+    await updateSearchIndex(shopify, (item) => {
+      return {
+        keyInfo: `${item.vSku} ${item.productId}`,
+        otherInfo: `${item.title} ${item.htmlDescription} ${getSubStrings(
+          item.vSku ?? ""
+        )} ${JSON.parse(item.tagsJsonArr || "[]").join(" ")}`,
       };
     });
   },

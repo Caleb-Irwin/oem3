@@ -130,4 +130,47 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			}
 		};
 	}
+	if (raw.shopifyData) {
+		const shopify = raw.shopifyData;
+		return {
+			idText: 'Shopify#' + shopify.id,
+			name: shopify.title,
+			price: format(shopify.vPriceCents / 100),
+			sku: shopify.vSku ?? 'Unknown',
+			stock: shopify.totalInventory,
+			deleted: shopify.deleted,
+			lastUpdated: shopify.lastUpdated,
+			description: shopify.htmlDescription ?? '',
+			imageUrl: undefined /* shopify.imageUrl,*/,
+			other: {
+				Handle: shopify.handle,
+				Status: shopify.status,
+				'Compare At Price': shopify.vComparePriceCents
+					? format(shopify.vComparePriceCents / 100)
+					: 'Not on sale',
+				'Unit Cost': shopify.vUnitCostCents
+					? format(shopify.vUnitCostCents / 100)
+					: 'Not available',
+				Weight: shopify.vWeightGrams + ' grams',
+				'Requires Shipping': shopify.vRequiresShipping ? 'Yes' : 'No',
+				'Store Available': shopify.vInventoryAvailableStore?.toString() ?? '',
+				'Store On Hand': shopify.vInventoryOnHandStore?.toString() ?? '',
+				'Store Committed': shopify.vInventoryCommittedStore?.toString() ?? '',
+				'Warehouse On Hand': shopify.vInventoryOnHandWarehouse0?.toString() ?? '',
+				Tags: JSON.parse(shopify.tagsJsonArr || '[]').join(', '),
+				Barcode: shopify.vBarcode,
+				'Has Only Default Variant': shopify.hasOnlyDefaultVariant ? 'Yes' : 'No',
+				'Image Id': shopify.imageId,
+				'Image Alt Text': shopify.imageAltText,
+				'Product Id': shopify.productId,
+				'Variant Id': shopify.variantId,
+				'Shopify Published At': shopify.publishedAt
+					? new Date(shopify.publishedAt as number).toLocaleDateString('en-CA')
+					: 'Unknown',
+				'Updated At': shopify.updatedAt
+					? new Date(shopify.updatedAt as number).toLocaleDateString('en-CA')
+					: 'Unknown'
+			}
+		};
+	}
 };

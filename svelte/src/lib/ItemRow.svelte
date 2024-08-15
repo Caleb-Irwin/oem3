@@ -67,7 +67,9 @@
 					<span class="cursor-default chip m-0.5 variant-filled-error"> Deleted </span>
 				{/if}
 				{#if all}
-					<span class="cursor-default chip m-0.5 variant-filled-surface"> {product.idText} </span>
+					<span class="cursor-default chip m-0.5 variant-filled-surface">
+						{product.idText.split('#')[0]}
+					</span>
 				{/if}
 			</p>
 		</div>

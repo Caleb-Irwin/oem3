@@ -30,12 +30,7 @@
 		<a href="/app/" class="card p-6 m-2 cursor-not-allowed text-surface-400">
 			<h3 class="font-semibold text-2xl">SPRichards</h3>
 		</a>
-		<a
-			href="/app/shopify"
-			class="card p-6 m-2 {data.user.permissionLevel !== 'admin'
-				? 'cursor-not-allowed text-surface-400'
-				: 'card-hover'}"
-		>
+		<a href="/app/shopify" class="card p-6 m-2 card-hover">
 			<h3 class="font-semibold text-2xl">Shopify</h3>
 		</a>
 		{#if data.user.permissionLevel === 'admin'}
