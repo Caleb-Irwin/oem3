@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -50,6 +50,10 @@ export const qb = pgTable(
   (qb) => {
     return {
       qbIdIndex: index("qb_qbId_idx").on(qb.qbId),
+      qbShortUpcIndex: index("qb_shortUpc_idx").using(
+        "btree",
+        sql`substr(substr((qb.qb_id)::text, (POSITION((':'::text) IN (qb.qb_id)) + 1)), (length(substr((qb.qb_id)::text, (POSITION((':'::text) IN (qb.qb_id)) + 1))) - 10), 10)`
+      ),
     };
   }
 );

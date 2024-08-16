@@ -36,7 +36,7 @@ export const resourcesRouter = router({
       if (res && includeHistory) {
         const historyRes = await db.query.history.findMany({
           where: eq(history.uniref, res.uniId),
-          orderBy: desc(history.created),
+          orderBy: desc(history.id),
         });
         return { history: historyRes, ...res };
       }
