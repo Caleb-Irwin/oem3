@@ -106,7 +106,7 @@ export const managedWorker = (
     runWorker,
     worker: router({
       run: generalProcedure
-        .input(z.object({ fileId: z.number().int() }))
+        .input(z.object({ fileId: z.number().int().optional() }))
         .mutation(async ({ input }) => {
           try {
             await runWorker(input);

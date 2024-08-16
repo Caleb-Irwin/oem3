@@ -1,5 +1,5 @@
 import { index, integer, pgEnum, pgTable, serial } from "drizzle-orm/pg-core";
-import { changesets, guild, qb, shopify } from "../db.schema";
+import { changesets, guild, qb, shopify, unifiedItems } from "../db.schema";
 import { relations } from "drizzle-orm";
 import { guildInventory } from "../routers/guild/inventory/table";
 import { guildFlyer } from "../routers/guild/flyer/table";
@@ -11,6 +11,7 @@ export const resourceTypeEnum = pgEnum("resource_type", [
   "guildInventory",
   "guildFlyer",
   "shopify",
+  "unifiedItem",
 ]);
 export type ResourceType = (typeof resourceTypeEnum.enumValues)[number];
 
@@ -19,23 +20,37 @@ export const uniref = pgTable(
   {
     uniId: serial("uniId").primaryKey(),
     resourceType: resourceTypeEnum("resource_type").notNull(),
-    changeset: integer("changeset").references(() => changesets.id, {
-      onDelete: "cascade",
-    }),
-    qb: integer("qb").references(() => qb.id, { onDelete: "cascade" }),
-    guild: integer("guild").references(() => guild.id, { onDelete: "cascade" }),
-    guildInventory: integer("guildInventory").references(
-      () => guildInventory.id,
-      {
+    changeset: integer("changeset")
+      .references(() => changesets.id, {
         onDelete: "cascade",
-      }
-    ),
-    guildFlyer: integer("guildFlyer").references(() => guildFlyer.id, {
-      onDelete: "cascade",
-    }),
-    shopify: integer("shopify").references(() => shopify.id, {
-      onDelete: "cascade",
-    }),
+      })
+      .unique(),
+    qb: integer("qb")
+      .references(() => qb.id, { onDelete: "cascade" })
+      .unique(),
+    guild: integer("guild")
+      .references(() => guild.id, { onDelete: "cascade" })
+      .unique(),
+    guildInventory: integer("guildInventory")
+      .references(() => guildInventory.id, {
+        onDelete: "cascade",
+      })
+      .unique(),
+    guildFlyer: integer("guildFlyer")
+      .references(() => guildFlyer.id, {
+        onDelete: "cascade",
+      })
+      .unique(),
+    shopify: integer("shopify")
+      .references(() => shopify.id, {
+        onDelete: "cascade",
+      })
+      .unique(),
+    unifiedItem: integer("unifiedItem")
+      .references(() => unifiedItems.id, {
+        onDelete: "cascade",
+      })
+      .unique(),
   },
   (uniref) => {
     return {
@@ -48,6 +63,7 @@ export const uniref = pgTable(
       ),
       guildFlyerIndex: index("uniref_guildFlyer_idx").on(uniref.guildFlyer),
       shopifyIndex: index("uniref_shopify_idx").on(uniref.shopify),
+      unifiedItemIndex: index("uniref_unifiedItem_idx").on(uniref.unifiedItem),
     };
   }
 );
@@ -70,5 +86,9 @@ export const unirefRelations = relations(uniref, ({ one }) => ({
   shopifyData: one(shopify, {
     fields: [uniref.shopify],
     references: [shopify.id],
+  }),
+  unifiedItemData: one(unifiedItems, {
+    fields: [uniref.unifiedItem],
+    references: [unifiedItems.id],
   }),
 }));

@@ -14,7 +14,7 @@
 		applyMutation: {
 			mutate: Resolver<{
 				input: {
-					fileId: number;
+					fileId?: number;
 				};
 				output: never;
 				errorShape: any;
