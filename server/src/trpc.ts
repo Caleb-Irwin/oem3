@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import { type jwtFields } from "./routers/user";
 import { usersKv } from "./utils/kv";
 import { JWT_SECRET } from "./env";
+import { runDailyTasksIfNeeded } from "./utils/scheduler";
 
 export async function createContext(
   ctx: CreateExpressContextOptions | CreateWSSContextFnOptions
@@ -13,6 +14,8 @@ export async function createContext(
   user: jwtFields | null;
   cookies?: Cookies;
 }> {
+  runDailyTasksIfNeeded();
+
   if ((ctx as CreateWSSContextFnOptions).req.headers.upgrade === "websocket") {
     return {
       user: null,

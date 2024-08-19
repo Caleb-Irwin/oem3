@@ -11,6 +11,7 @@ import {
 } from "@trpc/server";
 import { TRPCClientError } from "@trpc/client";
 import type { RunWorker } from "./managedWorker";
+import { scheduleDailyTask } from "./scheduler";
 
 export const fileProcedures = (
   type: string,
@@ -18,7 +19,8 @@ export const fileProcedures = (
   runWorker: RunWorker,
   cloudDownload:
     | (() => Promise<{ name: string; dataUrl: string; apply?: boolean } | null>)
-    | undefined = undefined
+    | undefined = undefined,
+  dailyRunCloudDownload = false
 ) => {
   const { onUpdate, update } = eventSubscription();
 
@@ -67,6 +69,21 @@ export const fileProcedures = (
 
     return { fileId };
   };
+
+  if (dailyRunCloudDownload && cloudDownload) {
+    scheduleDailyTask(type, async () => {
+      const file = await cloudDownload();
+      if (!file) return;
+      await upload({
+        input: {
+          file: file.dataUrl,
+          fileName: file.name,
+          processFile: file.apply ?? true,
+        },
+        ctx: { user: { username: null as any } },
+      });
+    });
+  }
 
   return router({
     onUpdate,

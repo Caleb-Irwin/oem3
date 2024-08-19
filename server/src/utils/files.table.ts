@@ -17,7 +17,7 @@ export const files = pgTable(
     author: varchar("author", { length: 256 }).references(
       () => users.username,
       {
-        onDelete: "set null",
+        onDelete: "no action",
       }
     ),
     content: text("content"),

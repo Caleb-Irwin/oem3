@@ -110,7 +110,7 @@
 						></span
 					>
 					<span class="text-sm">
-						uploaded by {file.author} at
+						uploaded {file.author === null ? 'automatically' : 'by ' + file.author} at
 						{new Date(file.uploadedTime ?? 0).toLocaleString()}</span
 					>
 				</p>

@@ -26,75 +26,81 @@ const verify = (dataUrl: string, fileType: string) => {
 };
 export const shopifyRouter = router({
   worker,
-  files: fileProcedures("shopify", verify, runWorker, async () => {
-    const kv = new KV("shopify"),
-      lastUpdatedAt: number =
-        parseInt((await kv.get("lastUpdatedAt")) ?? "0") ?? 0,
-      startTime = Date.now(),
-      { client } = shopifyConnect(),
-      bulkOperationCreateRes = await client.request(bulkQueryMutation, {
-        variables: {
-          query: productsQuery.replaceAll(
-            "$lastUpdatedAtISOString",
-            new Date(lastUpdatedAt).toISOString()
-          ),
-        },
-      });
+  files: fileProcedures(
+    "shopify",
+    verify,
+    runWorker,
+    async () => {
+      const kv = new KV("shopify"),
+        lastUpdatedAt: number =
+          parseInt((await kv.get("lastUpdatedAt")) ?? "0") ?? 0,
+        startTime = Date.now(),
+        { client } = shopifyConnect(),
+        bulkOperationCreateRes = await client.request(bulkQueryMutation, {
+          variables: {
+            query: productsQuery.replaceAll(
+              "$lastUpdatedAtISOString",
+              new Date(lastUpdatedAt).toISOString()
+            ),
+          },
+        });
 
-    if (
-      bulkOperationCreateRes.data?.bulkOperationRunQuery?.bulkOperation
-        ?.status !== "CREATED"
-    )
-      throw new Error("Failed to create bulk operation");
+      if (
+        bulkOperationCreateRes.data?.bulkOperationRunQuery?.bulkOperation
+          ?.status !== "CREATED"
+      )
+        throw new Error("Failed to create bulk operation");
 
-    let bulkQueryResults;
-    while (true) {
-      const r = await client.request(pollBulkQueryQuery);
-      console.log(
-        `${Math.round((Date.now() - startTime) / 100) / 10}s elapsed (${
-          r.data?.currentBulkOperation?.objectCount
-        } objects so far)`
-      );
-      if (r.data?.currentBulkOperation?.status !== "RUNNING") {
-        bulkQueryResults = r;
-        break;
+      let bulkQueryResults;
+      while (true) {
+        const r = await client.request(pollBulkQueryQuery);
+        console.log(
+          `${Math.round((Date.now() - startTime) / 100) / 10}s elapsed (${
+            r.data?.currentBulkOperation?.objectCount
+          } objects so far)`
+        );
+        if (r.data?.currentBulkOperation?.status !== "RUNNING") {
+          bulkQueryResults = r;
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-    if (bulkQueryResults.data?.currentBulkOperation?.status !== "COMPLETED") {
-      console.log(JSON.stringify(bulkQueryResults.data, undefined, 2));
-      throw new TRPCError({
-        message: `Bulk operation failed (status is ${bulkQueryResults.data?.currentBulkOperation?.status})`,
-        code: "INTERNAL_SERVER_ERROR",
-      });
-    }
-    if (bulkQueryResults.data.currentBulkOperation.objectCount === "0")
-      return null;
+      if (bulkQueryResults.data?.currentBulkOperation?.status !== "COMPLETED") {
+        console.log(JSON.stringify(bulkQueryResults.data, undefined, 2));
+        throw new TRPCError({
+          message: `Bulk operation failed (status is ${bulkQueryResults.data?.currentBulkOperation?.status})`,
+          code: "INTERNAL_SERVER_ERROR",
+        });
+      }
+      if (bulkQueryResults.data.currentBulkOperation.objectCount === "0")
+        return null;
 
-    const fileRes = await fetch(
-        bulkQueryResults.data?.currentBulkOperation?.url
-      ),
-      fileType = fileRes.headers.get("Content-Type"),
-      binString = Array.from(
-        new Uint8Array(await fileRes.arrayBuffer()),
-        (byte) => String.fromCodePoint(byte)
-      ).join(""),
-      dataUrl = `data:${fileType};base64,${btoa(binString)}`;
+      const fileRes = await fetch(
+          bulkQueryResults.data?.currentBulkOperation?.url
+        ),
+        fileType = fileRes.headers.get("Content-Type"),
+        binString = Array.from(
+          new Uint8Array(await fileRes.arrayBuffer()),
+          (byte) => String.fromCodePoint(byte)
+        ).join(""),
+        dataUrl = `data:${fileType};base64,${btoa(binString)}`;
 
-    verify(dataUrl, fileType ?? "");
+      verify(dataUrl, fileType ?? "");
 
-    await kv.set("lastUpdatedAt", startTime.toString());
+      await kv.set("lastUpdatedAt", startTime.toString());
 
-    return {
-      name:
-        `Changes from ${new Date(lastUpdatedAt).toLocaleString("en-CA", {
-          timeZone: "America/Regina",
-        })} to ${new Date(startTime).toLocaleString("en-CA", {
-          timeZone: "America/Regina",
-        })}`.replaceAll(".", "") + ".jsonl",
-      dataUrl,
-    };
-  }),
+      return {
+        name:
+          `Changes from ${new Date(lastUpdatedAt).toLocaleString("en-CA", {
+            timeZone: "America/Regina",
+          })} to ${new Date(startTime).toLocaleString("en-CA", {
+            timeZone: "America/Regina",
+          })}`.replaceAll(".", "") + ".jsonl",
+        dataUrl,
+      };
+    },
+    true
+  ),
 });
 
 const productsQuery = `#graphql

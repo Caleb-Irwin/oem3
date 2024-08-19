@@ -69,7 +69,8 @@ const files = fileProcedures(
     await kv.set("lastDownloadedName", encodeURIComponent(name));
 
     return { name, dataUrl };
-  }
+  },
+  true
 );
 
 export const inventoryRouter = router({

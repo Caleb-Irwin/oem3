@@ -101,7 +101,8 @@ export const flyerRouter = router({
 
       await kv.set("lastDownloadedName", encodeURIComponent(fileName));
       return { name, dataUrl, apply: false };
-    }
+    },
+    true
   ),
   worker,
 });
