@@ -1,5 +1,5 @@
 <script lang="ts" context="module">
-	export type SelectFunc = undefined | ((selection: { uniref: number }) => any);
+	export type SelectFunc = undefined | ((selection: { uniref: number; id: number }) => any);
 </script>
 
 <script lang="ts">
@@ -8,7 +8,8 @@
 	export let rawProduct: { uniId: number } & RawProduct,
 		grid = false,
 		all = false,
-		select: SelectFunc;
+		select: SelectFunc = undefined,
+		extraClass = '';
 
 	let product = productDetails(rawProduct);
 </script>
@@ -17,7 +18,7 @@
 	<div
 		class="card max-w-none w-full h-full p-2 flex justify-center items-center {grid
 			? 'flex-col'
-			: 'flex-row flex-wrap'}"
+			: 'flex-row flex-wrap'} {extraClass}"
 	>
 		{#if product.imageUrl}
 			<a
@@ -84,7 +85,7 @@
 			<div class={grid ? 'mt-0.5' : ''}>
 				<button
 					class="btn variant-filled-primary font-semibold"
-					on:click={() => select({ uniref: rawProduct.uniId })}>Select</button
+					on:click={() => select({ uniref: rawProduct.uniId, id: product.id })}>Select</button
 				>
 			</div>
 		{/if}

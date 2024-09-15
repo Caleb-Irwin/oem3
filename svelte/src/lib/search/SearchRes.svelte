@@ -8,8 +8,10 @@
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import SearchPage from './SearchPage.svelte';
 
-	export let res: Awaited<ReturnType<typeof client.search.search.query>>;
-	export let select: SelectFunc;
+	export let res: Awaited<ReturnType<typeof client.search.search.query>>,
+		select: SelectFunc,
+		editSearchQuery: ((q: { query: string; queryType: typeof res.queryType }) => void) | undefined =
+			undefined;
 
 	let grid = false,
 		count = res.count,
@@ -22,17 +24,20 @@
 	});
 	const modalStore = getModalStore(),
 		edit = () => {
+			if (editSearchQuery) {
+				editSearchQuery({ query: res.query, queryType: res.queryType });
+				return;
+			}
 			//@ts-expect-error
 			$modalStore[0].response({ query: res.query, queryType: res.queryType });
 			modalStore.close();
 		};
 </script>
 
-<div class=" card p-2 gap-2 min-w-80">
+<div class="card p-2 gap-2 min-w-80">
 	<h1 class="p-4 pb-2 text-3xl flex items-center">
 		<span>
 			{`Search Results For "${res.query}"`}
-
 			<button on:click={edit} class="hover:text-primary-500"><Pencil /></button>
 			<span class="text-primary-500">{count}{more ? '+' : ''} Result{count === 1 ? '' : 's'}</span>
 		</span>

@@ -4,6 +4,7 @@ export type RawProduct = Exclude<Awaited<ReturnType<typeof client.resources.get.
 
 export interface Product {
 	idText: string;
+	id: number;
 	name: string;
 	price: string;
 	comparePrice?: string | null;
@@ -25,6 +26,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 		const qb = raw.qbData;
 		return {
 			idText: 'QB#' + qb.id,
+			id: qb.id,
 			name: qb.desc,
 			price: format(qb.priceCents / 100),
 			sku: qb.qbId,
@@ -49,6 +51,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 		const guild = raw.guildData;
 		return {
 			idText: 'Guild#' + guild.id,
+			id: guild.id,
 			name: guild.shortDesc,
 			price: format(guild.priceL1Cents / 100),
 			sku: guild.gid,
@@ -87,6 +90,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 		const inventory = raw.guildInventoryData;
 		return {
 			idText: 'GuildInventory#' + inventory.id,
+			id: inventory.id,
 			name: inventory.gid,
 			sku: inventory.sku ?? 'Unknown',
 			price: '',
@@ -109,6 +113,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 		const flyer = raw.guildFlyerData;
 		return {
 			idText: 'GuildFlyer#' + flyer.id,
+			id: flyer.id,
 			name: flyer.gid,
 			sku: flyer.gid,
 			price: format((flyer.flyerPriceL1Cents as number) / 100),
@@ -134,6 +139,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 		const shopify = raw.shopifyData;
 		return {
 			idText: 'Shopify#' + shopify.id,
+			id: shopify.id,
 			name: shopify.title,
 			price: format(shopify.vPriceCents / 100),
 			sku: shopify.vSku ?? 'Unknown',
