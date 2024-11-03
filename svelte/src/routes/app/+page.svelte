@@ -2,7 +2,11 @@
 	import Search from '$lib/search/Search.svelte';
 	import type { PageData } from './$types';
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
+
+	let { data }: Props = $props();
 </script>
 
 <div class="container h-full mx-auto flex flex-col justify-center items-center">

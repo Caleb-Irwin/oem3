@@ -1,10 +1,19 @@
 <script lang="ts">
 	import { readableKeys, type getSmartChangeset, type SmartChangesetKeys } from './smartChangeset';
 
-	export let smartChangeset: Awaited<ReturnType<typeof getSmartChangeset>>,
-		key: SmartChangesetKeys,
-		hasColumnSettings: boolean = true,
-		example: string | undefined = undefined;
+	interface Props {
+		smartChangeset: Awaited<ReturnType<typeof getSmartChangeset>>;
+		key: SmartChangesetKeys;
+		hasColumnSettings?: boolean;
+		example?: string | undefined;
+	}
+
+	let {
+		smartChangeset,
+		key,
+		hasColumnSettings = true,
+		example = undefined
+	}: Props = $props();
 	const value = smartChangeset.fields[key].value,
 		original = smartChangeset.fields[key].original,
 		colSetValue = hasColumnSettings

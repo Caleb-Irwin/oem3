@@ -4,15 +4,19 @@
 	import Barcode from './Barcode.svelte';
 	import type { WordWidth } from './wordWidth';
 
-	export let label: Label,
-		auxText: string = '',
-		x: number,
-		y: number,
-		loadedCB: () => void,
+	interface Props {
+		label: Label;
+		auxText?: string;
+		x: number;
+		y: number;
+		loadedCB: () => void;
 		wordWidth: WordWidth;
+	}
 
-	let lines: string[][] = [[], [], []],
-		tooLong = false;
+	let { label, auxText = '', x, y, loadedCB, wordWidth }: Props = $props();
+
+	let lines: string[][] = $state([[], [], []]),
+		tooLong = $state(false);
 
 	const lineLength = async (line: string[]) =>
 		(await Promise.all(line.map(async (w) => await wordWidth.get(w)))).reduce((a, b) => a + b, 0);
@@ -97,7 +101,7 @@
 			>{(label ? '$' : '') +
 				(label?.price.toString().split('.')[0] ?? '') +
 				'.' +
-				(label?.price.toString().split('.')[1] ?? '').padEnd(2, '0') ?? ''}</tspan
+				(label?.price.toString().split('.')[1] ?? '').padEnd(2, '0')}</tspan
 		>
 	</text>
 	<text

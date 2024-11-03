@@ -5,21 +5,15 @@
 	import type { Label } from './types';
 	import type { WordWidth } from './wordWidth';
 
-	export let page: Label[],
-		auxText = '',
-		sf = 1,
+	interface Props {
+		page: Label[];
+		auxText?: string;
+		sf?: number;
 		wordWidth: WordWidth;
+		svgCallback: (string: string) => unknown;
+	}
 
-	$: rows = divideArray(
-		page.map((v): Label => {
-			if (v.barcode.length === 0 && v.name.length === 0 && v.price === 0)
-				return { barcode: '123456789012', name: 'Empty Tag', price: 0 };
-			return v;
-		}),
-		3
-	);
-
-	export let svgCallback: (string: string) => unknown;
+	let { page, auxText = '', sf = 1, wordWidth, svgCallback }: Props = $props();
 
 	let loaded = 0;
 	const loadedCB = () => {
@@ -28,6 +22,16 @@
 	};
 
 	let divEl: HTMLDivElement;
+	let rows = $derived(
+		divideArray(
+			page.map((v): Label => {
+				if (v.barcode.length === 0 && v.name.length === 0 && v.price === 0)
+					return { barcode: '123456789012', name: 'Empty Tag', price: 0 };
+				return v;
+			}),
+			3
+		)
+	);
 </script>
 
 <div bind:this={divEl}>

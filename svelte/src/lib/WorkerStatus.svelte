@@ -5,7 +5,8 @@
 	import { ProgressBar } from '@skeletonlabs/skeleton';
 	import type { Readable } from 'svelte/store';
 
-	export let status: Readable<
+	interface Props {
+		status: Readable<
 		| {
 				message: string;
 				error: boolean;
@@ -14,6 +15,9 @@
 		  }
 		| undefined
 	>;
+	}
+
+	let { status }: Props = $props();
 </script>
 
 <div class="card p-4">

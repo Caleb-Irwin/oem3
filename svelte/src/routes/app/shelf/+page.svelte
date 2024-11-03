@@ -12,10 +12,10 @@
 
 	const allSheets = sub(client.labels.sheet.all, client.labels.onUpdate);
 	const modalStore = getModalStore();
-	let sheetId: number = -1,
-		newSheet: number | undefined;
-	$: currentSheet = ($allSheets || []).filter(({ id }) => id === sheetId)[0];
-	$: {
+	let sheetId: number = $state(-1),
+		newSheet: number | undefined = $state();
+	let currentSheet = $derived(($allSheets || []).filter(({ id }) => id === sheetId)[0]);
+	$effect(() => {
 		if (
 			$allSheets &&
 			$allSheets.length > 0 &&
@@ -28,16 +28,16 @@
 			} else {
 				sheetId = $allSheets[$allSheets.length - 1].id;
 			}
-	}
-	$: {
+	});
+	$effect(() => {
 		if (newSheet && $allSheets && $allSheets.map(({ id }) => id).includes(newSheet)) {
 			sheetId = newSheet;
 			newSheet = undefined;
 		}
-	}
-	$: {
+	});
+	$effect(() => {
 		if (browser && sheetId >= 0) localStorage.setItem('lastSheetId', sheetId.toString());
-	}
+	});
 </script>
 
 <div class="h-full w-full p-4 flex flex-col items-center">
@@ -45,7 +45,7 @@
 		<div class="pr-2 grid place-content-center">
 			<button
 				class="btn btn-icon variant-glass-primary text-primary-500"
-				on:click={() =>
+				onclick={() =>
 					modalStore.trigger({
 						type: 'component',
 						component: {
@@ -75,7 +75,7 @@
 		<div class="pl-2 grid place-content-center">
 			<button
 				class="btn btn-icon variant-glass-secondary text-secondary-500"
-				on:click={() =>
+				onclick={() =>
 					modalStore.trigger({
 						type: 'component',
 						component: {

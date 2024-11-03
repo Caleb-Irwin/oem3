@@ -1,18 +1,24 @@
 <script lang="ts">
+	import SearchPage from './SearchPage.svelte';
 	import { client } from '$lib/client';
 	import ItemRow, { type SelectFunc } from '$lib/ItemRow.svelte';
 	import { getModalStore, ProgressBar } from '@skeletonlabs/skeleton';
 	import IntersectionObserver from 'svelte-intersection-observer';
 
-	export let res: Awaited<ReturnType<typeof client.search.search.query>>,
-		grid: boolean,
-		all: boolean,
-		select: SelectFunc,
+	interface Props {
+		res: Awaited<ReturnType<typeof client.search.search.query>>;
+		grid: boolean;
+		all: boolean;
+		select: SelectFunc;
 		increaseTotal: (newCount: number, isMore: boolean) => void;
-	const modalStore = getModalStore();
-	let el: HTMLDivElement;
+	}
 
-	let moreRes: Awaited<ReturnType<typeof client.search.search.query>> | undefined = undefined;
+	let { res, grid, all, select, increaseTotal }: Props = $props();
+	const modalStore = getModalStore();
+	let el: HTMLDivElement | undefined = $state();
+
+	let moreRes: Awaited<ReturnType<typeof client.search.search.query>> | undefined =
+		$state(undefined);
 	const handleIntersect = async () => {
 		if (res.more) {
 			moreRes = await client.search.search.query({
@@ -54,6 +60,6 @@
 			<ProgressBar height="h-4" />
 		</div>
 	{:else}
-		<svelte:self res={moreRes} {grid} {select} {increaseTotal} />
+		<SearchPage res={moreRes} {grid} {select} {increaseTotal} {all} />
 	{/if}
 {/if}

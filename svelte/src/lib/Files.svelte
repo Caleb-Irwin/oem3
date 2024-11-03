@@ -9,8 +9,9 @@
 	import type { FileRouterType } from '../../../server/src/utils/files';
 	import type { Resolver } from '@trpc/client';
 
-	export let filesRouter: FileRouterType,
-		title: string,
+	interface Props {
+		filesRouter: FileRouterType;
+		title: string;
 		applyMutation: {
 			mutate: Resolver<{
 				input: {
@@ -20,8 +21,8 @@
 				errorShape: any;
 				transformer: false;
 			}>;
-		},
-		cloudSyncMutation:
+		};
+		cloudSyncMutation?: 
 			| {
 					mutate: Resolver<{
 						input: {};
@@ -30,8 +31,17 @@
 						transformer: false;
 					}>;
 			  }
-			| undefined = undefined,
+			| undefined;
 		acceptFileType: string;
+	}
+
+	let {
+		filesRouter,
+		title,
+		applyMutation,
+		cloudSyncMutation = undefined,
+		acceptFileType
+	}: Props = $props();
 
 	const files = sub(filesRouter.get, filesRouter.onUpdate);
 
@@ -56,7 +66,7 @@
 		{/if}
 		<button
 			class="btn btn-sm variant-filled-primary max-w-48"
-			on:click={() => {
+			onclick={() => {
 				modalStore.trigger({
 					type: 'component',
 					component: {
@@ -94,7 +104,7 @@
 					<span class="font-semibold flex items-center"
 						>#{file.id}
 						<button
-							on:click={async () => {
+							onclick={async () => {
 								toastStore.trigger({
 									message: 'Downloading',
 									background: 'variant-filled-success'

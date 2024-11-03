@@ -1,17 +1,32 @@
 <script lang="ts" generics="T extends any, I extends object">
 	import Form from './Form.svelte';
 
-	let btnClass = 'btn variant-filled-primary';
-	export { btnClass as class };
-	let invalidateAllFlag = false;
-	export { invalidateAllFlag as invalidateAll };
+	
+	
 
-	export let action: { mutate: (input: any) => Promise<T> },
-		res: (output: T) => Promise<void> | void = (ouput) => undefined,
-		successMessage: string | null = null,
-		confirm: boolean | string = false,
-		input: Partial<I> = {},
-		disabled = false;
+	interface Props {
+		class?: string;
+		invalidateAll?: boolean;
+		action: { mutate: (input: any) => Promise<T> };
+		res?: (output: T) => Promise<void> | void;
+		successMessage?: string | null;
+		confirm?: boolean | string;
+		input?: Partial<I>;
+		disabled?: boolean;
+		children?: import('svelte').Snippet;
+	}
+
+	let {
+		class: btnClass = 'btn variant-filled-primary',
+		invalidateAll: invalidateAllFlag = false,
+		action,
+		res = (ouput) => undefined,
+		successMessage = null,
+		confirm = false,
+		input = {},
+		disabled = false,
+		children
+	}: Props = $props();
 </script>
 
 <Form
@@ -23,5 +38,5 @@
 	{confirm}
 	{input}
 >
-	<button class={btnClass} {disabled}><slot /></button>
+	<button class={btnClass} {disabled}>{@render children?.()}</button>
 </Form>

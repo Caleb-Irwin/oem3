@@ -7,13 +7,17 @@
 	import { tick } from 'svelte';
 	import type { QueryType } from '../../../../server/src/routers/search';
 
-	export let select: undefined | ((selection: { uniref: number }) => any) = undefined,
-		microQB = false;
+	interface Props {
+		select?: undefined | ((selection: { uniref: number }) => any);
+		microQB?: boolean;
+	}
+
+	let { select = undefined, microQB = false }: Props = $props();
 
 	const modalStore = getModalStore();
-	let query: string,
-		queryType: QueryType,
-		focus: boolean = false;
+	let query: string | undefined = $state(),
+		queryType: QueryType | undefined = $state(),
+		focus: boolean = $state(false);
 	const response = async (prev: { query: string; queryType: typeof queryType }) => {
 		if (prev === undefined) return;
 		query = '';

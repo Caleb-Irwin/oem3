@@ -4,21 +4,35 @@
 	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
 	import { handleTRPCError } from './client';
 
-	let formClass = '';
-	export { formClass as class };
-	let invalidateAllFlag = false;
-	export { invalidateAllFlag as invalidateAll };
+	interface Props {
+		class?: string;
+		invalidateAll?: boolean;
+		action: { mutate: (input: I) => Promise<T> };
+		res?: (output: T) => Promise<void> | void;
+		successMessage?: string | null;
+		noReset?: boolean;
+		confirm?: boolean | string;
+		input?: Partial<I>;
+		modalMode?: boolean;
+		center?: boolean;
+		children?: import('svelte').Snippet;
+	}
 
-	export let action: { mutate: (input: I) => Promise<T> },
-		res: (output: T) => Promise<void> | void = (ouput) => undefined,
-		successMessage: string | null = null,
+	let {
+		class: formClass = '',
+		invalidateAll: invalidateAllFlag = false,
+		action,
+		res = (ouput) => undefined,
+		successMessage = null,
 		noReset = false,
-		confirm: boolean | string = false,
-		input: Partial<I> = {},
+		confirm = false,
+		input = {},
 		modalMode = false,
-		center = false;
+		center = false,
+		children
+	}: Props = $props();
 
-	let disabled = false,
+	let disabled = $state(false),
 		formEl: HTMLFormElement;
 
 	const toastStore = getToastStore(),
@@ -39,7 +53,8 @@
 <form
 	class={(modalMode ? 'card max-w-md p-4 flex flex-col items-center ' : '') + formClass}
 	bind:this={formEl}
-	on:submit|preventDefault={async (e) => {
+	onsubmit={async (e) => {
+		e.preventDefault();
 		const formData = Object.fromEntries(new FormData(e.currentTarget));
 		if (confirm !== false) {
 			const confirmed = await new Promise((response) =>
@@ -74,6 +89,6 @@
 	}}
 >
 	<fieldset class={center ? 'flex place-content-center' : ''} {disabled}>
-		<slot />
+		{@render children?.()}
 	</fieldset>
 </form>

@@ -1,6 +1,10 @@
 <script lang="ts">
 	import type { history as historyType } from '../../../server/src/db.schema';
-	export let entry: typeof historyType.$inferSelect;
+	interface Props {
+		entry: typeof historyType.$inferSelect;
+	}
+
+	let { entry }: Props = $props();
 
 	let data = entry.data ? JSON.parse(entry.data) : undefined,
 		createData: { [key: string]: string | number } =

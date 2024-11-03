@@ -5,16 +5,22 @@
 	import type { LayoutData } from './$types';
 	import { invalidateAll } from '$app/navigation';
 
-	export let data: LayoutData;
-
-	$: {
-		updateTimer(data.user.exp);
+	interface Props {
+		data: LayoutData;
+		children?: import('svelte').Snippet;
 	}
+
+	let { data, children }: Props = $props();
+
 	let timer: Timer;
 	function updateTimer(exp: number) {
 		clearTimeout(timer);
 		timer = setTimeout(() => invalidateAll(), exp * 1000 - Date.now() + 1000);
 	}
+
+	$effect(() => {
+		updateTimer(data.user.exp);
+	});
 </script>
 
 <svelte:head>
@@ -22,7 +28,11 @@
 </svelte:head>
 
 <AppShell>
-	<svelte:fragment slot="header"><Bar /></svelte:fragment>
-	<slot />
-	<svelte:fragment slot="footer"><Footer /></svelte:fragment>
+	{#snippet header()}
+		<Bar />
+	{/snippet}
+	{@render children?.()}
+	{#snippet footer()}
+		<Footer />
+	{/snippet}
 </AppShell>

@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { type ChangesType, readableKeys } from './smartChangeset';
 
-	export let changes: ChangesType;
+	interface Props {
+		changes: ChangesType;
+	}
+
+	let { changes }: Props = $props();
 </script>
 
 {#if $changes.length > 0}
@@ -9,7 +13,7 @@
 		<div class="flex items-center">
 			<h3 class="h3">{$changes.length} unsaved change{$changes.length === 1 ? '' : 's'}</h3>
 			<div class="flex-grow"></div>
-			<button class="btn variant-ghost-primary" on:click={() => alert('TODO')}>Save</button>
+			<button class="btn variant-ghost-primary" onclick={() => alert('TODO')}>Save</button>
 		</div>
 		<ul>
 			{#each $changes as change}

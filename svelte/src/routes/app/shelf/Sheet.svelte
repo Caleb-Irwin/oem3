@@ -11,7 +11,12 @@
 	import Button from '$lib/Button.svelte';
 	import Search from '$lib/search/Search.svelte';
 
-	export let sheetId: number, sheetName: string;
+	interface Props {
+		sheetId: number;
+		sheetName: string;
+	}
+
+	let { sheetId, sheetName }: Props = $props();
 	const sheet = sub(client.labels.all, client.labels.onUpdate, { sheetId }, sheetId.toString()),
 		modalStore = getModalStore();
 </script>
@@ -46,7 +51,7 @@
 				>
 				<button
 					class="p-0.5 px-1 btn btn-icon btn-icon-sm text-gray-400"
-					on:click={() =>
+					onclick={() =>
 						modalStore.trigger({
 							type: 'component',
 							component: { ref: AddLabel, props: { sheetId, edit: true, label } }
@@ -54,7 +59,7 @@
 				>
 				<button
 					class="grid place-content-center grid-cols-2 lg:grid-cols-6 flex-grow px-1"
-					on:click={() =>
+					onclick={() =>
 						modalStore.trigger({
 							type: 'component',
 							component: { ref: AddLabel, props: { sheetId, edit: true, label } }
@@ -111,7 +116,7 @@
 		/>
 		<button
 			class="btn variant-ghost-primary mx-2 mt-1 md:mt-0 text-primary-500 h-14"
-			on:click={() =>
+			onclick={() =>
 				modalStore.trigger({
 					type: 'component',
 					component: { ref: AddLabel, props: { sheetId } }

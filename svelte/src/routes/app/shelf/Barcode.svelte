@@ -3,8 +3,12 @@
 	import isValidBarcode from './isValidBarcode';
 	import JsBarcode from 'jsbarcode';
 
-	export let barcode: string | undefined;
-	$: validBarcode = barcode ? isValidBarcode(barcode) : false;
+	interface Props {
+		barcode: string | undefined;
+	}
+
+	let { barcode }: Props = $props();
+	let validBarcode = $derived(barcode ? isValidBarcode(barcode) : false);
 
 	let el: SVGElement;
 

@@ -9,8 +9,8 @@
   },
   "scripts": {
     "dev": "cd server && bun run dev",
-    "build": "cd server && bun run build",
-    "start": "cd server && bun run start",
+    "build": "docker build .",
+    "start": "docker compose up",
     "preview": "cd server && bun run preview"
   },
   "type": "module",

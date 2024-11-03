@@ -7,15 +7,19 @@
 	import Changes from './Changes.svelte';
 	import SmartInput from './SmartInput.svelte';
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
+
+	let { data }: Props = $props();
 	const res = query(client.unifiedItems.item, { id: parseInt(data.id) });
-	let alt: boolean = !!(
+	let alt: boolean = $state(!!(
 		$res?.defaultAltConversionFactor !== undefined ||
 		$res?.altUm !== undefined ||
 		$res?.altPriceCents !== undefined ||
 		$res?.qbAlt ||
 		$res?.shopifyAlt
-	);
+	));
 </script>
 
 {#if $res === undefined}
@@ -42,7 +46,7 @@
 				<div class="flex-grow"></div>
 				<button
 					class="btn btn-sm h-8 variant-ghost-secondary text-secondary-500"
-					on:click={() => (alt = !alt)}>{alt ? 'Hide' : 'Show'} Alternate UM</button
+					onclick={() => (alt = !alt)}>{alt ? 'Hide' : 'Show'} Alternate UM</button
 				>
 			</div>
 			<div class="flex flex-col lg:flex-row p-2 pt-0 gap-2">

@@ -1,13 +1,17 @@
 <script lang="ts">
 	import { getToastStore } from '@skeletonlabs/skeleton';
 
-	export let text: string;
+	interface Props {
+		text: string;
+	}
+
+	let { text }: Props = $props();
 	const toastStore = getToastStore();
 </script>
 
 <span
 	class="hover:underline cursor-pointer"
-	on:click={() =>
+	onclick={() =>
 		navigator.clipboard.writeText(text).then(
 			() =>
 				toastStore.trigger({
@@ -20,7 +24,11 @@
 					background: 'variant-filled-error'
 				})
 		)}
+	onkeypress={(e) => {
+		/* to make svelte happy */
+	}}
 	role="button"
+	tabindex="0"
 >
 	{text}
 </span>

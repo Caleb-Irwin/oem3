@@ -1,11 +1,16 @@
-<script lang="ts">
+<script lang="ts" generics="P extends object">
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
-	import type { ComponentType } from 'svelte';
+	import type { Component } from 'svelte';
 
-	export let promise: Promise<object>,
-		component: ComponentType,
-		modal = true,
-		minimal = false;
+	interface Props {
+		promise: Promise<P>;
+		Comp: Component<P>;
+		modal?: boolean;
+		minimal?: boolean;
+		err?: import('svelte').Snippet;
+	}
+
+	let { promise, Comp, modal = true, minimal = false, err }: Props = $props();
 </script>
 
 <div class="w-full h-full {modal ? 'max-h-[90vh] overflow-scroll' : ''} ">
@@ -25,10 +30,10 @@
 			{/if}
 		</div>
 	{:then value}
-		<svelte:component this={component} {...value} />
+		<Comp {...value}></Comp>
 	{:catch error}
-		<slot name="error">
+		{#if err}{@render err()}{:else}
 			<p>Error: {JSON.stringify(error)}</p>
-		</slot>
+		{/if}
 	{/await}
 </div>

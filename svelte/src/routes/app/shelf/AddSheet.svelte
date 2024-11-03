@@ -2,7 +2,11 @@
 	import Form from '$lib/Form.svelte';
 	import { client } from '$lib/client';
 
-	export let res: (id: number) => void;
+	interface Props {
+		res: (id: number) => void;
+	}
+
+	let { res }: Props = $props();
 </script>
 
 <Form

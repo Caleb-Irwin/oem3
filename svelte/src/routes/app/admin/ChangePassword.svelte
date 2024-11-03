@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { client } from '$lib/client';
 	import Form from '$lib/Form.svelte';
-	export let username: string;
+	interface Props {
+		username: string;
+	}
+
+	let { username }: Props = $props();
 </script>
 
 <Form action={client.users.changePassword} successMessage="Password Changed" modalMode>

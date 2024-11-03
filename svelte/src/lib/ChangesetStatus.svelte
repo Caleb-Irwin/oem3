@@ -8,7 +8,8 @@
 	import History from './History.svelte';
 	import type { changesets } from '../../../server/src/db.schema';
 
-	export let status: Readable<
+	interface Props {
+		status: Readable<
 			| {
 					message: string;
 					error: boolean;
@@ -16,12 +17,14 @@
 					progress: number;
 			  }
 			| undefined
-		>,
-		changeset: Readable<typeof changesets.$inferSelect | null | undefined>,
+		>;
+		changeset: Readable<typeof changesets.$inferSelect | null | undefined>;
 		name: string;
+	}
 
-	let summary: { [type: string]: number };
-	$: summary = JSON.parse($changeset?.summary ?? '{}');
+	let { status, changeset, name }: Props = $props();
+
+	let summary: { [type: string]: number } = $derived(JSON.parse($changeset?.summary ?? '{}'));
 
 	const modalStore = getModalStore();
 </script>
@@ -32,13 +35,13 @@
 		<button
 			class="btn btn-icon btn-icon-sm"
 			disabled={!$changeset}
-			on:click={() =>
+			onclick={() =>
 				modalStore.trigger({
 					type: 'component',
 					component: {
 						ref: Suspense,
 						props: {
-							component: History,
+							Comp: History,
 							promise: (async () => {
 								return {
 									history: await client.resources.getChangesets.query({

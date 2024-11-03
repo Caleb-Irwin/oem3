@@ -3,17 +3,23 @@
 	import type { Label } from './types';
 	import Settings from 'lucide-svelte/icons/settings';
 
-	export let labels: Label[],
-		name: string = 'labels';
-
-	let auxText = `${new Date().getMonth() + 1}/${new Date().getFullYear().toString().slice(2)}`,
-		sf = 3,
-		fileTitle = 'labels',
-		settingsOpen = false;
-
-	$: {
-		fileTitle = name;
+	interface Props {
+		labels: Label[];
+		name?: string;
 	}
+
+	let { labels, name = 'labels' }: Props = $props();
+
+	let auxText = $state(
+			`${new Date().getMonth() + 1}/${new Date().getFullYear().toString().slice(2)}`
+		),
+		sf = $state(3),
+		fileTitle = $state(name ?? 'labels'),
+		settingsOpen = $state(false);
+
+	$effect(() => {
+		fileTitle = name;
+	});
 </script>
 
 <div class="max-w-lg w-full card p-3 mt-2">
@@ -38,7 +44,7 @@
 		<div class="pr-2 grid place-content-center">
 			<button
 				class="btn btn-icon variant-glass-secondary text-secondary-500"
-				on:click={() => (settingsOpen = !settingsOpen)}><Settings /></button
+				onclick={() => (settingsOpen = !settingsOpen)}><Settings /></button
 			>
 		</div>
 		<GenPages {labels} {sf} {auxText} {fileTitle} />

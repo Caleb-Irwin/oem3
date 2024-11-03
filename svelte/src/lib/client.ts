@@ -90,7 +90,7 @@ export const sub = <I, O, SI, SO>(
 			.then((v) => set(v))
 			.catch(handleTRPCError);
 		sub(args[1] as SI, {
-			onData(data) {
+			onData() {
 				q.query(args[0] as I).then((v) => set(v));
 			},
 			onError: handleTRPCError

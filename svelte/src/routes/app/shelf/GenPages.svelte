@@ -8,19 +8,23 @@
 	import { ProgressBar } from '@skeletonlabs/skeleton';
 	import Download from 'lucide-svelte/icons/download';
 
-	export let labels: Label[],
-		auxText = '',
-		sf = 4,
-		fileTitle = 'labels';
+	interface Props {
+		labels: Label[];
+		auxText?: string;
+		sf?: number;
+		fileTitle?: string;
+	}
 
-	let pages: Label[][],
-		index: number,
-		page: Label[] | undefined,
-		running = false,
+	let { labels, auxText = '', sf = 4, fileTitle = 'labels' }: Props = $props();
+
+	let pages: Label[][] = $state([]),
+		index: number = $state(0),
+		page: Label[] | undefined = $state(),
+		running = $state(false),
 		pdf: ReturnType<typeof genPDF>,
 		c: HTMLCanvasElement,
 		tspanEl: SVGTSpanElement,
-		measureText = '';
+		measureText = $state('');
 
 	const wordWidth = new WordWidth(async (word: string) => {
 		measureText = word;
@@ -31,7 +35,7 @@
 
 <button
 	class="btn variant-glass-primary w-full flex-grow text-secondary-500"
-	on:click={() => {
+	onclick={() => {
 		page = undefined;
 		running = true;
 		pdf = genPDF(c);
@@ -89,5 +93,5 @@
 			/>
 		{/key}
 	{/if}
-	<canvas bind:this={c} />
+	<canvas bind:this={c}></canvas>
 </div>

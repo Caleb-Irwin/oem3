@@ -1,15 +1,25 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	export type SelectFunc = undefined | ((selection: { uniref: number; id: number }) => any);
 </script>
 
 <script lang="ts">
 	import { productDetails, type RawProduct } from './productDetails';
 
-	export let rawProduct: { uniId: number } & RawProduct,
+	interface Props {
+		rawProduct: { uniId: number } & RawProduct;
+		grid?: boolean;
+		all?: boolean;
+		select?: SelectFunc;
+		extraClass?: string;
+	}
+
+	let {
+		rawProduct,
 		grid = false,
 		all = false,
-		select: SelectFunc = undefined,
-		extraClass = '';
+		select = undefined,
+		extraClass = ''
+	}: Props = $props();
 
 	let product = productDetails(rawProduct);
 </script>
@@ -80,12 +90,12 @@
 		</div>
 
 		{#if select}
-			<div class="w-full h-2 lg:hidden" />
+			<div class="w-full h-2 lg:hidden"></div>
 
 			<div class={grid ? 'mt-0.5' : ''}>
 				<button
 					class="btn variant-filled-primary font-semibold"
-					on:click={() => select({ uniref: rawProduct.uniId, id: product.id })}>Select</button
+					onclick={() => select({ uniref: rawProduct.uniId, id: product.id })}>Select</button
 				>
 			</div>
 		{/if}

@@ -5,6 +5,11 @@
 	import { initializeStores } from '@skeletonlabs/skeleton';
 	import { setToastTrigger } from '$lib/client';
 	import { onNavigate } from '$app/navigation';
+	interface Props {
+		children?: import('svelte').Snippet;
+	}
+
+	let { children }: Props = $props();
 
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 	initializeStores();
@@ -21,4 +26,4 @@
 <Modal />
 <Toast zIndex="z-[1000]" />
 
-<slot />
+{@render children?.()}

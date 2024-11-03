@@ -8,11 +8,16 @@
 	import { focusTrap } from '@skeletonlabs/skeleton';
 	import type { SelectFunc } from '$lib/ItemRow.svelte';
 
-	export let select: SelectFunc, queryType: QueryType;
+	interface Props {
+		select: SelectFunc;
+		queryType: QueryType;
+	}
 
-	let query = '',
-		searchRes: any,
-		focus: boolean = false;
+	let { select, queryType = $bindable() }: Props = $props();
+
+	let query = $state(''),
+		searchRes: any = $state(),
+		focus: boolean = $state(false);
 </script>
 
 <div class="card min-w-80 max-h-[90vh] overflow-scroll">

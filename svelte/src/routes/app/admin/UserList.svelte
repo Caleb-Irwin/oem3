@@ -21,7 +21,7 @@
 				<button
 					class="btn btn-icon"
 					disabled={user.username === 'admin'}
-					on:click={() =>
+					onclick={() =>
 						modalStore.trigger({
 							type: 'component',
 							component: { ref: ChangePassword, props: { username: user.username } }

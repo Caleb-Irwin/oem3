@@ -1,7 +1,11 @@
 <script lang="ts">
 	import type { history as historyType } from '../../../server/src/db.schema';
 	import HistoryLine from './HistoryLine.svelte';
-	export let history: (typeof historyType.$inferSelect)[];
+	interface Props {
+		history: (typeof historyType.$inferSelect)[];
+	}
+
+	let { history }: Props = $props();
 </script>
 
 <ul class="card p-2">

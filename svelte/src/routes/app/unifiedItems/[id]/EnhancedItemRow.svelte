@@ -7,7 +7,13 @@
 	import Suspense from '$lib/Suspense.svelte';
 	import type { getSmartChangeset, SmartChangesetKeys } from './smartChangeset';
 
-	export let smartChangeset: Awaited<ReturnType<typeof getSmartChangeset>>, key: SmartChangesetKeys;
+	interface Props {
+		smartChangeset: Awaited<ReturnType<typeof getSmartChangeset>>;
+		key: SmartChangesetKeys;
+		children?: import('svelte').Snippet;
+	}
+
+	let { smartChangeset, key, children }: Props = $props();
 
 	const value = smartChangeset.fields[key].value,
 		original = smartChangeset.fields[key].original;
@@ -24,11 +30,11 @@
 
 <div class="card flex flex-col">
 	<div class="flex flex-row items-center p-1 px-2">
-		<p class="font-semibold text-lg"><slot /></p>
-		<div class="flex-grow" />
+		<p class="font-semibold text-lg">{@render children?.()}</p>
+		<div class="flex-grow"></div>
 		<button
 			class="btn btn-icon btn-icon-sm h-8 w-8 variant-ghost-secondary text-secondary-500"
-			on:click={() =>
+			onclick={() =>
 				modalStore.trigger({
 					type: 'component',
 					component: {
@@ -51,7 +57,7 @@
 	{:else if $value && $value != '-1'}
 		{#key $value}
 			<Suspense
-				component={ItemRow}
+				Comp={ItemRow}
 				minimal
 				promise={(async () => {
 					const rawProduct = await client.resources.get.query({
@@ -69,11 +75,13 @@
 					};
 				})()}
 			>
-				<div slot="error" class="h-full card grid place-content-center">
-					<p class="text-center text-error-700 dark:text-error-400 font-semibold">
-						Could not find resource
-					</p>
-				</div>
+				{#snippet err()}
+					<div class="h-full card grid place-content-center">
+						<p class="text-center text-error-700 dark:text-error-400 font-semibold">
+							Could not find resource
+						</p>
+					</div>
+				{/snippet}
 			</Suspense>
 		{/key}
 	{:else}

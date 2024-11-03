@@ -3,9 +3,13 @@
 	import { client } from '$lib/client';
 	import type { Label } from '../../../../../server/src/db.schema';
 
-	export let sheetId: number,
-		edit = false,
-		label: Label | undefined = undefined;
+	interface Props {
+		sheetId: number;
+		edit?: boolean;
+		label?: Label | undefined;
+	}
+
+	let { sheetId, edit = false, label = undefined }: Props = $props();
 </script>
 
 <Form
@@ -21,7 +25,7 @@
 			name="name"
 			placeholder="Product Name"
 			value={label?.name ?? ''}
-		/>
+		></textarea>
 	</label>
 	<label class="label w-full py-1">
 		<span>Price</span>

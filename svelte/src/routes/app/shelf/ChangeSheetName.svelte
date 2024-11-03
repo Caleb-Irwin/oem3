@@ -2,7 +2,13 @@
 	import Form from '$lib/Form.svelte';
 	import { client } from '$lib/client';
 
-	export let id: number, current: string, isPublic: '' | 'public';
+	interface Props {
+		id: number;
+		current: string;
+		isPublic: '' | 'public';
+	}
+
+	let { id, current, isPublic }: Props = $props();
 </script>
 
 <Form action={client.labels.sheet.rename} input={{ id }} successMessage="Renamed" modalMode>

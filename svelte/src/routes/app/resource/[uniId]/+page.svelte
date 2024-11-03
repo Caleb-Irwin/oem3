@@ -7,13 +7,17 @@
 	import { productDetails } from '$lib/productDetails';
 	import CopyableText from '$lib/helpers/CopyableText.svelte';
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
+
+	let { data }: Props = $props();
 
 	const res = query(client.resources.get, { uniId: parseInt(data.uniId), includeHistory: true });
-	let history: (typeof historyType.$inferSelect)[];
-	$: history = $res ? ($res as any)['history'] : undefined;
+	let history: (typeof historyType.$inferSelect)[] = $derived($res ? ($res as any)['history'] : undefined);
+	
 
-	$: product = $res ? productDetails($res) : undefined;
+	let product = $derived($res ? productDetails($res) : undefined);
 </script>
 
 {#if $res === undefined}
@@ -44,7 +48,7 @@
 								<CopyableText text={product.comparePrice} />
 							</span>
 						{/if}
-						<span class="flex-grow" />
+						<span class="flex-grow"></span>
 						<span class="cursor-default chip text-md variant-soft-tertiary m-1">
 							<CopyableText text={product.sku} />
 						</span>

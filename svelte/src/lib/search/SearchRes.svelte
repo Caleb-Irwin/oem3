@@ -8,14 +8,17 @@
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import SearchPage from './SearchPage.svelte';
 
-	export let res: Awaited<ReturnType<typeof client.search.search.query>>,
-		select: SelectFunc,
-		editSearchQuery: ((q: { query: string; queryType: typeof res.queryType }) => void) | undefined =
-			undefined;
+	interface Props {
+		res: Awaited<ReturnType<typeof client.search.search.query>>;
+		select: SelectFunc;
+		editSearchQuery?: ((q: { query: string; queryType: typeof res.queryType }) => void) | undefined;
+	}
 
-	let grid = false,
-		count = res.count,
-		more = res.more;
+	let { res, select, editSearchQuery = undefined }: Props = $props();
+
+	let grid = $state(false),
+		count = $state(res.count),
+		more = $state(res.more);
 
 	onMount(() => {
 		if (localStorage.getItem('grid')) {
@@ -34,25 +37,25 @@
 		};
 </script>
 
-<div class="card p-2 gap-2 min-w-80">
+<div class="card p-2 gap-2 min-w-80 max-h-[90vh] overflow-scroll">
 	<h1 class="p-4 pb-2 text-3xl flex items-center">
 		<span>
 			{`Search Results For "${res.query}"`}
-			<button on:click={edit} class="hover:text-primary-500"><Pencil /></button>
+			<button onclick={edit} class="hover:text-primary-500"><Pencil /></button>
 			<span class="text-primary-500">{count}{more ? '+' : ''} Result{count === 1 ? '' : 's'}</span>
 		</span>
-		<span class="flex-grow min-w-4" />
+		<span class="flex-grow min-w-4"></span>
 		<div class="flex flex-col sm:flex-row rounded-full p-1 variant-outline-primary border-[1px]">
 			<button
 				class="btn btn-icon btn-icon-lg w-8 h-8 {grid ? 'variant-filled-primary' : ''}"
-				on:click={() => {
+				onclick={() => {
 					grid = true;
 					localStorage.setItem('grid', 'true');
 				}}><LayoutGrid /></button
 			>
 			<button
 				class="btn btn-icon btn-icon-lg w-8 h-8 {grid ? '' : 'variant-filled-primary'}"
-				on:click={() => {
+				onclick={() => {
 					grid = false;
 					localStorage.setItem('grid', 'false');
 				}}><Rows3 /></button
