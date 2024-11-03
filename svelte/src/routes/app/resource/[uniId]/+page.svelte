@@ -5,6 +5,7 @@
 	import type { history as historyType } from '../../../../../../server/src/db.schema';
 	import History from '$lib/History.svelte';
 	import { productDetails } from '$lib/productDetails';
+	import CopyableText from '$lib/helpers/CopyableText.svelte';
 
 	export let data: PageData;
 
@@ -32,20 +33,20 @@
 				{/if}
 				<div class="p-2 w-full">
 					<h1 class="h1 {product.name ? '' : 'italic'}">
-						{product.name || 'Unnamed Item'}
+						<CopyableText text={product.name || 'Unnamed Item'} />
 					</h1>
 					<h2 class="py-2 h2 font-semibold flex flex-wrap align-middle">
 						<span class={product.comparePrice ? 'text-primary-600' : ''}>
-							{product.price}
+							<CopyableText text={product.price} />
 						</span>
 						{#if product.comparePrice}
 							<span class="pl-1 line-through">
-								{product.comparePrice}
+								<CopyableText text={product.comparePrice} />
 							</span>
 						{/if}
 						<span class="flex-grow" />
 						<span class="cursor-default chip text-md variant-soft-tertiary m-1">
-							{product.sku}
+							<CopyableText text={product.sku} />
 						</span>
 						{#if product.stock !== null}
 							<span
@@ -53,7 +54,7 @@
 									? 'variant-filled-secondary'
 									: 'variant-filled-warning'}"
 							>
-								{product.stock} in stock
+								<CopyableText text={product.stock?.toString()} /><span> in stock</span>
 							</span>
 						{/if}
 
@@ -79,7 +80,7 @@
 									? 'italic'
 									: ''}"
 							>
-								{value ?? 'Undefined'}
+								<CopyableText text={value ?? 'Undefined'} />
 							</p>
 						{/each}
 					</div>
