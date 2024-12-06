@@ -5,6 +5,7 @@ import { managedWorker } from "../../utils/managedWorker";
 import * as xlsx from "xlsx";
 import { inventoryRouter } from "./inventory";
 import { flyerRouter } from "./flyer";
+import { descRouter } from "./desc";
 
 const { worker, runWorker, hook } = managedWorker(
   new URL("worker.ts", import.meta.url).href,
@@ -15,6 +16,7 @@ export const guildHook = hook;
 export const guildRouter = router({
   inventory: inventoryRouter,
   flyer: flyerRouter,
+  desc: descRouter,
   files: fileProcedures(
     "guild",
     async (dataUrl, fileType) => {

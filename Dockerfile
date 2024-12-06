@@ -15,7 +15,7 @@ RUN mkdir -p /temp/svelte/prod
 COPY /svelte/package.json /svelte/bun.lockb /temp/svelte/prod/
 RUN cd /temp/svelte/prod && bun install --frozen-lockfile --production
 
-FROM base as server-install
+FROM base AS server-install
 RUN mkdir -p /temp/server/prod/
 COPY /server/package.json /server/bun.lockb /temp/server/prod/
 RUN cd /temp/server/prod && bun install --frozen-lockfile --production
