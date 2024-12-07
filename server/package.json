@@ -9,6 +9,7 @@
     "@types/xlsx": "^0.0.36",
     "cookies": "^0.9.1",
     "drizzle-orm": "^0.31.4",
+    "isomorphic-dompurify": "^2.18.0",
     "jsonwebtoken": "^9.0.2",
     "papaparse": "^5.4.1",
     "pg": "^8.11.3",

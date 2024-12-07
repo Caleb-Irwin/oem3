@@ -1,0 +1,1 @@
+ALTER TABLE "guildDescriptions" ADD CONSTRAINT "guildDescriptions_gid_unique" UNIQUE("gid");

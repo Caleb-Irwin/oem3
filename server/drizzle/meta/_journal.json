@@ -274,6 +274,20 @@
       "when": 1724363060522,
       "tag": "0038_jazzy_azazel",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1733524590526,
+      "tag": "0039_majestic_fenris",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1733526872400,
+      "tag": "0040_majestic_shriek",
+      "breakpoints": true
     }
   ]
 }

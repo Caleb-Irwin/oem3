@@ -2,6 +2,8 @@
 	import Files from '$lib/Files.svelte';
 	import ChangesetStatus from '$lib/ChangesetStatus.svelte';
 	import { client, sub } from '$lib/client';
+	import WorkerStatus from '$lib/WorkerStatus.svelte';
+	import Button from '$lib/Button.svelte';
 </script>
 
 <h1 class="text-center h2 p-2 pt-4">Guild</h1>
@@ -59,6 +61,19 @@
 				applyMutation={client.guild.flyer.worker.run}
 				acceptFileType=".XLSX"
 				cloudSyncMutation={client.guild.flyer.files.cloudDownload}
+			/>
+		</div>
+	</div>
+
+	<div></div>
+
+	<div class="p-2 w-full xl:w-auto flex flex-col items-center min-w-96">
+		<div class="w-full card p-4 max-w-xl">
+			<Button class="mb-2 btn variant-filled-primary" action={client.guild.desc.worker.run}
+				>Update Enhanced Descriptions</Button
+			>
+			<WorkerStatus
+				status={sub(client.guild.desc.worker.status, client.guild.desc.worker.onUpdate)}
 			/>
 		</div>
 	</div>
