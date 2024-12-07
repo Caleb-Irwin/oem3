@@ -94,27 +94,33 @@ work({
           longDescription: longDescHtml,
         } = raw.items[0];
 
+        const row = {
+          gid: guildId,
+          sanitizedDescription: DOMPurify.sanitize(longDescHtml),
+          imageListJSON: JSON.stringify(
+            mediaDtos
+              .filter(
+                (v) =>
+                  v.type === "DefaultImage" || v.type === "AdditionalImages"
+              )
+              .map((v) => v.path)
+          ),
+          name,
+          uom: uom ? uom.toString() : null,
+          price: itemPrice.toString(),
+          rawResult: JSON.stringify(raw),
+          found: true,
+          timesScrapeFailed: 0,
+          deleted: false,
+          lastUpdated: new Date().getTime(),
+        };
+
         await db
           .insert(guildDescriptions)
-          .values({
-            gid: guildId,
-            sanitizedDescription: DOMPurify.sanitize(longDescHtml),
-            imageListJSON: JSON.stringify(
-              mediaDtos
-                .filter(
-                  (v) =>
-                    v.type === "DefaultImage" || v.type === "AdditionalImages"
-                )
-                .map((v) => v.path)
-            ),
-            name,
-            uom: uom ? uom.toString() : null,
-            price: itemPrice.toString(),
-            rawResult: JSON.stringify(raw),
-            found: true,
-            timesScrapeFailed: 0,
-            deleted: false,
-            lastUpdated: new Date().getTime(),
+          .values(row)
+          .onConflictDoUpdate({
+            target: guildDescriptions.gid,
+            set: row,
           })
           .execute();
         success++;
