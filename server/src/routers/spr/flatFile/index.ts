@@ -2,6 +2,8 @@ import { TRPCError } from "@trpc/server";
 import { router } from "../../../trpc";
 import { fileProcedures } from "../../../utils/files";
 import { managedWorker } from "../../../utils/managedWorker";
+import { Client } from "basic-ftp";
+import { createDataURLStream } from "./dataUrlStream";
 
 const { worker, hook, runWorker } = managedWorker(
   new URL("worker.ts", import.meta.url).href,
@@ -68,9 +70,39 @@ export const sprFlatFileRouter = router({
           });
       });
     },
-    runWorker
-    // , async () => {
-    // },
-    // true
+    runWorker,
+    async () => {
+      const client = new Client();
+      try {
+        await client.access({
+          host: "ftp.etilize.com",
+          user: process.env["ETILIZE_USER"],
+          password: process.env["ETILIZE_PASSWORD"],
+          secure: true,
+        });
+
+        const { stream, getDataURL } = createDataURLStream("text/csv");
+
+        await client.downloadTo(
+          stream,
+          "/Extras/Flat_File_Export/EN_CA/EN_CA_SPRC.csv"
+        );
+
+        client.close();
+
+        return {
+          name: `Flat File (${new Date().toLocaleString()}).CSV`,
+          dataUrl: getDataURL(),
+        };
+      } catch (err) {
+        client.close();
+        console.log(err);
+      }
+      throw new TRPCError({
+        message: "Could not download file",
+        code: "INTERNAL_SERVER_ERROR",
+      });
+    },
+    true
   ),
 });

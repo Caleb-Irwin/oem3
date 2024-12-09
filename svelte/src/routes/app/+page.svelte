@@ -36,7 +36,12 @@
 		<a href="/app/guild" class="card card-hover p-6 m-2">
 			<h3 class="font-semibold text-2xl">Guild</h3>
 		</a>
-		<a href="/app/spr" class="card card-hover p-6 m-2">
+		<a
+			href="/app/spr"
+			class="card p-6 m-2 {data.user.permissionLevel === 'admin'
+				? 'card-hover'
+				: 'cursor-not-allowed text-surface-400'}"
+		>
 			<h3 class="font-semibold text-2xl">SPRichards</h3>
 		</a>
 		<a href="/app/shopify" class="card p-6 m-2 card-hover">
