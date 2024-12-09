@@ -36,7 +36,7 @@
 		<a href="/app/guild" class="card card-hover p-6 m-2">
 			<h3 class="font-semibold text-2xl">Guild</h3>
 		</a>
-		<a href="/app/" class="card p-6 m-2 cursor-not-allowed text-surface-400">
+		<a href="/app/spr" class="card card-hover p-6 m-2">
 			<h3 class="font-semibold text-2xl">SPRichards</h3>
 		</a>
 		<a href="/app/shopify" class="card p-6 m-2 card-hover">
