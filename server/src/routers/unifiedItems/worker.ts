@@ -19,7 +19,7 @@ work({
     console.log("unified worker started");
     const lastUpdated = Date.now();
     await db.transaction(async (db) => {
-      console.time("auto match");
+      console.time("auto match total");
       console.time("addGuildItem");
       await addGuildItem(db, lastUpdated);
       console.timeEnd("addGuildItem");
@@ -39,7 +39,7 @@ work({
       console.time("matchShopify");
       await matchShopify(db, lastUpdated);
       console.timeEnd("matchShopify");
-      console.timeEnd("auto match");
+      console.timeEnd("auto match total");
     });
   },
 });

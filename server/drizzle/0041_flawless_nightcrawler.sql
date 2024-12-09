@@ -1,0 +1,1 @@
+ALTER TABLE "unifiedItems" ADD COLUMN "altUM" "guild_um";

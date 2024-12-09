@@ -68,7 +68,7 @@ export const unifiedItems = pgTable(
     defaultUmColumnSettings: columnSettings("defaultUmColumnSettings")
       .default("automatic")
       .notNull(),
-    altUm: guildUmEnum("packageUM"),
+    altUm: guildUmEnum("altUM"),
     altUmColumnSettings: columnSettings("altUmColumnSettings")
       .default("automatic")
       .notNull(),
