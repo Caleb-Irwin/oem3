@@ -45,11 +45,14 @@
 	</div>
 	<div class="w-full flex flex-col items-center p-2">
 		<div class="w-full card p-4 max-w-xl">
-			<Button class="mb-2 btn variant-filled-primary" action={client.spr.images.worker.run}
-				>Update Enhanced Images</Button
+			<Button class="mb-2 btn variant-filled-primary" action={client.spr.enhancedContent.worker.run}
+				>Update Enhanced Content</Button
 			>
 			<WorkerStatus
-				status={sub(client.spr.images.worker.status, client.spr.images.worker.onUpdate)}
+				status={sub(
+					client.spr.enhancedContent.worker.status,
+					client.spr.enhancedContent.worker.onUpdate
+				)}
 			/>
 		</div>
 	</div>

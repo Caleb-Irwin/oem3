@@ -7,12 +7,12 @@ const { worker, runWorker, hook } = managedWorker(
   "sprImages"
 );
 
-export const sprImagesHook = hook;
+export const enhancedContentHook = hook;
 
-export const imagesRouter = router({
+export const enhancedContentRouter = router({
   worker,
 });
 
-scheduleDailyTask("sprImages", async () => {
+scheduleDailyTask("sprEnhancedContent", async () => {
   await runWorker({});
 });

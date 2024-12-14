@@ -5,6 +5,6 @@ declare var self: Worker;
 work({
   self,
   process: async ({}) => {
-    console.log("spr images worker TODO");
+    console.log("spr enhanced content worker TODO");
   },
 });

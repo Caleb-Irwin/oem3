@@ -1,10 +1,10 @@
 import { router } from "../../trpc";
 import { sprFlatFileRouter } from "./flatFile";
-import { imagesRouter } from "./images";
+import { enhancedContentRouter } from "./enhancedContent";
 import { sprPriceFileRouter } from "./priceFile";
 
 export const sprRouter = router({
   flatFile: sprFlatFileRouter,
   priceFile: sprPriceFileRouter,
-  images: imagesRouter,
+  enhancedContent: enhancedContentRouter,
 });
