@@ -79,7 +79,7 @@
 					<option value="guildInventory">G. Inv.</option>
 					<option value="guildFlyer">G. Flyer</option>
 					<option value="shopify">Shopify</option>
-					<option value="spr" disabled>SPR</option>
+					<option value="sprPriceFile">SPR Price</option>
 				</select>
 			{/if}
 

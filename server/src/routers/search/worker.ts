@@ -9,6 +9,7 @@ import {
   guildInventory,
   qb,
   shopify,
+  sprPriceFile,
   type ChangesetTable,
   type ResourceType,
 } from "../../db.schema";
@@ -42,6 +43,8 @@ work({
             guildInventory: db.query.guildInventory,
             guildFlyer: db.query.guildFlyer,
             shopify: db.query.shopify,
+            sprPriceFile: db.query.sprPriceFile,
+            unifiedItem: db.query.unifiedItems,
           }[resourceName] as typeof db.query.qb
         ).findMany({
           with: { uniref: true },
@@ -122,6 +125,14 @@ work({
         otherInfo: `${item.title} ${item.htmlDescription} ${getSubStrings(
           item.vSku ?? ""
         )} ${JSON.parse(item.tagsJsonArr || "[]").join(" ")}`,
+      };
+    });
+    await updateSearchIndex(sprPriceFile, (item) => {
+      return {
+        keyInfo: `${item.sprcSku} ${item.upc} ${item.etilizeId}`,
+        otherInfo: `${item.description} ${getSubStrings(
+          item.sprcSku ?? ""
+        )} ${getSubStrings(item.upc ?? "")}`,
       };
     });
   },

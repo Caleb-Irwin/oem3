@@ -13,3 +13,4 @@ export * from "./routers/guild/flyer/table";
 export * from "./routers/shopify/table";
 export * from "./routers/unifiedItems/table";
 export * from "./routers/guild/desc/table";
+export * from "./routers/spr/priceFile/table";

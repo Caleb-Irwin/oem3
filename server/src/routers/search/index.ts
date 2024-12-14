@@ -11,11 +11,19 @@ import { guildInventoryHook } from "../guild/inventory";
 import { changesetType } from "../../db.schema";
 import { guildFlyerHook } from "../guild/flyer";
 import { shopifyHook } from "../shopify";
+import { sprPriceFileHook } from "../spr/priceFile";
 
 const { worker } = managedWorker(
   new URL("worker.ts", import.meta.url).href,
   "search",
-  [qbHook, guildHook, guildInventoryHook, guildFlyerHook, shopifyHook]
+  [
+    qbHook,
+    guildHook,
+    guildInventoryHook,
+    guildFlyerHook,
+    shopifyHook,
+    sprPriceFileHook,
+  ]
 );
 
 const queryTypeValues = ["all", ...changesetType.enumValues] as const;

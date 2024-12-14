@@ -179,4 +179,26 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			}
 		};
 	}
+	if (raw.sprPriceFileData) {
+		return {
+			idText: 'SPRPriceFile#' + raw.sprPriceFileData.id,
+			id: raw.sprPriceFileData.id,
+			name: raw.sprPriceFileData.description ?? '',
+			price: format(raw.sprPriceFileData.netPriceCents / 100),
+			sku: raw.sprPriceFileData.sprcSku,
+			stock: null,
+			deleted: raw.sprPriceFileData.deleted,
+			lastUpdated: raw.sprPriceFileData.lastUpdated,
+			description: undefined,
+			imageUrl: undefined,
+			other: {
+				'Dealer Net Price': format(raw.sprPriceFileData.dealerNetPriceCents / 100),
+				'Unit of Measure': raw.sprPriceFileData.um,
+				UPC: raw.sprPriceFileData.upc,
+				'Cat. Page': raw.sprPriceFileData.catPage?.toString() ?? null,
+				'Net Price': format(raw.sprPriceFileData.netPriceCents / 100),
+				'List Price': format(raw.sprPriceFileData.listPriceCents / 100)
+			}
+		};
+	}
 };

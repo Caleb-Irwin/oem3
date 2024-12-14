@@ -1,5 +1,12 @@
 import { index, integer, pgEnum, pgTable, serial } from "drizzle-orm/pg-core";
-import { changesets, guild, qb, shopify, unifiedItems } from "../db.schema";
+import {
+  changesets,
+  guild,
+  qb,
+  shopify,
+  sprPriceFile,
+  unifiedItems,
+} from "../db.schema";
 import { relations } from "drizzle-orm";
 import { guildInventory } from "../routers/guild/inventory/table";
 import { guildFlyer } from "../routers/guild/flyer/table";
@@ -12,6 +19,7 @@ export const resourceTypeEnum = pgEnum("resource_type", [
   "guildFlyer",
   "shopify",
   "unifiedItem",
+  "sprPriceFile",
 ]);
 export type ResourceType = (typeof resourceTypeEnum.enumValues)[number];
 
@@ -46,6 +54,11 @@ export const uniref = pgTable(
         onDelete: "cascade",
       })
       .unique(),
+    sprPriceFile: integer("sprPriceFile")
+      .references(() => sprPriceFile.id, {
+        onDelete: "cascade",
+      })
+      .unique(),
     unifiedItem: integer("unifiedItem")
       .references(() => unifiedItems.id, {
         onDelete: "cascade",
@@ -63,6 +76,7 @@ export const uniref = pgTable(
       ),
       guildFlyerIndex: index("uniref_guildFlyer_idx").on(uniref.guildFlyer),
       shopifyIndex: index("uniref_shopify_idx").on(uniref.shopify),
+      sprPriceFileIndex: index("spr_price_file_idx").on(uniref.sprPriceFile),
       unifiedItemIndex: index("uniref_unifiedItem_idx").on(uniref.unifiedItem),
     };
   }
@@ -90,5 +104,9 @@ export const unirefRelations = relations(uniref, ({ one }) => ({
   unifiedItemData: one(unifiedItems, {
     fields: [uniref.unifiedItem],
     references: [unifiedItems.id],
+  }),
+  sprPriceFileData: one(sprPriceFile, {
+    fields: [uniref.sprPriceFile],
+    references: [sprPriceFile.id],
   }),
 }));

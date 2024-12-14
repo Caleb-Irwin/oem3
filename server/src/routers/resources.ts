@@ -18,6 +18,7 @@ export const resourceWith = {
   guildInventoryData: true as true,
   guildFlyerData: true as true,
   shopifyData: true as true,
+  sprPriceFileData: true as true,
 };
 
 export const resourcesRouter = router({
