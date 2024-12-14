@@ -6,6 +6,7 @@
 	import History from '$lib/History.svelte';
 	import { productDetails } from '$lib/productDetails';
 	import CopyableText from '$lib/helpers/CopyableText.svelte';
+	import DOMPurify from 'isomorphic-dompurify';
 
 	interface Props {
 		data: PageData;
@@ -14,8 +15,9 @@
 	let { data }: Props = $props();
 
 	const res = query(client.resources.get, { uniId: parseInt(data.uniId), includeHistory: true });
-	let history: (typeof historyType.$inferSelect)[] = $derived($res ? ($res as any)['history'] : undefined);
-	
+	let history: (typeof historyType.$inferSelect)[] = $derived(
+		$res ? ($res as any)['history'] : undefined
+	);
 
 	let product = $derived($res ? productDetails($res) : undefined);
 </script>
@@ -67,7 +69,7 @@
 						{/if}
 					</h2>
 					{#if product.description}
-						<p class="pb-2">{product.description}</p>
+						<p class="pb-2">{@html DOMPurify.sanitize(product.description)}</p>
 					{/if}
 					<div class="grid grid-cols-2">
 						{#each Object.entries(product.other) as [key, value], i}

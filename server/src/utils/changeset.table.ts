@@ -15,6 +15,7 @@ import {
   uniref,
   type guild,
   type qb,
+  sprFlatFile,
 } from "../db.schema";
 import { relations } from "drizzle-orm";
 
@@ -25,6 +26,7 @@ export const changesetType = pgEnum("changeset_type", [
     "guildFlyer",
     "shopify",
     "sprPriceFile",
+    "sprFlatFile",
   ]),
   changesetStatusType = pgEnum("changeset_status_type", [
     "generating",
@@ -37,7 +39,8 @@ export type ChangesetTable =
   | typeof guildInventory
   | typeof guildFlyer
   | typeof shopify
-  | typeof sprPriceFile;
+  | typeof sprPriceFile
+  | typeof sprFlatFile;
 
 export const changesets = pgTable("changesets", {
   id: serial("id").primaryKey(),

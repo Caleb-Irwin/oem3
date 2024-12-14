@@ -12,6 +12,7 @@ import { changesetType } from "../../db.schema";
 import { guildFlyerHook } from "../guild/flyer";
 import { shopifyHook } from "../shopify";
 import { sprPriceFileHook } from "../spr/priceFile";
+import { sprFlatFileHook } from "../spr/flatFile";
 
 const { worker } = managedWorker(
   new URL("worker.ts", import.meta.url).href,
@@ -23,6 +24,7 @@ const { worker } = managedWorker(
     guildFlyerHook,
     shopifyHook,
     sprPriceFileHook,
+    sprFlatFileHook,
   ]
 );
 

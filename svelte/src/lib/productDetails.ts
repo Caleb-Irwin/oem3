@@ -193,11 +193,52 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			imageUrl: undefined,
 			other: {
 				'Dealer Net Price': format(raw.sprPriceFileData.dealerNetPriceCents / 100),
+				'Net Price': format(raw.sprPriceFileData.netPriceCents / 100),
+				'List Price': format(raw.sprPriceFileData.listPriceCents / 100),
 				'Unit of Measure': raw.sprPriceFileData.um,
 				UPC: raw.sprPriceFileData.upc,
-				'Cat. Page': raw.sprPriceFileData.catPage?.toString() ?? null,
-				'Net Price': format(raw.sprPriceFileData.netPriceCents / 100),
-				'List Price': format(raw.sprPriceFileData.listPriceCents / 100)
+				'Cat. Page': raw.sprPriceFileData.catPage?.toString() ?? null
+			}
+		};
+	}
+	if (raw.sprFlatFileData) {
+		return {
+			idText: 'SPRFlatFile#' + raw.sprFlatFileData.sprcSku,
+			id: raw.sprFlatFileData.id,
+			name: raw.sprFlatFileData.mainTitle ?? '',
+			price: '',
+			sku: raw.sprFlatFileData.sprcSku,
+			stock: null,
+			deleted: raw.sprFlatFileData.deleted,
+			lastUpdated: raw.sprFlatFileData.lastUpdated,
+			description:
+				raw.sprFlatFileData.marketingText +
+				'<br><br>' +
+				raw.sprFlatFileData.fullDescription +
+				'<br><br>' +
+				raw.sprFlatFileData.productSpecs,
+			imageUrl: raw.sprFlatFileData.image255 ?? raw.sprFlatFileData.image75 ?? undefined,
+			other: {
+				'Brand Name': raw.sprFlatFileData.brandName,
+				'Product Type': raw.sprFlatFileData.productType,
+				'Product Line': raw.sprFlatFileData.productLine,
+				'Product Series': raw.sprFlatFileData.productSeries,
+				'Sub Class Number': raw.sprFlatFileData.subClassNumber?.toString() ?? null,
+				'Sub Class Name': raw.sprFlatFileData.subClassName,
+				'Class Number': raw.sprFlatFileData.classNumber?.toString() ?? null,
+				'Class Name': raw.sprFlatFileData.className,
+				'Department Number': raw.sprFlatFileData.departmentNumber?.toString() ?? null,
+				'Department Name': raw.sprFlatFileData.departmentName,
+				'Master Department Number': raw.sprFlatFileData.masterDepartmentNumber?.toString() ?? null,
+				'Master Department Name': raw.sprFlatFileData.masterDepartmentName,
+				UNSPSC: raw.sprFlatFileData.unspsc?.toString() ?? null,
+				'Manufacturer ID': raw.sprFlatFileData.manufacturerId?.toString() ?? null,
+				'Manufacturer Name': raw.sprFlatFileData.manufacturerName,
+				'Country Of Origin': raw.sprFlatFileData.countyOfOrigin,
+				'Assembly Required': raw.sprFlatFileData.assemblyRequired ? 'Yes' : 'No',
+				'Image Type 225': raw.sprFlatFileData.image255,
+				'Image Type 75': raw.sprFlatFileData.image75,
+				Keywords: raw.sprFlatFileData.keywords
 			}
 		};
 	}

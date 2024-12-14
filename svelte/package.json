@@ -50,6 +50,7 @@
     "@trpc/client": "next",
     "@trpc/server": "next",
     "canvg": "^4.0.1",
+    "isomorphic-dompurify": "^2.19.0",
     "jimp": "^0.22.12",
     "jsbarcode": "^3.11.6",
     "jsonwebtoken": "^9.0.2",

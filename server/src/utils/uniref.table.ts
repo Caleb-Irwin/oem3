@@ -4,6 +4,7 @@ import {
   guild,
   qb,
   shopify,
+  sprFlatFile,
   sprPriceFile,
   unifiedItems,
 } from "../db.schema";
@@ -20,6 +21,7 @@ export const resourceTypeEnum = pgEnum("resource_type", [
   "shopify",
   "unifiedItem",
   "sprPriceFile",
+  "sprFlatFile",
 ]);
 export type ResourceType = (typeof resourceTypeEnum.enumValues)[number];
 
@@ -59,6 +61,11 @@ export const uniref = pgTable(
         onDelete: "cascade",
       })
       .unique(),
+    sprFlatFile: integer("sprFlatFile")
+      .references(() => sprFlatFile.id, {
+        onDelete: "cascade",
+      })
+      .unique(),
     unifiedItem: integer("unifiedItem")
       .references(() => unifiedItems.id, {
         onDelete: "cascade",
@@ -77,6 +84,7 @@ export const uniref = pgTable(
       guildFlyerIndex: index("uniref_guildFlyer_idx").on(uniref.guildFlyer),
       shopifyIndex: index("uniref_shopify_idx").on(uniref.shopify),
       sprPriceFileIndex: index("spr_price_file_idx").on(uniref.sprPriceFile),
+      sprFlatFileIndex: index("spr_flat_file_idx").on(uniref.sprFlatFile),
       unifiedItemIndex: index("uniref_unifiedItem_idx").on(uniref.unifiedItem),
     };
   }
@@ -108,5 +116,9 @@ export const unirefRelations = relations(uniref, ({ one }) => ({
   sprPriceFileData: one(sprPriceFile, {
     fields: [uniref.sprPriceFile],
     references: [sprPriceFile.id],
+  }),
+  sprFlatFileData: one(sprFlatFile, {
+    fields: [uniref.sprFlatFile],
+    references: [sprFlatFile.id],
   }),
 }));
