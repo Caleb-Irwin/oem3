@@ -219,6 +219,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				raw.sprFlatFileData.productSpecs,
 			imageUrl: raw.sprFlatFileData.image255 ?? raw.sprFlatFileData.image75 ?? undefined,
 			other: {
+				'Etilize ID': raw.sprFlatFileData.etilizeId,
 				'Brand Name': raw.sprFlatFileData.brandName,
 				'Product Type': raw.sprFlatFileData.productType,
 				'Product Line': raw.sprFlatFileData.productLine,

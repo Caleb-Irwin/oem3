@@ -7,6 +7,7 @@
 	import { productDetails } from '$lib/productDetails';
 	import CopyableText from '$lib/helpers/CopyableText.svelte';
 	import DOMPurify from 'isomorphic-dompurify';
+	import EnhancedImages from './EnhancedContent.svelte';
 
 	interface Props {
 		data: PageData;
@@ -33,8 +34,16 @@
 		<div class="card m-2 p-4">
 			<div class="flex flex-col md:flex-row">
 				{#if product.imageUrl}
-					<div class="p-2 w-full flex justify-center md:block md:min-w-96 md:max-w-96">
+					<div
+						class="p-2 w-full flex flex-col justify-center md:block md:min-w-96 md:max-w-96 lg:min-w-[512px] lg:max-w-[512px]"
+					>
 						<img src={product.imageUrl} alt="" class="rounded p-2 bg-white w-full" />
+						{#if product.idText.startsWith('SPRFlatFile#') || product.idText.startsWith('Guild#')}
+							<EnhancedImages
+								etilizeId={product.other['Etilize ID'] ?? undefined}
+								gid={product.idText.startsWith('Guild#') ? product.sku : undefined}
+							/>
+						{/if}
 					</div>
 				{/if}
 				<div class="p-2 w-full">

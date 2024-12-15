@@ -5,8 +5,10 @@ import { desc, eq } from "drizzle-orm";
 import {
   changesets,
   changesetType,
+  guildDescriptions,
   history,
   resourceTypeEnum,
+  sprEnhancedContent,
   uniref,
 } from "../db.schema";
 import { TRPCError } from "@trpc/server";
@@ -97,4 +99,39 @@ export const resourcesRouter = router({
         where: eq(uniref[type], id),
       });
     }),
+  sprEnhancedContent: viewerProcedure
+    .input(
+      z.object({
+        etilizeId: z.string().optional(),
+        gid: z.string().optional(),
+      })
+    )
+    .query(
+      async ({
+        input: { etilizeId, gid },
+      }): Promise<{
+        guild: typeof guildDescriptions.$inferSelect | undefined;
+        spr: typeof sprEnhancedContent.$inferSelect | undefined;
+      }> => {
+        if (etilizeId) {
+          return {
+            guild: undefined,
+            spr: await db.query.sprEnhancedContent.findFirst({
+              where: eq(sprEnhancedContent.etilizeId, etilizeId),
+            }),
+          };
+        } else if (gid) {
+          return {
+            guild: await db.query.guildDescriptions.findFirst({
+              where: eq(guildDescriptions.gid, gid),
+            }),
+            spr: undefined,
+          };
+        }
+        return {
+          guild: undefined,
+          spr: undefined,
+        };
+      }
+    ),
 });
