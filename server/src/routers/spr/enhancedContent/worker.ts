@@ -8,13 +8,15 @@ import { readFileSync } from "fs";
 import papa from "papaparse";
 import { sprFlatFile } from "../flatFile/table";
 import { eq, isNull } from "drizzle-orm";
+import { DEV } from "../../../config";
 
 declare var self: Worker;
+
+const tempFolderPath = DEV ? join(process.cwd(), "temp") : "/tmp/oem3";
 
 work({
   self,
   process: async ({ db, progress }) => {
-    const tempFolderPath = join(process.cwd(), "temp");
     if (existsSync(tempFolderPath)) {
       rmSync(tempFolderPath, { recursive: true, force: true });
     }
@@ -301,7 +303,7 @@ work({
 
 function readCSV<T>(filePath: string): T[] {
   const { data } = papa.parse<T>(
-    readFileSync(join(process.cwd(), "temp") + filePath).toString(),
+    readFileSync(tempFolderPath + filePath).toString(),
     {
       header: false,
     }

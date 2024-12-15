@@ -11,7 +11,7 @@
     "dev": "cd server && bun run dev",
     "build": "docker build .",
     "start": "docker compose up",
-    "preview": "cd server && bun run preview"
+    "preview": "docker compose up --build"
   },
   "type": "module",
   "dependencies": {}
