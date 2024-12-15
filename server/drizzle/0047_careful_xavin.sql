@@ -1,0 +1,1 @@
+ALTER TABLE "sprEnhancedContent" ALTER COLUMN "etilizeId" SET NOT NULL;

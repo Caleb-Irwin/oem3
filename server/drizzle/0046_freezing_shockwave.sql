@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS "sprEnhancedContent_etilizeId_idx" ON "sprEnhancedContent" USING btree ("etilizeId");

@@ -17,6 +17,7 @@
     "polka": "^0.5.2",
     "set-cookie-parser": "^2.7.1",
     "trpc-bun-adapter": "^1.1.0",
+    "unzipper": "^0.12.3",
     "ws": "^8.16.0",
     "xlsx": "^0.18.5",
     "zod": "^3.23.8"
@@ -37,6 +38,7 @@
     "@types/papaparse": "^5.3.14",
     "@types/pg": "^8.11.2",
     "@types/set-cookie-parser": "^2.4.10",
+    "@types/unzipper": "^0.10.10",
     "@types/ws": "^8.5.10",
     "concurrently": "^8.2.2",
     "drizzle-kit": "^0.22.8",

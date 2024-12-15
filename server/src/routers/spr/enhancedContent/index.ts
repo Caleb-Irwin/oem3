@@ -1,18 +1,15 @@
 import { router } from "../../../trpc";
 import { managedWorker } from "../../../utils/managedWorker";
-import { scheduleDailyTask } from "../../../utils/scheduler";
+import { sprFlatFileHook } from "../flatFile";
 
-const { worker, runWorker, hook } = managedWorker(
+const { worker, hook } = managedWorker(
   new URL("worker.ts", import.meta.url).href,
-  "sprImages"
+  "sprImages",
+  [sprFlatFileHook]
 );
 
 export const enhancedContentHook = hook;
 
 export const enhancedContentRouter = router({
   worker,
-});
-
-scheduleDailyTask("sprEnhancedContent", async () => {
-  await runWorker({});
 });

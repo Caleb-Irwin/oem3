@@ -1,0 +1,2 @@
+CREATE INDEX IF NOT EXISTS "sprImages_etilizeId_idx" ON "sprImages" USING btree ("etilizeId");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "sprSkus_etilizeId_idx" ON "sprSkus" USING btree ("etilizeId");
