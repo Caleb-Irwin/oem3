@@ -90,7 +90,7 @@
 				? 'border-success-600 bg-success-300 dark:border-success-500 dark:bg-success-800'
 				: ''}"
 		>
-			<p class="text-center text-surface-400">
+			<p class="text-center text-surface-400 py-2">
 				{#if $value == '-1'}
 					<span class="font-semibold">Intentionally</span>
 				{/if}

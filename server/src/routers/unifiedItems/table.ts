@@ -18,6 +18,8 @@ import {
   guildUmEnum,
   qb,
   shopify,
+  sprFlatFile,
+  sprPriceFile,
 } from "../../db.schema";
 import { relations } from "drizzle-orm";
 
@@ -39,6 +41,12 @@ export const unifiedItems = pgTable(
     type: unifiedItemTypeEnum("type").notNull(),
     guild: integer("guild")
       .references(() => guild.id)
+      .unique(),
+    sprPriceFile: integer("sprPriceFile")
+      .references(() => sprPriceFile.id)
+      .unique(),
+    sprFlatFile: integer("sprFlatFile")
+      .references(() => sprFlatFile.id)
       .unique(),
     guildInventory: integer("guildInventory")
       .references(() => guildInventory.id)
@@ -219,6 +227,14 @@ export const unifiedItemsRelations = relations(unifiedItems, ({ one }) => ({
   guildFlyerData: one(guildFlyer, {
     fields: [unifiedItems.guildFlyer],
     references: [guildFlyer.id],
+  }),
+  sprPriceFileData: one(sprPriceFile, {
+    fields: [unifiedItems.sprPriceFile],
+    references: [sprPriceFile.id],
+  }),
+  sprFlatFileData: one(sprFlatFile, {
+    fields: [unifiedItems.sprFlatFile],
+    references: [sprFlatFile.id],
   }),
   shopifyData: one(shopify, {
     fields: [unifiedItems.shopify],

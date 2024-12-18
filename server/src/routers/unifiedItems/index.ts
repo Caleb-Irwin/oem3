@@ -23,6 +23,18 @@ export const unifiedItemsRouter = router({
           guildData: {
             with: {
               uniref: true,
+              desc: true,
+            },
+          },
+          sprPriceFileData: {
+            with: {
+              uniref: true,
+            },
+          },
+          sprFlatFileData: {
+            with: {
+              uniref: true,
+              enhancedContent: true,
             },
           },
           guildInventoryData: {
@@ -58,4 +70,7 @@ export const unifiedItemsRouter = router({
         },
       });
     }),
+  items: viewerProcedure.query(async ({}) => {
+    return await db.query.unifiedItems.findMany();
+  }),
 });

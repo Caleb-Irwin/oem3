@@ -10,7 +10,7 @@ import {
   bigint,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
-import { uniref } from "../../../db.schema";
+import { sprEnhancedContent, uniref } from "../../../db.schema";
 
 export const sprFlatFile = pgTable(
   "sprFlatFile",
@@ -59,5 +59,9 @@ export const sprFlatFileRelations = relations(sprFlatFile, ({ one }) => ({
   uniref: one(uniref, {
     fields: [sprFlatFile.id],
     references: [uniref.sprFlatFile],
+  }),
+  enhancedContent: one(sprEnhancedContent, {
+    fields: [sprFlatFile.etilizeId],
+    references: [sprEnhancedContent.etilizeId],
   }),
 }));
