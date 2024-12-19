@@ -57,7 +57,8 @@
 
 	{#if $changeset}
 		<p class="text-sm pb-2">
-			Created at {new Date($changeset.created ?? 0).toLocaleString()} based on file #{$changeset.file}
+			Created at {new Date($changeset.created ?? 0).toLocaleString()}
+			{$changeset.file ? `based on file #${$changeset.file}` : ''}
 		</p>
 		{#if $changeset?.status === 'generating'}
 			<WorkerStatus {status} />

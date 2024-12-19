@@ -57,8 +57,6 @@ export const work = async ({ self, process: processFunc }: WorkerParams) => {
           },
           createChangeset: async (changesetTable, fileId) => {
             if (!changesetTable) throw new Error("No changesetTable provided!");
-            if (typeof fileId !== "number")
-              throw new Error("No fileId was provided!");
             return await createChangeset(changesetTable, fileId, () =>
               sendMessage("changesetUpdate")
             );

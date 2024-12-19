@@ -17,7 +17,7 @@ export const sprFlatFile = pgTable(
   {
     id: serial("id").primaryKey(),
     sprcSku: varchar("sprcSku", { length: 256 }).notNull().unique(),
-    etilizeId: varchar("etilizeId", { length: 32 }).unique(),
+    etilizeId: varchar("etilizeId", { length: 32 }).unique().notNull(),
     sprCatalogSku: varchar("sprCatalogSku", { length: 256 }),
     brandName: varchar("brandName", { length: 256 }),
     productType: varchar("productType", { length: 256 }),

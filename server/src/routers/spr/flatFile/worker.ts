@@ -29,11 +29,14 @@ work({
       await changeset.process({
         db,
         rawItems: (res.data as FlatFileRaw[]).filter(
-          (item) => (item?.SKU?.length ?? 0) > 0 && item["SKU Type"] === "SPRC"
+          (item) =>
+            (item?.SKU?.length ?? 0) > 0 &&
+            item["SKU Type"] === "SPRC" &&
+            item["ProductId"]
         ),
         prevItems,
         transform: transformSprFlatFile,
-        extractId: (item) => item.sprcSku,
+        extractId: (item) => item.etilizeId,
         diff: genDiffer(
           [],
           [
@@ -78,7 +81,7 @@ function transformSprFlatFile(
 ): typeof sprFlatFile.$inferInsert {
   return {
     sprcSku: item.SKU,
-    etilizeId: item["ProductId"] ?? null,
+    etilizeId: item["ProductId"],
     sprCatalogSku: item["Catalog Sku"],
     brandName: item["Brand Name"],
     productType: item["Product Type"],

@@ -16,3 +16,4 @@ export * from "./routers/guild/desc/table";
 export * from "./routers/spr/priceFile/table";
 export * from "./routers/spr/flatFile/table";
 export * from "./routers/spr/enhancedContent/table";
+export * from "./routers/guild/table";

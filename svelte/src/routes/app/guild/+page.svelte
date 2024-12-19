@@ -65,8 +65,6 @@
 		</div>
 	</div>
 
-	<div></div>
-
 	<div class="p-2 w-full xl:w-auto flex flex-col items-center min-w-96">
 		<div class="w-full card p-4 max-w-xl">
 			<Button class="mb-2 btn variant-filled-primary" action={client.guild.desc.worker.run}
@@ -75,6 +73,15 @@
 			<WorkerStatus
 				status={sub(client.guild.desc.worker.status, client.guild.desc.worker.onUpdate)}
 			/>
+		</div>
+	</div>
+
+	<div class="p-2 w-full xl:w-auto flex flex-col items-center min-w-96">
+		<div class="w-full card p-4 max-w-xl">
+			<Button class="mb-2 btn variant-filled-primary" action={client.guild.worker.run}
+				>Update Unified Guild</Button
+			>
+			<WorkerStatus status={sub(client.guild.worker.status, client.guild.worker.onUpdate)} />
 		</div>
 	</div>
 </div>

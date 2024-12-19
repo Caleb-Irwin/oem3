@@ -9,7 +9,11 @@ import {
   text,
   varchar,
 } from "drizzle-orm/pg-core";
-import { guildDescriptions, uniref } from "../../../db.schema";
+import {
+  guildDescriptions,
+  unifiedGuildTable,
+  uniref,
+} from "../../../db.schema";
 import { relations, sql } from "drizzle-orm";
 
 export const guildUmEnum = pgEnum("guild_um", [
@@ -81,5 +85,9 @@ export const guildRelations = relations(guildData, ({ one }) => ({
   desc: one(guildDescriptions, {
     fields: [guildData.gid],
     references: [guildDescriptions.gid],
+  }),
+  unifiedGuild: one(unifiedGuildTable, {
+    fields: [guildData.id],
+    references: [unifiedGuildTable.dataRow],
   }),
 }));

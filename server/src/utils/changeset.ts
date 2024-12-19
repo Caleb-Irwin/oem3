@@ -14,7 +14,7 @@ import { insertHistory } from "./history";
 
 export const createChangeset = async (
   table: ChangesetTable,
-  file: number,
+  file: number | undefined,
   notifier: () => void
 ) => {
   const name = getTableConfig(table).name as ChangesetType;

@@ -250,11 +250,9 @@ work({
           cws: row.skus.find((v) => v.type === "CWS")?.sku ?? null,
           upc: row.skus.find((v) => v.type === "UPC")?.sku ?? null,
           gtin: row.skus.find((v) => v.type === "GTIN")?.sku ?? null,
-          primaryImage: primaryImages.includes("Original")
-            ? "Original"
-            : primaryImages
-                .filter((v) => !isNaN(parseInt(v)))
-                .sort((a, b) => parseInt(b) - parseInt(a))[0] ?? null,
+          primaryImage: primaryImages
+            .filter((v) => !isNaN(parseInt(v)))
+            .sort((a, b) => parseInt(b) - parseInt(a))[0],
           otherImagesJsonArr: JSON.stringify(orderedOtherImages),
           allSizesJsonArr: JSON.stringify(row.images.map((v) => v.type)),
           deleted: false,
