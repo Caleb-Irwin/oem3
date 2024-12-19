@@ -7,7 +7,7 @@ import {
   serial,
   varchar,
 } from "drizzle-orm/pg-core";
-import { guild } from "../table";
+import { guildData } from "../data/table";
 import { relations } from "drizzle-orm";
 
 export const guildDescriptions = pgTable("guildDescriptions", {
@@ -28,9 +28,9 @@ export const guildDescriptions = pgTable("guildDescriptions", {
 export const guildDescriptionsRelations = relations(
   guildDescriptions,
   ({ one }) => ({
-    guildItem: one(guild, {
+    guildItem: one(guildData, {
       fields: [guildDescriptions.gid],
-      references: [guild.gid],
+      references: [guildData.gid],
     }),
   })
 );

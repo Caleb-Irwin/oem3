@@ -9,7 +9,7 @@ import {
   text,
   varchar,
 } from "drizzle-orm/pg-core";
-import { guildDescriptions, uniref } from "../../db.schema";
+import { guildDescriptions, uniref } from "../../../db.schema";
 import { relations, sql } from "drizzle-orm";
 
 export const guildUmEnum = pgEnum("guild_um", [
@@ -28,8 +28,8 @@ export const guildUmEnum = pgEnum("guild_um", [
   "pk",
 ]);
 
-export const guild = pgTable(
-  "guild",
+export const guildData = pgTable(
+  "guildData",
   {
     id: serial("id").primaryKey(),
     gid: varchar("gid", { length: 256 }).notNull(),
@@ -64,8 +64,8 @@ export const guild = pgTable(
     deleted: boolean("deleted").default(false).notNull(),
     lastUpdated: bigint("lastUpdated", { mode: "number" }).notNull(),
   },
-  (guild) => ({
-    guildUpcIndex: index("guild_upc_idx").on(guild.upc),
+  (guildData) => ({
+    guildUpcIndex: index("guild_upc_idx").on(guildData.upc),
     guildShortUpcIndex: index("guild_shortUpc_idx").using(
       "btree",
       sql`(NULLIF("substring"((guild.upc)::text, (length((guild.upc)::text) - 10), 10), ''::text))`
@@ -73,10 +73,13 @@ export const guild = pgTable(
   })
 );
 
-export const guildRelations = relations(guild, ({ one }) => ({
-  uniref: one(uniref, { fields: [guild.id], references: [uniref.guild] }),
+export const guildRelations = relations(guildData, ({ one }) => ({
+  uniref: one(uniref, {
+    fields: [guildData.id],
+    references: [uniref.guildData],
+  }),
   desc: one(guildDescriptions, {
-    fields: [guild.gid],
+    fields: [guildData.gid],
     references: [guildDescriptions.gid],
   }),
 }));

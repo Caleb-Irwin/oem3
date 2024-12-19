@@ -12,11 +12,11 @@ work({
   self,
   process: async ({ db, progress }) => {
     const guildList = (
-      await db.query.guild
+      await db.query.guildData
         .findMany({
           columns: { gid: true, lastUpdated: true },
           with: { desc: true },
-          where: (guild, { not }) => not(guild.deleted),
+          where: (guildData, { not }) => not(guildData.deleted),
         })
         .execute()
     ).filter((v) => {

@@ -6,7 +6,7 @@ import { search } from "./table";
 import { db } from "../../db";
 import { qbHook } from "../qb";
 import { resourceWith } from "../resources";
-import { guildHook } from "../guild";
+import { guildDataHook } from "../guild/data";
 import { guildInventoryHook } from "../guild/inventory";
 import { changesetType } from "../../db.schema";
 import { guildFlyerHook } from "../guild/flyer";
@@ -19,7 +19,7 @@ const { worker } = managedWorker(
   "search",
   [
     qbHook,
-    guildHook,
+    guildDataHook,
     guildInventoryHook,
     guildFlyerHook,
     shopifyHook,

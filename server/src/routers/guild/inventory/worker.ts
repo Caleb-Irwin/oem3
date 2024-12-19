@@ -4,7 +4,7 @@ import {
   removeNaN,
 } from "../../../utils/changeset.helpers";
 import { work } from "../../../utils/workerBase";
-import { guildUmEnum } from "../table";
+import { guildUmEnum } from "../data/table";
 import { guildInventory } from "./table";
 import Papa from "papaparse";
 

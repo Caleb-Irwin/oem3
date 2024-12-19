@@ -2,9 +2,9 @@ import {
   enforceEnum,
   genDiffer,
   removeNaN,
-} from "../../utils/changeset.helpers";
-import { work } from "../../utils/workerBase";
-import { guild, guildUmEnum } from "./table";
+} from "../../../utils/changeset.helpers";
+import { work } from "../../../utils/workerBase";
+import { guildData, guildUmEnum } from "./table";
 import * as xlsx from "xlsx";
 
 declare var self: Worker;
@@ -18,7 +18,7 @@ work({
     utils: { getFileDataUrl, createChangeset },
   }) => {
     const fileId = (message.data as { fileId: number }).fileId,
-      changeset = await createChangeset(guild, fileId),
+      changeset = await createChangeset(guildData, fileId),
       dataUrl = await getFileDataUrl(fileId),
       workbook = xlsx.read(dataUrl.slice(dataUrl.indexOf(";base64,") + 8)),
       worksheet = workbook.Sheets[workbook.SheetNames[0]],
@@ -26,7 +26,7 @@ work({
 
     await db.transaction(async (db) => {
       const prevItems = new Map(
-        (await db.query.guild.findMany({ with: { uniref: true } })).map(
+        (await db.query.guildData.findMany({ with: { uniref: true } })).map(
           (item) => [item.gid, item]
         )
       );
@@ -75,7 +75,7 @@ work({
   },
 });
 
-const transformGuild = (g: GuildRaw): typeof guild.$inferInsert => {
+const transformGuild = (g: GuildRaw): typeof guildData.$inferInsert => {
   return {
     gid: g["Product Code (Guild Product #)"].trim(),
     upc: (g["UPC#"] ?? "").trim(),

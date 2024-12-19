@@ -13,7 +13,7 @@ import {
   sprPriceFile,
   shopify,
   uniref,
-  type guild,
+  type guildData,
   type qb,
   sprFlatFile,
 } from "../db.schema";
@@ -21,7 +21,7 @@ import { relations } from "drizzle-orm";
 
 export const changesetType = pgEnum("changeset_type", [
     "qb",
-    "guild",
+    "guildData",
     "guildInventory",
     "guildFlyer",
     "shopify",
@@ -35,7 +35,7 @@ export const changesetType = pgEnum("changeset_type", [
 export type ChangesetType = (typeof changesetType.enumValues)[number];
 export type ChangesetTable =
   | typeof qb
-  | typeof guild
+  | typeof guildData
   | typeof guildInventory
   | typeof guildFlyer
   | typeof shopify

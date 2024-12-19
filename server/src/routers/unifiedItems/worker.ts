@@ -1,6 +1,6 @@
 import { work } from "../../utils/workerBase";
 import {
-  guild,
+  guildData,
   guildFlyer,
   guildInventory,
   qb,
@@ -47,15 +47,15 @@ work({
 const addGuildItem = async (db: typeof DB, lastUpdated: number) => {
   const guildUnaddedItems = await db
     .select()
-    .from(guild)
-    .leftJoin(unifiedItems, eq(guild.id, unifiedItems.guild))
+    .from(guildData)
+    .leftJoin(unifiedItems, eq(guildData.id, unifiedItems.guild))
     .where(isNull(unifiedItems));
   for (let i = 0; i < guildUnaddedItems.length; i++) {
     const element = guildUnaddedItems[i];
     await db.transaction(async (db) => {
       const addRes = await db
         .insert(unifiedItems)
-        .values({ type: "guild", guild: element.guild.id, lastUpdated })
+        .values({ type: "guild", guild: element.guildData.id, lastUpdated })
         .returning({ id: unifiedItems.id });
       const uniRef = await db
         .insert(uniref)
@@ -69,7 +69,7 @@ const addGuildItem = async (db: typeof DB, lastUpdated: number) => {
         uniref: uniRef[0].uniId,
         resourceType: "unifiedItem",
         entryType: "create",
-        data: { type: "guild", guild: element.guild.id, lastUpdated },
+        data: { type: "guild", guild: element.guildData.id, lastUpdated },
         created: lastUpdated,
       });
     });
@@ -80,8 +80,8 @@ const matchGuildInventory = async (db: typeof DB, lastUpdated: number) => {
   const guildInventoryUnaddedItems = await db
     .selectDistinctOn([guildInventory.id])
     .from(unifiedItems)
-    .innerJoin(guild, eq(guild.id, unifiedItems.guild))
-    .innerJoin(guildInventory, eq(guildInventory.gid, guild.gid))
+    .innerJoin(guildData, eq(guildData.id, unifiedItems.guild))
+    .innerJoin(guildInventory, eq(guildInventory.gid, guildData.gid))
     .where(
       notExists(
         db
@@ -118,8 +118,8 @@ const matchGuildFlyer = async (db: typeof DB, lastUpdated: number) => {
   const guildFlyerUnaddedItems = await db
     .selectDistinctOn([guildFlyer.id])
     .from(unifiedItems)
-    .innerJoin(guild, eq(guild.id, unifiedItems.guild))
-    .innerJoin(guildFlyer, eq(guildFlyer.gid, guild.gid))
+    .innerJoin(guildData, eq(guildData.id, unifiedItems.guild))
+    .innerJoin(guildFlyer, eq(guildFlyer.gid, guildData.gid))
     .where(
       notExists(
         db
@@ -156,7 +156,7 @@ const matchQB = async (db: typeof DB, lastUpdated: number) => {
   const qbUnaddedItems = await db
     .selectDistinctOn([qb.id])
     .from(unifiedItems)
-    .innerJoin(guild, eq(guild.id, unifiedItems.guild))
+    .innerJoin(guildData, eq(guildData.id, unifiedItems.guild))
     .innerJoin(
       qb,
       sql`
@@ -164,7 +164,7 @@ const matchQB = async (db: typeof DB, lastUpdated: number) => {
         SUBSTR(${qb.qbId}, POSITION(':' IN ${qb.qbId}) + 1),
         LENGTH(SUBSTR(${qb.qbId}, POSITION(':' IN ${qb.qbId}) + 1)) - 10,
         10
-      ) = NULLIF(SUBSTRING(${guild.upc}, LENGTH(${guild.upc}) - 10, 10), '')`
+      ) = NULLIF(SUBSTRING(${guildData.upc}, LENGTH(${guildData.upc}) - 10, 10), '')`
     )
     .where(
       notExists(
@@ -200,8 +200,8 @@ const matchShopify = async (db: typeof DB, lastUpdated: number) => {
   const shopifyUnaddedItems = await db
     .selectDistinctOn([shopify.id])
     .from(unifiedItems)
-    .innerJoin(guild, eq(guild.id, unifiedItems.guild))
-    .innerJoin(shopify, eq(shopify.vBarcode, guild.upc))
+    .innerJoin(guildData, eq(guildData.id, unifiedItems.guild))
+    .innerJoin(shopify, eq(shopify.vBarcode, guildData.upc))
     .where(
       notExists(
         db

@@ -7,7 +7,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { uniref } from "../../../db.schema";
-import { guildUmEnum } from "../table";
+import { guildUmEnum } from "../data/table";
 import { relations } from "drizzle-orm";
 
 export const guildInventory = pgTable("guildInventory", {

@@ -1,7 +1,7 @@
 import { index, integer, pgEnum, pgTable, serial } from "drizzle-orm/pg-core";
 import {
   changesets,
-  guild,
+  guildData,
   qb,
   shopify,
   sprFlatFile,
@@ -15,7 +15,7 @@ import { guildFlyer } from "../routers/guild/flyer/table";
 export const resourceTypeEnum = pgEnum("resource_type", [
   "changeset",
   "qb",
-  "guild",
+  "guildData",
   "guildInventory",
   "guildFlyer",
   "shopify",
@@ -38,8 +38,8 @@ export const uniref = pgTable(
     qb: integer("qb")
       .references(() => qb.id, { onDelete: "cascade" })
       .unique(),
-    guild: integer("guild")
-      .references(() => guild.id, { onDelete: "cascade" })
+    guildData: integer("guildData")
+      .references(() => guildData.id, { onDelete: "cascade" })
       .unique(),
     guildInventory: integer("guildInventory")
       .references(() => guildInventory.id, {
@@ -77,7 +77,7 @@ export const uniref = pgTable(
       resourceTypeIndex: index("resource_type_idx").on(uniref.uniId),
       changesetsIndex: index("uniref_changesets_idx").on(uniref.changeset),
       qbIndex: index("uniref_qb_idx").on(uniref.qb),
-      guildIndex: index("uniref_guild_idx").on(uniref.guild),
+      guildIndex: index("uniref_guild_idx").on(uniref.guildData),
       guildInventoryIndex: index("uniref_guildInventory_idx").on(
         uniref.guildInventory
       ),
@@ -92,7 +92,10 @@ export const uniref = pgTable(
 
 export const unirefRelations = relations(uniref, ({ one }) => ({
   qbData: one(qb, { fields: [uniref.qb], references: [qb.id] }),
-  guildData: one(guild, { fields: [uniref.guild], references: [guild.id] }),
+  guildData: one(guildData, {
+    fields: [uniref.guildData],
+    references: [guildData.id],
+  }),
   guildInventoryData: one(guildInventory, {
     fields: [uniref.guildInventory],
     references: [guildInventory.id],

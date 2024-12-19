@@ -12,7 +12,7 @@ import {
   unique,
 } from "drizzle-orm/pg-core";
 import {
-  guild,
+  guildData,
   guildFlyer,
   guildInventory,
   guildUmEnum,
@@ -40,7 +40,7 @@ export const unifiedItems = pgTable(
     id: serial("id").primaryKey(),
     type: unifiedItemTypeEnum("type").notNull(),
     guild: integer("guild")
-      .references(() => guild.id)
+      .references(() => guildData.id)
       .unique(),
     sprPriceFile: integer("sprPriceFile")
       .references(() => sprPriceFile.id)
@@ -216,9 +216,9 @@ export const unifiedItems = pgTable(
 );
 
 export const unifiedItemsRelations = relations(unifiedItems, ({ one }) => ({
-  guildData: one(guild, {
+  guildData: one(guildData, {
     fields: [unifiedItems.guild],
-    references: [guild.id],
+    references: [guildData.id],
   }),
   guildInventoryData: one(guildInventory, {
     fields: [unifiedItems.guildInventory],

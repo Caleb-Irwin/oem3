@@ -12,15 +12,15 @@
 		<div class="w-full max-w-xl mb-2">
 			<ChangesetStatus
 				name="Guild Data"
-				status={sub(client.guild.worker.status, client.guild.worker.onUpdate)}
-				changeset={sub(client.guild.worker.changeset, client.guild.worker.onUpdate)}
+				status={sub(client.guild.data.worker.status, client.guild.data.worker.onUpdate)}
+				changeset={sub(client.guild.data.worker.changeset, client.guild.data.worker.onUpdate)}
 			/>
 		</div>
 		<div class="w-full max-w-xl">
 			<Files
-				filesRouter={client.guild.files}
+				filesRouter={client.guild.data.files}
 				title="Guild Items"
-				applyMutation={client.guild.worker.run}
+				applyMutation={client.guild.data.worker.run}
 				acceptFileType=".XLSX"
 			/>
 		</div>

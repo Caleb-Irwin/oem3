@@ -4,7 +4,7 @@ import { work } from "../../utils/workerBase";
 import PromisePool from "@supercharge/promise-pool";
 import { search } from "./table";
 import {
-  guild,
+  guildData,
   guildFlyer,
   guildInventory,
   qb,
@@ -40,7 +40,7 @@ work({
         const toUpdate = await (
           {
             qb: db.query.qb,
-            guild: db.query.guild,
+            guildData: db.query.guildData,
             guildInventory: db.query.guildInventory,
             guildFlyer: db.query.guildFlyer,
             shopify: db.query.shopify,
@@ -95,7 +95,7 @@ work({
         }`,
       };
     });
-    await updateSearchIndex(guild, (item) => {
+    await updateSearchIndex(guildData, (item) => {
       return {
         keyInfo: `${item.gid} ${item.upc ?? ""} ${item.basics ?? ""} ${
           item.cis ?? ""
