@@ -74,6 +74,9 @@ export const guildData = pgTable(
       "btree",
       sql`(NULLIF("substring"((guild.upc)::text, (length((guild.upc)::text) - 10), 10), ''::text))`
     ),
+    lastUpdatedIndex: index("guild_data_last_updated_idx").on(
+      guildData.lastUpdated
+    ),
   })
 );
 

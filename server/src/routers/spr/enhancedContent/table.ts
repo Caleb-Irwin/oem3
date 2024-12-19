@@ -88,6 +88,9 @@ export const sprEnhancedContent = pgTable(
       etilizeIdIndex: uniqueIndex("sprEnhancedContent_etilizeId_idx").on(
         enhancedContent.etilizeId
       ),
+      lastUpdatedIndex: index("sprEnhancedContent_last_updated_idx").on(
+        enhancedContent.lastUpdated
+      ),
     };
   }
 );

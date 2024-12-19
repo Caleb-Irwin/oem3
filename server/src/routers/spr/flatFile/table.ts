@@ -51,6 +51,9 @@ export const sprFlatFile = pgTable(
     return {
       sprcSkuIndex: uniqueIndex("sprFlatFile_sprcSku_idx").on(spr.sprcSku),
       etilizeIdIndex: index("sprFlatFile_etilizeId_idx").on(spr.etilizeId),
+      lastUpdatedIndex: index("sprFlatFile_last_updated_idx").on(
+        spr.lastUpdated
+      ),
     };
   }
 );

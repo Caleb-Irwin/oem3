@@ -60,6 +60,7 @@ export const shopify = pgTable(
     shopifyVariantBarcodeIndex: index("shopify_variantBarcode_idx").on(
       shopify.vBarcode
     ),
+    lastUpdatedIndex: index("shopify_last_updated_idx").on(shopify.lastUpdated),
   })
 );
 

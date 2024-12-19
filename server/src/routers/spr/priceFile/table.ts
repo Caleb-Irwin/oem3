@@ -42,6 +42,7 @@ export const sprPriceFile = pgTable(
     return {
       sprcSkuIndex: uniqueIndex("spr_sprcSku_idx").on(spr.sprcSku),
       etilizeIdIndex: index("spr_etilizeId_idx").on(spr.etilizeId),
+      lastUpdatedIndex: index("spr_last_updated_idx").on(spr.lastUpdated),
     };
   }
 );

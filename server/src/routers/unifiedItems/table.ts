@@ -211,6 +211,9 @@ export const unifiedItems = pgTable(
         unifiedItems.shopifyAlt
       ),
       barcodeIndex: index("unifiedItems_barcode_idx").on(unifiedItems.barcode),
+      lastUpdatedIndex: index("unifiedItems_last_updated_idx").on(
+        unifiedItems.lastUpdated
+      ),
     };
   }
 );

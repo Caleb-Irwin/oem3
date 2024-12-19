@@ -54,6 +54,7 @@ export const qb = pgTable(
         "btree",
         sql`substr(substr((qb.qb_id)::text, (POSITION((':'::text) IN (qb.qb_id)) + 1)), (length(substr((qb.qb_id)::text, (POSITION((':'::text) IN (qb.qb_id)) + 1))) - 10), 10)`
       ),
+      lastUpdatedIndex: index("qb_last_updated_idx").on(qb.lastUpdated),
     };
   }
 );
