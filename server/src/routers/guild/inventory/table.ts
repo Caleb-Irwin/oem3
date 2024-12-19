@@ -12,7 +12,7 @@ import { relations } from "drizzle-orm";
 
 export const guildInventory = pgTable("guildInventory", {
   id: serial("id").primaryKey(),
-  gid: varchar("gid", { length: 256 }).notNull(),
+  gid: varchar("gid", { length: 256 }).notNull().unique(),
   onHand: integer("on_hand"),
   sku: varchar("sku", { length: 256 }),
   upc: varchar("upc", { length: 256 }),

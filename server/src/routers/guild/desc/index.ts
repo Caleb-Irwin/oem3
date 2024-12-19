@@ -1,10 +1,12 @@
 import { router } from "../../../trpc";
 import { managedWorker } from "../../../utils/managedWorker";
 import { scheduleDailyTask } from "../../../utils/scheduler";
+import { guildDataHook } from "../data";
 
 const { worker, runWorker, hook } = managedWorker(
   new URL("worker.ts", import.meta.url).href,
-  "guildDesc"
+  "guildDesc",
+  [guildDataHook]
 );
 
 export const guildDescHook = hook;

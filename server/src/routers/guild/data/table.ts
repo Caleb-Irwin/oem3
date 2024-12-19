@@ -32,7 +32,7 @@ export const guildData = pgTable(
   "guildData",
   {
     id: serial("id").primaryKey(),
-    gid: varchar("gid", { length: 256 }).notNull(),
+    gid: varchar("gid", { length: 256 }).notNull().unique(),
     upc: varchar("upc", { length: 256 }),
     spr: varchar("spr", { length: 256 }),
     basics: varchar("basics", { length: 256 }),
