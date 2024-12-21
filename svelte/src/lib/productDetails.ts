@@ -17,18 +17,19 @@ export interface Product {
 	other: { [key: string]: string | null };
 }
 
+export const { format: formatCurrency } = new Intl.NumberFormat('en-CA', {
+	style: 'currency',
+	currency: 'CAD'
+});
+
 export const productDetails = (raw: RawProduct): Product | undefined => {
-	const { format } = new Intl.NumberFormat('en-CA', {
-		style: 'currency',
-		currency: 'CAD'
-	});
 	if (raw.qbData) {
 		const qb = raw.qbData;
 		return {
 			idText: 'QB#' + qb.id,
 			id: qb.id,
 			name: qb.desc,
-			price: format(qb.priceCents / 100),
+			price: formatCurrency(qb.priceCents / 100),
 			sku: qb.qbId,
 			stock: qb.quantityOnHand,
 			deleted: qb.deleted,
@@ -36,7 +37,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			imageUrl: undefined,
 			lastUpdated: qb.lastUpdated,
 			other: {
-				Cost: format(qb.costCents / 100),
+				Cost: formatCurrency(qb.costCents / 100),
 				'Unit of Measure': qb.um,
 				Account: qb.account,
 				Vendor: qb.preferredVendor,
@@ -53,7 +54,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			idText: 'GuildData#' + guild.id,
 			id: guild.id,
 			name: guild.shortDesc,
-			price: format(guild.priceL1Cents / 100),
+			price: formatCurrency(guild.priceL1Cents / 100),
 			sku: guild.gid,
 			stock: null,
 			deleted: guild.deleted,
@@ -67,13 +68,13 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				'Unit of Measure': guild.um,
 				'Standard Pack Quantity': guild.standardPackQty.toString(),
 				'Master Pack Quantity': guild.masterPackQty.toString(),
-				'L0 Price': format(guild.priceL0Cents / 100),
-				'Retail Price': format(guild.priceL1Cents / 100),
-				'Warehouse Cost': format(guild.memberPriceCents / 100),
-				'Dropship Cost': format(guild.dropshipPriceCents / 100),
+				'L0 Price': formatCurrency(guild.priceL0Cents / 100),
+				'Retail Price': formatCurrency(guild.priceL1Cents / 100),
+				'Warehouse Cost': formatCurrency(guild.memberPriceCents / 100),
+				'Dropship Cost': formatCurrency(guild.dropshipPriceCents / 100),
 				Weight: guild.weightGrams + ' grams',
 				'Freight Flag': guild.freightFlag ? 'Yes' : 'No',
-				'Heavy Goods Charge (SK)': format(guild.heavyGoodsChargeSkCents / 100),
+				'Heavy Goods Charge (SK)': formatCurrency(guild.heavyGoodsChargeSkCents / 100),
 				'Web Category': guild.webCategory.toString(),
 				'Web Category Description':
 					guild.webCategory1Desc +
@@ -116,8 +117,8 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			id: flyer.id,
 			name: flyer.gid,
 			sku: flyer.gid,
-			price: format((flyer.flyerPriceL1Cents as number) / 100),
-			comparePrice: format((flyer.regularPriceL1Cents as number) / 100),
+			price: formatCurrency((flyer.flyerPriceL1Cents as number) / 100),
+			comparePrice: formatCurrency((flyer.regularPriceL1Cents as number) / 100),
 			stock: null,
 			deleted: flyer.deleted,
 			lastUpdated: flyer.lastUpdated,
@@ -128,10 +129,10 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				'End Date': new Date(flyer.endDate as number).toLocaleDateString('en-CA'),
 				'Flyer Number': flyer.flyerNumber?.toString() ?? '',
 				'Vendor Code': flyer.vendorCode,
-				'Flyer Cost': format((flyer.flyerCostCents as number) / 100),
-				'Flyer Price L0': format((flyer.flyerPriceL0Cents as number) / 100),
-				'Flyer Price Retail': format((flyer.flyerPriceRetailCents as number) / 100),
-				'Regular Price L0': format((flyer.regularPriceL0Cents as number) / 100)
+				'Flyer Cost': formatCurrency((flyer.flyerCostCents as number) / 100),
+				'Flyer Price L0': formatCurrency((flyer.flyerPriceL0Cents as number) / 100),
+				'Flyer Price Retail': formatCurrency((flyer.flyerPriceRetailCents as number) / 100),
+				'Regular Price L0': formatCurrency((flyer.regularPriceL0Cents as number) / 100)
 			}
 		};
 	}
@@ -141,7 +142,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			idText: 'Shopify#' + shopify.id,
 			id: shopify.id,
 			name: shopify.title,
-			price: format(shopify.vPriceCents / 100),
+			price: formatCurrency(shopify.vPriceCents / 100),
 			sku: shopify.vSku ?? 'Unknown',
 			stock: shopify.totalInventory,
 			deleted: shopify.deleted,
@@ -152,10 +153,10 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				Handle: shopify.handle,
 				Status: shopify.status,
 				'Compare At Price': shopify.vComparePriceCents
-					? format(shopify.vComparePriceCents / 100)
+					? formatCurrency(shopify.vComparePriceCents / 100)
 					: 'Not on sale',
 				'Unit Cost': shopify.vUnitCostCents
-					? format(shopify.vUnitCostCents / 100)
+					? formatCurrency(shopify.vUnitCostCents / 100)
 					: 'Not available',
 				Weight: shopify.vWeightGrams + ' grams',
 				'Requires Shipping': shopify.vRequiresShipping ? 'Yes' : 'No',
@@ -184,7 +185,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			idText: 'SPRPriceFile#' + raw.sprPriceFileData.id,
 			id: raw.sprPriceFileData.id,
 			name: raw.sprPriceFileData.description ?? '',
-			price: format(raw.sprPriceFileData.netPriceCents / 100),
+			price: formatCurrency(raw.sprPriceFileData.netPriceCents / 100),
 			sku: raw.sprPriceFileData.sprcSku,
 			stock: null,
 			deleted: raw.sprPriceFileData.deleted,
@@ -192,9 +193,9 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			description: undefined,
 			imageUrl: undefined,
 			other: {
-				'Dealer Net Price': format(raw.sprPriceFileData.dealerNetPriceCents / 100),
-				'Net Price': format(raw.sprPriceFileData.netPriceCents / 100),
-				'List Price': format(raw.sprPriceFileData.listPriceCents / 100),
+				'Dealer Net Price': formatCurrency(raw.sprPriceFileData.dealerNetPriceCents / 100),
+				'Net Price': formatCurrency(raw.sprPriceFileData.netPriceCents / 100),
+				'List Price': formatCurrency(raw.sprPriceFileData.listPriceCents / 100),
 				'Unit of Measure': raw.sprPriceFileData.um,
 				UPC: raw.sprPriceFileData.upc,
 				'Cat. Page': raw.sprPriceFileData.catPage?.toString() ?? null

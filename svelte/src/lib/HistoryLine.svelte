@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { history as historyType } from '../../../server/src/db.schema';
+	import HistoryChip from './HistoryChip.svelte';
 	interface Props {
 		entry: typeof historyType.$inferSelect;
 	}
@@ -45,16 +46,12 @@
 	<div class="w-full flex flex-wrap items-center">
 		{#if updateData}
 			{#each updateData as change}
-				<span class="chip hover:cursor-default whitespace-break-spaces variant-filled-surface m-0.5"
-					>{change[0]}: {change[1]} -> {change[2]}</span
-				>
+				<HistoryChip key={change[0]} value={change[2]} prev={change[1]} />
 			{/each}
 		{/if}
 		{#if createData}
 			{#each Object.entries(createData) as [key, value]}
-				<span class="chip hover:cursor-default whitespace-break-spaces variant-filled-surface m-0.5"
-					>{key}: {value}</span
-				>
+				<HistoryChip {key} {value} create />
 			{/each}
 		{/if}
 	</div>
