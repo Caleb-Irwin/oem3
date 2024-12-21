@@ -1,0 +1,1 @@
+ALTER TABLE "unifiedGuild" ADD COLUMN "inventory" integer;

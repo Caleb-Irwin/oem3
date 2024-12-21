@@ -30,13 +30,13 @@ export const unifiedGuild = pgTable(
     id: serial("id").primaryKey(),
     gid: varchar("gid", { length: 256 }).notNull().unique(),
 
-    dataRow: integer("data")
+    dataRow: integer("dataRow")
       .notNull()
       .references(() => guildData.id, { onDelete: "cascade" }),
-    inventoryRow: integer("inventory").references(() => guildInventory.id, {
+    inventoryRow: integer("inventoryRow").references(() => guildInventory.id, {
       onDelete: "set null",
     }),
-    flyerRow: integer("flyer").references(() => guildFlyer.id, {
+    flyerRow: integer("flyerRow").references(() => guildFlyer.id, {
       onDelete: "set null",
     }),
 
@@ -62,6 +62,8 @@ export const unifiedGuild = pgTable(
     weightGrams: integer("weightGrams"),
     heavyGoodsChargeSkCents: integer("heavyGoodsChargeSkCents"),
     freightFlag: boolean("freightFlag").default(false),
+
+    inventory: integer("inventory"),
 
     deleted: boolean("deleted").default(false).notNull(),
     lastUpdated: bigint("lastUpdated", { mode: "number" }).notNull(),

@@ -13,6 +13,7 @@ export interface Product {
 	deleted: boolean;
 	description: string | undefined;
 	imageUrl: string | undefined;
+	otherImageUrls?: string[] | undefined;
 	lastUpdated: number;
 	other: { [key: string]: string | null };
 }
@@ -241,6 +242,50 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				'Image Type 225': raw.sprFlatFileData.image255,
 				'Image Type 75': raw.sprFlatFileData.image75,
 				Keywords: raw.sprFlatFileData.keywords
+			}
+		};
+	}
+	if (raw.unifiedGuildData) {
+		return {
+			idText: 'UnifiedGuild#' + raw.unifiedGuildData.id,
+			id: raw.unifiedGuildData.id,
+			name: raw.unifiedGuildData.title ?? 'No Title',
+			price: raw.unifiedGuildData.priceCents
+				? formatCurrency(raw.unifiedGuildData.priceCents / 100)
+				: 'No Price',
+			comparePrice: raw.unifiedGuildData.comparePriceCents
+				? formatCurrency(raw.unifiedGuildData.comparePriceCents / 100)
+				: null,
+			sku: raw.unifiedGuildData.gid,
+			stock: raw.unifiedGuildData.inventory,
+			deleted: raw.unifiedGuildData.deleted,
+			lastUpdated: raw.unifiedGuildData.lastUpdated,
+			description: raw.unifiedGuildData.description ?? undefined,
+			imageUrl: raw.unifiedGuildData.imageUrl ?? undefined,
+			otherImageUrls: (
+				JSON.parse(raw.unifiedGuildData.otherImageListJSON ?? '[]') as {
+					url: string;
+					description: string;
+				}[]
+			).map(({ url }) => url),
+			other: {
+				'SPR Number': raw.unifiedGuildData.spr,
+				'CIS Number': raw.unifiedGuildData.cis,
+				'Basics Number': raw.unifiedGuildData.basics,
+				UPC: raw.unifiedGuildData.upc,
+				'Unit of Measure': raw.unifiedGuildData.um,
+				'Quantity per Unit': raw.unifiedGuildData.qtyPerUm?.toString() ?? null,
+				'Master Pack Quantity': raw.unifiedGuildData.masterPackQty?.toString() ?? null,
+				Cost: raw.unifiedGuildData.costCents
+					? formatCurrency(raw.unifiedGuildData.costCents / 100)
+					: null,
+				Vendor: raw.unifiedGuildData.vendor,
+				Weight: raw.unifiedGuildData.weightGrams + ' grams',
+				'Freight Flag': raw.unifiedGuildData.freightFlag ? 'Yes' : 'No',
+				'Heavy Goods Charge (SK)': raw.unifiedGuildData.heavyGoodsChargeSkCents
+					? formatCurrency(raw.unifiedGuildData.heavyGoodsChargeSkCents / 100)
+					: null,
+				Category: raw.unifiedGuildData.category
 			}
 		};
 	}

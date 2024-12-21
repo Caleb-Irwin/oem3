@@ -141,11 +141,14 @@ export async function updateUnifiedGuildRow(
       null,
     weightGrams: item.dataRowContent.weightGrams,
     heavyGoodsChargeSkCents: item.dataRowContent.heavyGoodsChargeSkCents,
+    inventory: item.inventoryRowContent?.onHand ?? null,
     freightFlag: item.dataRowContent.freightFlag,
     deleted: item.dataRowContent.deleted,
   };
 
-  const changes: Partial<typeof unifiedGuild.$inferInsert> = {};
+  const changes: Partial<typeof unifiedGuild.$inferInsert> = {
+    lastUpdated: Date.now(),
+  };
   for (const key of Object.keys(transformed) as (keyof typeof transformed)[]) {
     if (transformed[key] !== item[key]) {
       //@ts-expect-error
@@ -153,7 +156,7 @@ export async function updateUnifiedGuildRow(
     }
   }
 
-  if (Object.keys(changes).length > 0) {
+  if (Object.keys(changes).length > 1) {
     await db
       .update(unifiedGuild)
       .set(changes)

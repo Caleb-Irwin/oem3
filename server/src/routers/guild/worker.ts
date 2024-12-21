@@ -46,6 +46,10 @@ work({
       }
       await PromisePool.withConcurrency(100)
         .for(toAdd)
+        .handleError(async (error, _, pool) => {
+          console.error(error);
+          return pool.stop();
+        })
         .process(async (row) => {
           const { id } = (
             await db

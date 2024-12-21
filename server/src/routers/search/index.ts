@@ -13,6 +13,7 @@ import { guildFlyerHook } from "../guild/flyer";
 import { shopifyHook } from "../shopify";
 import { sprPriceFileHook } from "../spr/priceFile";
 import { sprFlatFileHook } from "../spr/flatFile";
+import { guildHook } from "../guild";
 
 const { worker } = managedWorker(
   new URL("worker.ts", import.meta.url).href,
@@ -25,6 +26,7 @@ const { worker } = managedWorker(
     shopifyHook,
     sprPriceFileHook,
     sprFlatFileHook,
+    guildHook,
   ]
 );
 

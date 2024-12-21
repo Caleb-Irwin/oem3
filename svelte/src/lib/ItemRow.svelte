@@ -39,11 +39,14 @@
 					src={product.imageUrl.startsWith('https://shopofficeonline.com/ProductImages/') &&
 					product.imageUrl.endsWith('.jpg')
 						? `/app/resource/guildThumb/${product.imageUrl.slice(product.imageUrl.indexOf('https://shopofficeonline.com/ProductImages/') + 43)}`
-						: product.imageUrl.startsWith('https://cdn.shopify.com/')
-							? product.imageUrl.includes('?')
-								? product.imageUrl + '&width=256'
-								: product.imageUrl + '?width=256'
-							: product.imageUrl}
+						: product.imageUrl.startsWith('https://img.shopofficeonline.com/venxia') &&
+							  product.imageUrl.endsWith('.png')
+							? `/app/resource/guildThumb/${encodeURIComponent(product.imageUrl.slice(product.imageUrl.indexOf('https://img.shopofficeonline.com/venxia') + 40))}`
+							: product.imageUrl.startsWith('https://cdn.shopify.com/')
+								? product.imageUrl.includes('?')
+									? product.imageUrl + '&width=256'
+									: product.imageUrl + '?width=256'
+								: product.imageUrl}
 					alt="Image for {product.sku}"
 					class="w-full rounded-sm"
 					loading="lazy"

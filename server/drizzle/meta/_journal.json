@@ -421,6 +421,20 @@
       "when": 1734750849662,
       "tag": "0059_polite_blonde_phantom",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1734763235744,
+      "tag": "0060_mysterious_black_cat",
+      "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1734763245554,
+      "tag": "0061_stormy_terror",
+      "breakpoints": true
     }
   ]
 }

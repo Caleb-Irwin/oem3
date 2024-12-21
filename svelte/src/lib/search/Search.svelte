@@ -74,11 +74,12 @@
 			{:else}
 				<select name="type" bind:value={queryType}>
 					<option value="all">All</option>
+					<option value="unifiedGuild">Guild</option>
 					<option value="qb">QB</option>
+					<option value="shopify">Shopify</option>
 					<option value="guildData">Guild Data</option>
 					<option value="guildInventory">G. Inv.</option>
 					<option value="guildFlyer">G. Flyer</option>
-					<option value="shopify">Shopify</option>
 					<option value="sprPriceFile">SPR Price</option>
 					<option value="sprFlatFile">SPR Info</option>
 				</select>

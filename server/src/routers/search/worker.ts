@@ -11,6 +11,7 @@ import {
   shopify,
   sprFlatFile,
   sprPriceFile,
+  unifiedGuild,
   type ChangesetTable,
   type ResourceType,
 } from "../../db.schema";
@@ -144,6 +145,16 @@ work({
         otherInfo: `${item.fullDescription} ${item.manufacturerName} ${
           item.keywords
         } ${getSubStrings(item.sprcSku ?? "")} `,
+      };
+    });
+    await updateSearchIndex(unifiedGuild, (item) => {
+      return {
+        keyInfo: `${item.gid} ${item.upc ?? ""} ${item.basics ?? ""} ${
+          item.cis ?? ""
+        } ${item.spr ?? ""}`,
+        otherInfo: `${item.title} ${item.description} ${getSubStrings(
+          item.gid
+        )} ${getSubStrings(item.upc ?? "")}`,
       };
     });
   },
