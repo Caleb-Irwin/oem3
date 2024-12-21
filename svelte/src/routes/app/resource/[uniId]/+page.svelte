@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { client, query } from '$lib/client';
-	import { ProgressBar } from '@skeletonlabs/skeleton';
 	import type { PageData } from './$types';
 	import type { history as historyType } from '../../../../../../server/src/db.schema';
 	import History from '$lib/History.svelte';
@@ -8,6 +6,7 @@
 	import CopyableText from '$lib/helpers/CopyableText.svelte';
 	import DOMPurify from 'isomorphic-dompurify';
 	import EnhancedImages from './EnhancedContent.svelte';
+	import { readable } from 'svelte/store';
 
 	interface Props {
 		data: PageData;
@@ -15,7 +14,8 @@
 
 	let { data }: Props = $props();
 
-	const res = query(client.resources.get, { uniId: parseInt(data.uniId), includeHistory: true });
+	let res = readable(data.res);
+
 	let history: (typeof historyType.$inferSelect)[] = $derived(
 		$res ? ($res as any)['history'] : undefined
 	);
@@ -23,11 +23,7 @@
 	let product = $derived($res ? productDetails($res) : undefined);
 </script>
 
-{#if $res === undefined}
-	<div class="px-4">
-		<ProgressBar />
-	</div>
-{:else if $res === null}
+{#if $res === null}
 	<p class="text-center text-xl">Resource not found</p>
 {:else}
 	{#if product}

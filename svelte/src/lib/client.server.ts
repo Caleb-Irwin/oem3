@@ -13,3 +13,5 @@ export const getServerClient = (authJWT: string) =>
 			})
 		]
 	});
+
+export type ServerClient = ReturnType<typeof getServerClient>;
