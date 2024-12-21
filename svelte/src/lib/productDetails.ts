@@ -50,7 +50,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 	if (raw.guildData) {
 		const guild = raw.guildData;
 		return {
-			idText: 'Guild#' + guild.id,
+			idText: 'GuildData#' + guild.id,
 			id: guild.id,
 			name: guild.shortDesc,
 			price: format(guild.priceL1Cents / 100),

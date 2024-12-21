@@ -47,6 +47,7 @@ work({
             sprPriceFile: db.query.sprPriceFile,
             sprFlatFile: db.query.sprFlatFile,
             unifiedItem: db.query.unifiedItems,
+            unifiedGuild: db.query.unifiedGuild,
           }[resourceName] as typeof db.query.qb
         ).findMany({
           with: { uniref: true },

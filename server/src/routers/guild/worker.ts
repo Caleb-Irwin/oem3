@@ -128,6 +128,10 @@ work({
       let done = 0;
       await PromisePool.withConcurrency(100)
         .for(rowsToUpdate)
+        .handleError(async (error, _, pool) => {
+          console.error(error);
+          return pool.stop();
+        })
         .process(async (id) => {
           await updateUnifiedGuildRow(id, db);
           done++;

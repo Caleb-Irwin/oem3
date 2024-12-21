@@ -3,6 +3,7 @@ import {
   boolean,
   index,
   integer,
+  pgEnum,
   pgTable,
   serial,
   text,
@@ -14,6 +15,14 @@ import { guildInventory } from "./inventory/table";
 import { guildFlyer } from "./flyer/table";
 import { relations } from "drizzle-orm";
 import { uniref } from "../../db.schema";
+
+export const categoryEnum = pgEnum("category", [
+  "officeSchool",
+  "technology",
+  "furniture",
+  "cleaningBreakRoom",
+  "inkToner",
+]);
 
 export const unifiedGuild = pgTable(
   "unifiedGuild",
@@ -46,8 +55,9 @@ export const unifiedGuild = pgTable(
     masterPackQty: integer("masterPackQty"),
     imageUrl: varchar("imageUrl", { length: 256 }),
     imageDescriptions: text("imageDescriptions"),
-    otherImageListJSON: text("imageListJSON"),
+    otherImageListJSON: text("imageListJSON"), // {url: string, description: string}[]
     vendor: varchar("vendor", { length: 256 }),
+    category: categoryEnum("category"),
 
     weightGrams: integer("weightGrams"),
     heavyGoodsChargeSkCents: integer("heavyGoodsChargeSkCents"),
@@ -63,9 +73,9 @@ export const unifiedGuild = pgTable(
         unifiedGuildTable.inventoryRow
       ),
       flyerRowIndex: uniqueIndex("flyerRow_idx").on(unifiedGuildTable.flyerRow),
-      upcIndex: uniqueIndex("upc_idx").on(unifiedGuildTable.upc),
-      sprIndex: uniqueIndex("spr_idx").on(unifiedGuildTable.spr),
-      cisIndex: uniqueIndex("cis_idx").on(unifiedGuildTable.cis),
+      upcIndex: index("upc_idx").on(unifiedGuildTable.upc),
+      sprIndex: index("spr_idx").on(unifiedGuildTable.spr),
+      cisIndex: index("cis_idx").on(unifiedGuildTable.cis),
       lastUpdatedIndex: index("lastUpdated_idx").on(
         unifiedGuildTable.lastUpdated
       ),

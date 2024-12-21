@@ -75,7 +75,7 @@
 				<select name="type" bind:value={queryType}>
 					<option value="all">All</option>
 					<option value="qb">QB</option>
-					<option value="guild">Guild</option>
+					<option value="guildData">Guild Data</option>
 					<option value="guildInventory">G. Inv.</option>
 					<option value="guildFlyer">G. Flyer</option>
 					<option value="shopify">Shopify</option>

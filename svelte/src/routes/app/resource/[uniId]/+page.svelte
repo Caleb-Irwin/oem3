@@ -38,10 +38,10 @@
 						class="p-2 w-full flex flex-col justify-center md:block md:min-w-96 md:max-w-96 lg:min-w-[512px] lg:max-w-[512px]"
 					>
 						<img src={product.imageUrl} alt="" class="rounded p-2 bg-white w-full" />
-						{#if product.idText.startsWith('SPRFlatFile#') || product.idText.startsWith('Guild#')}
+						{#if product.idText.startsWith('SPRFlatFile#') || product.idText.startsWith('GuildData#')}
 							<EnhancedImages
 								etilizeId={product.other['Etilize ID'] ?? undefined}
-								gid={product.idText.startsWith('Guild#') ? product.sku : undefined}
+								gid={product.idText.startsWith('GuildData#') ? product.sku : undefined}
 							/>
 						{/if}
 					</div>
