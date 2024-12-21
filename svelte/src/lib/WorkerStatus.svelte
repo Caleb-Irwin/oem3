@@ -7,14 +7,14 @@
 
 	interface Props {
 		status: Readable<
-		| {
-				message: string;
-				error: boolean;
-				running: boolean;
-				progress: number;
-		  }
-		| undefined
-	>;
+			| {
+					message: string;
+					error: boolean;
+					running: boolean;
+					progress: number;
+			  }
+			| undefined
+		>;
 	}
 
 	let { status }: Props = $props();
@@ -42,7 +42,11 @@
 		<div class="py-2">
 			<ProgressBar
 				meter="bg-primary-500"
-				value={$status.progress >= 0 ? $status.progress * 100 : 0}
+				value={$status.progress >= 0
+					? $status.progress * 100
+					: $status.progress === -1
+						? undefined
+						: 0}
 			/>
 		</div>
 	{:else}

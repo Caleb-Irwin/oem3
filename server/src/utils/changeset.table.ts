@@ -16,7 +16,7 @@ import {
   type guildData,
   type qb,
   sprFlatFile,
-  unifiedGuildTable,
+  unifiedGuild,
 } from "../db.schema";
 import { relations } from "drizzle-orm";
 
@@ -43,7 +43,7 @@ export type ChangesetTable =
   | typeof shopify
   | typeof sprPriceFile
   | typeof sprFlatFile
-  | typeof unifiedGuildTable;
+  | typeof unifiedGuild;
 
 export const changesets = pgTable("changesets", {
   id: serial("id").primaryKey(),

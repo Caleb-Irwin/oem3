@@ -6,7 +6,7 @@ import {
   shopify,
   sprFlatFile,
   sprPriceFile,
-  unifiedGuildTable,
+  unifiedGuild,
   unifiedItems,
 } from "../db.schema";
 import { relations } from "drizzle-orm";
@@ -68,12 +68,9 @@ export const uniref = pgTable(
         onDelete: "cascade",
       })
       .unique(),
-    unifiedGuild: integer("unifiedGuild").references(
-      () => unifiedGuildTable.id,
-      {
-        onDelete: "cascade",
-      }
-    ),
+    unifiedGuild: integer("unifiedGuild").references(() => unifiedGuild.id, {
+      onDelete: "cascade",
+    }),
     unifiedItem: integer("unifiedItem")
       .references(() => unifiedItems.id, {
         onDelete: "cascade",
@@ -135,8 +132,8 @@ export const unirefRelations = relations(uniref, ({ one }) => ({
     fields: [uniref.sprFlatFile],
     references: [sprFlatFile.id],
   }),
-  unifiedGuildData: one(unifiedGuildTable, {
+  unifiedGuildData: one(unifiedGuild, {
     fields: [uniref.unifiedGuild],
-    references: [unifiedGuildTable.id],
+    references: [unifiedGuild.id],
   }),
 }));

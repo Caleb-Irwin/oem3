@@ -13,8 +13,9 @@ import { guildData, guildUmEnum } from "./data/table";
 import { guildInventory } from "./inventory/table";
 import { guildFlyer } from "./flyer/table";
 import { relations } from "drizzle-orm";
+import { uniref } from "../../db.schema";
 
-export const unifiedGuildTable = pgTable(
+export const unifiedGuild = pgTable(
   "unifiedGuild",
   {
     id: serial("id").primaryKey(),
@@ -72,20 +73,21 @@ export const unifiedGuildTable = pgTable(
   }
 );
 
-export const unifiedGuildRelations = relations(
-  unifiedGuildTable,
-  ({ one }) => ({
-    dataRow: one(guildData, {
-      fields: [unifiedGuildTable.dataRow],
-      references: [guildData.id],
-    }),
-    inventoryRow: one(guildInventory, {
-      fields: [unifiedGuildTable.inventoryRow],
-      references: [guildInventory.id],
-    }),
-    flyerRow: one(guildFlyer, {
-      fields: [unifiedGuildTable.flyerRow],
-      references: [guildFlyer.id],
-    }),
-  })
-);
+export const unifiedGuildRelations = relations(unifiedGuild, ({ one }) => ({
+  uniref: one(uniref, {
+    fields: [unifiedGuild.id],
+    references: [uniref.unifiedGuild],
+  }),
+  dataRowContent: one(guildData, {
+    fields: [unifiedGuild.dataRow],
+    references: [guildData.id],
+  }),
+  inventoryRowContent: one(guildInventory, {
+    fields: [unifiedGuild.inventoryRow],
+    references: [guildInventory.id],
+  }),
+  flyerRowContent: one(guildFlyer, {
+    fields: [unifiedGuild.flyerRow],
+    references: [guildFlyer.id],
+  }),
+}));
