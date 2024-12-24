@@ -3,7 +3,7 @@ import cron from "node-cron";
 let proc: ReturnType<typeof Bun.spawn>;
 
 async function start() {
-  proc = Bun.spawn(["bun", "run", "--smol", "./src/index.ts"], {
+  proc = Bun.spawn(["bun", "run", "./src/index.ts"], {
     onExit(_, exitCode, signalCode, error) {
       if ((signalCode as unknown as string) === "SIGTERM") {
         console.warn("Killed");

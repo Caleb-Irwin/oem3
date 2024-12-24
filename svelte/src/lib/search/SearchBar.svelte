@@ -3,6 +3,7 @@
 	import Settings from 'lucide-svelte/icons/settings';
 	import { Accordion, AccordionItem, focusTrap, SlideToggle } from '@skeletonlabs/skeleton';
 	import type { QueryType } from '../../../../server/src/routers/search';
+	import { afterNavigate } from '$app/navigation';
 
 	interface Props {
 		query?: string;
@@ -22,20 +23,19 @@
 			(props.queryType !== 'all' && props.queryType !== undefined) ||
 				props.qbMode === true ||
 				props.searchInResults === true
-		);
+		),
+		loading = $state(false);
+
+	afterNavigate(() => (loading = false));
 </script>
 
-<form class="w-full" action="/app/search">
-	{@render searchBar()}
-</form>
-
-{#snippet searchBar()}
+<form class="w-full" action="/app/search" onsubmit={() => (loading = true)}>
 	<div class="w-full flex flex-col justify-center content-center items-center pb-1">
 		<div class="h-20 p-1 form w-full flex max-w-2xl">
 			<div class="input-group input-group-divider grid-cols-[1fr_auto]" use:focusTrap={focus}>
 				<input type="text" placeholder="Search Query" name="query" bind:value={query} />
 				<button
-					class="variant-filled-primary w-16 disabled:bg-primary-400 disabled:dark:bg-primary-800"
+					class="variant-filled-primary w-16 {loading ? 'bg-primary-400 dark:bg-primary-800' : ''}"
 				>
 					<Search />
 				</button>
@@ -54,13 +54,13 @@
 				</svelte:fragment>
 			</AccordionItem>
 		</Accordion>
+		{#if !searchSettingsOpen}
+			<div class="hidden">
+				{@render searchOptions()}
+			</div>
+		{/if}
 	</div>
-	{#if !searchSettingsOpen}
-		<div class="hidden">
-			{@render searchOptions()}
-		</div>
-	{/if}
-{/snippet}
+</form>
 
 {#snippet searchOptions()}
 	<div class="w-full flex flex-row flex-wrap justify-center">

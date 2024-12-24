@@ -12,16 +12,16 @@
 
 <SearchBar {...data}></SearchBar>
 
-{#key data.queryString}
-	{#await data.res}
-		<div class="w-full p-2">
-			<ProgressBar />
-		</div>
-	{:then res}
-		{#if res}
+{#key data.res}
+	{#if data.res}
+		{#await data.res}
+			<div class="w-full p-2">
+				<ProgressBar />
+			</div>
+		{:then res}
 			<SearchRes searchPages={[res]} select={undefined} editSearchQuery={undefined} fullHeight />
-		{/if}
-	{/await}
+		{/await}
+	{/if}
 {/key}
 
 <button
