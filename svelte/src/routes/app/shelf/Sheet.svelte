@@ -9,7 +9,7 @@
 	import Plus from 'lucide-svelte/icons/plus';
 	import Copy from 'lucide-svelte/icons/copy';
 	import Button from '$lib/Button.svelte';
-	import Search from '$lib/search/Search.svelte';
+	import Search from '$lib/search/OldSearch.svelte';
 
 	interface Props {
 		sheetId: number;

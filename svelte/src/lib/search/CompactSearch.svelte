@@ -33,7 +33,7 @@
 			<div class="input-group input-group-divider grid-cols-[1fr_auto]" use:focusTrap={focus}>
 				<input type="text" placeholder="Search Query" name="query" bind:value={query} />
 				<select name="type" class="hidden" bind:value={queryType}>
-					<option value={queryType}>QB</option>
+					<option value={queryType}>QUERY TYPE</option>
 				</select>
 
 				<button class="variant-filled-primary w-16">
@@ -45,7 +45,7 @@
 	{#if searchRes}
 		{#key searchRes}
 			<SearchRes
-				res={searchRes}
+				searchPages={[searchRes]}
 				{select}
 				editSearchQuery={async (q) => {
 					query = '';

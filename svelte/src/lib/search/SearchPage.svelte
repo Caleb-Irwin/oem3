@@ -1,5 +1,4 @@
 <script lang="ts">
-	import SearchPage from './SearchPage.svelte';
 	import { client } from '$lib/client';
 	import ItemRow, { type SelectFunc } from '$lib/ItemRow.svelte';
 	import { getModalStore, ProgressBar } from '@skeletonlabs/skeleton';
@@ -10,28 +9,15 @@
 		grid: boolean;
 		all: boolean;
 		select: SelectFunc;
-		increaseTotal: (newCount: number, isMore: boolean) => void;
+		addPage: (pageToAdd: number) => Promise<void>;
 	}
 
-	let { res, grid, all, select, increaseTotal }: Props = $props();
+	let { res, grid, all, select, addPage }: Props = $props();
 	const modalStore = getModalStore();
 	let el: HTMLDivElement | undefined = $state();
-
-	let moreRes: Awaited<ReturnType<typeof client.search.search.query>> | undefined =
-		$state(undefined);
-	const handleIntersect = async () => {
-		if (res.more) {
-			moreRes = await client.search.search.query({
-				query: res.query,
-				type: res.queryType,
-				page: res.page + 1
-			});
-			increaseTotal(moreRes.count, moreRes.more);
-		}
-	};
 </script>
 
-<IntersectionObserver element={el} once on:intersect={handleIntersect}>
+<IntersectionObserver element={el} once on:intersect={() => addPage(res.page + 1)}>
 	<div
 		class="grid gap-2 {grid
 			? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 '
@@ -50,16 +36,8 @@
 							modalStore.close();
 						}
 					: undefined}
+				newTab
 			/>
 		{/each}
 	</div>
 </IntersectionObserver>
-{#if res.more}
-	{#if moreRes === undefined}
-		<div class="w-full h-4 p-4">
-			<ProgressBar height="h-4" />
-		</div>
-	{:else}
-		<SearchPage res={moreRes} {grid} {select} {increaseTotal} {all} />
-	{/if}
-{/if}

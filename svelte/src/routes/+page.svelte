@@ -2,6 +2,16 @@
 	import Form from '$lib/Form.svelte';
 	import { client } from '$lib/client';
 	import Footer from './app/Footer.svelte';
+	import type { AfterNavigate } from '@sveltejs/kit';
+	import { afterNavigate } from '$app/navigation';
+
+	afterNavigate((params: AfterNavigate) => {
+		const isNewPage = params.from?.url.pathname !== params.to?.url.pathname;
+		const elemPage = document.querySelector('#page');
+		if (isNewPage && elemPage !== null) {
+			elemPage.scrollTop = 0;
+		}
+	});
 </script>
 
 <svelte:head>

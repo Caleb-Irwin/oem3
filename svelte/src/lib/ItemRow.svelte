@@ -11,6 +11,7 @@
 		all?: boolean;
 		select?: SelectFunc;
 		extraClass?: string;
+		newTab?: boolean;
 	}
 
 	let {
@@ -18,7 +19,8 @@
 		grid = false,
 		all = false,
 		select = undefined,
-		extraClass = ''
+		extraClass = '',
+		newTab = false
 	}: Props = $props();
 
 	let product = productDetails(rawProduct);
@@ -34,6 +36,7 @@
 			<a
 				class="{grid ? 'w-full' : 'h-20 w-20'} aspect-square p-1 card hover:cursor-pointer"
 				href={'/app/resource/' + rawProduct.uniId}
+				target={newTab ? '_blank' : '_self'}
 			>
 				<img
 					src={product.imageUrl.startsWith('https://shopofficeonline.com/ProductImages/') &&
@@ -58,7 +61,7 @@
 			<a
 				href={'/app/resource/' + rawProduct.uniId}
 				class="font-semibold hover:underline block w-full {product.name ? '' : 'italic'}"
-				>{product.name || 'Unnamed Item'}</a
+				target={newTab ? '_blank' : '_self'}>{product.name || 'Unnamed Item'}</a
 			>
 			<p class="my-1">
 				<span class="text-lg {product.comparePrice ? 'text-primary-600' : ''}">

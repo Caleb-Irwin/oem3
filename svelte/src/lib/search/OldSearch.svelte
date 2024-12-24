@@ -39,7 +39,7 @@
 			response,
 			component: {
 				ref: SearchRes,
-				props: { res, select }
+				props: { searchPages: [res], select }
 			}
 		});
 		tick().then(async () => {

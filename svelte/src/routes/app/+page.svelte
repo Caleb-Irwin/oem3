@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Search from '$lib/search/Search.svelte';
+	import SearchBar from '$lib/search/SearchBar.svelte';
 	import type { PageData } from './$types';
 
 	interface Props {
@@ -17,7 +17,9 @@
 			<span class="font-semibold">{data.user.permissionLevel}</span>.
 		</p>
 	</div>
-	<Search />
+	<div class="w-full flex">
+		<SearchBar />
+	</div>
 	<div class="w-full grid grid-cols-1 lg:grid-cols-2">
 		<a href="/app/shelf" class="card card-hover p-6 m-2">
 			<h3 class="font-semibold text-2xl">Shelf</h3>
