@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({ url, locals: { client } }) => {
 		qbMode = url.searchParams.get('qbMode') === 'on' ? true : false,
 		searchInResults = url.searchParams.get('searchInResults') == 'on' ? true : false;
 
-	let res: Awaited<ReturnType<typeof client.search.search.query>> | undefined = undefined;
+	let res: ReturnType<typeof client.search.search.query> | undefined = undefined;
 	if (query) {
 		if (
 			!(
@@ -31,7 +31,7 @@ export const load: PageServerLoad = async ({ url, locals: { client } }) => {
 				`/app/search?query=${query}&type=all${qbMode ? '&qbMode=on' : ''}${searchInResults ? '&searchInResults=on' : ''}`
 			);
 		}
-		res = await client.search.search.query({
+		res = client.search.search.query({
 			query,
 			type
 		});
