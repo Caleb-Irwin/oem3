@@ -45,7 +45,7 @@ export const searchRouter = router({
     )
     .query(async ({ input: { query, type: queryType, page } }) => {
       const PAGE_SIZE = 48,
-        processedQuery = query.split(" ").join(" | ");
+        processedQuery = query.trim().split(" ").join(" | ");
 
       // https://orm.drizzle.team/learn/guides/postgresql-full-text-search
       const matchQuery = sql`(

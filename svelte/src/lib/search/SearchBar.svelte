@@ -33,7 +33,13 @@
 	<div class="w-full flex flex-col justify-center content-center items-center pb-1">
 		<div class="h-20 p-1 form w-full flex max-w-2xl">
 			<div class="input-group input-group-divider grid-cols-[1fr_auto]" use:focusTrap={focus}>
-				<input type="text" placeholder="Search Query" name="query" bind:value={query} />
+				<input
+					type="text"
+					placeholder="Search Query"
+					name="query"
+					class={loading ? 'text-gray-500' : ''}
+					bind:value={query}
+				/>
 				<button
 					class="variant-filled-primary w-16 {loading ? 'bg-primary-400 dark:bg-primary-800' : ''}"
 				>

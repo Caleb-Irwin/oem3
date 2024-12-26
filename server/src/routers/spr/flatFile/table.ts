@@ -8,7 +8,6 @@ import {
   text,
   varchar,
   bigint,
-  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { sprEnhancedContent, uniref } from "../../../db.schema";
 
@@ -16,8 +15,8 @@ export const sprFlatFile = pgTable(
   "sprFlatFile",
   {
     id: serial("id").primaryKey(),
-    sprcSku: varchar("sprcSku", { length: 256 }).notNull().unique(),
-    etilizeId: varchar("etilizeId", { length: 32 }).unique().notNull(),
+    sprcSku: varchar("sprcSku", { length: 256 }).notNull(),
+    etilizeId: varchar("etilizeId", { length: 32 }).notNull(),
     sprCatalogSku: varchar("sprCatalogSku", { length: 256 }),
     brandName: varchar("brandName", { length: 256 }),
     productType: varchar("productType", { length: 256 }),
@@ -49,7 +48,7 @@ export const sprFlatFile = pgTable(
   },
   (spr) => {
     return {
-      sprcSkuIndex: uniqueIndex("sprFlatFile_sprcSku_idx").on(spr.sprcSku),
+      sprcSkuIndex: index("sprFlatFile_sprcSku_idx").on(spr.sprcSku),
       etilizeIdIndex: index("sprFlatFile_etilizeId_idx").on(spr.etilizeId),
       lastUpdatedIndex: index("sprFlatFile_last_updated_idx").on(
         spr.lastUpdated

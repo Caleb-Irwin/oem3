@@ -84,6 +84,10 @@ export const createChangeset = async (
       let taskCount = 0;
       await PromisePool.withConcurrency(100)
         .for(rawItems)
+        .handleError(async (error, _, pool) => {
+          console.error(error);
+          return pool.stop();
+        })
         .onTaskFinished(() => {
           taskCount++;
           if (taskCount % 500 === 0) progress(taskCount / total);
@@ -175,6 +179,10 @@ export const createChangeset = async (
 
       await PromisePool.withConcurrency(100)
         .for(deletedItems)
+        .handleError(async (error, _, pool) => {
+          console.error(error);
+          return pool.stop();
+        })
         .process(async (item) => {
           await db
             .update(table)
