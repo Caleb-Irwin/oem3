@@ -26,6 +26,7 @@
   "scripts": {
     "build": "bun install && cd ../svelte && bun run installBuild",
     "dev": "concurrently \"DEV=TRUE bun --watch src/index.ts\" \"cd ../svelte && bun run dev\" \"docker compose up\" -n Server,Kit,DB -c blue,yellow,green",
+    "dev:server": "bun --watch src/index.ts",
     "start": "bun run src/index.ts",
     "generate": "drizzle-kit generate",
     "preview": "concurrently \"bun run start\" \"docker compose up\" -n Server,DB -c blue,green",

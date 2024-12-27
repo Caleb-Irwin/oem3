@@ -22,7 +22,7 @@ work({
     await db.transaction(async (db) => {
       const prevItems = new Map(
         (await db.query.sprFlatFile.findMany({ with: { uniref: true } })).map(
-          (item) => [item.sprcSku, item]
+          (item) => [item.etilizeId, item]
         )
       );
 
