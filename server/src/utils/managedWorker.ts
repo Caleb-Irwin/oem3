@@ -28,6 +28,7 @@ export const managedWorker = (
     },
     postRunCallbacks: (() => void)[] = [],
     runWorker: RunWorker = async (data, time = Date.now()) => {
+      console.log(`Running ${name} worker`);
       if (status.running) throw new Error("Already Processing");
       status.running = true;
       status.error = false;
@@ -79,29 +80,40 @@ export const managedWorker = (
           update();
           if (done) {
             postRunCallbacks.forEach((cb) => cb());
+            if (
+              ((await kv.get("lastStaled"))
+                ? parseInt((await kv.get("lastStaled")) as string)
+                : Number.NEGATIVE_INFINITY) >
+              parseInt((await kv.get("lastRan")) as string)
+            ) {
+              runWorker({}, time);
+            }
           }
           if (!started) rej("Worker closed before completing task");
-          if (
-            ((await kv.get("lastStaled"))
-              ? parseInt((await kv.get("lastStaled")) as string)
-              : Number.NEGATIVE_INFINITY) >
-            parseInt((await kv.get("lastRan")) as string)
-          ) {
-            runWorker({}, time);
-          }
         });
       });
     };
 
-  runAfter.forEach((setCb) =>
-    setCb(async () => {
-      const time = Date.now();
-      await kv.set("lastStaled", time.toString());
-      if (status.running) return;
-      runWorker({}, time);
-    })
-  );
+  if (runAfter.length > 0) {
+    runAfter.forEach((setCb) =>
+      setCb(async () => {
+        const time = Date.now();
+        await kv.set("lastStaled", time.toString());
+        if (status.running) return;
+        runWorker({}, time);
+      })
+    );
 
+    (async () => {
+      if (
+        (await kv.get("lastStaled")) &&
+        parseInt((await kv.get("lastStaled")) as string) >
+          parseInt((await kv.get("lastRan")) as string)
+      ) {
+        runWorker({});
+      }
+    })();
+  }
   return {
     runWorker,
     worker: router({
