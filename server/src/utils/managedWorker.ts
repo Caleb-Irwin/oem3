@@ -79,6 +79,7 @@ export const managedWorker = (
           status.error = done ? false : true;
           update();
           if (done) {
+            console.log(`Finished ${name} worker`);
             postRunCallbacks.forEach((cb) => cb());
             if (
               ((await kv.get("lastStaled"))
