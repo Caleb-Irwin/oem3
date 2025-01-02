@@ -40,4 +40,4 @@ COPY --from=server-install /temp/server/prod/node_modules ./server/node_modules
 # run the app
 USER bun
 EXPOSE 3000/tcp
-ENTRYPOINT cd server && bun start.ts
+ENTRYPOINT cd server && bun run --smol ./src/index.ts
