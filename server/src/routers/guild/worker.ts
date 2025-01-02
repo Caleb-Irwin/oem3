@@ -5,8 +5,9 @@ import { guildData } from "./data/table";
 import { unifiedGuild } from "./table";
 import PromisePool from "@supercharge/promise-pool";
 import { guildFlyer, guildInventory, uniref } from "../../db.schema";
-import { insertHistory } from "../../utils/history";
+import { insertHistory, insertMultipleHistory } from "../../utils/history";
 import { updateUnifiedGuildRow } from "./updateUnifiedGuildRow";
+import { chunk } from "../../utils/chunk";
 
 declare var self: Worker;
 
@@ -45,45 +46,50 @@ work({
         }
       }
       console.time("toAdd");
-      console.log(toAdd.length);
       let toAddCount = 0;
       await PromisePool.withConcurrency(10)
-        .for(toAdd)
+        .for(chunk(toAdd))
         .handleError(async (error, _, pool) => {
           console.error(error);
           return pool.stop();
         })
-        .process(async (row) => {
-          const { id } = (
-            await db
-              .insert(unifiedGuild)
-              .values({
+        .process(async (chunk) => {
+          const rows = await db
+            .insert(unifiedGuild)
+            .values(
+              chunk.map((row) => ({
                 gid: row.gid,
                 dataRow: row.id,
                 lastUpdated: row.lastUpdated,
-              })
-              .returning({ id: unifiedGuild.id })
-              .execute()
-          )[0];
-          rowsToUpdate.add(id);
-          const { uniId } = (
-            await db
-              .insert(uniref)
-              .values({ resourceType: "unifiedGuild", unifiedGuild: id })
-              .returning({ uniId: uniref.uniId })
-              .execute()
-          )[0];
-          await insertHistory({
+              }))
+            )
+            .returning({ id: unifiedGuild.id })
+            .execute();
+          rows.forEach(({ id }) => rowsToUpdate.add(id));
+          const uniRows = await db
+            .insert(uniref)
+            .values(
+              rows.map(({ id }) => ({
+                resourceType: "unifiedGuild" as const,
+                unifiedGuild: id,
+              }))
+            )
+            .returning({ uniId: uniref.uniId })
+            .execute();
+
+          await insertMultipleHistory({
             db,
-            uniref: uniId,
             resourceType: "unifiedGuild",
-            entryType: "create",
-            data: { gid: row.gid, dataRow: row.id },
-            created: currentTime,
+            rows: chunk.map((v, i) => ({
+              uniref: uniRows[i].uniId,
+              entryType: "create",
+              data: { gid: v.gid, dataRow: v.id },
+              created: currentTime,
+            })),
           });
-          toAddCount++;
-          if (toAddCount % 200 === 0)
-            console.log(Math.round((toAddCount / toAdd.length) * 100) + "%");
+
+          toAddCount += chunk.length;
+          console.log(Math.round((toAddCount / toAdd.length) * 100) + "%");
         });
       console.timeEnd("toAdd");
 

@@ -9,6 +9,7 @@ import papa from "papaparse";
 import { sprFlatFile } from "../flatFile/table";
 import { eq, isNull } from "drizzle-orm";
 import { DEV } from "../../../config";
+import { chunk } from "../../../utils/chunk";
 
 declare var self: Worker;
 
@@ -308,17 +309,6 @@ function readCSV<T>(filePath: string): T[] {
   );
   data.pop(); //Last row empty
   return data;
-}
-
-function chunk<T>(arr: T[]): T[][] {
-  return arr.reduce((res, item, i) => {
-    if (i % 200 !== 0) {
-      res[res.length - 1].push(item);
-    } else {
-      res.push([item]);
-    }
-    return res;
-  }, [] as T[][]);
 }
 
 async function unzipFile(zipFile: string, outputFolder: string) {

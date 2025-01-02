@@ -46,3 +46,56 @@ export const insertHistory = async <T extends object>({
     created,
   });
 };
+
+export const insertMultipleHistory = async <T extends object>({
+  db = DB,
+  resourceType,
+  rows,
+}: {
+  db: typeof DB;
+  resourceType: ResourceType;
+  rows: {
+    uniref: number;
+    changeset?: number | undefined;
+    entryType: EntryType;
+    data?: Partial<T> | null;
+    prev?: T;
+    exclude?: (keyof T)[];
+    created: number;
+  }[];
+}) => {
+  await db.insert(history).values(
+    rows.map(
+      ({
+        uniref,
+        changeset = undefined,
+        entryType,
+        data,
+        prev,
+        exclude = [],
+        created,
+      }) => ({
+        uniref,
+        resourceType,
+        changeset,
+        entryType,
+        data:
+          entryType === "create"
+            ? JSON.stringify(data)
+            : entryType === "update" && data
+            ? JSON.stringify(
+                Object.entries(data)
+                  .map(([key, newValue]): [string, any, any] => [
+                    key,
+                    //@ts-expect-error
+                    prev[key],
+                    newValue,
+                  ])
+                  .filter(([key]) => !exclude.includes(key as keyof T))
+              )
+            : null,
+        created,
+      })
+    )
+  );
+};
