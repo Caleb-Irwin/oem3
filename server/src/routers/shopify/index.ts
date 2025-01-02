@@ -51,19 +51,22 @@ export const shopifyRouter = router({
       )
         throw new Error("Failed to create bulk operation");
 
-      let bulkQueryResults;
+      let bulkQueryResults,
+        iterations = 0;
       while (true) {
         const r = await client.request(pollBulkQueryQuery);
-        console.log(
-          `${Math.round((Date.now() - startTime) / 100) / 10}s elapsed (${
-            r.data?.currentBulkOperation?.objectCount
-          } objects so far)`
-        );
+        if (iterations % 10 === 0)
+          console.log(
+            `${Math.round((Date.now() - startTime) / 100) / 10}s elapsed (${
+              r.data?.currentBulkOperation?.objectCount
+            } objects so far)`
+          );
         if (r.data?.currentBulkOperation?.status !== "RUNNING") {
           bulkQueryResults = r;
           break;
         }
         await new Promise((resolve) => setTimeout(resolve, 500));
+        iterations++;
       }
       if (bulkQueryResults.data?.currentBulkOperation?.status !== "COMPLETED") {
         console.log(JSON.stringify(bulkQueryResults.data, undefined, 2));

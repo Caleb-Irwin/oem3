@@ -44,6 +44,9 @@ work({
           toAdd.push(row);
         }
       }
+      console.time("toAdd");
+      console.log(toAdd.length);
+      let toAddCount = 0;
       await PromisePool.withConcurrency(10)
         .for(toAdd)
         .handleError(async (error, _, pool) => {
@@ -78,7 +81,11 @@ work({
             data: { gid: row.gid, dataRow: row.id },
             created: currentTime,
           });
+          toAddCount++;
+          if (toAddCount % 200 === 0)
+            console.log(Math.round((toAddCount / toAdd.length) * 100) + "%");
         });
+      console.timeEnd("toAdd");
 
       // 2. Find to match or update
       const inventoryLastUpdated = 0, //TODO
