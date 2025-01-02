@@ -82,7 +82,7 @@ export const createChangeset = async (
     }) => {
       const total = rawItems.length;
       let taskCount = 0;
-      await PromisePool.withConcurrency(100)
+      await PromisePool.withConcurrency(10)
         .for(rawItems)
         .handleError(async (error, _, pool) => {
           console.error(error);
@@ -177,7 +177,7 @@ export const createChangeset = async (
         ? customDeletedItems
         : Array.from(prevItems.values()).filter((v) => !v.deleted);
 
-      await PromisePool.withConcurrency(100)
+      await PromisePool.withConcurrency(10)
         .for(deletedItems)
         .handleError(async (error, _, pool) => {
           console.error(error);

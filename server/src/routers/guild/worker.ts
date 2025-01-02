@@ -44,7 +44,7 @@ work({
           toAdd.push(row);
         }
       }
-      await PromisePool.withConcurrency(100)
+      await PromisePool.withConcurrency(10)
         .for(toAdd)
         .handleError(async (error, _, pool) => {
           console.error(error);
@@ -128,9 +128,10 @@ work({
       await kv.set("lastGuildFlyerUpdate", greatestFlyerLastUpdated.toString());
 
       // 3. Update matches + summaries
+      console.time("updateMatches");
       const total = toMatchOrUpdate.length;
       let done = 0;
-      await PromisePool.withConcurrency(100)
+      await PromisePool.withConcurrency(10)
         .for(rowsToUpdate)
         .handleError(async (error, _, pool) => {
           console.error(error);
@@ -141,6 +142,7 @@ work({
           done++;
           if (done % 100 === 0) progress(done / total);
         });
+      console.timeEnd("updateMatches");
 
       // 4. Done!
     });
