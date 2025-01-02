@@ -2,6 +2,22 @@ import { db as DB } from "../db";
 import { history, type EntryType } from "./history.table";
 import type { ResourceType } from "./uniref.table";
 
+export interface InsertHistoryRowOptions<T extends object> {
+  uniref: number;
+  changeset?: number | undefined;
+  entryType: EntryType;
+  data?: Partial<T> | null;
+  prev?: T;
+  exclude?: (keyof T)[];
+  created: number;
+}
+
+interface InsertHistoryParams<T extends object>
+  extends InsertHistoryRowOptions<T> {
+  db: typeof DB;
+  resourceType: ResourceType;
+}
+
 export const insertHistory = async <T extends object>({
   db = DB,
   uniref,
@@ -12,17 +28,7 @@ export const insertHistory = async <T extends object>({
   prev,
   exclude = [],
   created,
-}: {
-  db: typeof DB;
-  uniref: number;
-  resourceType: ResourceType;
-  changeset?: number | undefined;
-  entryType: EntryType;
-  data?: Partial<T> | null;
-  prev?: T;
-  exclude?: (keyof T)[];
-  created: number;
-}) => {
+}: InsertHistoryParams<T>) => {
   await db.insert(history).values({
     uniref,
     resourceType,
@@ -47,22 +53,14 @@ export const insertHistory = async <T extends object>({
   });
 };
 
-export const insertMultipleHistory = async <T extends object>({
+export const insertMultipleHistoryRows = async <T extends object>({
   db = DB,
   resourceType,
   rows,
 }: {
   db: typeof DB;
   resourceType: ResourceType;
-  rows: {
-    uniref: number;
-    changeset?: number | undefined;
-    entryType: EntryType;
-    data?: Partial<T> | null;
-    prev?: T;
-    exclude?: (keyof T)[];
-    created: number;
-  }[];
+  rows: InsertHistoryRowOptions<T>[];
 }) => {
   await db.insert(history).values(
     rows.map(

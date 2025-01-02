@@ -5,7 +5,7 @@ import { guildData } from "./data/table";
 import { unifiedGuild } from "./table";
 import PromisePool from "@supercharge/promise-pool";
 import { guildFlyer, guildInventory, uniref } from "../../db.schema";
-import { insertHistory, insertMultipleHistory } from "../../utils/history";
+import { insertMultipleHistoryRows } from "../../utils/history";
 import { updateUnifiedGuildRow } from "./updateUnifiedGuildRow";
 import { chunk } from "../../utils/chunk";
 
@@ -15,9 +15,9 @@ work({
   self,
   process: async ({ db, progress }) => {
     progress(-1);
+    const rowsToUpdate = new Set<number>();
     await db.transaction(async (db) => {
-      const rowsToUpdate = new Set<number>(),
-        kv = new KV("unifiedGuild", db),
+      const kv = new KV("unifiedGuild", db),
         lastGuildUpdate = 0; //TODO parseInt((await kv.get("lastGuildUpdate")) ?? "0");
       await db.delete(unifiedGuild).execute(); //TODO
       const currentTime = Date.now();
@@ -45,8 +45,6 @@ work({
           toAdd.push(row);
         }
       }
-      console.time("toAdd");
-      let toAddCount = 0;
       await PromisePool.withConcurrency(10)
         .for(chunk(toAdd))
         .handleError(async (error, _, pool) => {
@@ -76,8 +74,7 @@ work({
             )
             .returning({ uniId: uniref.uniId })
             .execute();
-
-          await insertMultipleHistory({
+          await insertMultipleHistoryRows({
             db,
             resourceType: "unifiedGuild",
             rows: chunk.map((v, i) => ({
@@ -87,11 +84,7 @@ work({
               created: currentTime,
             })),
           });
-
-          toAddCount += chunk.length;
-          console.log(Math.round((toAddCount / toAdd.length) * 100) + "%");
         });
-      console.timeEnd("toAdd");
 
       // 2. Find to match or update
       const inventoryLastUpdated = 0, //TODO
@@ -139,25 +132,26 @@ work({
         greatestInventoryLastUpdated.toString()
       );
       await kv.set("lastGuildFlyerUpdate", greatestFlyerLastUpdated.toString());
-
-      // 3. Update matches + summaries
-      console.time("updateMatches");
-      const total = toMatchOrUpdate.length;
-      let done = 0;
-      await PromisePool.withConcurrency(10)
-        .for(rowsToUpdate)
-        .handleError(async (error, _, pool) => {
-          console.error(error);
-          return pool.stop();
-        })
-        .process(async (id) => {
-          await updateUnifiedGuildRow(id, db);
-          done++;
-          if (done % 100 === 0) progress(done / total);
-        });
-      console.timeEnd("updateMatches");
-
-      // 4. Done!
     });
+
+    // 3. Update matches + summaries
+    console.time("updateMatches");
+    let done = 0;
+    await PromisePool.withConcurrency(20)
+      .for(rowsToUpdate)
+      .handleError(async (error, _, pool) => {
+        console.error(error);
+        return pool.stop();
+      })
+      .process(async (id) => {
+        await db.transaction(async (db) => {
+          await updateUnifiedGuildRow(id, db);
+        });
+        done++;
+        if (done % 100 === 0) progress(done / rowsToUpdate.size);
+      });
+    console.timeEnd("updateMatches");
+
+    // 4. Done!
   },
 });

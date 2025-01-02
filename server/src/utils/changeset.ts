@@ -10,7 +10,12 @@ import PromisePool from "@supercharge/promise-pool";
 import { getTableConfig } from "drizzle-orm/pg-core";
 import type { genDiffer } from "./changeset.helpers";
 import { uniref } from "./uniref.table";
-import { insertHistory } from "./history";
+import {
+  insertHistory,
+  insertMultipleHistoryRows,
+  type InsertHistoryRowOptions,
+} from "./history";
+import { chunk } from "./chunk";
 
 export const createChangeset = async (
   table: ChangesetTable,
@@ -80,9 +85,10 @@ export const createChangeset = async (
       progress: (amountDone: number) => void;
       customDeletedItems?: Item[] | undefined;
     }) => {
-      const total = rawItems.length;
+      const total = rawItems.length,
+        historyArr: InsertHistoryRowOptions<ItemInsert>[] = [];
       let taskCount = 0;
-      await PromisePool.withConcurrency(10)
+      await PromisePool.withConcurrency(25)
         .for(rawItems)
         .handleError(async (error, _, pool) => {
           console.error(error);
@@ -113,9 +119,7 @@ export const createChangeset = async (
               .insert(uniref)
               .values(uniResObj)
               .returning({ id: uniref.uniId });
-            await insertHistory({
-              db,
-              resourceType: name,
+            historyArr.push({
               entryType: "create",
               uniref: uniRes[0].id,
               changeset: changeset.id,
@@ -133,9 +137,7 @@ export const createChangeset = async (
                   .update(table)
                   .set({ deleted: false, lastUpdated: timeStamp })
                   .where(eq(table.id, prev.id));
-                await insertHistory({
-                  db,
-                  resourceType: name,
+                historyArr.push({
                   entryType: "update",
                   uniref: prev.uniref.uniId,
                   changeset: changeset.id,
@@ -157,9 +159,7 @@ export const createChangeset = async (
                 .update(table)
                 .set({ ...diffRes, deleted: false, lastUpdated: timeStamp })
                 .where(eq(table.id, prev.id));
-              await insertHistory({
-                db,
-                resourceType: name,
+              historyArr.push({
                 entryType: "update",
                 uniref: prev.uniref.uniId,
                 changeset: changeset.id,
@@ -177,7 +177,7 @@ export const createChangeset = async (
         ? customDeletedItems
         : Array.from(prevItems.values()).filter((v) => !v.deleted);
 
-      await PromisePool.withConcurrency(10)
+      await PromisePool.withConcurrency(20)
         .for(deletedItems)
         .handleError(async (error, _, pool) => {
           console.error(error);
@@ -188,9 +188,7 @@ export const createChangeset = async (
             .update(table)
             .set({ lastUpdated: timeStamp, deleted: true })
             .where(eq(table.id, item.id));
-          await insertHistory({
-            db,
-            resourceType: name,
+          historyArr.push({
             entryType: "delete",
             uniref: item.uniref.uniId,
             changeset: changeset.id,
@@ -198,6 +196,14 @@ export const createChangeset = async (
           });
           summary["delete"]++;
         });
+
+      for (const rows of chunk(historyArr)) {
+        await insertMultipleHistoryRows({
+          db,
+          resourceType: name,
+          rows,
+        });
+      }
 
       await db
         .update(changesets)
