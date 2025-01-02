@@ -37,45 +37,43 @@ work({
           (await kv.get("lastSearchUpdate/" + resourceName)) ?? "0"
         );
       let newLastSearchUpdate: string = lastSearchUpdate.toString();
-      await db.transaction(async (db) => {
-        const toUpdate = await (
-          {
-            qb: db.query.qb,
-            guildData: db.query.guildData,
-            guildInventory: db.query.guildInventory,
-            guildFlyer: db.query.guildFlyer,
-            shopify: db.query.shopify,
-            sprPriceFile: db.query.sprPriceFile,
-            sprFlatFile: db.query.sprFlatFile,
-            unifiedItem: db.query.unifiedItems,
-            unifiedGuild: db.query.unifiedGuild,
-          }[resourceName] as typeof db.query.qb
-        ).findMany({
-          with: { uniref: true },
-          where: gt(searchTable.lastUpdated, lastSearchUpdate),
-          orderBy: desc(searchTable.lastUpdated),
-        });
-        await PromisePool.for(toUpdate)
-          .withConcurrency(100)
-          .process(async (item) => {
-            const { keyInfo, otherInfo } = infoFunc(item);
-            await db
-              .insert(search)
-              .values({
-                uniId: item.uniref.uniId,
-                type: resourceName,
-                keyInfo,
-                otherInfo,
-              })
-              .onConflictDoUpdate({
-                target: search.uniId,
-                set: { keyInfo, otherInfo },
-              });
-          });
-        newLastSearchUpdate = String(
-          toUpdate[0]?.lastUpdated ?? lastSearchUpdate
-        );
+      const toUpdate = await (
+        {
+          qb: db.query.qb,
+          guildData: db.query.guildData,
+          guildInventory: db.query.guildInventory,
+          guildFlyer: db.query.guildFlyer,
+          shopify: db.query.shopify,
+          sprPriceFile: db.query.sprPriceFile,
+          sprFlatFile: db.query.sprFlatFile,
+          unifiedItem: db.query.unifiedItems,
+          unifiedGuild: db.query.unifiedGuild,
+        }[resourceName] as typeof db.query.qb
+      ).findMany({
+        with: { uniref: true },
+        where: gt(searchTable.lastUpdated, lastSearchUpdate),
+        orderBy: desc(searchTable.lastUpdated),
       });
+      await PromisePool.for(toUpdate)
+        .withConcurrency(100)
+        .process(async (item) => {
+          const { keyInfo, otherInfo } = infoFunc(item);
+          await db
+            .insert(search)
+            .values({
+              uniId: item.uniref.uniId,
+              type: resourceName,
+              keyInfo,
+              otherInfo,
+            })
+            .onConflictDoUpdate({
+              target: search.uniId,
+              set: { keyInfo, otherInfo },
+            });
+        });
+      newLastSearchUpdate = String(
+        toUpdate[0]?.lastUpdated ?? lastSearchUpdate
+      );
       await kv.set(
         "lastSearchUpdate/" + resourceName,
         newLastSearchUpdate as string

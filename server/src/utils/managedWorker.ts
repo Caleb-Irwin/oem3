@@ -28,12 +28,12 @@ export const managedWorker = (
     },
     postRunCallbacks: (() => void)[] = [],
     runWorker: RunWorker = async (data, time = Date.now()) => {
-      console.log(`Running ${name} worker`);
       if (status.running) throw new Error("Already Processing");
       status.running = true;
       status.error = false;
       status.message = "Starting";
       status.progress = -1;
+      console.log(`Running ${name} worker`);
       update();
       return new Promise<void>((res, rej) => {
         const worker = new Worker(workerUrl, {
@@ -82,12 +82,11 @@ export const managedWorker = (
             console.log(`Finished ${name} worker`);
             postRunCallbacks.forEach((cb) => cb());
             if (
-              ((await kv.get("lastStaled"))
-                ? parseInt((await kv.get("lastStaled")) as string)
-                : Number.NEGATIVE_INFINITY) >
-              parseInt((await kv.get("lastRan")) as string)
+              (await kv.get("lastStaled")) &&
+              parseInt((await kv.get("lastStaled")) as string) >
+                (parseInt((await kv.get("lastRan")) as string) ?? 0)
             ) {
-              runWorker({}, time);
+              runWorker({});
             }
           }
           if (!started) rej("Worker closed before completing task");
@@ -100,8 +99,7 @@ export const managedWorker = (
       setCb(async () => {
         const time = Date.now();
         await kv.set("lastStaled", time.toString());
-        if (status.running) return;
-        runWorker({}, time);
+        if (!status.running) runWorker({}, time);
       })
     );
 

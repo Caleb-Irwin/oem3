@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { db as DB } from "../db";
 import {
   changesetType,
@@ -177,33 +177,46 @@ export const createChangeset = async (
         ? customDeletedItems
         : Array.from(prevItems.values()).filter((v) => !v.deleted);
 
-      await PromisePool.withConcurrency(20)
-        .for(deletedItems)
+      await PromisePool.withConcurrency(5)
+        .for(chunk(deletedItems))
         .handleError(async (error, _, pool) => {
           console.error(error);
           return pool.stop();
         })
-        .process(async (item) => {
+        .process(async (items) => {
           await db
             .update(table)
             .set({ lastUpdated: timeStamp, deleted: true })
-            .where(eq(table.id, item.id));
-          historyArr.push({
-            entryType: "delete",
-            uniref: item.uniref.uniId,
-            changeset: changeset.id,
-            created: timeStamp,
-          });
-          summary["delete"]++;
+            .where(
+              inArray(
+                table.id,
+                items.map((x) => {
+                  historyArr.push({
+                    entryType: "delete",
+                    uniref: x.uniref.uniId,
+                    changeset: changeset.id,
+                    created: timeStamp,
+                  });
+                  return x.id;
+                })
+              )
+            );
+          summary["delete"] += items.length;
         });
 
-      for (const rows of chunk(historyArr)) {
-        await insertMultipleHistoryRows({
-          db,
-          resourceType: name,
-          rows,
+      await PromisePool.withConcurrency(5)
+        .for(chunk(historyArr))
+        .handleError(async (error, _, pool) => {
+          console.error(error);
+          return pool.stop();
+        })
+        .process(async (rows) => {
+          await insertMultipleHistoryRows({
+            db,
+            resourceType: name,
+            rows,
+          });
         });
-      }
 
       await db
         .update(changesets)
