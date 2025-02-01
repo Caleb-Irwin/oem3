@@ -3,6 +3,7 @@
 </script>
 
 <script lang="ts">
+	import CopyableText from './helpers/CopyableText.svelte';
 	import { productDetails, type RawProduct } from './productDetails';
 
 	interface Props {
@@ -73,7 +74,7 @@
 					</span>
 				{/if}
 				<span class="chip variant-soft-tertiary m-0.5">
-					{product.sku}
+					<CopyableText text={product.sku} />
 				</span>
 				{#if product.stock !== null}
 					<span
