@@ -26,7 +26,7 @@ export const sprPriceFile = pgTable(
   {
     id: serial("id").primaryKey(),
     sprcSku: varchar("sprcSku", { length: 256 }).notNull().unique(),
-    etilizeId: varchar("etilizeId", { length: 32 }).unique(),
+    etilizeId: varchar("etilizeId", { length: 32 }),
     status: sprPriceStatusEnum("status"),
     description: text("description"),
     um: sprPriceUmEnum("um"),

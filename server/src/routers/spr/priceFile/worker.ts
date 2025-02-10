@@ -58,11 +58,11 @@ function transformPriceFile(
 ): typeof sprPriceFile.$inferInsert {
   return {
     sprcSku: item["Current SPRC SKU"].trim(),
-    etilizeId: item["ProductID"].trim(),
-    status: getStatus(item["Product Status"].trim()),
+    etilizeId: item["ProductID"] ? item["ProductID"].toString().trim() : null,
+    status: getStatus(item["Product Status"]?.trim()),
     description: item.Description.trim(),
     um: getUm(item.UM.trim()),
-    upc: item.UPC.trim(),
+    upc: item.UPC?.trim() ?? null,
     catPage: removeNaN(Math.round(parseFloat(item["Cat. Page"] as string))),
     dealerNetPriceCents: removeNaN(
       Math.round(

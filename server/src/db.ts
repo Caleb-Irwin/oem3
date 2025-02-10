@@ -7,7 +7,12 @@ import { POSTGRESQL } from "./env";
 const connect = async (depth = 0): Promise<ReturnType<typeof postgres>> => {
   if (depth > 0) console.log("Connecting to DB (try " + (depth + 1) + ")");
   try {
-    const sql = postgres(POSTGRESQL);
+    const sql = postgres(POSTGRESQL, {
+      onnotice: (e) => {
+        if (e["code"] === "42P06" || e["code"] === "42P07") return;
+        console.warn(e);
+      },
+    });
     await sql`select 1`;
     return sql;
   } catch (e: any) {
