@@ -73,8 +73,8 @@ export const sprEnhancedContent = pgTable(
   {
     id: serial("id").primaryKey(),
     etilizeId: varchar("etilizeId", { length: 32 }).unique().notNull(),
-    sprc: varchar("sprc", { length: 64 }).unique(),
-    cws: varchar("cws", { length: 64 }).unique(),
+    sprc: varchar("sprc", { length: 64 }),
+    cws: varchar("cws", { length: 64 }),
     upc: varchar("upc", { length: 64 }),
     gtin: varchar("gtin", { length: 64 }),
     primaryImage: varchar("primaryImage", { length: 64 }),

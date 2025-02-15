@@ -22,10 +22,12 @@
 	}
 </script>
 
-<span class="chip hover:cursor-default whitespace-break-spaces variant-filled-surface m-0.5"
-	>{key}:
-	{#if !create}
-		{toReadable(prev)} ->
-	{/if}
-	{toReadable(value)}</span
+<span
+	class="chip hover:cursor-default whitespace-break-spaces variant-filled-surface m-0.5 flex flex-col lg:flex-row"
 >
+	<span class="font-bold text-primary-500 pr-1"> {key}: </span>
+	{#if !create}
+		{toReadable(prev)}<span class="font-bold text-primary-500 pr-2"> -> </span>
+	{/if}
+	{toReadable(value)}
+</span>
