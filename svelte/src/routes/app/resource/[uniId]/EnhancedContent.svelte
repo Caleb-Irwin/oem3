@@ -47,7 +47,7 @@
 			<a
 				class="grid place-content-center p-0.5"
 				href={$res.spr
-					? `https://content.etilize.com/${$res.spr.primaryImage}/${etilizeId}.jpg?size=700`
+					? `https://content.etilize.com/${$res.spr.primaryImage}/${etilizeId}.jpg`
 					: JSON.parse($res.guild?.imageListJSON ?? '[]')[0]}
 				target="_blank"
 			>
@@ -67,7 +67,9 @@
 						target="_blank"
 					>
 						<img
-							src={$res.spr ? `https://content.etilize.com/${image}/${etilizeId}.jpg` : image}
+							src={$res.spr
+								? `https://content.etilize.com/${image}/${etilizeId}.jpg?size=400`
+								: image}
 							alt=""
 							class="rounded bg-white w-full"
 						/>
