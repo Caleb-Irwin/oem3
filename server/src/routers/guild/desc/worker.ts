@@ -34,7 +34,7 @@ work({
       success = 0,
       total = guildList.length;
 
-    await PromisePool.withConcurrency(10)
+    await PromisePool.withConcurrency(1)
       .for(new Array(10).fill(null))
       .process(async () => {
         const session = new SessionManager();

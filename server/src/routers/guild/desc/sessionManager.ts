@@ -133,7 +133,6 @@ export class SessionManager {
     }
   }
 
-  private reqStack: (() => Promise<void>)[] = [];
   async req(
     path: string,
     reqInit?: RequestInit,
@@ -141,40 +140,24 @@ export class SessionManager {
     customFetch?: typeof fetch,
     retry = true
   ): Promise<Response> {
-    const res = new Promise<Response>((resProm) => {
-      const executeReq = async () => {
-        await this.readyGuard();
-        const res = await req(
-          path,
-          this.session as Session,
-          reqInit,
-          conf,
-          customFetch
-        );
-        await this.updateFromResponse(res);
-        if (res.status === 401 && retry) {
-          await this.init(undefined, "refresh");
-          resProm(await this.req(path, reqInit, conf, customFetch, false));
-        }
-        resProm(res);
-      };
-      this.reqStack.push(executeReq);
-    });
+    await this.readyGuard();
 
-    this.runReqs();
+    const res = await req(
+      path,
+      this.session as Session,
+      reqInit,
+      conf,
+      customFetch
+    );
 
-    return await res;
-  }
+    await this.updateFromResponse(res);
 
-  private reqRunning = false;
-  private async runReqs() {
-    if (this.reqRunning) return;
-    this.reqRunning = true;
-    while (this.reqStack.length > 0) {
-      const firstReq = this.reqStack.shift();
-      if (firstReq) await firstReq();
+    if (res.status === 401 && retry) {
+      await this.init(undefined, "refresh");
+      return await this.req(path, reqInit, conf, customFetch, false);
     }
-    this.reqRunning = false;
+
+    return res;
   }
 }
 
