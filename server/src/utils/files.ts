@@ -12,6 +12,8 @@ import {
 import { TRPCClientError } from "@trpc/client";
 import type { RunWorker } from "./managedWorker";
 import { scheduleDailyTask } from "./scheduler";
+import { deleteFile, uploadFile } from "./files.s3";
+import { getFileRow } from "./files.getRow";
 
 export const fileProcedures = (
   type: string,
@@ -38,18 +40,22 @@ export const fileProcedures = (
 
     await verifyFunction(file, fileType);
 
-    const { fileId } = (
-      await db
-        .insert(files)
-        .values({
-          content: file,
-          type,
-          name: fileName,
-          author: username,
-          uploadedTime: Date.now(),
-        })
-        .returning({ fileId: files.id })
-    )[0];
+    const fileId = await db.transaction(async (db) => {
+      const { fileId } = (
+        await db
+          .insert(files)
+          .values({
+            content: "@" + process.env["S3_BUCKET"],
+            type,
+            name: fileName,
+            author: username,
+            uploadedTime: Date.now(),
+          })
+          .returning({ fileId: files.id })
+      )[0];
+      await uploadFile(fileId, file);
+      return fileId;
+    });
 
     update();
 
@@ -99,8 +105,18 @@ export const fileProcedures = (
     del: generalProcedure
       .input(z.object({ fileId: z.number().int() }))
       .mutation(async ({ input: { fileId } }) => {
+        const row = await db.query.files.findFirst({
+          where: eq(files.id, fileId),
+        });
+        if (!row) return;
+        await db.transaction(async (db) => {
+          const res = await db
+            .delete(files)
+            .where(eq(files.id, fileId))
+            .returning({ content: files.content });
+          if (res[0]?.content?.startsWith("@")) await deleteFile(fileId);
+        });
         update();
-        await db.delete(files).where(eq(files.id, fileId));
       }),
     get: generalProcedure.query(async () => {
       return await db.query.files.findMany({
@@ -112,10 +128,7 @@ export const fileProcedures = (
     download: generalProcedure
       .input(z.object({ fileId: z.number().int() }))
       .query(async ({ input: { fileId } }) => {
-        return await db.query.files.findFirst({
-          where: eq(files.id, fileId),
-          columns: { content: true },
-        });
+        return await getFileRow(fileId);
       }),
     cloudDownload: generalProcedure
       .input(z.object({}))

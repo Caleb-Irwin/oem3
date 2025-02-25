@@ -1,8 +1,7 @@
-import { eq } from "drizzle-orm";
-import { files } from "./files.table";
 import * as schema from "../db.schema";
 import { createChangeset } from "./changeset";
 import { db, type db as dbType } from "../db";
+import { getFileRow } from "./files.getRow";
 
 export interface WorkerMessage {
   type: "ready" | "started" | "progress" | "done" | "changesetUpdate" | "error";
@@ -48,9 +47,8 @@ export const work = async ({ self, process: processFunc }: WorkerParams) => {
             if (typeof fileId !== "number")
               throw new Error("No fileId was provided!");
 
-            const fileRecord = await db.query.files.findFirst({
-              where: eq(files.id, fileId),
-            });
+            const fileRecord = await getFileRow(fileId);
+
             if (!fileRecord?.content)
               throw new Error("No file with id " + fileId);
             return fileRecord.content as string;
