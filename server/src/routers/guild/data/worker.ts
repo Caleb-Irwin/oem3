@@ -75,6 +75,11 @@ work({
   },
 });
 
+const convertZeroToEmpty = (v: unknown) => {
+  if (!v) return "";
+  return typeof v !== "string" ? "" : v.trim();
+};
+
 const transformGuild = (g: GuildRaw): typeof guildData.$inferInsert => {
   return {
     gid: g["Product Code (Guild Product #)"].trim(),
@@ -107,12 +112,16 @@ const transformGuild = (g: GuildRaw): typeof guildData.$inferInsert => {
     imageURL: (g["Image URL"] ?? "").trim(),
     vendor: (g["Supplier  (Guild Vendor Name)"] ?? "").trim(),
     webCategory: removeNaN(parseInt(g["Web Category"] as string)) ?? -1,
-    webCategory1Desc: (g["Web Category 1 Descriptions"] ?? "").trim(),
-    webCategory2Desc: (g["Web Category 2 'Sub' Descriptions"] ?? "").trim(),
-    webCategory3Desc: (g["Web Category 3 'Sub-Sub' Descriptions"] ?? "").trim(),
-    webCategory4Desc: (
-      g["Web Category 4 'Sub-Sub-Sub' Descriptions"] ?? ""
-    ).trim(),
+    webCategory1Desc: convertZeroToEmpty(g["Web Category 1 Descriptions"]),
+    webCategory2Desc: convertZeroToEmpty(
+      g["Web Category 2 'Sub' Descriptions"]
+    ),
+    webCategory3Desc: convertZeroToEmpty(
+      g["Web Category 3 'Sub-Sub' Descriptions"]
+    ),
+    webCategory4Desc: convertZeroToEmpty(
+      g["Web Category 4 'Sub-Sub-Sub' Descriptions"]
+    ),
     um: enforceEnum(
       (g["ENglish Unit"] ?? "").toLowerCase(),
       guildUmEnum.enumValues
