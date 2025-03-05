@@ -90,9 +90,8 @@ export const createChangeset = async (
       let taskCount = 0;
       await PromisePool.withConcurrency(25)
         .for(rawItems)
-        .handleError(async (error, _, pool) => {
-          console.error(error);
-          return pool.stop();
+        .handleError(async (error) => {
+          throw error;
         })
         .onTaskFinished(() => {
           taskCount++;
