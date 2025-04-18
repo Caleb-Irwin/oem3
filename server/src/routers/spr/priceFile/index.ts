@@ -31,11 +31,11 @@ export const sprPriceFileRouter = router({
         sprPriceObjects = xlsx.utils.sheet_to_json(worksheet, { header: 1 });
 
       [
-        "Current SPRC SKU",
+        "SPRC SKU",
         "ProductID",
         "Product Status",
         "Description",
-        "UM",
+        "UoM",
         "UPC",
         "Cat. Page",
         "Net Price",

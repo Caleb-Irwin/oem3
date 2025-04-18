@@ -57,11 +57,11 @@ function transformPriceFile(
   item: PriceFileRaw
 ): typeof sprPriceFile.$inferInsert {
   return {
-    sprcSku: item["Current SPRC SKU"].trim(),
+    sprcSku: item["SPRC SKU"].trim(),
     etilizeId: item["ProductID"] ? item["ProductID"].toString().trim() : null,
     status: getStatus(item["Product Status"]?.trim()),
     description: item.Description.trim(),
-    um: getUm(item.UM.trim()),
+    um: getUm(item.UoM.trim()),
     upc: item.UPC?.trim() ?? null,
     catPage: removeNaN(Math.round(parseFloat(item["Cat. Page"] as string))),
     dealerNetPriceCents: removeNaN(
@@ -99,11 +99,11 @@ function getUm(um: string): "EA" | "PAC" | "BOX" | null {
 }
 
 interface PriceFileRaw {
-  "Current SPRC SKU": string;
+  "SPRC SKU": string;
   ProductID: string;
   "Product Status": string;
   Description: string;
-  UM: string;
+  UoM: string;
   UPC: string;
   "Cat. Page": number | unknown;
   "Dealer Net Price": number | unknown;
