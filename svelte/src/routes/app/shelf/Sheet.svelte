@@ -36,7 +36,55 @@
 		name={sheetName}
 	/>
 
-	<ul class="w-full my-4 max-w-6xl">
+	<div class="my-4 flex flex-wrap md:flex-nowrap justify-center">
+		<Search
+			microQB
+			select={async (selection) => {
+				const res = await client.resources.get.query({ uniId: selection.uniref });
+				if (res?.qbData) {
+					modalStore.trigger({
+						type: 'component',
+						component: {
+							ref: AddLabel,
+							props: {
+								sheetId,
+								label: {
+									barcode: res.qbData.qbId.includes(':')
+										? res.qbData.qbId.split(':')[1]
+										: res.qbData.qbId,
+									name: res.qbData.desc,
+									priceCents: res.qbData.priceCents,
+									qbId: res.qbData.qbId
+								}
+							}
+						}
+					});
+				}
+			}}
+		/>
+		<button
+			class="btn variant-ghost-primary mx-2 mt-1 md:mt-0 text-primary-500 h-14"
+			onclick={() =>
+				modalStore.trigger({
+					type: 'component',
+					component: { ref: AddLabel, props: { sheetId } }
+				})}
+		>
+			<span><Plus /></span>
+			<span>Add Label</span>
+		</button>
+		<Button
+			class="btn variant-ghost-error text-error-500 mt-1 md:mt-0 h-14"
+			action={client.labels.sheet.clear}
+			input={{ id: sheetId }}
+			confirm={'Delete All Labels?'}
+		>
+			<span><Trash_2 /></span>
+			<span>Clear Sheet</span>
+		</Button>
+	</div>
+
+	<ul class="w-full max-w-6xl">
 		{#each $sheet ?? [] as label, i}
 			<li
 				class="m-0.5 rounded-sm flex {i % 2 === 0
@@ -87,52 +135,4 @@
 			<p class="text-center text-lg italic">Empty Sheet</p>
 		{/each}
 	</ul>
-
-	<div class="flex flex-wrap md:flex-nowrap justify-center">
-		<Search
-			microQB
-			select={async (selection) => {
-				const res = await client.resources.get.query({ uniId: selection.uniref });
-				if (res?.qbData) {
-					modalStore.trigger({
-						type: 'component',
-						component: {
-							ref: AddLabel,
-							props: {
-								sheetId,
-								label: {
-									barcode: res.qbData.qbId.includes(':')
-										? res.qbData.qbId.split(':')[1]
-										: res.qbData.qbId,
-									name: res.qbData.desc,
-									priceCents: res.qbData.priceCents,
-									qbId: res.qbData.qbId
-								}
-							}
-						}
-					});
-				}
-			}}
-		/>
-		<button
-			class="btn variant-ghost-primary mx-2 mt-1 md:mt-0 text-primary-500 h-14"
-			onclick={() =>
-				modalStore.trigger({
-					type: 'component',
-					component: { ref: AddLabel, props: { sheetId } }
-				})}
-		>
-			<span><Plus /></span>
-			<span>Add Label</span>
-		</button>
-		<Button
-			class="btn variant-ghost-error text-error-500 mt-1 md:mt-0 h-14"
-			action={client.labels.sheet.clear}
-			input={{ id: sheetId }}
-			confirm={'Delete All Labels?'}
-		>
-			<span><Trash_2 /></span>
-			<span>Clear Sheet</span>
-		</Button>
-	</div>
 {/if}

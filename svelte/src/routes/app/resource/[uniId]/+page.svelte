@@ -7,6 +7,7 @@
 	import DOMPurify from 'isomorphic-dompurify';
 	import EnhancedImages from './EnhancedContent.svelte';
 	import { readable } from 'svelte/store';
+	import Pencil from 'lucide-svelte/icons/pencil';
 
 	interface Props {
 		data: PageData;
@@ -56,9 +57,21 @@
 					</div>
 				{/if}
 				<div class="p-2 w-full">
-					<h1 class="h1 {product.name ? '' : 'italic'}">
-						<CopyableText text={product.name || 'Unnamed Item'} />
-					</h1>
+					<div class="flex items-start justify-between">
+						<h1 class="h1 {product.name ? '' : 'italic'}">
+							<CopyableText text={product.name || 'Unnamed Item'} />
+						</h1>
+						{#if $res?.unifiedGuildData}
+							<a
+								href={`/app/resource/${$res.uniId}/configure`}
+								class="btn btn-lg variant-filled-primary ml-1"
+								aria-label="Edit Item Config"
+							>
+								<Pencil />
+								<span>Configure</span>
+							</a>
+						{/if}
+					</div>
 					<h2 class="py-2 h2 font-semibold flex flex-wrap align-middle">
 						<span class={product.comparePrice ? 'text-primary-600' : ''}>
 							<CopyableText text={product.price} />
