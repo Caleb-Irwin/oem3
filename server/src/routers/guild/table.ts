@@ -14,7 +14,7 @@ import { guildData, guildUmEnum } from "./data/table";
 import { guildInventory } from "./inventory/table";
 import { guildFlyer } from "./flyer/table";
 import { relations } from "drizzle-orm";
-import { uniref } from "../../db.schema";
+import { uniref, cellConfigTable } from "../../db.schema";
 
 export const categoryEnum = pgEnum("category", [
   "officeSchool",
@@ -103,3 +103,39 @@ export const unifiedGuildRelations = relations(unifiedGuild, ({ one }) => ({
     references: [guildFlyer.id],
   }),
 }));
+
+
+
+export const unifiedGuildColumnEnum = pgEnum("unifiedGuildColumn", [
+  'gid',
+  'dataRow',
+  'inventoryRow',
+  'flyerRow',
+  'upc',
+  'spr',
+  'basics',
+  'cis',
+  'title',
+  'description',
+  'priceCents',
+  'comparePriceCents',
+  'costCents',
+  'um',
+  'qtyPerUm',
+  'masterPackQty',
+  'imageUrl',
+  'imageDescriptions',
+  'otherImageListJSON',
+  'vendor',
+  'category',
+  'weightGrams',
+  'heavyGoodsChargeSkCents',
+  'freightFlag',
+  'inventory',
+]);
+
+export const [unifiedGuildCellConfig, unifiedGuildCellConfigRelations] = cellConfigTable({
+  originalTable: unifiedGuild,
+  primaryKey: unifiedGuild.id,
+  columnEnum: unifiedGuildColumnEnum
+})

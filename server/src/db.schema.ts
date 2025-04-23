@@ -6,6 +6,7 @@ export * from "./routers/qb/table";
 export * from "./utils/uniref.table";
 export * from "./utils/changeset.table";
 export * from "./utils/history.table";
+export * from './utils/cellConfig.tableBuilder';
 export * from "./routers/search/table";
 export * from "./routers/guild/data/table";
 export * from "./routers/guild/inventory/table";
