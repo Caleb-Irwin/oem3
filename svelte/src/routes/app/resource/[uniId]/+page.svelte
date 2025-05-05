@@ -112,7 +112,7 @@
 								{key}
 							</p>
 							<p
-								class="p-0.5 {i % 2 === 0 ? 'bg-surface-200 dark:bg-surface-500' : ''}{value ===
+								class="p-0.5 {i % 2 === 0 ? 'bg-surface-200 dark:bg-surface-500' : ''} {value ===
 								null
 									? 'italic'
 									: ''}"
