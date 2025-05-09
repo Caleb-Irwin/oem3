@@ -104,38 +104,39 @@ export const unifiedGuildRelations = relations(unifiedGuild, ({ one }) => ({
   }),
 }));
 
-
-
 export const unifiedGuildColumnEnum = pgEnum("unifiedGuildColumn", [
-  'gid',
-  'dataRow',
-  'inventoryRow',
-  'flyerRow',
-  'upc',
-  'spr',
-  'basics',
-  'cis',
-  'title',
-  'description',
-  'priceCents',
-  'comparePriceCents',
-  'costCents',
-  'um',
-  'qtyPerUm',
-  'masterPackQty',
-  'imageUrl',
-  'imageDescriptions',
-  'otherImageListJSON',
-  'vendor',
-  'category',
-  'weightGrams',
-  'heavyGoodsChargeSkCents',
-  'freightFlag',
-  'inventory',
+  "gid",
+  "dataRow",
+  "inventoryRow",
+  "flyerRow",
+  "upc",
+  "spr",
+  "basics",
+  "cis",
+  "title",
+  "description",
+  "priceCents",
+  "comparePriceCents",
+  "costCents",
+  "um",
+  "qtyPerUm",
+  "masterPackQty",
+  "imageUrl",
+  "imageDescriptions",
+  "otherImageListJSON",
+  "vendor",
+  "category",
+  "weightGrams",
+  "heavyGoodsChargeSkCents",
+  "freightFlag",
+  "inventory",
 ]);
 
-export const [unifiedGuildCellConfig, unifiedGuildCellConfigRelations] = cellConfigTable({
+export const {
+  table: unifiedGuildCellConfig,
+  relations: unifiedGuildCellConfigRelations,
+} = cellConfigTable({
   originalTable: unifiedGuild,
   primaryKey: unifiedGuild.id,
-  columnEnum: unifiedGuildColumnEnum
-})
+  columnEnum: unifiedGuildColumnEnum,
+});

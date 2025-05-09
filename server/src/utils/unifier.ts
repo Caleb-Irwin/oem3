@@ -3,26 +3,34 @@ import {
   guildFlyer,
   guildInventory,
   unifiedGuild,
+  unifiedGuildCellConfig,
   uniref,
 } from "../db.schema";
 import { db as DB } from "../db";
-import { eq, isNull, type SQLWrapper, gt } from "drizzle-orm";
+import { eq, isNull, type SQLWrapper, gt, or } from "drizzle-orm";
 import { getTableConfig } from "drizzle-orm/pg-core";
 import { chunk } from "./chunk";
 import {
+  insertHistory,
   insertMultipleHistoryRows,
   type InsertHistoryRowOptions,
 } from "./history";
 import { KV } from "./kv";
+import { cellTransformer, createCellConfigurator } from "./cellConfigurator";
 
-export function createUnifier<RowType, TableType extends UnifiedTables>({
+export function createUnifier<
+  RowType extends TableType["$inferSelect"] & { uniref: { uniId: number } },
+  TableType extends UnifiedTables
+>({
   table,
+  confTable,
   getRow,
   transform,
   connections,
   version,
 }: {
   table: TableType;
+  confTable: CellConfigTable;
   getRow: (id: number, db: typeof DB) => Promise<RowType>;
   transform: (
     item: RowType,
@@ -33,28 +41,138 @@ export function createUnifier<RowType, TableType extends UnifiedTables>({
   connections: Connections<RowType, TableType>;
   version: number;
 }) {
+  const unifiedTableName = getTableConfig(table).name;
+
+  async function _modifyRow(
+    id: number,
+    row: Partial<TableType["$inferInsert"]>,
+    db: typeof DB
+  ) {
+    await db
+      .update(table)
+      .set(row as unknown as any)
+      .where(eq(table.id, id))
+      .execute();
+  }
+
   async function updateRow({
     id,
-    insertHistory = true,
+    updateHistory = true,
     db = DB,
   }: {
     id: number;
-    insertHistory?: boolean;
+    updateHistory?: boolean;
     db?: typeof DB;
   }): Promise<{
-    history: InsertHistoryRowOptions<TableType["$inferSelect"]>;
+    history: InsertHistoryRowOptions<TableType["$inferSelect"]> | null;
   }> {
-    const item = await getRow(id, db);
-    // 1. Check primary connections
-    // 2. Check + make other connections
-    // 3. Transform
-    const transformed = transform(item, cellTransformer);
-    // 4. Apply Overrides + Find Errors
-    // 5. Update Row
-    // 6. Update History
-    // throw new Error("Not implemented");
+    const originalRow = await getRow(id, db);
+    let updatedRow = structuredClone(originalRow);
+    const cellConfigurator = await createCellConfigurator(confTable, id, db);
+    // 1. Check + make connections
+    const connectionsList = [
+      connections.primaryTable,
+      /* Secondary, */
+      ...connections.otherTables,
+    ];
+    for (const connectionTable of connectionsList) {
+      const otherConnections = await connectionTable.findConnections(
+        updatedRow,
+        db
+      );
+      const connectionRowKey =
+        connectionTable.refCol as keyof TableType["$inferInsert"];
+      if (
+        updatedRow[connectionRowKey] === null &&
+        otherConnections.length > 0
+      ) {
+        updatedRow[connectionRowKey] = otherConnections[0] as any;
+      }
+      if (
+        otherConnections.length > 1 ||
+        (otherConnections.length === 1 &&
+          updatedRow[connectionRowKey] !== otherConnections[0])
+      ) {
+        //TODO Record Multiple Connections Error
+        console.log("More than one other connection found", id);
+      }
+      const newVal = cellConfigurator.getConfiguredCellValue(
+        {
+          key: connectionRowKey as any,
+          val: updatedRow[connectionRowKey] as number,
+          options: {
+            isRef: true,
+          },
+        },
+        originalRow[connectionRowKey] as number | null
+      );
+      if (originalRow[connectionRowKey] !== updatedRow[connectionRowKey]) {
+        const existing = await db
+          .select({ col: table[connectionRowKey as keyof TableType] as any })
+          .from(table)
+          .where(eq(table[connectionRowKey as keyof TableType] as any, newVal))
+          .execute();
+        if (existing.length > 0) {
+          updatedRow[connectionRowKey] = originalRow[connectionRowKey];
+          //TODO Record Duplicate Error
+          console.log("Duplicate Error", id);
+        } else {
+          await _modifyRow(
+            id,
+            {
+              [connectionRowKey]: newVal,
+            } as any,
+            db
+          );
+          updatedRow = await getRow(id, db);
+        }
+      }
+      //TODO deal with connections to deleted rows
+    }
+
+    // 2. Transform
+    const transformed = transform(updatedRow, cellTransformer);
+
+    // 3. Apply Overrides + Find Errors
+    const changes: Partial<(typeof table)["$inferSelect"]> = {};
+    for (const k of Object.keys(transformed)) {
+      if (k === "id" || k === "lastUpdated") continue;
+      const key = k as keyof (typeof table)["$inferInsert"];
+      const newVal = cellConfigurator.getConfiguredCellValue(
+        transformed[k as keyof typeof transformed],
+        originalRow[key] as any
+      ) as any;
+      if (originalRow[key] !== newVal) {
+        changes[key] = newVal;
+      }
+    }
+    //TODO COMMIT ERRORS
+    const hasChanges = Object.keys(changes).length > 0;
+
+    // 4. Update Row
+    if (hasChanges)
+      await _modifyRow(id, { lastUpdated: Date.now(), ...changes }, db);
+
+    // 5. Update History
+    const history: InsertHistoryRowOptions<TableType["$inferSelect"]> | null =
+      hasChanges
+        ? {
+            uniref: originalRow.uniref.uniId,
+            prev: originalRow,
+            entryType: "update",
+            data: changes,
+            created: Date.now(),
+          }
+        : null;
+    if (updateHistory && history)
+      await insertHistory({
+        db,
+        resourceType: unifiedTableName as any,
+        ...history,
+      });
+
     return {
-      history: {} as any,
+      history,
     };
   }
 
@@ -68,8 +186,7 @@ export function createUnifier<RowType, TableType extends UnifiedTables>({
     progress?: (progress: number) => void;
   }) {
     if (progress) progress(-1);
-    const unifiedTableName = getTableConfig(table).name,
-      kv = new KV("unifier/" + unifiedTableName, db),
+    const kv = new KV("unifier/" + unifiedTableName, db),
       newLastUpdated = Date.now(),
       prevLastUpdated = parseInt((await kv.get("lastUpdated")) ?? "0"),
       rowsToUpdate = new Set<number>();
@@ -137,21 +254,24 @@ export function createUnifier<RowType, TableType extends UnifiedTables>({
       allRows.forEach((v) => rowsToUpdate.add(v.id));
     } else {
       const sourceTables = [
-        connections.primaryTable.table,
-        ...connections.otherTables.map((v) => v.table),
+        connections.primaryTable,
+        ...connections.otherTables,
       ];
       for (const sourceTable of sourceTables) {
         const rows = await db
           .select({ id: table.id })
           .from(table)
-          .innerJoin(
-            sourceTable,
-            eq(
-              table[connections.primaryTable.refCol] as SQLWrapper,
-              sourceTable.id
-            )
+          .leftJoin(
+            sourceTable.table,
+            eq(table[sourceTable.refCol] as SQLWrapper, sourceTable.table.id)
           )
-          .where(gt(sourceTable.lastUpdated, prevLastUpdated));
+          .where(
+            or(
+              isNull(sourceTable.table.lastUpdated),
+              gt(sourceTable.table.lastUpdated, prevLastUpdated)
+            )
+          );
+        console.log(getTableConfig(sourceTable.table).name, rows.length);
         rows.forEach((r) => rowsToUpdate.add(r.id));
       }
     }
@@ -162,10 +282,10 @@ export function createUnifier<RowType, TableType extends UnifiedTables>({
       TableType["$inferSelect"]
     >[] = [];
     for (const id of rowsToUpdate) {
-      const { history } = await updateRow({ id, db, insertHistory: false });
-      historyToRecord.push(history);
+      const { history } = await updateRow({ id, db, updateHistory: false });
+      if (history) historyToRecord.push(history);
       done++;
-      if (progress && done % 50 === 0) progress(done / rowsToUpdate.size);
+      if (progress && done % 100 === 0) progress(done / rowsToUpdate.size);
     }
     if (progress) progress(1);
 
@@ -193,28 +313,7 @@ export type PrimarySourceTables = typeof unifiedGuild | typeof guildData;
 // export type SecondarySourceTables = typeof unifiedSPR
 export type OtherSourceTables = typeof guildInventory | typeof guildFlyer;
 
-type CellTransformerOptions<T> = {
-  shouldMatch?: { name: string; val: T; ignore?: boolean };
-  shouldNotBeNull?: boolean;
-  neverNull?: boolean;
-  isPrice?: boolean;
-  isRef?: boolean;
-};
-
-const cellTransformer = <
-  T extends UnifiedTables,
-  K extends keyof T["$inferSelect"]
->(
-  key: K,
-  val: T["$inferSelect"][K],
-  options?: CellTransformerOptions<T["$inferSelect"][K]>
-) => {
-  return {
-    key,
-    val,
-    options,
-  };
-};
+export type CellConfigTable = typeof unifiedGuildCellConfig;
 
 interface TableConnection<
   RowType,

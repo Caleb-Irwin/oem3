@@ -6,6 +6,7 @@ import {
   guildData,
   guildInventory,
   guildFlyer,
+  unifiedGuildCellConfig,
 } from "../../db.schema";
 
 const getRow = async (id: number, db: typeof DB) => {
@@ -32,6 +33,7 @@ type GuildRowType = Awaited<ReturnType<typeof getRow>>;
 
 export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
   table: unifiedGuild,
+  confTable: unifiedGuildCellConfig,
   version: 1,
   getRow,
   transform: (item, t) => {

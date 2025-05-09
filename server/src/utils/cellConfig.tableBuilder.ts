@@ -10,8 +10,22 @@ import {
   uniqueIndex,
   type AnyPgColumn,
   type AnyPgTable,
-  type PgEnum
+  type PgEnum,
 } from "drizzle-orm/pg-core";
+
+export type CellSetting =
+  | "setting:custom"
+  | "setting:approve"
+  | "setting:approveCustom"
+  | "setting:tempOverride";
+export type CellError =
+  | "error:multipleOptions"
+  | "error:missingValue"
+  | "error:needsApproval";
+export type CellData =
+  | "data:lastApprovedValue"
+  | "data:lastDisapprovedValue"
+  | "data:userNote";
 
 export const cellConfigType = pgEnum("cellConfigType", [
   //Field settings
@@ -26,17 +40,17 @@ export const cellConfigType = pgEnum("cellConfigType", [
   // Field data
   "data:lastApprovedValue",
   "data:lastDisapprovedValue",
-  "data:userNote"
+  "data:userNote",
 ]);
 
 export function cellConfigTable<COLS extends [string, ...string[]]>({
   originalTable,
   primaryKey,
-  columnEnum
+  columnEnum,
 }: {
   originalTable: AnyPgTable;
-  primaryKey: AnyPgColumn<{ columnType: 'PgInteger' | 'PgSerial' }>;
-  columnEnum: PgEnum<COLS>
+  primaryKey: AnyPgColumn<{ columnType: "PgInteger" | "PgSerial" }>;
+  columnEnum: PgEnum<COLS>;
 }) {
   const tableName = `${getTableName(originalTable)}CellConfig`;
 
@@ -70,11 +84,15 @@ export function cellConfigTable<COLS extends [string, ...string[]]>({
     ref: one(table, { fields: [table.refId], references: [primaryKey] }),
   }));
 
-  return [table, tableRelations];
+  return {
+    table,
+    relations: tableRelations,
+  } as const;
 }
 
 export interface CellConfigData {
   value?: string | number | undefined | null;
   thresholdPercent?: number;
-  options?: string[] | number[]
+  options?: string[] | number[];
+  errorResolved?: boolean;
 }
