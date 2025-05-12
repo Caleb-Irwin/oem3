@@ -68,21 +68,15 @@ export const unifiedGuild = pgTable(
     deleted: boolean("deleted").default(false).notNull(),
     lastUpdated: bigint("lastUpdated", { mode: "number" }).notNull(),
   },
-  (unifiedGuildTable) => {
-    return {
-      dataRowIndex: uniqueIndex("dataRow_idx").on(unifiedGuildTable.dataRow),
-      inventoryRowIndex: uniqueIndex("inventoryRow_idx").on(
-        unifiedGuildTable.inventoryRow
-      ),
-      flyerRowIndex: uniqueIndex("flyerRow_idx").on(unifiedGuildTable.flyerRow),
-      upcIndex: index("upc_idx").on(unifiedGuildTable.upc),
-      sprIndex: index("spr_idx").on(unifiedGuildTable.spr),
-      cisIndex: index("cis_idx").on(unifiedGuildTable.cis),
-      lastUpdatedIndex: index("lastUpdated_idx").on(
-        unifiedGuildTable.lastUpdated
-      ),
-    };
-  }
+  (unifiedGuildTable) => [
+    uniqueIndex("dataRow_idx").on(unifiedGuildTable.dataRow),
+    uniqueIndex("inventoryRow_idx").on(unifiedGuildTable.inventoryRow),
+    uniqueIndex("flyerRow_idx").on(unifiedGuildTable.flyerRow),
+    index("upc_idx").on(unifiedGuildTable.upc),
+    index("spr_idx").on(unifiedGuildTable.spr),
+    index("cis_idx").on(unifiedGuildTable.cis),
+    index("lastUpdated_idx").on(unifiedGuildTable.lastUpdated),
+  ]
 );
 
 export const unifiedGuildRelations = relations(unifiedGuild, ({ one }) => ({

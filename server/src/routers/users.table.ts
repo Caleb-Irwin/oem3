@@ -18,9 +18,5 @@ export const users = pgTable(
     passwordHash: varchar("password_hash", { length: 256 }),
     permissionLevel: permissionLevelEnum("permissionLevel"),
   },
-  (users) => {
-    return {
-      usernameIndex: uniqueIndex("username_idx").on(users.username),
-    };
-  }
+  (users) => [uniqueIndex("username_idx").on(users.username)]
 );

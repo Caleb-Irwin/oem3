@@ -27,14 +27,12 @@ export const guildDescriptions = pgTable(
     deleted: boolean("deleted").default(false).notNull(), // If resource 404s, set to true
     lastUpdated: bigint("lastUpdated", { mode: "number" }).notNull(),
   },
-  (guildDescriptions) => {
-    return {
-      gidIndex: index("guild_descriptions_gid_idx").on(guildDescriptions.gid),
-      lastUpdatedIndex: index("guild_descriptions_last_updated_idx").on(
-        guildDescriptions.lastUpdated
-      ),
-    };
-  }
+  (guildDescriptions) => [
+    index("guild_descriptions_gid_idx").on(guildDescriptions.gid),
+    index("guild_descriptions_last_updated_idx").on(
+      guildDescriptions.lastUpdated
+    ),
+  ]
 );
 
 export const guildDescriptionsRelations = relations(

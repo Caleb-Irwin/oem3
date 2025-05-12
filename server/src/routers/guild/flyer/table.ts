@@ -28,14 +28,10 @@ export const guildFlyer = pgTable(
     deleted: boolean("deleted").default(false).notNull(),
     lastUpdated: bigint("lastUpdated", { mode: "number" }).notNull(),
   },
-  (guildFlyer) => {
-    return {
-      gid: index("guild_flyer_gid_idx").on(guildFlyer.gid),
-      lastUpdatedIndex: index("guild_flyer_last_updated_idx").on(
-        guildFlyer.lastUpdated
-      ),
-    };
-  }
+  (guildFlyer) => [
+    index("guild_flyer_gid_idx").on(guildFlyer.gid),
+    index("guild_flyer_last_updated_idx").on(guildFlyer.lastUpdated),
+  ]
 );
 
 export const guildFlyerRelations = relations(guildFlyer, ({ one }) => ({

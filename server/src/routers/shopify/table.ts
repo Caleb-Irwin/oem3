@@ -52,16 +52,12 @@ export const shopify = pgTable(
     deleted: boolean("deleted").default(false).notNull(),
     lastUpdated: bigint("lastUpdated", { mode: "number" }).notNull(),
   },
-  (shopify) => ({
-    shopifyIdIndex: index("shopify_productId_idx").on(shopify.productId),
-    shopifyVariantIdIndex: uniqueIndex("shopify_variantId_idx").on(
-      shopify.variantId
-    ),
-    shopifyVariantBarcodeIndex: index("shopify_variantBarcode_idx").on(
-      shopify.vBarcode
-    ),
-    lastUpdatedIndex: index("shopify_last_updated_idx").on(shopify.lastUpdated),
-  })
+  (shopify) => [
+    index("shopify_productId_idx").on(shopify.productId),
+    uniqueIndex("shopify_variantId_idx").on(shopify.variantId),
+    index("shopify_variantBarcode_idx").on(shopify.vBarcode),
+    index("shopify_last_updated_idx").on(shopify.lastUpdated),
+  ]
 );
 
 export const shopifyRelations = relations(shopify, ({ one }) => ({

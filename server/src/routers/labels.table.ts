@@ -20,11 +20,7 @@ export const labelSheets = pgTable(
       onDelete: "cascade",
     }),
   },
-  (labelSheet) => {
-    return {
-      idIndex: uniqueIndex("labelSheet_id_idx").on(labelSheet.id),
-    };
-  }
+  (labelSheet) => [uniqueIndex("labelSheet_id_idx").on(labelSheet.id)]
 );
 
 export const labelSheetsRelations = relations(labelSheets, ({ many }) => ({
@@ -43,12 +39,10 @@ export const labels = pgTable(
     priceCents: integer("price_cents"),
     qbId: varchar("qbId", { length: 256 }),
   },
-  (labels) => {
-    return {
-      idIndex: index("labels_id_idx").on(labels.id),
-      sheetIndex: index("labels_sheet_idx").on(labels.sheet),
-    };
-  }
+  (labels) => [
+    index("labels_id_idx").on(labels.id),
+    index("labels_sheet_idx").on(labels.sheet),
+  ]
 );
 
 export const labelsRelations = relations(labelSheets, ({ one }) => ({

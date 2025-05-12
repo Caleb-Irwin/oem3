@@ -64,16 +64,14 @@ export const guildData = pgTable(
     deleted: boolean("deleted").default(false).notNull(),
     lastUpdated: bigint("lastUpdated", { mode: "number" }).notNull(),
   },
-  (guildData) => ({
-    guildUpcIndex: index("guild_upc_idx").on(guildData.upc),
-    guildShortUpcIndex: index("guild_shortUpc_idx").using(
+  (guildData) => [
+    index("guild_upc_idx").on(guildData.upc),
+    index("guild_shortUpc_idx").using(
       "btree",
       sql`(NULLIF("substring"((guild.upc)::text, (length((guild.upc)::text) - 10), 10), ''::text))`
     ),
-    lastUpdatedIndex: index("guild_data_last_updated_idx").on(
-      guildData.lastUpdated
-    ),
-  })
+    index("guild_data_last_updated_idx").on(guildData.lastUpdated),
+  ]
 );
 
 export const guildRelations = relations(guildData, ({ one }) => ({

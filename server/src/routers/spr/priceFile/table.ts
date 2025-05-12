@@ -38,13 +38,11 @@ export const sprPriceFile = pgTable(
     deleted: boolean("deleted").default(false).notNull(),
     lastUpdated: bigint("lastUpdated", { mode: "number" }).notNull(),
   },
-  (spr) => {
-    return {
-      sprcSkuIndex: uniqueIndex("spr_sprcSku_idx").on(spr.sprcSku),
-      etilizeIdIndex: index("spr_etilizeId_idx").on(spr.etilizeId),
-      lastUpdatedIndex: index("spr_last_updated_idx").on(spr.lastUpdated),
-    };
-  }
+  (spr) => [
+    uniqueIndex("spr_sprcSku_idx").on(spr.sprcSku),
+    index("spr_etilizeId_idx").on(spr.etilizeId),
+    index("spr_last_updated_idx").on(spr.lastUpdated),
+  ]
 );
 
 export const sprPriceFileRelations = relations(sprPriceFile, ({ one }) => ({

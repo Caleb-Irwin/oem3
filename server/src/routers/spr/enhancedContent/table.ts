@@ -26,11 +26,7 @@ export const sprImages = pgTable(
     type: varchar("type", { length: 32 }).notNull(),
     status: imageStatusEnum("status").notNull(),
   },
-  (sprImages) => {
-    return {
-      etilizeIdIndex: index("sprImages_etilizeId_idx").on(sprImages.etilizeId),
-    };
-  }
+  (sprImages) => [index("sprImages_etilizeId_idx").on(sprImages.etilizeId)]
 );
 
 export const sprImagesRelations = relations(sprImages, ({ one }) => ({
@@ -54,11 +50,7 @@ export const sprSkus = pgTable(
     type: skuTypeEnum("type").notNull(),
     sku: varchar("sku", { length: 64 }).notNull(),
   },
-  (sprSkus) => {
-    return {
-      etilizeIdIndex: index("sprSkus_etilizeId_idx").on(sprSkus.etilizeId),
-    };
-  }
+  (sprSkus) => [index("sprSkus_etilizeId_idx").on(sprSkus.etilizeId)]
 );
 
 export const sprSkusRelations = relations(sprSkus, ({ one }) => ({
@@ -83,16 +75,14 @@ export const sprEnhancedContent = pgTable(
     deleted: boolean("deleted").default(false).notNull(),
     lastUpdated: bigint("lastUpdated", { mode: "number" }).notNull(),
   },
-  (enhancedContent) => {
-    return {
-      etilizeIdIndex: uniqueIndex("sprEnhancedContent_etilizeId_idx").on(
-        enhancedContent.etilizeId
-      ),
-      lastUpdatedIndex: index("sprEnhancedContent_last_updated_idx").on(
-        enhancedContent.lastUpdated
-      ),
-    };
-  }
+  (enhancedContent) => [
+    uniqueIndex("sprEnhancedContent_etilizeId_idx").on(
+      enhancedContent.etilizeId
+    ),
+    index("sprEnhancedContent_last_updated_idx").on(
+      enhancedContent.lastUpdated
+    ),
+  ]
 );
 
 export const sprEnhancedContentRelations = relations(

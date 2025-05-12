@@ -8,9 +8,5 @@ export const kv = pgTable(
     key: varchar("key", { length: 128 }),
     value: text("value"),
   },
-  (kv) => {
-    return {
-      idIndex: index("kv_id_idx").on(kv.key),
-    };
-  }
+  (kv) => [index("kv_id_idx").on(kv.key)]
 );

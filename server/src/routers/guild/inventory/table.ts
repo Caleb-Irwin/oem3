@@ -27,14 +27,10 @@ export const guildInventory = pgTable(
     deleted: boolean("deleted").default(false).notNull(),
     lastUpdated: bigint("lastUpdated", { mode: "number" }).notNull(),
   },
-  (guildInventory) => {
-    return {
-      gidIndex: index("guild_inventory_gid_idx").on(guildInventory.gid),
-      lastUpdatedIndex: index("guild_inventory_last_updated_idx").on(
-        guildInventory.lastUpdated
-      ),
-    };
-  }
+  (guildInventory) => [
+    index("guild_inventory_gid_idx").on(guildInventory.gid),
+    index("guild_inventory_last_updated_idx").on(guildInventory.lastUpdated),
+  ]
 );
 
 export const guildInventoryRelations = relations(guildInventory, ({ one }) => ({

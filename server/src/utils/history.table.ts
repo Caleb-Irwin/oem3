@@ -32,13 +32,11 @@ export const history = pgTable(
     data: text("data"),
     created: bigint("created", { mode: "number" }).notNull(),
   },
-  (history) => {
-    return {
-      changeset: index("history_changes_set_idx").on(history.changeset),
-      uniref: index("history_uniref_idx").on(history.uniref),
-      resourceType: index("history_resource_type_idx").on(history.resourceType),
-      created: index("history_created_idx").on(history.created),
-      entryType: index("history_entry_type_idx").on(history.entryType),
-    };
-  }
+  (history) => [
+    index("history_changes_set_idx").on(history.changeset),
+    index("history_uniref_idx").on(history.uniref),
+    index("history_resource_type_idx").on(history.resourceType),
+    index("history_created_idx").on(history.created),
+    index("history_entry_type_idx").on(history.entryType),
+  ]
 );

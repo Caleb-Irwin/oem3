@@ -68,16 +68,12 @@ export function cellConfigTable<COLS extends [string, ...string[]]>({
       created: bigint("created", { mode: "number" }).notNull(),
       lastUpdated: bigint("lastUpdated", { mode: "number" }).notNull(),
     },
-    (genericTable) => {
-      return {
-        refIdIdx: uniqueIndex(`${tableName}_refId_idx`).on(genericTable.refId),
-        colIdx: index(`${tableName}_col_idx`).on(genericTable.col),
-        typeIdx: index(`${tableName}_cellType_idx`).on(genericTable.cellType),
-        lastUpdatedIndex: index(`${tableName}_lastUpdated_idx`).on(
-          genericTable.lastUpdated
-        ),
-      };
-    }
+    (genericTable) => [
+      uniqueIndex(`${tableName}_refId_idx`).on(genericTable.refId),
+      index(`${tableName}_col_idx`).on(genericTable.col),
+      index(`${tableName}_cellType_idx`).on(genericTable.cellType),
+      index(`${tableName}_lastUpdated_idx`).on(genericTable.lastUpdated),
+    ]
   );
 
   const tableRelations = relations(table, ({ one }) => ({

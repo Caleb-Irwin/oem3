@@ -47,16 +47,14 @@ export const qb = pgTable(
     deleted: boolean("deleted").default(false).notNull(),
     lastUpdated: bigint("lastUpdated", { mode: "number" }).notNull(),
   },
-  (qb) => {
-    return {
-      qbIdIndex: index("qb_qbId_idx").on(qb.qbId),
-      qbShortUpcIndex: index("qb_shortUpc_idx").using(
-        "btree",
-        sql`substr(substr((qb.qb_id)::text, (POSITION((':'::text) IN (qb.qb_id)) + 1)), (length(substr((qb.qb_id)::text, (POSITION((':'::text) IN (qb.qb_id)) + 1))) - 10), 10)`
-      ),
-      lastUpdatedIndex: index("qb_last_updated_idx").on(qb.lastUpdated),
-    };
-  }
+  (qb) => [
+    index("qb_qbId_idx").on(qb.qbId),
+    index("qb_shortUpc_idx").using(
+      "btree",
+      sql`substr(substr((qb.qb_id)::text, (POSITION((':'::text) IN (qb.qb_id)) + 1)), (length(substr((qb.qb_id)::text, (POSITION((':'::text) IN (qb.qb_id)) + 1))) - 10), 10)`
+    ),
+    index("qb_last_updated_idx").on(qb.lastUpdated),
+  ]
 );
 
 export const qbRelations = relations(qb, ({ one }) => ({

@@ -23,9 +23,5 @@ export const files = pgTable(
     content: text("content"),
     uploadedTime: bigint("uploadedTime", { mode: "number" }),
   },
-  (files) => {
-    return {
-      idIndex: index("files_id_idx").on(files.id),
-    };
-  }
+  (files) => [index("files_id_idx").on(files.id)]
 );

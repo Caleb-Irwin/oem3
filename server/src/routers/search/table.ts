@@ -16,15 +16,15 @@ export const search = pgTable(
     keyInfo: text("keyInfo").notNull(),
     otherInfo: text("otherInfo").notNull(),
   },
-  (search) => ({
-    searchIndex: index("search_index").using(
+  (search) => [
+    index("search_index").using(
       "gin",
       sql`(
           setweight(to_tsvector('english', ${search.keyInfo}), 'A') ||
           setweight(to_tsvector('english', ${search.otherInfo}), 'B')
       )`
     ),
-  })
+  ]
 );
 
 export const searchRelations = relations(search, ({ one }) => ({
