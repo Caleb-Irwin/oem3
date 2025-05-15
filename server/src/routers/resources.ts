@@ -79,12 +79,12 @@ export const resourcesRouter = router({
               },
               orderBy: desc(changesets.created),
             })
-          ).map(
-            async (line) =>
-              await db.query.history.findFirst({
-                where: eq(history.uniref, line.uniref.uniId),
-              })
-          )
+          ).map(async (line) => {
+            if (!line.uniref) return;
+            return await db.query.history.findFirst({
+              where: eq(history.uniref, line.uniref.uniId),
+            });
+          })
         )
       ).filter((v) => typeof v === "object");
     }),
