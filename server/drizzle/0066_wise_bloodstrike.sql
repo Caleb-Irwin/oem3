@@ -1,0 +1,1 @@
+ALTER TYPE "public"."cellConfigType" ADD VALUE 'error:matchWouldCauseDuplicate' BEFORE 'data:lastApprovedValue';

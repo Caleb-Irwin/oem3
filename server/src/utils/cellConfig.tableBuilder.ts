@@ -16,12 +16,17 @@ import {
 export type CellSetting =
   | "setting:custom"
   | "setting:approve"
-  | "setting:approveCustom"
-  | "setting:tempOverride";
+  | "setting:approveCustom";
 export type CellError =
   | "error:multipleOptions"
   | "error:missingValue"
-  | "error:needsApproval";
+  | "error:needsApproval"
+  | "error:matchWouldCauseDuplicate"
+  | "error:shouldNotBeNull"
+  | "error:invalidDataType"
+  | "error:contradictorySources"
+  | "error:canNotBeSetToNull"
+  | "error:canNotBeSetToWrongType";
 export type CellData =
   | "data:lastApprovedValue"
   | "data:lastDisapprovedValue"
@@ -32,11 +37,16 @@ export const cellConfigType = pgEnum("cellConfigType", [
   "setting:custom",
   "setting:approve",
   "setting:approveCustom",
-  "setting:tempOverride",
   // Field errors
   "error:multipleOptions",
   "error:missingValue",
   "error:needsApproval",
+  "error:matchWouldCauseDuplicate",
+  "error:shouldNotBeNull",
+  "error:invalidDataType",
+  "error:contradictorySources",
+  "error:canNotBeSetToNull",
+  "error:canNotBeSetToWrongType",
   // Field data
   "data:lastApprovedValue",
   "data:lastDisapprovedValue",
@@ -62,16 +72,16 @@ export function cellConfigTable<COLS extends [string, ...string[]]>({
         .notNull()
         .references(() => primaryKey, { onDelete: "cascade" }),
       col: columnEnum("col").notNull(),
-      cellType: cellConfigType("cellType").notNull(),
+      confType: cellConfigType("confType").notNull(),
       data: text("data"), // JSON
       notes: text("notes"), // User Viewable (HTML Encoded)
       created: bigint("created", { mode: "number" }).notNull(),
       lastUpdated: bigint("lastUpdated", { mode: "number" }).notNull(),
     },
     (genericTable) => [
-      uniqueIndex(`${tableName}_refId_idx`).on(genericTable.refId),
+      index(`${tableName}_refId_idx`).on(genericTable.refId),
       index(`${tableName}_col_idx`).on(genericTable.col),
-      index(`${tableName}_cellType_idx`).on(genericTable.cellType),
+      index(`${tableName}_confType_idx`).on(genericTable.confType),
       index(`${tableName}_lastUpdated_idx`).on(genericTable.lastUpdated),
     ]
   );
@@ -84,11 +94,4 @@ export function cellConfigTable<COLS extends [string, ...string[]]>({
     table,
     relations: tableRelations,
   } as const;
-}
-
-export interface CellConfigData {
-  value?: string | number | undefined | null;
-  thresholdPercent?: number;
-  options?: string[] | number[];
-  errorResolved?: boolean;
 }

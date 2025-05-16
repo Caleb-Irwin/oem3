@@ -70,7 +70,7 @@ function transformGuildInventory(
     gid: item["Product#"].trim(),
     onHand: removeNaN(parseInt(item["Qty On Hand"])),
     sku: item.SKU,
-    upc: item["UPC#"],
+    upc: item["UPC#"] == "0" ? null : item["UPC#"],
     spr: item["SPR#"],
     basics: item["Basics#"],
     cis: item["CIS#"],

@@ -55,7 +55,7 @@ export const unifiedGuild = pgTable(
     masterPackQty: integer("masterPackQty"),
     imageUrl: varchar("imageUrl", { length: 256 }),
     imageDescriptions: text("imageDescriptions"),
-    otherImageListJSON: text("imageListJSON"), // {url: string, description: string}[]
+    otherImageListJSON: text("otherImageListJSON"), // {url: string, description: string}[]
     vendor: varchar("vendor", { length: 256 }),
     category: categoryEnum("category"),
 

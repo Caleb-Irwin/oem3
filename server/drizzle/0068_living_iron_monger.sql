@@ -1,0 +1,2 @@
+ALTER TYPE "public"."cellConfigType" ADD VALUE 'error:shouldNotBeNull' BEFORE 'data:lastApprovedValue';--> statement-breakpoint
+ALTER TYPE "public"."cellConfigType" ADD VALUE 'error:invalidDataType' BEFORE 'data:lastApprovedValue';

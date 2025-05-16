@@ -41,7 +41,18 @@ export function createUnifier<
   connections: Connections<RowType, TableType>;
   version: number;
 }) {
-  const unifiedTableName = getTableConfig(table).name;
+  const tableConf = getTableConfig(table),
+    unifiedTableName = tableConf.name,
+    colTypes = {} as Record<
+      keyof TableType["$inferSelect"],
+      { dataType: "string" | "number" | "boolean"; notNull: boolean }
+    >;
+  tableConf.columns.forEach(({ name, dataType, notNull }) => {
+    colTypes[name as keyof TableType["$inferSelect"]] = {
+      dataType: dataType as "string" | "number" | "boolean",
+      notNull,
+    };
+  });
 
   async function _modifyRow(
     id: number,
@@ -63,9 +74,7 @@ export function createUnifier<
     id: number;
     updateHistory?: boolean;
     db?: typeof DB;
-  }): Promise<{
-    history: InsertHistoryRowOptions<TableType["$inferSelect"]> | null;
-  }> {
+  }) {
     const originalRow = await getRow(id, db);
     let updatedRow = structuredClone(originalRow);
     const cellConfigurator = await createCellConfigurator(confTable, id, db);
@@ -93,29 +102,40 @@ export function createUnifier<
         (otherConnections.length === 1 &&
           updatedRow[connectionRowKey] !== otherConnections[0])
       ) {
-        //TODO Record Multiple Connections Error
-        console.log("More than one other connection found", id);
+        cellConfigurator.addError(connectionRowKey as any, {
+          multipleOptions: {
+            options: otherConnections.filter(
+              (v) => v !== updatedRow[connectionRowKey]
+            ),
+            value: updatedRow[connectionRowKey] as any,
+          },
+        });
       }
       const newVal = cellConfigurator.getConfiguredCellValue(
         {
           key: connectionRowKey as any,
           val: updatedRow[connectionRowKey] as number,
-          options: {
-            isRef: true,
-          },
+          options: {},
         },
-        originalRow[connectionRowKey] as number | null
+        {
+          oldVal: originalRow[connectionRowKey] as number | null,
+          dataType: "number",
+          notNull: connectionTable === connections.primaryTable,
+        }
       );
       if (originalRow[connectionRowKey] !== updatedRow[connectionRowKey]) {
         const existing = await db
           .select({ col: table[connectionRowKey as keyof TableType] as any })
-          .from(table)
+          .from(table as any)
           .where(eq(table[connectionRowKey as keyof TableType] as any, newVal))
           .execute();
         if (existing.length > 0) {
           updatedRow[connectionRowKey] = originalRow[connectionRowKey];
-          //TODO Record Duplicate Error
-          console.log("Duplicate Error", id);
+          cellConfigurator.addError(connectionRowKey as any, {
+            matchWouldCauseDuplicate: {
+              value: newVal,
+            },
+          });
         } else {
           await _modifyRow(
             id,
@@ -140,13 +160,17 @@ export function createUnifier<
       const key = k as keyof (typeof table)["$inferInsert"];
       const newVal = cellConfigurator.getConfiguredCellValue(
         transformed[k as keyof typeof transformed],
-        originalRow[key] as any
+        {
+          oldVal: originalRow[key] as any,
+          ...colTypes[key],
+        }
       ) as any;
       if (originalRow[key] !== newVal) {
         changes[key] = newVal;
       }
     }
-    //TODO COMMIT ERRORS
+
+    const newErrors = await cellConfigurator.commitErrors();
     const hasChanges = Object.keys(changes).length > 0;
 
     // 4. Update Row
@@ -173,6 +197,7 @@ export function createUnifier<
 
     return {
       history,
+      newErrors,
     };
   }
 
@@ -199,7 +224,7 @@ export function createUnifier<
       .select()
       .from(connections.primaryTable.table)
       .leftJoin(
-        table,
+        table as UnifiedTables,
         eq(
           connections.primaryTable.table.id,
           table[connections.primaryTable.refCol] as SQLWrapper
@@ -218,7 +243,7 @@ export function createUnifier<
     );
     for (const chunkedRows of chunk(rowsToInsert)) {
       const rows = await db
-        .insert(table)
+        .insert(table as any)
         .values(chunkedRows)
         .returning({ id: table.id })
         .execute();
@@ -250,7 +275,10 @@ export function createUnifier<
 
     // 2. Determine which rows need to be updated
     if (updateAll) {
-      const allRows = await db.select({ id: table.id }).from(table).execute();
+      const allRows = await db
+        .select({ id: table.id })
+        .from(table as UnifiedTables)
+        .execute();
       allRows.forEach((v) => rowsToUpdate.add(v.id));
     } else {
       const sourceTables = [
@@ -260,7 +288,7 @@ export function createUnifier<
       for (const sourceTable of sourceTables) {
         const rows = await db
           .select({ id: table.id })
-          .from(table)
+          .from(table as UnifiedTables)
           .leftJoin(
             sourceTable.table,
             eq(table[sourceTable.refCol] as SQLWrapper, sourceTable.table.id)
@@ -323,7 +351,7 @@ interface TableConnection<
   table: T;
   refCol: keyof UnifiedTable;
   recheckConnectionsOnFieldChange: string[];
-  findConnections: (row: RowType, db: typeof DB) => Promise<number[]>;
+  findConnections: (row: RowType, db: typeof DB) => Promise<number[]>; // Should not return deleted items
 }
 
 interface PrimaryTableConnection<

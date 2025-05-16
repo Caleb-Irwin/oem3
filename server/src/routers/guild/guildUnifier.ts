@@ -39,15 +39,12 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
   transform: (item, t) => {
     return {
       id: t("id", item.id),
-      gid: t("gid", item.gid, { neverNull: true }),
+      gid: t("gid", item.gid),
       lastUpdated: t("lastUpdated", item.lastUpdated),
 
-      dataRow: t("dataRow", item.dataRow, { neverNull: true, isRef: true }),
-      inventoryRow: t("inventoryRow", item.inventoryRow, {
-        shouldNotBeNull: true,
-        isRef: true,
-      }),
-      flyerRow: t("flyerRow", item.flyerRow ?? null, { isRef: true }),
+      dataRow: t("dataRow", item.dataRow),
+      inventoryRow: t("inventoryRow", item.inventoryRow),
+      flyerRow: t("flyerRow", item.flyerRow ?? null),
 
       upc: t("upc", item.dataRowContent.upc, {
         shouldMatch: {
@@ -88,8 +85,7 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
         item.flyerRowContent?.flyerPriceL1Cents ??
           item.dataRowContent.priceL1Cents,
         {
-          neverNull: true,
-          isPrice: true,
+          shouldNotBeNull: true,
         }
       ),
       comparePriceCents: t(
