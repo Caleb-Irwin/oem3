@@ -23,7 +23,7 @@ export class KV<T extends string> {
     return this.map.get(key);
   }
   async set(key: T, value: string) {
-    if (value.includes(":")) throw new Error('Key can not include ":"');
+    if (key.includes(":")) throw new Error('Key can not include ":"');
     if (!this.inited) await this.init();
     await this.db
       .insert(kv)

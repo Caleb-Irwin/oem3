@@ -213,7 +213,9 @@ export function createUnifier<
     if (progress) progress(-1);
     const kv = new KV("unifier/" + unifiedTableName, db),
       newLastUpdated = Date.now(),
-      prevLastUpdated = parseInt((await kv.get("lastUpdated")) ?? "0"),
+      lastUpdatedBySource: { [key: string]: number } = JSON.parse(
+        (await kv.get("lastUpdatedBySource")) ?? "{}"
+      ),
       rowsToUpdate = new Set<number>();
     if (parseInt((await kv.get("version")) ?? "-1") < version) {
       updateAll = true;
@@ -286,8 +288,10 @@ export function createUnifier<
         ...connections.otherTables,
       ];
       for (const sourceTable of sourceTables) {
+        const lastUpdated =
+          lastUpdatedBySource[sourceTable.refCol as string] ?? 0;
         const rows = await db
-          .select({ id: table.id })
+          .select({ id: table.id, lastUpdated: sourceTable.table.lastUpdated })
           .from(table as UnifiedTables)
           .leftJoin(
             sourceTable.table,
@@ -296,13 +300,20 @@ export function createUnifier<
           .where(
             or(
               isNull(sourceTable.table.lastUpdated),
-              gt(sourceTable.table.lastUpdated, prevLastUpdated)
+              gt(sourceTable.table.lastUpdated, lastUpdated)
             )
           );
-        console.log(getTableConfig(sourceTable.table).name, rows.length);
+        lastUpdatedBySource[sourceTable.refCol as string] = rows.reduce(
+          (prev, curr) =>
+            curr.lastUpdated && prev < curr.lastUpdated
+              ? curr.lastUpdated
+              : prev,
+          lastUpdated
+        );
         rows.forEach((r) => rowsToUpdate.add(r.id));
       }
     }
+
     // 3. Update Rows
     if (progress) progress(0);
     let done = 0;
@@ -326,7 +337,7 @@ export function createUnifier<
       });
     }
     // 5. Finish
-    await kv.set("lastUpdated", newLastUpdated.toString());
+    await kv.set("lastUpdatedBySource", JSON.stringify(lastUpdatedBySource));
     await kv.set("version", version.toString());
   }
 
