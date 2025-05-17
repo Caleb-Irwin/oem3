@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { db as DB } from "../db";
+import { db as DB, type Tx } from "../db";
 import { unifiedGuildCellConfig, type CellSetting } from "../db.schema";
 import type { UnifiedTables } from "./unifier";
 
@@ -8,7 +8,7 @@ type CellConfigTable = typeof unifiedGuildCellConfig;
 export async function createCellConfigurator(
   table: CellConfigTable,
   id: number,
-  db: typeof DB
+  db: typeof DB | Tx
 ) {
   const cellConfigs = await db.select().from(table).where(eq(table.refId, id));
   type CellConfig = (typeof cellConfigs)[number];

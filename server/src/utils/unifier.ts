@@ -6,7 +6,7 @@ import {
   unifiedGuildCellConfig,
   uniref,
 } from "../db.schema";
-import { db as DB } from "../db";
+import { db, db as DB, type Tx } from "../db";
 import { eq, isNull, type SQLWrapper, gt, or } from "drizzle-orm";
 import { getTableConfig } from "drizzle-orm/pg-core";
 import { chunk } from "./chunk";
@@ -17,6 +17,8 @@ import {
 } from "./history";
 import { KV } from "./kv";
 import { cellTransformer, createCellConfigurator } from "./cellConfigurator";
+import { runSerializable } from "./runSerializable";
+import PromisePool from "@supercharge/promise-pool";
 
 export function createUnifier<
   RowType extends TableType["$inferSelect"] & { uniref: { uniId: number } },
@@ -31,7 +33,7 @@ export function createUnifier<
 }: {
   table: TableType;
   confTable: CellConfigTable;
-  getRow: (id: number, db: typeof DB) => Promise<RowType>;
+  getRow: (id: number, db: Tx | typeof DB) => Promise<RowType>;
   transform: (
     item: RowType,
     t: typeof cellTransformer
@@ -57,7 +59,7 @@ export function createUnifier<
   async function _modifyRow(
     id: number,
     row: Partial<TableType["$inferInsert"]>,
-    db: typeof DB
+    db: Tx | typeof DB
   ) {
     await db
       .update(table)
@@ -66,15 +68,7 @@ export function createUnifier<
       .execute();
   }
 
-  async function updateRow({
-    id,
-    updateHistory = true,
-    db = DB,
-  }: {
-    id: number;
-    updateHistory?: boolean;
-    db?: typeof DB;
-  }) {
+  async function _updateRow({ id, db }: { id: number; db: Tx | typeof DB }) {
     const originalRow = await getRow(id, db);
     let updatedRow = structuredClone(originalRow);
     const cellConfigurator = await createCellConfigurator(confTable, id, db);
@@ -87,7 +81,7 @@ export function createUnifier<
     for (const connectionTable of connectionsList) {
       const otherConnections = await connectionTable.findConnections(
         updatedRow,
-        db
+        db as typeof DB
       );
       const connectionRowKey =
         connectionTable.refCol as keyof TableType["$inferInsert"];
@@ -188,7 +182,7 @@ export function createUnifier<
             created: Date.now(),
           }
         : null;
-    if (updateHistory && history)
+    if (history)
       await insertHistory({
         db,
         resourceType: unifiedTableName as any,
@@ -201,17 +195,21 @@ export function createUnifier<
     };
   }
 
+  async function updateRow(id: number) {
+    return await runSerializable(async (tx) => {
+      return await _updateRow({ id, db: tx });
+    });
+  }
+
   async function updateUnifiedTable({
-    db = DB,
     updateAll = false,
     progress,
   }: {
-    db?: typeof DB;
     updateAll?: boolean;
     progress?: (progress: number) => void;
   }) {
     if (progress) progress(-1);
-    const kv = new KV("unifier/" + unifiedTableName, db),
+    const kv = new KV("unifier/" + unifiedTableName, DB),
       newLastUpdated = Date.now(),
       lastUpdatedBySource: { [key: string]: number } = JSON.parse(
         (await kv.get("lastUpdatedBySource")) ?? "{}"
@@ -222,58 +220,61 @@ export function createUnifier<
     }
 
     // 1. Add missing primary rows
-    const missingPrimaryRows = await db
-      .select()
-      .from(connections.primaryTable.table)
-      .leftJoin(
-        table as UnifiedTables,
-        eq(
-          connections.primaryTable.table.id,
-          table[connections.primaryTable.refCol] as SQLWrapper
+    await DB.transaction(async (db) => {
+      const missingPrimaryRows = await db
+        .select()
+        .from(connections.primaryTable.table)
+        .leftJoin(
+          table as UnifiedTables,
+          eq(
+            connections.primaryTable.table.id,
+            table[connections.primaryTable.refCol] as SQLWrapper
+          )
         )
-      )
-      .where(isNull(table.id))
-      .execute();
-    const primaryTableName = getTableConfig(
-      connections.primaryTable.table
-    ).name;
-    const rowsToInsert = missingPrimaryRows.map((v) =>
-      connections.primaryTable.newRowTransform(
-        v[primaryTableName as unknown as keyof typeof v] as any,
-        newLastUpdated
-      )
-    );
-    for (const chunkedRows of chunk(rowsToInsert)) {
-      const rows = await db
-        .insert(table as any)
-        .values(chunkedRows)
-        .returning({ id: table.id })
+        .where(isNull(table.id))
         .execute();
-      rows.forEach(({ id }) => rowsToUpdate.add(id));
-      const uniRows = await db
-        .insert(uniref)
-        .values(
-          rows.map(({ id }) => {
-            const obj: any = {
-              resourceType: unifiedTableName as any,
-            };
-            obj[unifiedTableName] = id;
-            return obj;
-          })
+      const primaryTableName = getTableConfig(
+        connections.primaryTable.table
+      ).name;
+      const rowsToInsert = missingPrimaryRows.map((v) =>
+        connections.primaryTable.newRowTransform(
+          v[primaryTableName as unknown as keyof typeof v] as any,
+          newLastUpdated
         )
-        .returning({ uniId: uniref.uniId })
-        .execute();
-      await insertMultipleHistoryRows({
-        db,
-        resourceType: unifiedTableName as any,
-        rows: chunkedRows.map((v, i) => ({
-          uniref: uniRows[i].uniId,
-          entryType: "create",
-          data: v,
-          created: newLastUpdated,
-        })),
-      });
-    }
+      );
+      for (const chunkedRows of chunk(rowsToInsert)) {
+        const rows = await db
+          .insert(table as any)
+          .values(chunkedRows)
+          .returning({ id: table.id })
+          .execute();
+        rows.forEach(({ id }) => rowsToUpdate.add(id));
+        const uniRows = await db
+          .insert(uniref)
+          .values(
+            rows.map(({ id }) => {
+              const obj: any = {
+                resourceType: unifiedTableName as any,
+              };
+              obj[unifiedTableName] = id;
+              return obj;
+            })
+          )
+          .returning({ uniId: uniref.uniId })
+          .execute();
+        await insertMultipleHistoryRows({
+          db,
+          resourceType: unifiedTableName as any,
+          rows: chunkedRows.map((v, i) => ({
+            uniref: uniRows[i].uniId,
+            entryType: "create",
+            data: v,
+            created: newLastUpdated,
+          })),
+        });
+      }
+    });
+    const addedPrimaryRows = rowsToUpdate.size;
 
     // 2. Determine which rows need to be updated
     if (updateAll) {
@@ -317,26 +318,22 @@ export function createUnifier<
     // 3. Update Rows
     if (progress) progress(0);
     let done = 0;
-    const historyToRecord: InsertHistoryRowOptions<
-      TableType["$inferSelect"]
-    >[] = [];
-    for (const id of rowsToUpdate) {
-      const { history } = await updateRow({ id, db, updateHistory: false });
-      if (history) historyToRecord.push(history);
-      done++;
-      if (progress && done % 100 === 0) progress(done / rowsToUpdate.size);
-    }
+    await PromisePool.withConcurrency(addedPrimaryRows > 1000 ? 1 : 3)
+      .for(Array.from(rowsToUpdate))
+      .handleError(async (error) => {
+        console.error("Error updating row:", error);
+        throw error;
+      })
+      .onTaskFinished(() => {
+        done++;
+        if (progress && done % 100 === 0) progress(done / rowsToUpdate.size);
+      })
+      .process(async (id) => {
+        await updateRow(id);
+      });
     if (progress) progress(1);
 
-    // 4. Batch Update History
-    for (const chunkedHistory of chunk(historyToRecord)) {
-      await insertMultipleHistoryRows({
-        db,
-        resourceType: unifiedTableName as any,
-        rows: chunkedHistory,
-      });
-    }
-    // 5. Finish
+    // 4. Finish
     await kv.set("lastUpdatedBySource", JSON.stringify(lastUpdatedBySource));
     await kv.set("version", version.toString());
   }

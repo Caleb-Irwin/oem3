@@ -1,5 +1,5 @@
 import { and, eq, not, or } from "drizzle-orm";
-import { db as DB } from "../../db";
+import { db as DB, type Tx } from "../../db";
 import { createUnifier } from "../../utils/unifier";
 import {
   unifiedGuild,
@@ -9,7 +9,7 @@ import {
   unifiedGuildCellConfig,
 } from "../../db.schema";
 
-const getRow = async (id: number, db: typeof DB) => {
+const getRow = async (id: number, db: typeof DB | Tx) => {
   const res = await db.query.unifiedGuild
     .findFirst({
       where: eq(unifiedGuild.id, id),

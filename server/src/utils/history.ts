@@ -1,4 +1,4 @@
-import { db as DB } from "../db";
+import { db as DB, type Tx } from "../db";
 import { history, type EntryType } from "./history.table";
 import type { ResourceType } from "./uniref.table";
 
@@ -14,7 +14,7 @@ export interface InsertHistoryRowOptions<T extends object> {
 
 interface InsertHistoryParams<T extends object>
   extends InsertHistoryRowOptions<T> {
-  db: typeof DB;
+  db: typeof DB | Tx;
   resourceType: ResourceType;
 }
 
@@ -58,7 +58,7 @@ export const insertMultipleHistoryRows = async <T extends object>({
   resourceType,
   rows,
 }: {
-  db: typeof DB;
+  db: typeof DB | Tx;
   resourceType: ResourceType;
   rows: InsertHistoryRowOptions<T>[];
 }) => {
