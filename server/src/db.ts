@@ -16,9 +16,7 @@ const connect = async (depth = 0): Promise<ReturnType<typeof postgres>> => {
         console.warn(e);
       },
     });
-    await sql`select 1`;
 
-    // Check current value of max_pred_locks_per_transaction
     const [{ setting: currentValue }] = await sql`
       SELECT setting FROM pg_settings WHERE name = 'max_pred_locks_per_transaction'
     `;
@@ -28,7 +26,7 @@ const connect = async (depth = 0): Promise<ReturnType<typeof postgres>> => {
       console.log(
         `Current max_pred_locks_per_transaction is ${currentValue}, setting to ${desiredValue}`
       );
-      await sql`ALTER SYSTEM SET max_pred_locks_per_transaction = ${desiredValue}`;
+      await sql`ALTER SYSTEM SET max_pred_locks_per_transaction = 1000`;
       await sql`SELECT pg_reload_conf()`;
       console.log("Set max_pred_locks_per_transaction to", desiredValue);
     }
