@@ -87,14 +87,14 @@ work({
 
     //skus
     const cwsData = readCSV<[string, string, string, string, string, string]>(
-        "/sku/EN_CA_SKU_CWS_A_productskus.csv"
-      ).map((row): typeof sprSkus.$inferInsert => {
-        return {
-          etilizeId: row[0],
-          type: "CWS",
-          sku: row[2],
-        };
-      }),
+      "/sku/EN_CA_SKU_CWS_A_productskus.csv"
+    ).map((row): typeof sprSkus.$inferInsert => {
+      return {
+        etilizeId: row[0],
+        type: "CWS",
+        sku: row[2],
+      };
+    }),
       upcData = readCSV<[string, string, string, string, string, string]>(
         "/sku/EN_CA_SKU_UPC_productskus.csv"
       ).map((row): typeof sprSkus.$inferInsert => {
@@ -163,9 +163,9 @@ work({
         missingEtilizeItems
           .map(({ etilizeId }) => ({ etilizeId, lastUpdated }))
           .filter((v) => v.etilizeId) as {
-          etilizeId: string;
-          lastUpdated: number;
-        }[]
+            etilizeId: string;
+            lastUpdated: number;
+          }[]
       )) {
         await db.insert(sprEnhancedContent).values(c).execute();
       }
@@ -178,12 +178,12 @@ work({
 
       for (const row of enhancedContentRows) {
         const primaryImages = row.images
-            .filter(
-              (v) =>
-                ["Large", "Original"].includes(v.type) ||
-                !isNaN(parseInt(v.type))
-            )
-            .map((v) => v.type),
+          .filter(
+            (v) =>
+              ["Large", "Original"].includes(v.type) ||
+              !isNaN(parseInt(v.type))
+          )
+          .map((v) => v.type),
           otherImages = row.images
             .filter(
               (v) =>
@@ -195,33 +195,33 @@ work({
             otherImages.includes("FrontMaximum")
               ? "FrontMaximum"
               : otherImages.includes("Front")
-              ? "Front"
-              : null,
+                ? "Front"
+                : null,
             otherImages.includes("RearMaximum")
               ? "RearMaximum"
               : otherImages.includes("Rear")
-              ? "Rear"
-              : null,
+                ? "Rear"
+                : null,
             otherImages.includes("TopMaximum")
               ? "TopMaximum"
               : otherImages.includes("Top")
-              ? "Top"
-              : null,
+                ? "Top"
+                : null,
             otherImages.includes("BottomMaximum")
               ? "BottomMaximum"
               : otherImages.includes("Bottom")
-              ? "Bottom"
-              : null,
+                ? "Bottom"
+                : null,
             otherImages.includes("LeftMaximum")
               ? "LeftMaximum"
               : otherImages.includes("Left")
-              ? "Left"
-              : null,
+                ? "Left"
+                : null,
             otherImages.includes("RightMaximum")
               ? "RightMaximum"
               : otherImages.includes("Right")
-              ? "Right"
-              : null,
+                ? "Right"
+                : null,
             otherImages.includes("360-main-view") ? "360-main-view" : null,
             otherImages.includes("In-Package") ? "In-Package" : null,
             otherImages.includes("Out-of-Package") ? "Out-of-Package" : null,
@@ -274,6 +274,9 @@ work({
             .set(n)
             .where(eq(sprEnhancedContent.etilizeId, row.etilizeId))
             .execute();
+          await db.update(sprFlatFile).set({ lastUpdated: Date.now() }).where(
+            eq(sprFlatFile.etilizeId, row.etilizeId)
+          ).execute();
         }
       }
       progress(12 / totalSteps);

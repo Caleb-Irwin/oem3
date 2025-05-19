@@ -330,7 +330,8 @@ export function createUnifier<
               : prev,
           lastUpdated
         );
-        rows.forEach((r) => rowsToUpdate.add(r.id));
+        if (lastUpdatedBySource[sourceTable.refCol as string] > lastUpdated) // If no rows are updated, there will also be no new connections
+          rows.forEach((r) => rowsToUpdate.add(r.id));
       }
     }
 

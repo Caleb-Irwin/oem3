@@ -5,6 +5,7 @@ import type { ProductRes } from "./productRes";
 import { guildDescriptions } from "./table";
 import PromisePool from "@supercharge/promise-pool";
 import { eq } from "drizzle-orm";
+import { guildData } from "../data/table";
 
 declare var self: Worker;
 
@@ -123,6 +124,7 @@ work({
             set: row,
           })
           .execute();
+        await db.update(guildData).set({ lastUpdated: Date.now() }).where(eq(guildData.gid, guildId)).execute();
         success++;
       } catch (e) {
         console.log(e);

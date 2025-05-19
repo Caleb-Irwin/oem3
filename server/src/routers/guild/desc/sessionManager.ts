@@ -21,18 +21,18 @@ async function getSession(
     return { contents: originalSession };
 
   const res = await fetch(PUBLIC_V_HOST, {
-      headers: {
-        cookie:
-          originalSession !== null && mode !== "new"
-            ? `REMEMBERME=${originalSession?.vRememberMe}; SESSION=${originalSession?.vSession}`
-            : "",
-      },
-    }),
+    headers: {
+      cookie:
+        originalSession !== null && mode !== "new"
+          ? `REMEMBERME=${originalSession?.vRememberMe}; SESSION=${originalSession?.vSession}`
+          : "",
+    },
+  }),
     text = await res.text();
 
   const setCookies = setCookieParser(res.headers.getSetCookie(), {
-      map: true,
-    }),
+    map: true,
+  }),
     rememberMe =
       setCookies["REMEMBERME"]?.value ?? originalSession?.vRememberMe,
     session = setCookies["SESSION"]?.value ?? originalSession?.vSession,
@@ -213,7 +213,7 @@ export async function req(
       url.searchParams.append(name, conf.customQuery[name]);
     });
   }
-  const req = new Request(url, reqInit);
+  const req = new Request(url as any, reqInit);
   if (conf.authorization !== null)
     req.headers.set(
       "authorization",
@@ -222,8 +222,7 @@ export async function req(
   if (conf.cookies !== null)
     req.headers.set(
       "cookie",
-      `REMEMBERME=${conf.cookies?.rememberme ?? session.vRememberMe}; SESSION=${
-        conf.cookies?.session ?? session.vSession
+      `REMEMBERME=${conf.cookies?.rememberme ?? session.vRememberMe}; SESSION=${conf.cookies?.session ?? session.vSession
       }${conf.cookies?.others ? ";" + conf.cookies?.others : ""}`
     );
   return await (customFetch ?? fetch)(req);
