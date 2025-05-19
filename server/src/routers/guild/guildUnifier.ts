@@ -78,12 +78,12 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
       description: t(
         "description",
         item.dataRowContent.desc?.sanitizedDescription ||
-          item.dataRowContent.longDesc
+        item.dataRowContent.longDesc
       ),
       priceCents: t(
         "priceCents",
         item.flyerRowContent?.flyerPriceL1Cents ??
-          item.dataRowContent.priceL1Cents,
+        item.dataRowContent.priceL1Cents,
         {
           shouldNotBeNull: true,
         }
@@ -107,9 +107,9 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
         (item.dataRowContent.dropshipPriceCents === -1
           ? null
           : item.dataRowContent.dropshipPriceCents) ??
-          (item.dataRowContent.memberPriceCents === -1
-            ? null
-            : item.dataRowContent.memberPriceCents)
+        (item.dataRowContent.memberPriceCents === -1
+          ? null
+          : item.dataRowContent.memberPriceCents)
       ),
       um: t("um", item.dataRowContent.um, {
         shouldMatch: {
@@ -138,22 +138,22 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
         item.dataRowContent.desc?.imageListJSON &&
           JSON.parse(item.dataRowContent.desc?.imageListJSON).length > 1
           ? JSON.stringify(
-              (
-                JSON.parse(item.dataRowContent.desc?.imageListJSON).slice(
-                  1
-                ) as string[]
-              ).map((url, idx) => ({
-                url,
-                description: `Alternate image #${idx + 1} of ${item.gid}`,
-              }))
-            )
+            (
+              JSON.parse(item.dataRowContent.desc?.imageListJSON).slice(
+                1
+              ) as string[]
+            ).map((url, idx) => ({
+              url,
+              description: `Alternate image #${idx + 1} of ${item.gid}`,
+            }))
+          )
           : null
       ),
       vendor: t("vendor", item.dataRowContent.vendor),
       category: t(
         "category",
         categoryMap[item.dataRowContent.webCategory.toString().slice(0, 1)] ??
-          null
+        null
       ),
       weightGrams: t("weightGrams", item.dataRowContent.weightGrams),
       heavyGoodsChargeSkCents: t(
@@ -188,6 +188,9 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
           deleted: row.deleted,
         };
       },
+      isDeleted: (row) => {
+        return row.dataRowContent.deleted;
+      }
     },
     otherTables: [
       {
@@ -207,17 +210,17 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
               where: or(
                 row.gid !== null && row.gid !== ""
                   ? and(
-                      eq(guildInventory.gid, row.gid),
-                      not(guildInventory.deleted)
-                    )
+                    eq(guildInventory.gid, row.gid),
+                    not(guildInventory.deleted)
+                  )
                   : undefined,
                 row.dataRowContent !== null &&
                   row.dataRowContent.upc !== null &&
                   row.dataRowContent.upc !== ""
                   ? and(
-                      eq(guildInventory.upc, row.dataRowContent.upc),
-                      not(guildInventory.deleted)
-                    )
+                    eq(guildInventory.upc, row.dataRowContent.upc),
+                    not(guildInventory.deleted)
+                  )
                   : undefined
               ),
               columns: {
@@ -227,6 +230,9 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
             .execute();
           return rows.map((r) => r.id);
         },
+        isDeleted: (row) => {
+          return row.inventoryRowContent?.deleted ?? true;
+        }
       },
       {
         table: guildFlyer,
@@ -244,6 +250,9 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
             .execute();
           return res.map((r) => r.id);
         },
+        isDeleted: (row) => {
+          return row.flyerRowContent?.deleted ?? true;
+        }
       },
     ],
   },
@@ -258,9 +267,9 @@ const categoryMap = {
   "7": "inkToner",
 } as {
   [key: string]:
-    | "officeSchool"
-    | "technology"
-    | "furniture"
-    | "cleaningBreakRoom"
-    | "inkToner";
+  | "officeSchool"
+  | "technology"
+  | "furniture"
+  | "cleaningBreakRoom"
+  | "inkToner";
 };

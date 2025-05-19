@@ -21,7 +21,7 @@ import { runSerializable } from "./runSerializable";
 import PromisePool from "@supercharge/promise-pool";
 
 export function createUnifier<
-  RowType extends TableType["$inferSelect"] & { uniref: { uniId: number } },
+  RowType extends TableType["$inferSelect"] & { uniref: { uniId: number }; id: number; deleted: boolean },
   TableType extends UnifiedTables
 >({
   table,
@@ -38,8 +38,8 @@ export function createUnifier<
     item: RowType,
     t: typeof cellTransformer
   ) => {
-    [K in keyof TableType["$inferSelect"]]: ReturnType<typeof cellTransformer>;
-  };
+      [K in keyof TableType["$inferSelect"]]: ReturnType<typeof cellTransformer>;
+    };
   connections: Connections<RowType, TableType>;
   version: number;
 }) {
@@ -85,6 +85,11 @@ export function createUnifier<
       );
       const connectionRowKey =
         connectionTable.refCol as keyof TableType["$inferInsert"];
+
+      // Un-match the connection if it is deleted and not primary
+      if (!(connectionTable as PrimaryTableConnection<any, any, any>).newRowTransform && updatedRow[connectionRowKey] !== null && connectionTable.isDeleted(updatedRow)) {
+        updatedRow[connectionRowKey] = null as any;
+      }
       if (
         updatedRow[connectionRowKey] === null &&
         otherConnections.length > 0
@@ -141,7 +146,21 @@ export function createUnifier<
           updatedRow = await getRow(id, db);
         }
       }
-      //TODO deal with connections to deleted rows
+    }
+    if (connections.primaryTable.isDeleted(updatedRow) && !updatedRow.deleted) {
+      const newVal = cellConfigurator.getConfiguredCellValue({
+        key: "deleted",
+        val: true,
+        options: {},
+      }, {
+        oldVal: originalRow.deleted,
+        dataType: "boolean",
+        notNull: true,
+      }) as boolean;
+      if (newVal !== updatedRow.deleted) {
+        updatedRow.deleted = newVal;
+        await _modifyRow(id, { deleted: newVal } as any, db);
+      }
     }
 
     // 2. Transform
@@ -175,12 +194,12 @@ export function createUnifier<
     const history: InsertHistoryRowOptions<TableType["$inferSelect"]> | null =
       hasChanges
         ? {
-            uniref: originalRow.uniref.uniId,
-            prev: originalRow,
-            entryType: "update",
-            data: changes,
-            created: Date.now(),
-          }
+          uniref: originalRow.uniref.uniId,
+          prev: originalRow,
+          entryType: "update",
+          data: changes,
+          created: Date.now(),
+        }
         : null;
     if (history)
       await insertHistory({
@@ -360,6 +379,7 @@ interface TableConnection<
   refCol: keyof UnifiedTable;
   recheckConnectionsOnFieldChange: string[];
   findConnections: (row: RowType, db: typeof DB) => Promise<number[]>; // Should not return deleted items
+  isDeleted: (row: RowType) => boolean;
 }
 
 interface PrimaryTableConnection<
