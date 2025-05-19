@@ -1,13 +1,13 @@
 import { getTableName, relations } from "drizzle-orm";
 import {
   bigint,
+  boolean,
   index,
   integer,
   pgEnum,
   pgTable,
   serial,
   text,
-  uniqueIndex,
   type AnyPgColumn,
   type AnyPgTable,
   type PgEnum,
@@ -74,15 +74,15 @@ export function cellConfigTable<COLS extends [string, ...string[]]>({
       col: columnEnum("col").notNull(),
       confType: cellConfigType("confType").notNull(),
       data: text("data"), // JSON
+      resolved: boolean("resolved"),
       notes: text("notes"), // User Viewable (HTML Encoded)
       created: bigint("created", { mode: "number" }).notNull(),
-      lastUpdated: bigint("lastUpdated", { mode: "number" }).notNull(),
     },
     (genericTable) => [
       index(`${tableName}_refId_idx`).on(genericTable.refId),
       index(`${tableName}_col_idx`).on(genericTable.col),
       index(`${tableName}_confType_idx`).on(genericTable.confType),
-      index(`${tableName}_lastUpdated_idx`).on(genericTable.lastUpdated),
+      index(`${tableName}_created_idx`).on(genericTable.created),
     ]
   );
 

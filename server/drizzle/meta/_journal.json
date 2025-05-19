@@ -505,6 +505,20 @@
       "when": 1747435813482,
       "tag": "0071_unique_frightful_four",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1747668735238,
+      "tag": "0072_striped_puppet_master",
+      "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1747670091464,
+      "tag": "0073_medical_beast",
+      "breakpoints": true
     }
   ]
 }

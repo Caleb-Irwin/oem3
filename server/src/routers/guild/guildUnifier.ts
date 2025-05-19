@@ -34,7 +34,7 @@ type GuildRowType = Awaited<ReturnType<typeof getRow>>;
 export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
   table: unifiedGuild,
   confTable: unifiedGuildCellConfig,
-  version: 1,
+  version: 2,
   getRow,
   transform: (item, t) => {
     return {
@@ -119,11 +119,11 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
         },
       }),
       qtyPerUm: t("qtyPerUm", item.dataRowContent.standardPackQty, {
-        shouldMatch: {
-          name: "Guild Inventory Qty Per UM",
-          val: item.inventoryRowContent?.qtyPerUm ?? null,
-          ignore: item.inventoryRowContent === null,
-        },
+        // shouldMatch: {
+        //   name: "Guild Inventory Qty Per UM",
+        //   val: item.inventoryRowContent?.qtyPerUm ?? null,
+        //   ignore: item.inventoryRowContent === null,
+        // },
       }),
       masterPackQty: t("masterPackQty", item.dataRowContent.masterPackQty),
       imageUrl: t(

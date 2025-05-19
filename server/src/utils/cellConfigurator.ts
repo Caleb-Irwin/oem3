@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db as DB, type Tx } from "../db";
 import { unifiedGuildCellConfig, type CellSetting } from "../db.schema";
 import type { UnifiedTables } from "./unifier";
@@ -46,9 +46,9 @@ export async function createCellConfigurator(
       confType: `error:${errorType}` as any,
       col,
       data: JSON.stringify(errorData),
+      resolved: false,
       notes,
       created: Date.now(),
-      lastUpdated: Date.now(),
     });
   }
 
@@ -128,14 +128,24 @@ export async function createCellConfigurator(
   }
 
   async function commitErrors() {
-    // TODO REMOVE RESOLVED ERRORS
-    // TODO ADD NEW ERRORS
-    // TODO UPDATE ERRORS WITH NEW LAST UPDATED
-    // RETURN ERRORS
-    if (newErrors.length > 0) {
-      await db.insert(table).values(newErrors);
+    const existingErrors = cellConfigs.filter((c) => c.confType.startsWith("error:"));
+    const errorsToRemove = new Set<number>(existingErrors.filter(c => c.resolved === false).map((c) => c.id));
+    const errorsToAdd = newErrors.filter((newError) => {
+      const existingError = findMatchingError(existingErrors, newError);
+      if (existingError?.id) {
+        errorsToRemove.delete(existingError.id);
+        return false;
+      }
+      return true;
+    });
+
+    if (errorsToRemove.size > 0) {
+      await db.delete(table).where(inArray(table.id, Array.from(errorsToRemove)));
     }
-    return newErrors;
+    if (errorsToAdd.length > 0) {
+      await db.insert(table).values(errorsToAdd);
+    }
+    return errorsToAdd;
   }
 
   return {
@@ -167,6 +177,7 @@ type CellTransformerOptions<T> = {
 };
 
 type CellConfigRowInsert = typeof unifiedGuildCellConfig.$inferInsert;
+type CellConfigRowSelect = typeof unifiedGuildCellConfig.$inferSelect;
 
 type ValType = string | number | boolean | null;
 
@@ -208,4 +219,33 @@ interface CellConfigData {
   options?: ValType[];
   name?: string;
   message?: string;
+}
+
+function doErrorsMatch(
+  error: CellConfigRowSelect | CellConfigRowInsert,
+  newError: CellConfigRowInsert | CellConfigRowSelect
+): boolean {
+  if (error.refId !== newError.refId) return false;
+  if (error.col !== newError.col) return false;
+  if (error.confType !== newError.confType) return false;
+  if ((error.data === null && newError.data !== null) || (error.data !== null && newError.data === null)) return false;
+  if (error.data && newError.data) {
+    const oldData = JSON.parse(error.data), newData = JSON.parse(newError.data);
+    for (const key of Object.keys(oldData)) {
+      if (!Bun.deepEquals(oldData[key], newData[key])) return false;
+    }
+    for (const key of Object.keys(newData)) {
+      if (!Bun.deepEquals(oldData[key], newData[key])) return false;
+    }
+  }
+  return true;
+}
+
+function findMatchingError(errors: (CellConfigRowSelect | CellConfigRowInsert)[], matchError: (CellConfigRowInsert | CellConfigRowSelect)): (CellConfigRowSelect | CellConfigRowInsert) | null {
+  for (const error of errors) {
+    if (doErrorsMatch(error, matchError)) {
+      return error;
+    }
+  }
+  return null;
 }

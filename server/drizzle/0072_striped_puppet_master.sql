@@ -1,0 +1,1 @@
+ALTER TABLE "unifiedGuildCellConfig" ADD COLUMN "resolved" boolean;
