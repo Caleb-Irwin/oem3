@@ -63,7 +63,7 @@
 						</h1>
 						{#if $res?.unifiedGuildData}
 							<a
-								href={`/app/resource/${$res.uniId}/configure`}
+								href={`/app/resource/${$res.uniId}/unified`}
 								class="btn btn-lg variant-filled-primary ml-1"
 								aria-label="Edit Item Config"
 							>

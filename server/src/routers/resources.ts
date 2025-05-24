@@ -64,7 +64,7 @@ export const resourcesRouter = router({
         });
         return { history: historyRes, ...res };
       }
-      return res;
+      return { history: null, ...res };
     }),
   getChangesets: viewerProcedure
     .input(z.object({ type: z.enum(changesetType.enumValues) }))

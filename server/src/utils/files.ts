@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { db } from "../db";
 import { files } from "./files.table";
-import { generalProcedure, router } from "../trpc";
+import { generalProcedure, router, viewerProcedure } from "../trpc";
 import { desc, eq } from "drizzle-orm";
 import { eventSubscription } from "./eventSubscription";
 import {
@@ -118,14 +118,14 @@ export const fileProcedures = (
         });
         update();
       }),
-    get: generalProcedure.query(async () => {
+    get: viewerProcedure.query(async () => {
       return await db.query.files.findMany({
         where: eq(files.type, type),
         columns: { content: false },
         orderBy: [desc(files.uploadedTime)],
       });
     }),
-    download: generalProcedure
+    download: viewerProcedure
       .input(z.object({ fileId: z.number().int() }))
       .query(async ({ input: { fileId } }) => {
         return await getFileRow(fileId);

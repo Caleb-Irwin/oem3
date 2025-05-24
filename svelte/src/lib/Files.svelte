@@ -22,7 +22,7 @@
 				transformer: false;
 			}>;
 		};
-		cloudSyncMutation?: 
+		cloudSyncMutation?:
 			| {
 					mutate: Resolver<{
 						input: {};
@@ -43,7 +43,8 @@
 		acceptFileType
 	}: Props = $props();
 
-	const files = sub(filesRouter.get, filesRouter.onUpdate);
+	const _files = sub(filesRouter.get, filesRouter.onUpdate);
+	const files = $derived($_files);
 
 	const modalStore = getModalStore(),
 		toastStore = getToastStore();
@@ -88,7 +89,7 @@
 	</div>
 
 	<ul class="rounded-lg max-h-64 overflow-y-auto">
-		{#each $files ?? [] as file, i}
+		{#each files ?? [] as file, i}
 			<li
 				class="py-0.5 px-2 flex items-center {i % 2 === 0
 					? 'bg-surface-200 dark:bg-surface-600'
@@ -135,7 +136,7 @@
 				</Button>
 			</li>
 		{:else}
-			<p class="text-center">{$files ? 'No Files' : 'Loading...'}</p>
+			<p class="text-center">{files ? 'No Files' : 'Loading...'}</p>
 		{/each}
 	</ul>
 </div>

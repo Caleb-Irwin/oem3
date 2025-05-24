@@ -177,7 +177,7 @@ type CellTransformerOptions<T> = {
 };
 
 type CellConfigRowInsert = typeof unifiedGuildCellConfig.$inferInsert;
-type CellConfigRowSelect = typeof unifiedGuildCellConfig.$inferSelect;
+export type CellConfigRowSelect = typeof unifiedGuildCellConfig.$inferSelect;
 
 type ValType = string | number | boolean | null;
 
@@ -249,3 +249,5 @@ function findMatchingError(errors: (CellConfigRowSelect | CellConfigRowInsert)[]
   }
   return null;
 }
+
+export type CellConfigTables = typeof unifiedGuildCellConfig;

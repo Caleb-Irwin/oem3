@@ -14,6 +14,10 @@ export const client = createTRPCClient<AppRouter>({
 	links: [
 		splitLink({
 			condition(op) {
+				// if (op.type === 'mutation') return true;
+				// if (op.path.startsWith('user')) return true;
+				// if (op.path.startsWith('admin')) return true;
+				// return false;
 				return op.type !== 'subscription';
 			},
 			true: httpBatchLink({
@@ -22,8 +26,8 @@ export const client = createTRPCClient<AppRouter>({
 			false: wsLink({
 				client: browser
 					? createWSClient({
-							url: `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/trpc`
-						})
+						url: `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/trpc`
+					})
 					: (undefined as unknown as ReturnType<typeof createWSClient>)
 			})
 		})
@@ -77,9 +81,10 @@ export const sub = <I, O, SI, SO>(
 			param: SI,
 			opts: {
 				onData?: (data: SO) => void;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				onError?: (err: TRPCClientError<any>) => void;
 			}
-		) => any;
+		) => unknown;
 	},
 	...args: I extends void ? (SI extends void ? [] : [undefined, SI]) : [I, SI | void]
 ): Readable<O | undefined> => {

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { generalProcedure, router } from "../trpc";
+import { generalProcedure, router, viewerProcedure } from "../trpc";
 import { eventSubscription } from "./eventSubscription";
 import type { HostMessage, WorkerMessage } from "./workerBase";
 import { TRPCError } from "@trpc/server";
@@ -16,8 +16,8 @@ export const managedWorker = (
   runAfter: PostRunHook[] = []
 ) => {
   const changeset = changesetType.enumValues.includes(name as any)
-      ? (name as (typeof changesetType.enumValues)[number])
-      : null,
+    ? (name as (typeof changesetType.enumValues)[number])
+    : null,
     { onUpdate, update } = eventSubscription(),
     kv = new KV(name),
     status = {
@@ -84,7 +84,7 @@ export const managedWorker = (
             if (
               (await kv.get("lastStaled")) &&
               parseInt((await kv.get("lastStaled")) as string) >
-                (parseInt((await kv.get("lastRan")) as string) ?? 0)
+              (parseInt((await kv.get("lastRan")) as string) ?? 0)
             ) {
               runWorker({});
             }
@@ -107,7 +107,7 @@ export const managedWorker = (
       if (
         (await kv.get("lastStaled")) &&
         parseInt((await kv.get("lastStaled")) as string) >
-          parseInt((await kv.get("lastRan")) as string)
+        parseInt((await kv.get("lastRan")) as string)
       ) {
         runWorker({});
       }
@@ -126,10 +126,10 @@ export const managedWorker = (
             throw new TRPCError({ message: e.message, code: "CONFLICT" });
           }
         }),
-      status: generalProcedure.query(() => {
+      status: viewerProcedure.query(() => {
         return status;
       }),
-      changeset: generalProcedure.query(async () => {
+      changeset: viewerProcedure.query(async () => {
         return changeset ? await getChangeset(changeset) : null;
       }),
       onUpdate,

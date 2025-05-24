@@ -45,16 +45,7 @@ export function createUnifier<
 }) {
   const tableConf = getTableConfig(table),
     unifiedTableName = tableConf.name,
-    colTypes = {} as Record<
-      keyof TableType["$inferSelect"],
-      { dataType: "string" | "number" | "boolean"; notNull: boolean }
-    >;
-  tableConf.columns.forEach(({ name, dataType, notNull }) => {
-    colTypes[name as keyof TableType["$inferSelect"]] = {
-      dataType: dataType as "string" | "number" | "boolean",
-      notNull,
-    };
-  });
+    colTypes = getColConfig(table);
 
   async function _modifyRow(
     id: number,
@@ -364,7 +355,23 @@ export function createUnifier<
   };
 }
 
+export function getColConfig<TableType extends UnifiedTables>(table: TableType) {
+  const tableConf = getTableConfig(table),
+    colTypes = {} as Record<
+      keyof TableType["$inferSelect"],
+      { dataType: "string" | "number" | "boolean"; notNull: boolean }
+    >;
+  tableConf.columns.forEach(({ name, dataType, notNull }) => {
+    colTypes[name as keyof TableType["$inferSelect"]] = {
+      dataType: dataType as "string" | "number" | "boolean",
+      notNull,
+    };
+  });
+  return colTypes;
+}
+
 export type UnifiedTables = typeof unifiedGuild;
+export type UnifiedTableNames = 'unifiedGuild';
 export type PrimarySourceTables = typeof unifiedGuild | typeof guildData;
 // export type SecondarySourceTables = typeof unifiedSPR
 export type OtherSourceTables = typeof guildInventory | typeof guildFlyer;
