@@ -11,22 +11,20 @@
 	let { primary, other }: Props = $props();
 </script>
 
-<div
-	class="p-2 w-full flex flex-col justify-center md:block md:min-w-96 md:max-w-96 lg:min-w-[512px] lg:max-w-[512px]"
->
+<div class="p-2 w-full flex flex-col justify-center">
 	<div class="w-full h-full card relative min-h-16">
 		{#if primary.value}
 			<a class="p-2 w-full flex justify-center" href={primary.value as string} target="_blank">
 				<img src={primary.value as string} alt="" class="rounded p-2 bg-white w-full" />
 			</a>
 		{/if}
-		<div class="flex border-t-2 border-surface-200 p-1 pt-2 items-center dark:border-surface-500">
+		<div class="flex border-t-2 border-surface-200 p-2 items-center dark:border-surface-500">
 			<p class="text-lg font-bold flex-grow pl-1">Primary Image</p>
 			<SettingButton cell={primary} />
 		</div>
 		<Settings cell={primary} extraClass="p-2" />
 	</div>
-	<div class="mt-2 card pb-1">
+	<div class="mt-2 card">
 		{#if other.value}
 			<div class=" w-full grid grid-cols-2 p-1 px-2">
 				{#each JSON.parse(other.value as string) as img, i}

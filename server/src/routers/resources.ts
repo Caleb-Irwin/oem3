@@ -10,6 +10,7 @@ import {
   resourceTypeEnum,
   sprEnhancedContent,
   uniref,
+  type ResourceType,
 } from "../db.schema";
 import { TRPCError } from "@trpc/server";
 
@@ -25,6 +26,38 @@ export const resourceWith = {
   unifiedGuildData: true as true,
 };
 
+export const getResource = async ({ input: { uniId, type, id, includeHistory } }: { input: { uniId: number; type?: string; id?: number; includeHistory: boolean } }) => {
+  if (uniId === -1 && type && id) {
+    const maybeUniId = (
+      await db.query.uniref.findFirst({
+        where: eq(uniref[type as ResourceType], id),
+      })
+    )?.uniId;
+    console.log();
+
+    if (!maybeUniId)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "UniId Item Not Found",
+      });
+    uniId = maybeUniId;
+  }
+
+  const res =
+    (await db.query.uniref.findFirst({
+      where: eq(uniref.uniId, uniId),
+      with: resourceWith,
+    })) ?? null;
+  if (res && includeHistory) {
+    const historyRes = await db.query.history.findMany({
+      where: eq(history.uniref, res.uniId),
+      orderBy: desc(history.id),
+    });
+    return { history: historyRes, ...res };
+  }
+  return { history: null, ...res };
+}
+
 export const resourcesRouter = router({
   get: viewerProcedure
     .input(
@@ -35,37 +68,7 @@ export const resourcesRouter = router({
         includeHistory: z.boolean().default(false),
       })
     )
-    .query(async ({ input: { uniId, type, id, includeHistory } }) => {
-      if (uniId === -1 && type && id) {
-        const maybeUniId = (
-          await db.query.uniref.findFirst({
-            where: eq(uniref[type], id),
-          })
-        )?.uniId;
-        console.log();
-
-        if (!maybeUniId)
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "UniId Item Not Found",
-          });
-        uniId = maybeUniId;
-      }
-
-      const res =
-        (await db.query.uniref.findFirst({
-          where: eq(uniref.uniId, uniId),
-          with: resourceWith,
-        })) ?? null;
-      if (res && includeHistory) {
-        const historyRes = await db.query.history.findMany({
-          where: eq(history.uniref, res.uniId),
-          orderBy: desc(history.id),
-        });
-        return { history: historyRes, ...res };
-      }
-      return { history: null, ...res };
-    }),
+    .query(getResource),
   getChangesets: viewerProcedure
     .input(z.object({ type: z.enum(changesetType.enumValues) }))
     .query(async ({ input: { type } }) => {

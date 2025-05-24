@@ -1,53 +1,29 @@
 <script lang="ts">
-	import { getModalStore } from '@skeletonlabs/skeleton';
-	import CompactSearch from '$lib/search/CompactSearch.svelte';
 	import ItemRow from '$lib/ItemRow.svelte';
-	import { client } from '$lib/client';
-	import Search from 'lucide-svelte/icons/search';
-	import Suspense from '$lib/Suspense.svelte';
-	import type { Cell } from './types';
+	import SettingButton from './SettingButton.svelte';
+	import Settings from './Settings.svelte';
+	import type { NamedCell } from './types';
 
 	interface Props {
-		cell: Cell;
-		children?: import('svelte').Snippet;
+		namedCell: NamedCell;
 	}
 
-	let { cell, children }: Props = $props();
-
-	let value = $state(cell.value);
-	const modalStore = getModalStore(),
-		getRawProduct = (res: any, key: string): any => {
-			const obj: any = { uniId: res[key].uniref.uniId };
-			obj[key] = res[key];
-			return obj;
-		},
-		select = ({ id }: { id: number }) => {
-			// value.set(id.toString());
-		};
+	let { namedCell }: Props = $props();
+	let cell = $state(namedCell.cell),
+		name = $state(namedCell.name);
 </script>
 
-<div class="card flex flex-col">
-	<div class="flex flex-row items-center p-1 px-2">
-		<p class="font-semibold text-lg">{@render children?.()}</p>
-		<div class="flex-grow"></div>
-		<button
-			class="btn btn-icon btn-icon-sm h-8 w-8 variant-ghost-secondary text-secondary-500"
-			onclick={() =>
-				modalStore.trigger({
-					type: 'component',
-					component: {
-						ref: CompactSearch,
-						props: { select, queryType: cell.col }
-					}
-				})}><Search /></button
-		>
-		<input type="text" class="input max-w-24 text-center ml-1 h-8" bind:value placeholder="null" />
-	</div>
-	{#if value}
-		<ItemRow rawProduct={getRawProduct(value, cell.col + 'Data')} />
+<div class="card w-full flex flex-col min-w-72">
+	{#if cell.connectionRow}
+		<ItemRow rawProduct={cell.connectionRow as any} newTab />
 	{:else}
-		<div class="h-full card grid place-content-center">
-			<p class="text-center text-surface-400 py-2">Not Connected</p>
+		<div class="text-lg font-semibold text-center p-2 grid place-content-center flex-grow">
+			<p>No Connection</p>
 		</div>
 	{/if}
+	<div class="flex p-2 items-center border-t-2 border-surface-200 dark:border-surface-500">
+		<p class="text-lg font-bold flex-grow pl-1">{name}</p>
+		<SettingButton {cell} />
+	</div>
+	<Settings {cell} extraClass="p-2" />
 </div>

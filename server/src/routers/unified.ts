@@ -5,6 +5,7 @@ import { db } from "../db";
 import { eq } from "drizzle-orm";
 import { getColConfig, type UnifiedTableNames, type UnifiedTables } from "../utils/unifier";
 import type { CellConfigRowSelect, CellConfigTables } from "../utils/cellConfigurator";
+import { getResource } from "./resources";
 
 export const unifiedRouter = router({
     get: viewerProcedure.input(
@@ -47,6 +48,7 @@ async function getUnifiedRow(uniId: number): Promise<UnifiedRow<UnifiedTables>> 
             cellSettingConf: settingConf || null,
             activeErrors: allActiveErrors.filter((c) => c.col === col),
             allCellConfigs: cellConfig,
+            connectionRow: await getResourceByCol(col, row[col]),
         };
     }
 
@@ -56,9 +58,21 @@ async function getUnifiedRow(uniId: number): Promise<UnifiedRow<UnifiedTables>> 
         type,
         row,
         allActiveErrors,
-        cells
+        cells,
     };
 }
+
+async function getResourceByCol(col: string, value: string | number | boolean | null) {
+    if (!Object.hasOwn(ColToTableName, col) || value === null) return null;
+    const tableName = ColToTableName[col as keyof typeof ColToTableName];
+    return await getResource({ input: { uniId: -1, type: tableName, id: value as number, includeHistory: false } });
+}
+
+const ColToTableName = {
+    'dataRow': 'guildData',
+    'inventoryRow': 'guildInventory',
+    'flyerRow': 'guildFlyer',
+};
 
 export interface UnifiedRow<T extends UnifiedTables = UnifiedTables> {
     uniId: number;
@@ -79,7 +93,8 @@ export interface UnifiedCell {
     setting: CellSetting | null;
     cellSettingConf: CellConfigRowSelect | null;
     activeErrors: CellConfigRowSelect[];
-    allCellConfigs: CellConfigRowSelect[]
+    allCellConfigs: CellConfigRowSelect[];
+    connectionRow: Awaited<ReturnType<typeof getResourceByCol>>;
 }
 
 export type UnifiedRowTypes = typeof unifiedGuild['$inferSelect'];

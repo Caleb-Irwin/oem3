@@ -3,46 +3,102 @@
 	import Price from './Price.svelte';
 	import TextBox from './TextBox.svelte';
 	import Title from './Title.svelte';
-	import type { Cell } from './types';
+	import Connection from './Connection.svelte';
+	import type { Cell, NamedCell } from './types';
+	import Text from './Text.svelte';
 
 	interface Props {
+		primaryConnection: NamedCell;
+		secondaryConnection?: NamedCell;
+		otherConnections: [NamedCell] | [NamedCell, NamedCell];
+		primaryIds: [NamedCell, ...NamedCell[]];
+		otherIds: [NamedCell, ...NamedCell[]];
 		title: Cell;
 		primaryImage: Cell;
-		otherImages: Cell[];
+		otherImages: Cell;
 		price: Cell;
 		comparePrice?: Cell;
 		description: Cell;
 	}
-	let { title, primaryImage, otherImages, price, comparePrice, description } = $props();
+	let {
+		primaryConnection,
+		secondaryConnection,
+		otherConnections,
+		primaryIds,
+		otherIds,
+		title,
+		primaryImage,
+		otherImages,
+		price,
+		comparePrice,
+		description
+	}: Props = $props();
 </script>
 
-<div class="lg:p-2 flex flex-col md:flex-row w-full">
-	<div>
+<div class="w-full p-1 lg:p-3 pb-0 lg:pb-0 grid lg:grid-cols-6 grid-cols-1">
+	<div
+		class="lg:pr-1 flex flex-col {secondaryConnection || otherConnections.length === 1
+			? 'lg:col-span-3'
+			: 'lg:col-span-2'}"
+	>
+		<h3 class="h3 pt-1 text-center">
+			<span class="font-semibold">Primary</span> Connection{secondaryConnection ? 's' : ''} and IDs
+		</h3>
+		<div class="flex-grow grid {secondaryConnection ? 'md:grid-cols-2' : ''}">
+			<div class="p-1 flex">
+				<Connection namedCell={primaryConnection} />
+			</div>
+			{#if secondaryConnection}
+				<div class="p-1 flex">
+					<Connection namedCell={secondaryConnection} />
+				</div>
+			{/if}
+		</div>
+		<div class="flex flex-row flex-wrap">
+			{#each primaryIds as namedCell}
+				<div class="p-1 flex flex-1 min-w-56">
+					<Text {namedCell} />
+				</div>
+			{/each}
+		</div>
+	</div>
+	<div
+		class="lg:pl-1 flex flex-col {secondaryConnection || otherConnections.length === 1
+			? 'lg:col-span-3'
+			: 'lg:col-span-4'}"
+	>
+		<h3 class="h3 pt-1 text-center">
+			<span class="font-semibold">Other</span> Connection{otherConnections.length > 1 ? 's' : ''} and
+			IDs
+		</h3>
+		<div class="flex-grow grid {otherConnections.length > 1 ? 'md:grid-cols-2' : ''}">
+			{#each otherConnections as namedCell}
+				<div class="p-1 flex">
+					<Connection {namedCell} />
+				</div>
+			{/each}
+		</div>
+		<div class="flex flex-row flex-wrap">
+			{#each otherIds as namedCell}
+				<div class="p-1 flex flex-1 min-w-56">
+					<Text {namedCell} />
+				</div>
+			{/each}
+		</div>
+	</div>
+</div>
+
+<div class="lg:p-2 grid grid-cols-1 md:grid-cols-3 w-full">
+	<div class="col-span-1">
 		<Images primary={primaryImage} other={otherImages} />
 	</div>
-	<div class="p-2 w-full">
+	<div class="p-2 w-full col-span-1 md:col-span-2">
 		<div class="flex items-start justify-between w-full">
 			<Title cell={title} />
 		</div>
-		<div class="py-2 flex flex-wrap align-middle">
+		<div class="py-2">
 			<Price {price} {comparePrice} />
 			<span class="flex-grow"></span>
-			<!-- <span class="cursor-default chip text-md variant-soft-tertiary m-1">
-				<CopyableText text={product.sku} />
-			</span> -->
-			<!-- {#if product.stock !== null}
-				<span
-					class="cursor-default chip m-1 {(product?.stock ?? 0) > 0
-						? 'variant-filled-secondary'
-						: 'variant-filled-warning'}"
-				>
-					<CopyableText text={product.stock?.toString()} /><span> in stock</span>
-				</span>
-			{/if} -->
-
-			<!-- {#if product.deleted}
-				<span class="cursor-default chip m-1 variant-filled-error"> Deleted </span>
-			{/if} -->
 		</div>
 		<TextBox cell={description} />
 	</div>
