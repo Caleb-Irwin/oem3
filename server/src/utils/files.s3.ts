@@ -59,6 +59,16 @@ export async function deleteFile(fileId: number): Promise<void> {
   await s3.file(fileId.toString()).delete();
 }
 
+export async function getFileRefById(fileId: number): Promise<Bun.S3File | null> {
+  const file = await db.query.files.findFirst({
+    where: eq(files.id, fileId),
+  });
+  if (!file?.name) return null;
+  const fileName = `files/${fileId} - ${file.name.replaceAll('/', ' ')}.zip`;
+  return s3.file(fileName);
+
+}
+
 export async function uploadImage(
   {
     filePath,
@@ -89,9 +99,7 @@ export async function uploadImage(
   });
 }
 
-export function getImageRef(filePath: string): Bun.S3File {
-  return s3.file(filePath);
-}
+
 
 export async function getImageRefBySourceURL(
   sourceURL: string,

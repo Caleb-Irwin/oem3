@@ -12,8 +12,7 @@ import {
 import { TRPCClientError } from "@trpc/client";
 import type { RunWorker } from "./managedWorker";
 import { scheduleDailyTask } from "./scheduler";
-import { deleteFile, uploadFile } from "./files.s3";
-import { getFileRow } from "./files.getRow";
+import { deleteFile, getFileRefById, uploadFile } from "./files.s3";
 
 export const fileProcedures = (
   type: string,
@@ -128,7 +127,15 @@ export const fileProcedures = (
     download: viewerProcedure
       .input(z.object({ fileId: z.number().int() }))
       .query(async ({ input: { fileId } }) => {
-        return await getFileRow(fileId);
+        const ref = await getFileRefById(fileId);
+        if (!ref) throw new TRPCError({ code: "NOT_FOUND" });
+        return {
+          url: ref.presign({
+            expiresIn: 60 * 60,
+            method: "GET",
+            acl: "public-read",
+          })
+        };
       }),
     cloudDownload: generalProcedure
       .input(z.object({}))

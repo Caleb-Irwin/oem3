@@ -44,13 +44,19 @@ export async function getAccessURLBySourceURL(
 }
 
 export async function backFillGuildImage(gid: string) {
-    const res = await fetch(`https://shopofficeonline.com/ProductImages/${gid}.jpg`);
+    const res = await fetch(`https://shopofficeonline.com/ProductImages/${gid.replace(
+        /[\W_]+/g,
+        ""
+    )}.jpg`);
     if (!res.ok) return null;
     const resBuffer = await res.arrayBuffer();
     await uploadImageAndThumb({
-        filePath: `/guild/${gid}.jpg`,
+        filePath: `guild/${gid}.jpg`,
         content: resBuffer,
-        sourceURL: `https://shopofficeonline.com/ProductImages/${gid}.jpg`,
+        sourceURL: `https://shopofficeonline.com/ProductImages/${gid.replace(
+            /[\W_]+/g,
+            ""
+        )}.jpg`,
         sourceType: "shopofficeonline",
         productId: gid,
     });

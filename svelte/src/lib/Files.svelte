@@ -111,8 +111,15 @@
 									background: 'variant-filled-success'
 								});
 								const link = document.createElement('a');
-								link.download = file.name ?? 'default file name';
-								link.href = (await filesRouter.download.query({ fileId: file.id }))?.content ?? '';
+								const url = (await filesRouter.download.query({ fileId: file.id }))?.url;
+								if (!url) {
+									toastStore.trigger({
+										message: 'Download Failed',
+										background: 'variant-filled-error'
+									});
+									return;
+								}
+								link.href = url;
 								document.body.appendChild(link);
 								link.click();
 								document.body.removeChild(link);

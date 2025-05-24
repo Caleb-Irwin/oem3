@@ -142,11 +142,18 @@ export const resourcesRouter = router({
   getImageUrl: viewerProcedure
     .input(z.object({ originalURL: z.string(), thumbnail: z.boolean().default(false) }))
     .query(async ({ input: { originalURL, thumbnail } }) => {
+      const gid = originalURL.startsWith("https://shopofficeonline.com/ProductImages/") ? originalURL.slice(originalURL.indexOf('https://shopofficeonline.com/ProductImages/') + 43, originalURL.indexOf('.jpg')).replace(
+        /[\W_]+/g,
+        ""
+      ) : null;
+      if (gid)
+        originalURL = `https://shopofficeonline.com/ProductImages/${gid}.jpg`;
+
+
       const image = await getAccessURLBySourceURL(originalURL, thumbnail);
+
       if (!image) {
-        if (originalURL.startsWith("https://shopofficeonline.com/ProductImages/")) {
-          const gid = originalURL.slice(originalURL.indexOf('https://shopofficeonline.com/ProductImages/') + 43, originalURL.indexOf('.jpg'));
-          console.log(gid);
+        if (gid) {
           await backFillGuildImage(gid);
           return await getAccessURLBySourceURL(originalURL, thumbnail) ?? originalURL;
         }
