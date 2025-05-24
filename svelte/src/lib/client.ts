@@ -14,7 +14,7 @@ export const client = createTRPCClient<AppRouter>({
 	links: [
 		splitLink({
 			condition(op) {
-				return (op.path.startsWith('user:'));
+				return (op.path.startsWith('user.'));
 			},
 			true: httpBatchLink({
 				url: '/trpc'
