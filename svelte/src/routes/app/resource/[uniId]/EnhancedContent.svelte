@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { client, query } from '$lib/client';
 	import CopyableText from '$lib/helpers/CopyableText.svelte';
+	import Image from '$lib/Image.svelte';
 
 	interface Props {
 		etilizeId: string | undefined;
@@ -51,9 +52,9 @@
 					: JSON.parse($res.guild?.imageListJSON ?? '[]')[0]}
 				target="_blank"
 			>
-				<img
+				<Image
 					src={$res.spr
-						? `https://content.etilize.com/${$res.spr.primaryImage}/${etilizeId}.jpg?size=700`
+						? `https://content.etilize.com/${$res.spr.primaryImage}/${etilizeId}.jpg`
 						: JSON.parse($res.guild?.imageListJSON ?? '[]')[0]}
 					alt=""
 					class="rounded p-1 bg-white w-full"
@@ -66,10 +67,9 @@
 						href={$res.spr ? `https://content.etilize.com/${image}/${etilizeId}.jpg` : image}
 						target="_blank"
 					>
-						<img
-							src={$res.spr
-								? `https://content.etilize.com/${image}/${etilizeId}.jpg?size=400`
-								: image}
+						<Image
+							src={$res.spr ? `https://content.etilize.com/${image}/${etilizeId}.jpg` : image}
+							thumbnail
 							alt=""
 							class="rounded bg-white w-full"
 						/>

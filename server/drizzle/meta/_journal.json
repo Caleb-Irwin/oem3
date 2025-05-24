@@ -519,6 +519,13 @@
       "when": 1747670091464,
       "tag": "0073_medical_beast",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1748118824413,
+      "tag": "0074_bored_ogun",
+      "breakpoints": true
     }
   ]
 }

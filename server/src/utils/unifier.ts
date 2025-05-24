@@ -178,8 +178,9 @@ export function createUnifier<
     const hasChanges = Object.keys(changes).length > 0;
 
     // 4. Update Row
+    const time = Date.now();
     if (hasChanges)
-      await _modifyRow(id, { lastUpdated: Date.now(), ...changes }, db);
+      await _modifyRow(id, { lastUpdated: time, ...changes }, db);
 
     // 5. Update History
     const history: InsertHistoryRowOptions<TableType["$inferSelect"]> | null =
@@ -189,7 +190,7 @@ export function createUnifier<
           prev: originalRow,
           entryType: "update",
           data: changes,
-          created: Date.now(),
+          created: time,
         }
         : null;
     if (history)

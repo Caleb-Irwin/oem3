@@ -8,6 +8,7 @@
 	import EnhancedImages from './EnhancedContent.svelte';
 	import { readable } from 'svelte/store';
 	import Pencil from 'lucide-svelte/icons/pencil';
+	import Image from '$lib/Image.svelte';
 
 	interface Props {
 		data: PageData;
@@ -34,7 +35,7 @@
 					<div
 						class="p-2 w-full flex flex-col justify-center md:block md:min-w-96 md:max-w-96 lg:min-w-[512px] lg:max-w-[512px]"
 					>
-						<img src={product.imageUrl} alt="" class="rounded p-2 bg-white w-full" />
+						<Image src={product.imageUrl} alt="" class="rounded p-2 bg-white w-full" />
 						{#if product.otherImageUrls}
 							<div class="pt-1 w-full grid grid-cols-2">
 								{#each product.otherImageUrls as image, i}
@@ -43,7 +44,7 @@
 										href={image}
 										target="_blank"
 									>
-										<img src={image} alt="" class="rounded bg-white w-full p-0.5" />
+										<Image src={image} alt="" class="rounded bg-white w-full p-0.5" thumbnail />
 									</a>
 								{/each}
 							</div>

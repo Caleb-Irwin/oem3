@@ -13,6 +13,7 @@ import {
   type ResourceType,
 } from "../db.schema";
 import { TRPCError } from "@trpc/server";
+import { backFillGuildImage, getAccessURLBySourceURL } from "../utils/images";
 
 export const resourceWith = {
   changesetData: true as true,
@@ -138,4 +139,20 @@ export const resourcesRouter = router({
         };
       }
     ),
+  getImageUrl: viewerProcedure
+    .input(z.object({ originalURL: z.string(), thumbnail: z.boolean().default(false) }))
+    .query(async ({ input: { originalURL, thumbnail } }) => {
+      const image = await getAccessURLBySourceURL(originalURL, thumbnail);
+      if (!image) {
+        if (originalURL.startsWith("https://shopofficeonline.com/ProductImages/")) {
+          const gid = originalURL.slice(originalURL.indexOf('https://shopofficeonline.com/ProductImages/') + 43, originalURL.indexOf('.jpg'));
+          console.log(gid);
+          await backFillGuildImage(gid);
+          return await getAccessURLBySourceURL(originalURL, thumbnail) ?? originalURL;
+        }
+
+        return originalURL;
+      }
+      return image;
+    })
 });

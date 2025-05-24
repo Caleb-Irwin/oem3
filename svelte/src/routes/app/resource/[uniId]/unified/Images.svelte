@@ -2,6 +2,7 @@
 	import type { Cell } from './types';
 	import SettingButton from './SettingButton.svelte';
 	import Settings from './Settings.svelte';
+	import Image from '$lib/Image.svelte';
 
 	interface Props {
 		primary: Cell;
@@ -15,7 +16,7 @@
 	<div class="w-full h-full card relative min-h-16">
 		{#if primary.value}
 			<a class="p-2 w-full flex justify-center" href={primary.value as string} target="_blank">
-				<img src={primary.value as string} alt="" class="rounded p-2 bg-white w-full" />
+				<Image src={primary.value as string} alt="" class="rounded p-2 bg-white w-full" />
 			</a>
 		{/if}
 		<div class="flex border-t-2 border-surface-200 p-2 items-center dark:border-surface-500">
@@ -33,7 +34,7 @@
 						href={img.url}
 						target="_blank"
 					>
-						<img src={img.url} alt="" class="rounded bg-white w-full p-0.5" />
+						<Image src={img.url} thumbnail alt="" class="rounded bg-white w-full p-0.5" />
 					</a>
 				{/each}
 			</div>
