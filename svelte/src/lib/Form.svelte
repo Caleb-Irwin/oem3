@@ -7,6 +7,7 @@
 	interface Props {
 		class?: string;
 		invalidateAll?: boolean;
+		reloadPage?: boolean;
 		action: { mutate: (input: I) => Promise<T> };
 		res?: (output: T) => Promise<void> | void;
 		successMessage?: string | null;
@@ -21,6 +22,7 @@
 	let {
 		class: formClass = '',
 		invalidateAll: invalidateAllFlag = false,
+		reloadPage = false,
 		action,
 		res = (ouput) => undefined,
 		successMessage = null,
@@ -82,6 +84,7 @@
 				});
 			if (invalidateAllFlag) await invalidateAll();
 			if (modalMode) modalStore.close();
+			if (reloadPage) window.location.reload();
 		} catch (e) {
 			handleTRPCError(e);
 		}

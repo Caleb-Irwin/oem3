@@ -9,15 +9,13 @@
 <AppBar gridColumns="grid-cols-3" slotDefault="place-self-center" slotTrail="place-content-end">
 	{#snippet lead()}
 		<a href="/" class="btn btn-icon variant-filled-primary">
-				<Home />
-			</a>
+			<Home />
+		</a>
 	{/snippet}
 	<a href="/" class="font-semibold text-2xl">OEM3</a>
 	{#snippet trail()}
-	
-			<Bttn action={client.user.logout} class="btn btn-icon variant-filled-primary" invalidateAll
-				><LogOut /></Bttn
-			>
-		
+		<Bttn action={client.user.logout} class="btn btn-icon variant-filled-primary" reloadPage
+			><LogOut /></Bttn
+		>
 	{/snippet}
 </AppBar>

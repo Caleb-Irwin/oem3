@@ -14,11 +14,7 @@ export const client = createTRPCClient<AppRouter>({
 	links: [
 		splitLink({
 			condition(op) {
-				// if (op.type === 'mutation') return true;
-				// if (op.path.startsWith('user')) return true;
-				// if (op.path.startsWith('admin')) return true;
-				// return false;
-				return op.type !== 'subscription';
+				return (op.path.startsWith('user:'));
 			},
 			true: httpBatchLink({
 				url: '/trpc'
@@ -31,7 +27,7 @@ export const client = createTRPCClient<AppRouter>({
 					: (undefined as unknown as ReturnType<typeof createWSClient>)
 			})
 		})
-	]
+	],
 });
 
 export function isTRPCClientError(cause: unknown): cause is TRPCClientError<AppRouter> {

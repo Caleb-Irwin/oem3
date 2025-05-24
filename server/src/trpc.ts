@@ -16,12 +16,6 @@ export async function createContext(
 }> {
   runDailyTasksIfNeeded();
 
-  if ((ctx as CreateWSSContextFnOptions).req.headers.upgrade === "websocket") {
-    return {
-      user: null,
-    };
-  }
-
   const { res, req } = ctx as CreateExpressContextOptions,
     cookies = new Cookies(req, res);
 

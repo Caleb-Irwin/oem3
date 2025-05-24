@@ -1,12 +1,10 @@
 <script lang="ts" generics="T extends any, I extends object">
 	import Form from './Form.svelte';
 
-	
-	
-
 	interface Props {
 		class?: string;
 		invalidateAll?: boolean;
+		reloadPage?: boolean;
 		action: { mutate: (input: any) => Promise<T> };
 		res?: (output: T) => Promise<void> | void;
 		successMessage?: string | null;
@@ -19,6 +17,7 @@
 	let {
 		class: btnClass = 'btn variant-filled-primary',
 		invalidateAll: invalidateAllFlag = false,
+		reloadPage = false,
 		action,
 		res = (ouput) => undefined,
 		successMessage = null,
@@ -34,6 +33,7 @@
 	{res}
 	class="grid place-content-center"
 	invalidateAll={invalidateAllFlag}
+	{reloadPage}
 	{successMessage}
 	{confirm}
 	{input}
