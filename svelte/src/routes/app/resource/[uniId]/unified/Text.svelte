@@ -3,20 +3,32 @@
 	import type { NamedCell } from './types';
 	import SettingButton from './SettingButton.svelte';
 	import Settings from './Settings.svelte';
+	import { formatPrice } from '$lib/formatPrice';
 
 	interface Props {
 		namedCell: NamedCell;
+		class?: string;
+		price?: boolean;
 	}
 
-	let { namedCell: nc }: Props = $props();
+	let { namedCell: nc, class: className, price }: Props = $props();
+	let val = $derived(
+		typeof nc.cell.value === 'boolean'
+			? nc.cell.value
+				? 'Yes'
+				: 'No'
+			: price && nc.cell.value !== null
+				? formatPrice((nc.cell.value as number) / 100)
+				: nc.cell.value
+	);
 </script>
 
-<div class="card p-2 w-full">
+<div class="card p-2 w-full {className ?? ''}">
 	<div class="flex flex-row items-center justify-between">
 		<div>
 			<p class="text-lg font-bold flex-grow">{nc.name}</p>
 			<p class="text-lg">
-				<NullableText text={nc.cell.value} />
+				<NullableText text={val} />
 			</p>
 		</div>
 		<div class="pl-4">

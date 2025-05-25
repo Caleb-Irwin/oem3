@@ -526,6 +526,13 @@
       "when": 1748118824413,
       "tag": "0074_bored_ogun",
       "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1748150751967,
+      "tag": "0075_freezing_black_widow",
+      "breakpoints": true
     }
   ]
 }

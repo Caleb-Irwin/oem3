@@ -20,7 +20,7 @@
 </script>
 
 {#if openSettings[cell.compoundId]?.[cell.col]}
-	<div class="flex items-center w-full min-h-16 place-content-center {extraClass ?? ''}">
+	<div class="flex items-center w-full min-h-16 place-content-center min-w-52 {extraClass ?? ''}">
 		<p>{cell.col} Settings</p>
 	</div>
 {/if}

@@ -37,7 +37,7 @@
 		{#if product.imageUrl}
 			<a
 				class="{grid ? 'w-full' : 'h-20 w-20'} aspect-square p-1 card hover:cursor-pointer"
-				href={'/app/resource/' + rawProduct.uniId}
+				href={`/app/resource/${rawProduct.uniId}${rawProduct.unifiedGuild ? '/unified' : ''}`}
 				target={newTab ? '_blank' : '_self'}
 			>
 				<Image

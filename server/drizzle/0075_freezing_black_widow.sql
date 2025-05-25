@@ -1,0 +1,1 @@
+ALTER TABLE "unifiedGuild" RENAME COLUMN "imageDescriptions" TO "primaryImageDescription";

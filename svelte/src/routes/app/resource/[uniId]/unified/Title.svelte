@@ -10,7 +10,7 @@
 	let { cell }: Props = $props();
 </script>
 
-<div class="card w-full">
+<div class="card flex-grow">
 	<h1 class="h1 p-2">{cell.value}</h1>
 	<div class="flex p-2 items-center border-t-2 border-surface-200 dark:border-surface-500">
 		<p class="text-lg font-bold flex-grow pl-1">Title</p>

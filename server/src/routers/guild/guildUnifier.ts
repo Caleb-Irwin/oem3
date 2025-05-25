@@ -132,7 +132,7 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
           ? JSON.parse(item.dataRowContent.desc?.imageListJSON)[0] ?? null
           : null) ?? item.dataRowContent.imageURL
       ),
-      imageDescriptions: t("imageDescriptions", `Image of ${item.gid}`),
+      primaryImageDescription: t("primaryImageDescription", `Image of ${item.gid}`),
       otherImageListJSON: t(
         "otherImageListJSON",
         item.dataRowContent.desc?.imageListJSON &&

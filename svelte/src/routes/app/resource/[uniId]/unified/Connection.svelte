@@ -17,7 +17,7 @@
 	{#if cell.connectionRow}
 		<ItemRow rawProduct={cell.connectionRow as any} newTab />
 	{:else}
-		<div class="text-lg font-semibold text-center p-2 grid place-content-center flex-grow">
+		<div class="card text-lg font-semibold text-center p-2 grid place-content-center flex-grow">
 			<p>No Connection</p>
 		</div>
 	{/if}

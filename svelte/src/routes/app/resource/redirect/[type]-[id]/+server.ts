@@ -9,5 +9,5 @@ export const GET: RequestHandler = async ({ params, locals: { client } }) => {
 
 	if (!res) error(404);
 
-	redirect(302, '/app/resource/' + res.uniId);
+	redirect(302, `/app/resource/${res.uniId}${params.type === 'unifiedGuild' ? '/unified' : ''}`);
 };

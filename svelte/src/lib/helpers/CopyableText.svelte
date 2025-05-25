@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getToastStore } from '@skeletonlabs/skeleton';
+	import BreakableText from './BreakableText.svelte';
 
 	interface Props {
 		text: string;
@@ -30,5 +31,5 @@
 	role="button"
 	tabindex="0"
 >
-	{text}
+	<BreakableText {text} />
 </span>

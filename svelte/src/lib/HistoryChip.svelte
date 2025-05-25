@@ -1,4 +1,5 @@
 <script lang="ts">
+	import BreakableText from './helpers/BreakableText.svelte';
 	import { formatCurrency } from './productDetails';
 
 	interface Props {
@@ -28,24 +29,15 @@
 	>
 		<span class="font-bold text-primary-500 pr-1">{key}:</span>
 		{#if !create}
-			{@render breakable(toReadable(prev).split(' '))}
+			<BreakableText text={toReadable(prev)} />
+			{#if prev !== value}
+				<span class="font-bold text-primary-500 pr-2">-></span>
+			{/if}
 			<span class="font-bold text-primary-500 pr-2">-></span>
 		{/if}
-		{@render breakable(toReadable(value).split(' '))}
+		<BreakableText text={toReadable(value)} />
 		{#if create}
 			<span class="font-bold text-primary-500">New</span>
 		{/if}
 	</span>
 </div>
-
-{#snippet breakable(text: string[])}
-	<span>
-		{#each text as t}
-			{#if t.length > 20}
-				<span class="break-all">{t}</span>
-			{:else}
-				{t}
-			{/if}{' '}
-		{/each}
-	</span>
-{/snippet}
