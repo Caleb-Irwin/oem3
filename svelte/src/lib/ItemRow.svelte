@@ -40,7 +40,12 @@
 				href={'/app/resource/' + rawProduct.uniId}
 				target={newTab ? '_blank' : '_self'}
 			>
-				<Image src={product.imageUrl} alt="Image for {product.sku}" class="w-full rounded-sm" />
+				<Image
+					src={product.imageUrl}
+					alt="Image for {product.sku}"
+					class="w-full rounded-sm"
+					thumbnail
+				/>
 			</a>
 		{/if}
 

@@ -104,7 +104,6 @@ export async function addOrSmartUpdateImage(url: string, productId: string, sour
             productId,
         });
     } else {
-        return;
         const res = await fetch(url);
         if (!res.ok) throw new Error("Failed to fetch image");
         const resBuffer = await res.arrayBuffer();
