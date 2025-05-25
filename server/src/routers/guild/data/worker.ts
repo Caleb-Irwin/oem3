@@ -89,7 +89,6 @@ work({
     progress(-1);
     let doneSoFar = 0;
     const total = allUpdated.length;
-    console.log("Adding images for", total, "items");
 
     await PromisePool.withConcurrency(10)
       .for(allUpdated)

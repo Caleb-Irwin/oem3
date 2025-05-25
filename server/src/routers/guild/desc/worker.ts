@@ -6,13 +6,45 @@ import { guildDescriptions } from "./table";
 import PromisePool from "@supercharge/promise-pool";
 import { eq } from "drizzle-orm";
 import { guildData } from "../data/table";
+import { addOrSmartUpdateImage } from "../../../utils/images";
 
 declare var self: Worker;
 
 work({
   self,
   process: async ({ db, progress }) => {
-    return; //TODO
+    const imgs = (await db.query.guildDescriptions.findMany({
+      columns: { gid: true, imageListJSON: true },
+    })).flatMap((v) => {
+      const images = JSON.parse(v.imageListJSON ?? '[]') as string[];
+      return images.map((url: string) => ({
+        gid: v.gid,
+        url,
+      }));
+    });
+
+    console.log("Backfilling images for", imgs.length, "items");
+
+    let processedCount = 0;
+    await PromisePool.withConcurrency(10)
+      .for(imgs)
+      .handleError(async (error, { gid, url }) => {
+        console.error("Error adding image for gid", gid, "url", url, error);
+        // Continue processing other images
+      })
+      .onTaskFinished(() => {
+        processedCount++;
+        if (processedCount % 50 === 0) {
+          progress(processedCount / imgs.length);
+        }
+      })
+      .process(async ({ gid, url }) => {
+        await addOrSmartUpdateImage(url, gid, "venxia");
+      });
+
+    console.log("Finished backfilling", processedCount, "images");
+    return;
+
     const guildList = (
       await db.query.guildData
         .findMany({
@@ -116,6 +148,10 @@ work({
           deleted: false,
           lastUpdated: new Date().getTime(),
         };
+
+        for (const url of JSON.parse(row.imageListJSON)) {
+          await addOrSmartUpdateImage(url, guildId, "venxia")
+        }
 
         await db
           .insert(guildDescriptions)
