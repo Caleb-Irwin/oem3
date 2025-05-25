@@ -1,4 +1,4 @@
-import { S3Client, gzipSync, gunzipSync } from "bun";
+import { S3Client } from "bun";
 import { db } from "../db";
 import { files } from "./files.table";
 import { eq } from "drizzle-orm";
@@ -13,11 +13,11 @@ export const s3 = new S3Client({
 
 export async function uploadFile(
   fileId: number,
+  name: string,
   content: string
 ): Promise<void> {
-  throw new Error("New version not implemented");
-  const encoded = new TextEncoder().encode(content);
-  await s3.file('files/' + fileId.toString()).write(gzipSync(encoded));
+  const fileName = `${fileId} - ${name.replaceAll('/', ' ')}`
+  return await uploadFileByName(fileName, content);
 }
 
 export async function uploadFileByName(fileName: string, contentDataUrl: string): Promise<void> {
@@ -25,14 +25,18 @@ export async function uploadFileByName(fileName: string, contentDataUrl: string)
   await s3.file('files/' + fileName + '.zip').write(buff, { type: "application/zip" });
 }
 
-export async function downloadFile(fileId: number): Promise<string> {
-  const res = await s3.file(fileId.toString()).arrayBuffer();
-  const decompressed = gunzipSync(res);
-  return new TextDecoder().decode(decompressed);
-}
-
 export async function deleteFile(fileId: number): Promise<void> {
-  await s3.file(fileId.toString()).delete();
+  const row = await db.query.files.findFirst({
+    where: eq(files.id, fileId),
+  });
+  if (!row) return;
+
+  const res = await db
+    .delete(files)
+    .where(eq(files.id, fileId))
+    .returning({ name: files.name });
+  if (res?.[0].name)
+    await s3.file(`files/${fileId} - ${res[0].name.replaceAll('/', ' ')}.zip`).delete();
 }
 
 export async function getFileRefById(fileId: number): Promise<Bun.S3File | null> {
@@ -51,7 +55,7 @@ export async function getFileRow(fileId: number) {
   });
   if (!file?.content?.startsWith("@")) throw new Error("File not in S3");
   if (!file?.name) return null;
-  const innerFileName = `${fileId} - ${file.name.replaceAll('/', ' ')}`
+  const innerFileName = `${fileId} - ${file.name.replaceAll('/', ' ')}`;
   const fileName = `files/${innerFileName}.zip`;
   const arrayBuffer = await s3.file(fileName).arrayBuffer();
   return {

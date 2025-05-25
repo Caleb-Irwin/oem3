@@ -80,7 +80,7 @@ work({
     });
 
     const allUpdated = await db.query.guildData.findMany({
-      // where: gt(guildData.lastUpdated, startTime - 1), //TODO Temp for backfill!
+      where: gt(guildData.lastUpdated, startTime - 1),
       columns: {
         gid: true,
       }

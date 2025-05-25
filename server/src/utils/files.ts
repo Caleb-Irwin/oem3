@@ -52,7 +52,7 @@ export const fileProcedures = (
           })
           .returning({ fileId: files.id })
       )[0];
-      await uploadFile(fileId, file);
+      await uploadFile(fileId, fileName, file);
       return fileId;
     });
 
@@ -104,17 +104,7 @@ export const fileProcedures = (
     del: generalProcedure
       .input(z.object({ fileId: z.number().int() }))
       .mutation(async ({ input: { fileId } }) => {
-        const row = await db.query.files.findFirst({
-          where: eq(files.id, fileId),
-        });
-        if (!row) return;
-        await db.transaction(async (db) => {
-          const res = await db
-            .delete(files)
-            .where(eq(files.id, fileId))
-            .returning({ content: files.content });
-          if (res[0]?.content?.startsWith("@")) await deleteFile(fileId);
-        });
+        await deleteFile(fileId);
         update();
       }),
     get: viewerProcedure.query(async () => {
