@@ -1,3 +1,4 @@
+import { eq, gt } from "drizzle-orm";
 import {
   enforceEnum,
   genDiffer,
@@ -6,6 +7,9 @@ import {
 import { work } from "../../../utils/workerBase";
 import { guildData, guildUmEnum } from "./table";
 import * as xlsx from "xlsx";
+import { addOrSmartUpdateImage } from "../../../utils/images";
+import { changesets } from "../../../db.schema";
+import PromisePool from "@supercharge/promise-pool";
 
 declare var self: Worker;
 
@@ -15,9 +19,10 @@ work({
     db,
     message,
     progress,
-    utils: { getFileDataUrl, createChangeset },
+    utils: { getFileDataUrl, createChangeset, notifier },
   }) => {
     const fileId = (message.data as { fileId: number }).fileId,
+      startTime = Date.now(),
       changeset = await createChangeset(guildData, fileId),
       dataUrl = await getFileDataUrl(fileId),
       workbook = xlsx.read(dataUrl.slice(dataUrl.indexOf(";base64,") + 8)),
@@ -70,8 +75,45 @@ work({
         ),
         excludeFromHistory: [],
         progress,
+        preventAutoFinish: true,
       });
     });
+
+    const allUpdated = await db.query.guildData.findMany({
+      // where: gt(guildData.lastUpdated, startTime - 1), //TODO Temp for backfill!
+      columns: {
+        gid: true,
+      }
+    });
+
+    progress(-1);
+    let doneSoFar = 0;
+    const total = allUpdated.length;
+    console.log("Adding images for", total, "items");
+
+    await PromisePool.withConcurrency(10)
+      .for(allUpdated)
+      .handleError(async (error, { gid }) => {
+        console.error("Error adding image for gid", gid, error);
+      })
+      .onTaskFinished(() => {
+        doneSoFar++;
+        if (doneSoFar % 50 === 0) {
+          progress(doneSoFar / total);
+        }
+      })
+      .process(async ({ gid }) => {
+        await addOrSmartUpdateImage(`https://shopofficeonline.com/ProductImages/${gid.replace(
+          /[\W_]+/g,
+          ""
+        )}.jpg`, gid, "shopofficeonline");
+      });
+
+    await db
+      .update(changesets)
+      .set({ status: "completed" })
+      .where(eq(changesets.id, changeset.id));
+    notifier();
   },
 });
 

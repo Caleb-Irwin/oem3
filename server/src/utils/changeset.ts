@@ -1,5 +1,5 @@
 import { desc, eq, inArray } from "drizzle-orm";
-import { db as DB } from "../db";
+import { db as DB, type Tx } from "../db";
 import {
   changesetType,
   changesets,
@@ -74,8 +74,9 @@ export const createChangeset = async (
       excludeFromHistory,
       progress,
       customDeletedItems = undefined,
+      preventAutoFinish = false,
     }: {
-      db: typeof DB;
+      db: typeof DB | Tx;
       rawItems: Raw[];
       prevItems: Map<number | string, Item>;
       transform: (raw: Raw) => ItemInsert;
@@ -84,6 +85,8 @@ export const createChangeset = async (
       excludeFromHistory?: (keyof ItemInsert)[];
       progress: (amountDone: number) => void;
       customDeletedItems?: Item[] | undefined;
+      preventAutoFinish?: boolean;
+
     }) => {
       const total = rawItems.length,
         historyArr: InsertHistoryRowOptions<ItemInsert>[] = [];
@@ -230,10 +233,11 @@ export const createChangeset = async (
         entryType: "create",
         data: summary,
       });
-      await db
-        .update(changesets)
-        .set({ status: "completed" })
-        .where(eq(changesets.id, changeset.id));
+      if (!preventAutoFinish)
+        await db
+          .update(changesets)
+          .set({ status: "completed" })
+          .where(eq(changesets.id, changeset.id));
       notifier();
     },
   };

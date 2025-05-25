@@ -1,7 +1,7 @@
 import * as schema from "../db.schema";
 import { createChangeset } from "./changeset";
 import { db, type db as dbType } from "../db";
-import { getFileRow } from "./files.getRow";
+import { getFileRow } from "./files.s3";
 
 export interface WorkerMessage {
   type: "ready" | "started" | "progress" | "done" | "changesetUpdate" | "error";
@@ -16,6 +16,7 @@ interface WorkerParams {
     message: StartMessage;
     progress: (percentDone: number) => void;
     utils: {
+      notifier: () => void;
       getFileDataUrl: (fileId: number | undefined) => Promise<string>;
       createChangeset: (
         changesetTable: schema.ChangesetTable,
@@ -43,6 +44,9 @@ export const work = async ({ self, process: processFunc }: WorkerParams) => {
           sendMessage("progress", amountDone.toString());
         },
         utils: {
+          notifier: () => {
+            sendMessage("changesetUpdate");
+          },
           getFileDataUrl: async (fileId) => {
             if (typeof fileId !== "number")
               throw new Error("No fileId was provided!");

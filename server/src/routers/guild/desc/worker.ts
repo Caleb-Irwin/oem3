@@ -12,6 +12,7 @@ declare var self: Worker;
 work({
   self,
   process: async ({ db, progress }) => {
+    return; //TODO
     const guildList = (
       await db.query.guildData
         .findMany({

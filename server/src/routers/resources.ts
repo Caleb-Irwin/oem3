@@ -13,7 +13,7 @@ import {
   type ResourceType,
 } from "../db.schema";
 import { TRPCError } from "@trpc/server";
-import { backFillGuildImage, getAccessURLBySourceURL } from "../utils/images";
+import { addOrSmartUpdateImage, getAccessURLBySourceURL } from "../utils/images";
 
 export const resourceWith = {
   changesetData: true as true,
@@ -154,7 +154,10 @@ export const resourcesRouter = router({
 
       if (!image) {
         if (gid) {
-          await backFillGuildImage(gid);
+          await addOrSmartUpdateImage(`https://shopofficeonline.com/ProductImages/${gid.replace(
+            /[\W_]+/g,
+            ""
+          )}.jpg`, gid, "shopofficeonline", true);
           return await getAccessURLBySourceURL(originalURL, thumbnail) ?? originalURL;
         }
 
