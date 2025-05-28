@@ -1,6 +1,6 @@
 import type { client } from './client';
 
-export type RawProduct = Exclude<Awaited<ReturnType<typeof client.resources.get.query>>, null>;
+export type RawProduct = Omit<Exclude<Awaited<ReturnType<typeof client.resources.get.query>>, null>, 'history'>;
 
 export interface Product {
 	idText: string;

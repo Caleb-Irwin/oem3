@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { client } from '$lib/client';
 	import ItemRow, { type SelectFunc } from '$lib/ItemRow.svelte';
-	import { getModalStore, ProgressBar } from '@skeletonlabs/skeleton';
+	import { getModalStore } from '@skeletonlabs/skeleton';
 	import IntersectionObserver from 'svelte-intersection-observer';
 
 	interface Props {
