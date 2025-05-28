@@ -4,6 +4,9 @@
 	import { client, sub } from '$lib/client';
 	import Files from '$lib/Files.svelte';
 	import WorkerStatus from '$lib/WorkerStatus.svelte';
+	import type { PageProps } from './$types';
+
+	let { data }: PageProps = $props();
 </script>
 
 <h1 class="text-center h2 p-2 pt-4">SPR</h1>
@@ -12,8 +15,14 @@
 		<div class="w-full max-w-xl mb-2">
 			<ChangesetStatus
 				name="SPR Price File"
-				status={sub(client.spr.priceFile.worker.status, client.spr.priceFile.worker.onUpdate)}
-				changeset={sub(client.spr.priceFile.worker.changeset, client.spr.priceFile.worker.onUpdate)}
+				status={sub(client.spr.priceFile.worker.status, client.spr.priceFile.worker.onUpdate, {
+					init: data.sprPriceFileStatus
+				})}
+				changeset={sub(
+					client.spr.priceFile.worker.changeset,
+					client.spr.priceFile.worker.onUpdate,
+					{ init: data.sprPriceFileChangeset }
+				)}
 			/>
 		</div>
 		<div class="w-full max-w-xl">
@@ -22,6 +31,7 @@
 				title="SPR Price File"
 				applyMutation={client.spr.priceFile.worker.run}
 				acceptFileType=".XLSX"
+				initVal={data.sprPriceFileFiles}
 			/>
 		</div>
 	</div>
@@ -29,8 +39,12 @@
 		<div class="w-full max-w-xl mb-2">
 			<ChangesetStatus
 				name="SPR Flat File"
-				status={sub(client.spr.flatFile.worker.status, client.spr.flatFile.worker.onUpdate)}
-				changeset={sub(client.spr.flatFile.worker.changeset, client.spr.flatFile.worker.onUpdate)}
+				status={sub(client.spr.flatFile.worker.status, client.spr.flatFile.worker.onUpdate, {
+					init: data.sprFlatFileStatus
+				})}
+				changeset={sub(client.spr.flatFile.worker.changeset, client.spr.flatFile.worker.onUpdate, {
+					init: data.sprFlatFileChangeset
+				})}
 			/>
 		</div>
 		<div class="w-full max-w-xl">
@@ -40,6 +54,7 @@
 				applyMutation={client.spr.flatFile.worker.run}
 				acceptFileType=".CSV"
 				cloudSyncMutation={client.spr.flatFile.files.cloudDownload}
+				initVal={data.sprFlatFileFiles}
 			/>
 		</div>
 	</div>
@@ -51,7 +66,8 @@
 			<WorkerStatus
 				status={sub(
 					client.spr.enhancedContent.worker.status,
-					client.spr.enhancedContent.worker.onUpdate
+					client.spr.enhancedContent.worker.onUpdate,
+					{ init: data.sprEnhancedContentStatus }
 				)}
 			/>
 		</div>

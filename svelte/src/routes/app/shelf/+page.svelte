@@ -9,8 +9,11 @@
 	import ChangeSheetName from './ChangeSheetName.svelte';
 	import Sheet from './Sheet.svelte';
 	import { browser } from '$app/environment';
+	import type { PageProps } from './$types';
 
-	const allSheets = sub(client.labels.sheet.all, client.labels.onUpdate);
+	let { data }: PageProps = $props();
+
+	const allSheets = sub(client.labels.sheet.all, client.labels.onUpdate, { init: data.allSheets });
 	const modalStore = getModalStore();
 	let sheetId: number = $state(-1),
 		newSheet: number | undefined = $state();
@@ -105,7 +108,13 @@
 
 	{#if currentSheet}
 		{#key currentSheet}
-			<Sheet sheetId={currentSheet.id} sheetName={currentSheet.name ?? ''} />
+			<Sheet
+				sheetId={currentSheet.id}
+				sheetName={currentSheet.name ?? ''}
+				init={data.lastAccessed && data.lastAccessed.id === currentSheet.id
+					? data.lastAccessed.labels
+					: undefined}
+			/>
 		{/key}
 	{:else if !($allSheets !== undefined && $allSheets.length === 0)}
 		<div class="w-full max-w-lg py-2">

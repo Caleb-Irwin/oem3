@@ -82,17 +82,17 @@ export const sub = <I, O, SI, SO>(
 			}
 		) => unknown;
 	},
-	...args: I extends void ? (SI extends void ? [] : [undefined, SI]) : [I, SI | void]
+	args: (I extends void ? { queryInput?: undefined } : { queryInput: I }) & (SI extends void ? { subInput?: undefined } : { subInput: SI }) & { init?: O | undefined; }
 ): Readable<O | undefined> => {
-	const { subscribe, set } = writable<O | undefined>(undefined);
+	const { subscribe, set } = writable<O | undefined>(args.init ?? undefined);
 
 	if (browser) {
-		q.query(args[0] as I)
+		if (args.init === undefined) q.query(args.queryInput as I)
 			.then((v) => set(v))
 			.catch(handleTRPCError);
-		sub(args[1] as SI, {
+		sub(args.subInput as SI, {
 			onData() {
-				q.query(args[0] as I).then((v) => set(v));
+				q.query(args.queryInput as I).then((v) => set(v));
 			},
 			onError: handleTRPCError
 		});

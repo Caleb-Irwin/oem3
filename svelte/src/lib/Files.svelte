@@ -33,6 +33,7 @@
 			  }
 			| undefined;
 		acceptFileType: string;
+		initVal: Awaited<ReturnType<FileRouterType['get']['query']>> | undefined;
 	}
 
 	let {
@@ -40,10 +41,11 @@
 		title,
 		applyMutation,
 		cloudSyncMutation = undefined,
-		acceptFileType
+		acceptFileType,
+		initVal
 	}: Props = $props();
 
-	const _files = sub(filesRouter.get, filesRouter.onUpdate);
+	const _files = sub(filesRouter.get, filesRouter.onUpdate, { init: initVal });
 	const files = $derived($_files);
 
 	const modalStore = getModalStore(),

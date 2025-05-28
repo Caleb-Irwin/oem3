@@ -10,8 +10,11 @@ import { z } from "zod";
 import { labelSheets, labels } from "./labels.table";
 import { eq } from "drizzle-orm";
 import { eventSubscription } from "../utils/eventSubscription";
+import { KV } from "../utils/kv";
 
 const { onUpdate, update } = eventSubscription();
+
+const kv = new KV('labels')
 
 export const labelsRouter = router({
   onUpdate,
@@ -84,6 +87,19 @@ export const labelsRouter = router({
         update();
       }),
   },
+  allLastAccessed: viewerProcedure
+    .query(async ({ ctx, }) => {
+      const lastAccessed = await kv.get(ctx.user.username);
+      if (!lastAccessed) {
+        return null;
+      }
+      const id = parseInt(lastAccessed);
+      await checkSheetPermissions(ctx, id);
+      return {
+        id,
+        labels: await db.query.labels.findMany({ where: eq(labels.sheet, id) })
+      };
+    }),
   all: viewerProcedure
     .input(
       z.object({
@@ -92,6 +108,7 @@ export const labelsRouter = router({
     )
     .query(async ({ ctx, input: { sheetId: id } }) => {
       await checkSheetPermissions(ctx, id);
+      kv.set(ctx.user.username, id.toString());
       return await db.query.labels.findMany({ where: eq(labels.sheet, id) });
     }),
   add: generalProcedure

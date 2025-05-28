@@ -6,7 +6,7 @@
 	import ChangePassword from './ChangePassword.svelte';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 
-	const allUsers = sub(client.users.all, client.users.onUpdate);
+	const allUsers = sub(client.users.all, client.users.onUpdate, { init: undefined });
 	const modalStore = getModalStore();
 </script>
 

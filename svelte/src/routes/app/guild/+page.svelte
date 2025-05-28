@@ -4,6 +4,9 @@
 	import { client, sub } from '$lib/client';
 	import WorkerStatus from '$lib/WorkerStatus.svelte';
 	import Button from '$lib/Button.svelte';
+	import type { PageProps } from './$types';
+
+	let { data }: PageProps = $props();
 </script>
 
 <h1 class="text-center h2 p-2 pt-4">Guild</h1>
@@ -12,8 +15,12 @@
 		<div class="w-full max-w-xl mb-2">
 			<ChangesetStatus
 				name="Guild Data"
-				status={sub(client.guild.data.worker.status, client.guild.data.worker.onUpdate)}
-				changeset={sub(client.guild.data.worker.changeset, client.guild.data.worker.onUpdate)}
+				status={sub(client.guild.data.worker.status, client.guild.data.worker.onUpdate, {
+					init: data.guildDataStatus
+				})}
+				changeset={sub(client.guild.data.worker.changeset, client.guild.data.worker.onUpdate, {
+					init: data.guildDataChangeset
+				})}
 			/>
 		</div>
 		<div class="w-full max-w-xl">
@@ -22,6 +29,7 @@
 				title="Guild Items"
 				applyMutation={client.guild.data.worker.run}
 				acceptFileType=".XLSX"
+				initVal={data.guildDataFiles}
 			/>
 		</div>
 	</div>
@@ -29,10 +37,13 @@
 		<div class="w-full max-w-xl mb-2">
 			<ChangesetStatus
 				name="Guild Inventory"
-				status={sub(client.guild.inventory.worker.status, client.guild.inventory.worker.onUpdate)}
+				status={sub(client.guild.inventory.worker.status, client.guild.inventory.worker.onUpdate, {
+					init: data.guildInventoryStatus
+				})}
 				changeset={sub(
 					client.guild.inventory.worker.changeset,
-					client.guild.inventory.worker.onUpdate
+					client.guild.inventory.worker.onUpdate,
+					{ init: data.guildInventoryChangeset }
 				)}
 			/>
 		</div>
@@ -43,6 +54,7 @@
 				applyMutation={client.guild.inventory.worker.run}
 				acceptFileType=".CSV"
 				cloudSyncMutation={client.guild.inventory.files.cloudDownload}
+				initVal={data.guildInventoryFiles}
 			/>
 		</div>
 	</div>
@@ -50,8 +62,12 @@
 		<div class="w-full max-w-xl mb-2">
 			<ChangesetStatus
 				name="Guild Flyer"
-				status={sub(client.guild.flyer.worker.status, client.guild.flyer.worker.onUpdate)}
-				changeset={sub(client.guild.flyer.worker.changeset, client.guild.flyer.worker.onUpdate)}
+				status={sub(client.guild.flyer.worker.status, client.guild.flyer.worker.onUpdate, {
+					init: data.guildFlyerStatus
+				})}
+				changeset={sub(client.guild.flyer.worker.changeset, client.guild.flyer.worker.onUpdate, {
+					init: data.guildFlyerChangeset
+				})}
 			/>
 		</div>
 		<div class="w-full max-w-xl">
@@ -61,6 +77,7 @@
 				applyMutation={client.guild.flyer.worker.run}
 				acceptFileType=".XLSX"
 				cloudSyncMutation={client.guild.flyer.files.cloudDownload}
+				initVal={data.guildFlyerFiles}
 			/>
 		</div>
 	</div>
@@ -71,7 +88,9 @@
 				>Update Enhanced Descriptions</Button
 			>
 			<WorkerStatus
-				status={sub(client.guild.desc.worker.status, client.guild.desc.worker.onUpdate)}
+				status={sub(client.guild.desc.worker.status, client.guild.desc.worker.onUpdate, {
+					init: data.guildDescStatus
+				})}
 			/>
 		</div>
 	</div>
@@ -81,7 +100,11 @@
 			<Button class="mb-2 btn variant-filled-primary" action={client.guild.worker.run}
 				>Update Unified Guild</Button
 			>
-			<WorkerStatus status={sub(client.guild.worker.status, client.guild.worker.onUpdate)} />
+			<WorkerStatus
+				status={sub(client.guild.worker.status, client.guild.worker.onUpdate, {
+					init: data.guildWorkerStatus
+				})}
+			/>
 		</div>
 	</div>
 </div>

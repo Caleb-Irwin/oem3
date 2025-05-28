@@ -10,15 +10,22 @@
 	import Copy from 'lucide-svelte/icons/copy';
 	import Button from '$lib/Button.svelte';
 	import Search from '$lib/search/OldSearch.svelte';
+	import { readable } from 'svelte/store';
 
 	interface Props {
 		sheetId: number;
 		sheetName: string;
+		init: Awaited<ReturnType<typeof client.labels.all.query>> | undefined;
 	}
 
-	let { sheetId, sheetName }: Props = $props();
-	const sheet = sub(client.labels.all, client.labels.onUpdate, { sheetId }, sheetId.toString()),
+	let { sheetId, sheetName, init }: Props = $props();
+	const _sheet = sub(client.labels.all, client.labels.onUpdate, {
+			queryInput: { sheetId },
+			subInput: sheetId.toString()
+		}),
 		modalStore = getModalStore();
+
+	const sheet = $derived($_sheet === undefined ? readable(init) : _sheet);
 </script>
 
 {#if $sheet === undefined}
