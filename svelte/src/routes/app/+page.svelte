@@ -25,7 +25,7 @@
 			<h3 class="font-semibold text-2xl">Shelf</h3>
 		</a>
 		<a
-			href="/app/unifiedItems"
+			href="/app/"
 			class="card p-6 m-2 {data.user.permissionLevel === 'admin'
 				? 'card-hover'
 				: 'cursor-not-allowed text-surface-400'}"

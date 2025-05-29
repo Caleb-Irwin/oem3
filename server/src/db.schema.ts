@@ -12,7 +12,6 @@ export * from "./routers/guild/data/table";
 export * from "./routers/guild/inventory/table";
 export * from "./routers/guild/flyer/table";
 export * from "./routers/shopify/table";
-export * from "./routers/unifiedItems/table";
 export * from "./routers/guild/desc/table";
 export * from "./routers/spr/priceFile/table";
 export * from "./routers/spr/flatFile/table";

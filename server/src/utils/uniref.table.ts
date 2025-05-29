@@ -7,7 +7,6 @@ import {
   sprFlatFile,
   sprPriceFile,
   unifiedGuild,
-  unifiedItems,
 } from "../db.schema";
 import { relations } from "drizzle-orm";
 import { guildInventory } from "../routers/guild/inventory/table";
@@ -20,7 +19,6 @@ export const resourceTypeEnum = pgEnum("resource_type", [
   "guildInventory",
   "guildFlyer",
   "shopify",
-  "unifiedItem",
   "sprPriceFile",
   "sprFlatFile",
   "unifiedGuild",
@@ -71,11 +69,6 @@ export const uniref = pgTable(
     unifiedGuild: integer("unifiedGuild").references(() => unifiedGuild.id, {
       onDelete: "cascade",
     }),
-    unifiedItem: integer("unifiedItem")
-      .references(() => unifiedItems.id, {
-        onDelete: "cascade",
-      })
-      .unique(),
   },
   (uniref) => {
     return {
@@ -93,7 +86,6 @@ export const uniref = pgTable(
       unifiedGuildIndex: index("uniref_unifiedGuild_idx").on(
         uniref.unifiedGuild
       ),
-      unifiedItemIndex: index("uniref_unifiedItem_idx").on(uniref.unifiedItem),
     };
   }
 );
@@ -119,10 +111,6 @@ export const unirefRelations = relations(uniref, ({ one }) => ({
   shopifyData: one(shopify, {
     fields: [uniref.shopify],
     references: [shopify.id],
-  }),
-  unifiedItemData: one(unifiedItems, {
-    fields: [uniref.unifiedItem],
-    references: [unifiedItems.id],
   }),
   sprPriceFileData: one(sprPriceFile, {
     fields: [uniref.sprPriceFile],

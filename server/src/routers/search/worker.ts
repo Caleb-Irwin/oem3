@@ -44,7 +44,6 @@ work({
           shopify: db.query.shopify,
           sprPriceFile: db.query.sprPriceFile,
           sprFlatFile: db.query.sprFlatFile,
-          unifiedItem: db.query.unifiedItems,
           unifiedGuild: db.query.unifiedGuild,
         }[resourceName] as typeof db.query.qb
       ).findMany({
@@ -86,8 +85,8 @@ work({
         keyInfo: `${baseId.includes(" ") || baseId.includes("-") ? "" : baseId
           }`,
         otherInfo: `${item.desc} ${!baseId.includes(" ") && baseId.length < 20
-            ? getSubStrings(baseId)
-            : baseId
+          ? getSubStrings(baseId)
+          : baseId
           }`,
       };
     });
