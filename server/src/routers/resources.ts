@@ -35,7 +35,6 @@ export const getResource = async ({ input: { uniId, type, id, includeHistory } }
         where: eq(uniref[type as ResourceType], id),
       })
     )?.uniId;
-    console.log();
 
     if (!maybeUniId)
       throw new TRPCError({

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Images from './Images.svelte';
 	import Price from './Price.svelte';
-	import TextBox from './TextBox.svelte';
+	import Description from './Description.svelte';
 	import Title from './Title.svelte';
 	import Connection from './Connection.svelte';
 	import type { Cell, NamedCell } from './types';
@@ -119,7 +119,7 @@
 			<Price {price} {comparePrice} />
 			<span class="flex-grow"></span>
 		</div>
-		<TextBox cell={description} />
+		<Description cell={description} />
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-1 mx-[-4px]">
 			{@render children?.()}
 		</div>

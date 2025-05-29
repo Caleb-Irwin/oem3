@@ -55,7 +55,7 @@ async function getUnifiedRow(uniId: number): Promise<UnifiedRow<UnifiedTables>> 
             col,
             value: row[col],
             type: colConfig[col].dataType,
-            nullable: colConfig[col].notNull,
+            nullable: !colConfig[col].notNull,
             setting: settingConf ? settingConf.confType as CellSetting : null,
             cellSettingConf: settingConf || null,
             activeErrors: allActiveErrors.filter((c) => c.col === col),
@@ -75,7 +75,8 @@ async function getUnifiedRow(uniId: number): Promise<UnifiedRow<UnifiedTables>> 
 }
 
 async function getResourceByCol(col: string, value: string | number | boolean | null) {
-    if (!Object.hasOwn(ColToTableName, col) || value === null) return null;
+    if (!Object.hasOwn(ColToTableName, col)) return undefined;
+    if (value === null) return null;
     const tableName = ColToTableName[col as keyof typeof ColToTableName];
     return await getResource({ input: { uniId: -1, type: tableName, id: value as number, includeHistory: false } });
 }

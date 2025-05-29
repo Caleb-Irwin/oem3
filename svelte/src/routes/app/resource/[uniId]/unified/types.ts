@@ -8,3 +8,5 @@ export interface NamedCell {
     name: string;
     cell: Cell;
 }
+
+export type { CellConfigData } from "../../../../../../../server/src/utils/cellConfigurator";

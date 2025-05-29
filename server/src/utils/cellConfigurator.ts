@@ -212,10 +212,11 @@ interface NewError {
   };
 }
 
-interface CellConfigData {
+export interface CellConfigData {
   resolved?: boolean;
 
   value?: ValType;
+  lastValue?: ValType;
   options?: ValType[];
   name?: string;
   message?: string;

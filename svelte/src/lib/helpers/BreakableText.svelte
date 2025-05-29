@@ -5,7 +5,7 @@
 	let { text }: Props = $props();
 </script>
 
-{#if text.length <= 20 || text.split(' ').reduce((prev, val) => prev || val.length > 20, true)}
+{#if text.length <= 20 && text.split(' ').reduce((prev, val) => prev && val.length <= 20, true)}
 	{text}
 {:else}
 	{#each text.split(' ') as t}

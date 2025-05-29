@@ -14,13 +14,13 @@
 </script>
 
 <div class="card w-full flex flex-col min-w-72">
-	{#if cell.connectionRow}
-		<ItemRow rawProduct={cell.connectionRow as any} newTab />
-	{:else}
-		<div class="card text-lg font-semibold text-center p-2 grid place-content-center flex-grow">
-			<p>No Connection</p>
-		</div>
-	{/if}
+	<div class="flex-grow flex items-center {cell.connectionRow ? '' : 'card'}">
+		{#if cell.connectionRow}
+			<ItemRow rawProduct={cell.connectionRow as any} newTab />
+		{:else}
+			<p class="text-lg font-semibold p-2 w-full text-center">No Connection</p>
+		{/if}
+	</div>
 	<div class="flex p-2 items-center border-t-2 border-surface-200 dark:border-surface-500">
 		<p class="text-lg font-bold flex-grow pl-1">{name}</p>
 		<SettingButton {cell} />
