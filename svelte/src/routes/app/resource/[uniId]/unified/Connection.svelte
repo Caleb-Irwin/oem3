@@ -9,8 +9,8 @@
 	}
 
 	let { namedCell }: Props = $props();
-	let cell = $state(namedCell.cell),
-		name = $state(namedCell.name);
+	let cell = $derived(namedCell.cell),
+		name = $derived(namedCell.name);
 </script>
 
 <div class="card w-full flex flex-col min-w-72">
