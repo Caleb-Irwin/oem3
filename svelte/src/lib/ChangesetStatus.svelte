@@ -89,36 +89,36 @@
 		{#if $changeset.status === 'completed'}
 			<h5 class="font-semibold text-lg mb-2">Changes</h5>
 
-			<ul class="p-2 flex w-full justify-between">
-				<li class="text-center">
+			<ul class="p-2 flex w-full justify-between flex-wrap">
+				<li class="text-center px-0.5">
 					<div class="flex items-center justify-center mb-1">
 						<div class="w-3 h-3 mr-1 rounded-sm {chartColors['nop']}"></div>
 						<span class="font-semibold pl-1">None</span>
 					</div>
 					<span>{summary['nop'] ?? 0}</span>
 				</li>
-				<li class="text-center">
+				<li class="text-center px-0.5">
 					<div class="flex items-center justify-center mb-1">
 						<div class="w-3 h-3 mr-1 rounded-sm {chartColors['inventoryUpdate']}"></div>
 						<span class="font-semibold pl-1">Inventory</span>
 					</div>
 					<span>{summary['inventoryUpdate'] ?? 0}</span>
 				</li>
-				<li class="text-center">
+				<li class="text-center px-0.5">
 					<div class="flex items-center justify-center mb-1">
 						<div class="w-3 h-3 mr-1 rounded-sm {chartColors['update']}"></div>
 						<span class="font-semibold pl-1">Update</span>
 					</div>
 					<span>{summary['update'] ?? 0}</span>
 				</li>
-				<li class="text-center">
+				<li class="text-center px-0.5">
 					<div class="flex items-center justify-center mb-1">
 						<div class="w-3 h-3 mr-1 rounded-sm {chartColors['create']}"></div>
 						<span class="font-semibold pl-1">Create</span>
 					</div>
 					<span>{summary['create'] ?? 0}</span>
 				</li>
-				<li class="text-center">
+				<li class="text-center px-0.5">
 					<div class="flex items-center justify-center mb-1">
 						<div class="w-3 h-3 mr-1 rounded-sm {chartColors['delete']}"></div>
 						<span class="font-semibold pl-1">Delete</span>

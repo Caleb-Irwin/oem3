@@ -5,6 +5,7 @@ import { managedWorker } from "../../../utils/managedWorker";
 import * as xlsx from "xlsx";
 import { KV } from "../../../utils/kv";
 import type { GuildFlyerRaw } from "./worker";
+import { ensureSheetCols } from "../../../utils/ensureSheetCols";
 
 const { worker, runWorker, hook } = managedWorker(
   new URL("worker.ts", import.meta.url).href,
@@ -25,30 +26,23 @@ export const flyerRouter = router({
           message: "Invalid File Type (XLSX Only)",
           code: "BAD_REQUEST",
         });
-      const workbook = xlsx.read(
-          dataUrl.slice(dataUrl.indexOf(";base64,") + 8)
-        ),
-        worksheet = workbook.Sheets[workbook.SheetNames[0]],
-        guildObjects = xlsx.utils.sheet_to_json(worksheet);
-      [
-        "Flyer # ",
-        "Date Flyer Starts ",
-        "Date Flyer Ends",
-        "Manufacture's Code",
-        "Item Stock #",
-        "Flyer Cost",
-        "Flyer Price Level 0",
-        "Flyer Price Level 1",
-        "Flyer Price Retail Level",
-        "Regular Price Level 0",
-        "Regular Price Level 1",
-      ].forEach((key) => {
-        if (!(key in (guildObjects[0] as object)))
-          throw new TRPCError({
-            message: "Missing Column: " + key,
-            code: "BAD_REQUEST",
-          });
-      });
+
+      ensureSheetCols(xlsx.read(
+        dataUrl.slice(dataUrl.indexOf(";base64,") + 8)
+      ),
+        [
+          "Flyer # ",
+          "Date Flyer Starts ",
+          "Date Flyer Ends",
+          "Manufacture's Code",
+          "Item Stock #",
+          "Flyer Cost",
+          "Flyer Price Level 0",
+          "Flyer Price Level 1",
+          "Flyer Price Retail Level",
+          "Regular Price Level 0",
+          "Regular Price Level 1",
+        ]);
     },
     runWorker,
     async () => {
@@ -74,7 +68,7 @@ export const flyerRouter = router({
 
       const res = await fetch(
         "https://www.guildstationers.com/images/+Public/MA-Data/+Vezina_J/" +
-          fileName
+        fileName
       );
 
       const dataUrl = `data:${res.headers.get("Content-Type")};base64,${btoa(
@@ -82,8 +76,8 @@ export const flyerRouter = router({
       )}`;
 
       const workbook = xlsx.read(
-          dataUrl.slice(dataUrl.indexOf(";base64,") + 8)
-        ),
+        dataUrl.slice(dataUrl.indexOf(";base64,") + 8)
+      ),
         worksheet = workbook.Sheets[workbook.SheetNames[0]],
         flyerObjects = xlsx.utils.sheet_to_json(worksheet);
 

@@ -25,7 +25,7 @@
 		newTab = false
 	}: Props = $props();
 
-	let product = productDetails(rawProduct);
+	let product = $derived(productDetails(rawProduct));
 </script>
 
 {#if product}

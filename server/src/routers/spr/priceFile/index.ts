@@ -3,6 +3,7 @@ import { router } from "../../../trpc";
 import { fileProcedures } from "../../../utils/files";
 import { managedWorker } from "../../../utils/managedWorker";
 import * as xlsx from "xlsx";
+import { ensureSheetCols } from "../../../utils/ensureSheetCols";
 
 const { worker, hook, runWorker } = managedWorker(
   new URL("worker.ts", import.meta.url).href,
@@ -24,32 +25,25 @@ export const sprPriceFileRouter = router({
           message: "Invalid File Type (XLSX Only)",
           code: "BAD_REQUEST",
         });
-      const workbook = xlsx.read(
+
+      const headers = ensureSheetCols(
+        xlsx.read(
           dataUrl.slice(dataUrl.indexOf(";base64,") + 8)
         ),
-        worksheet = workbook.Sheets[workbook.SheetNames[0]],
-        sprPriceObjects = xlsx.utils.sheet_to_json(worksheet, { header: 1 });
-
-      [
-        "SPRC SKU",
-        "ProductID",
-        "Product Status",
-        "Description",
-        "UoM",
-        "UPC",
-        "Cat. Page",
-        "Net Price",
-        "List Price",
-      ].forEach((key) => {
-        if (!(sprPriceObjects[0] as string[]).includes(key))
-          throw new TRPCError({
-            message: "Missing Column: " + key,
-            code: "BAD_REQUEST",
-          });
-      });
+        [
+          "SPRC SKU",
+          "ProductID",
+          "Product Status",
+          "Description",
+          "UoM",
+          "UPC",
+          "Cat. Page",
+          "Net Price",
+          "List Price",
+        ]);
 
       let valid = false;
-      (sprPriceObjects[0] as string[]).forEach((key) => {
+      (headers).forEach((key) => {
         if (key.includes("Dealer Net Price")) {
           valid = true;
         }

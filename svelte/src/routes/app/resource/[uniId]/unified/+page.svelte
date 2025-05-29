@@ -8,7 +8,8 @@
 
 	const _data = sub(client.unified.get, client.unified.onUpdate, {
 		init: props.data,
-		queryInput: { uniId: props.data.uniId }
+		queryInput: { uniId: props.data.uniId },
+		subInput: props.data.uniId.toString()
 	});
 
 	const data = $derived($_data) as typeof props.data;
