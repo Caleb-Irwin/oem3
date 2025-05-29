@@ -61,12 +61,12 @@ work({
 
     await db.transaction(async (db) => {
       const prevItems = new Map(
-          (
-            await db.query.shopify.findMany({
-              with: { uniref: true },
-            })
-          ).map((item) => [item.productId, item])
-        ),
+        (
+          await db.query.shopify.findMany({
+            with: { uniref: true },
+          })
+        ).map((item) => [item.productId, item])
+      ),
         delItems = await Promise.all(
           deletionEvents.map(
             async (event) =>
@@ -124,6 +124,7 @@ work({
           ]
         ),
         progress,
+        fileId
       });
     });
   },
@@ -150,8 +151,8 @@ const transform = (product: OutProduct): typeof shopify.$inferInsert => {
     vComparePriceCents: removeNaN(Math.round(variant.compareAtPrice * 100)),
     vWeightGrams: variant.inventoryItem?.measurement?.weight?.value
       ? removeNaN(
-          Math.round(variant.inventoryItem?.measurement?.weight?.value * 1000)
-        )
+        Math.round(variant.inventoryItem?.measurement?.weight?.value * 1000)
+      )
       : null,
     vSku: variant.sku,
     vBarcode: variant.barcode,
@@ -163,28 +164,28 @@ const transform = (product: OutProduct): typeof shopify.$inferInsert => {
     vInventoryAvailableStore:
       variant.inventoryItem?.store0?.quantities[0]?.quantity !== undefined
         ? removeNaN(
-            Math.round(variant.inventoryItem?.store0?.quantities[0]?.quantity)
-          )
+          Math.round(variant.inventoryItem?.store0?.quantities[0]?.quantity)
+        )
         : null,
     vInventoryOnHandStore:
       variant.inventoryItem?.store0?.quantities[1]?.quantity !== undefined
         ? removeNaN(
-            Math.round(variant.inventoryItem?.store0?.quantities[1]?.quantity)
-          )
+          Math.round(variant.inventoryItem?.store0?.quantities[1]?.quantity)
+        )
         : null,
     vInventoryCommittedStore:
       variant.inventoryItem?.store0?.quantities[0]?.quantity !== undefined
         ? removeNaN(
-            Math.round(variant.inventoryItem?.store0?.quantities[0]?.quantity)
-          )
+          Math.round(variant.inventoryItem?.store0?.quantities[0]?.quantity)
+        )
         : null,
     vInventoryOnHandWarehouse0:
       variant.inventoryItem?.warehouse0?.quantities[0]?.quantity !== undefined
         ? removeNaN(
-            Math.round(
-              variant.inventoryItem?.warehouse0?.quantities[0]?.quantity
-            )
+          Math.round(
+            variant.inventoryItem?.warehouse0?.quantities[0]?.quantity
           )
+        )
         : null,
     lastUpdated: 0,
   };

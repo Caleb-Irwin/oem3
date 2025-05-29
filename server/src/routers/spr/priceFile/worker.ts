@@ -48,6 +48,7 @@ work({
           ]
         ),
         progress,
+        fileId
       });
     });
   },
@@ -68,9 +69,9 @@ function transformPriceFile(
       Math.round(
         parseFloat(
           item[
-            Object.keys(item).filter((key) =>
-              key.endsWith("Dealer Net Price")
-            )[0] as "Dealer Net Price"
+          Object.keys(item).filter((key) =>
+            key.endsWith("Dealer Net Price")
+          )[0] as "Dealer Net Price"
           ] as string
         ) * 100
       )

@@ -61,6 +61,7 @@ work({
           ]
         ),
         progress,
+        fileId
       });
     });
   },

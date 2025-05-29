@@ -33,7 +33,6 @@
 			{#if prev !== value}
 				<span class="font-bold text-primary-500 pr-2">-></span>
 			{/if}
-			<span class="font-bold text-primary-500 pr-2">-></span>
 		{/if}
 		<BreakableText text={toReadable(value)} />
 		{#if create}

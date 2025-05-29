@@ -58,6 +58,7 @@ work({
           ]
         ),
         progress,
+        fileId
       });
     });
   },

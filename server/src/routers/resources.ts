@@ -14,6 +14,7 @@ import {
 } from "../db.schema";
 import { TRPCError } from "@trpc/server";
 import { addOrSmartUpdateImage, getAccessURLBySourceURL } from "../utils/images";
+import { eventSubscription } from "../utils/eventSubscription";
 
 export const resourceWith = {
   changesetData: true as true,
@@ -59,7 +60,11 @@ export const getResource = async ({ input: { uniId, type, id, includeHistory } }
   return { history: null, ...res };
 }
 
+const { onUpdate, update } = eventSubscription();
+export const updateByChangesetType = update;
+
 export const resourcesRouter = router({
+  onUpdate,
   get: viewerProcedure
     .input(
       z.object({

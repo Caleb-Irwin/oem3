@@ -71,6 +71,7 @@ work({
           ]
         ),
         progress,
+        fileId
       });
     });
   },
@@ -111,8 +112,8 @@ function transformSprFlatFile(
       item["Assembly Required"] === "Yes"
         ? true
         : item["Assembly Required"] === "No"
-        ? false
-        : null,
+          ? false
+          : null,
     image255: item["Image Type 225"],
     image75: item["Image Type 75"],
     lastUpdated: 0,

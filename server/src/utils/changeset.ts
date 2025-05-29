@@ -75,6 +75,7 @@ export const createChangeset = async (
       progress,
       customDeletedItems = undefined,
       preventAutoFinish = false,
+      fileId
     }: {
       db: typeof DB | Tx;
       rawItems: Raw[];
@@ -86,6 +87,7 @@ export const createChangeset = async (
       progress: (amountDone: number) => void;
       customDeletedItems?: Item[] | undefined;
       preventAutoFinish?: boolean;
+      fileId?: number;
 
     }) => {
       const total = rawItems.length,
@@ -231,7 +233,7 @@ export const createChangeset = async (
         changeset: changeset.id,
         created: timeStamp,
         entryType: "create",
-        data: summary,
+        data: { fileId, ...summary },
       });
       if (!preventAutoFinish)
         await db

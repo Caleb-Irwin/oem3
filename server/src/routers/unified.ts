@@ -1,19 +1,31 @@
 import { z } from "zod";
-import { unifiedGuild, unifiedGuildCellConfig, uniref, type CellSetting } from "../db.schema";
+import { history, unifiedGuild, unifiedGuildCellConfig, uniref, type CellSetting } from "../db.schema";
 import { router, viewerProcedure } from "../trpc";
 import { db } from "../db";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { getColConfig, type UnifiedTableNames, type UnifiedTables } from "../utils/unifier";
 import type { CellConfigRowSelect, CellConfigTables } from "../utils/cellConfigurator";
 import { getResource } from "./resources";
+import { eventSubscription } from "../utils/eventSubscription";
+
+const { onUpdate, update } = eventSubscription();
+
+export const updateUnifiedTopicByUniId = update
 
 export const unifiedRouter = router({
+    onUpdate,
     get: viewerProcedure.input(
         z.object({
             uniId: z.number(),
         })
     ).query(async ({ input: { uniId } }) => {
-        return await getUnifiedRow(uniId);
+        return {
+            ...await getUnifiedRow(uniId),
+            history: await db.query.history.findMany({
+                where: eq(history.uniref, uniId),
+                orderBy: desc(history.id),
+            })
+        }
     })
 });
 

@@ -76,6 +76,7 @@ work({
         excludeFromHistory: [],
         progress,
         preventAutoFinish: true,
+        fileId
       });
     });
 

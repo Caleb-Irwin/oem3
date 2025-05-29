@@ -4,7 +4,7 @@ import { db, type db as dbType } from "../db";
 import { getFileRow } from "./files.s3";
 
 export interface WorkerMessage {
-  type: "ready" | "started" | "progress" | "done" | "changesetUpdate" | "error";
+  type: "ready" | "started" | "progress" | "done" | "changesetUpdate" | "error" | "custom";
   msg?: string;
 }
 export type HostMessage = {} | { fileId: number };
@@ -17,6 +17,7 @@ interface WorkerParams {
     progress: (percentDone: number) => void;
     utils: {
       notifier: () => void;
+      customMessage: (msg: string) => void;
       getFileDataUrl: (fileId: number | undefined) => Promise<string>;
       createChangeset: (
         changesetTable: schema.ChangesetTable,
@@ -46,6 +47,9 @@ export const work = async ({ self, process: processFunc }: WorkerParams) => {
         utils: {
           notifier: () => {
             sendMessage("changesetUpdate");
+          },
+          customMessage: (msg) => {
+            sendMessage("custom", msg);
           },
           getFileDataUrl: async (fileId) => {
             if (typeof fileId !== "number")

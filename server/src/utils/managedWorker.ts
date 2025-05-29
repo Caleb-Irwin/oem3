@@ -6,6 +6,7 @@ import { TRPCError } from "@trpc/server";
 import { getChangeset } from "./changeset";
 import { changesetType } from "./changeset.table";
 import { KV } from "./kv";
+import { updateByChangesetType } from "../routers/resources";
 
 export type RunWorker = (data: HostMessage, time?: number) => Promise<void>;
 export type PostRunHook = (cb: () => void) => void;
@@ -13,7 +14,8 @@ export type PostRunHook = (cb: () => void) => void;
 export const managedWorker = (
   workerUrl: string,
   name: (typeof changesetType.enumValues)[number] | string,
-  runAfter: PostRunHook[] = []
+  runAfter: PostRunHook[] = [],
+  customMessageCallback?: (msg: WorkerMessage) => void
 ) => {
   const changeset = changesetType.enumValues.includes(name as any)
     ? (name as (typeof changesetType.enumValues)[number])
@@ -61,9 +63,13 @@ export const managedWorker = (
             update();
           } else if (msg.type === "changesetUpdate") {
             update("changeset");
+          } else if (msg.type === 'custom') {
+            customMessageCallback?.(msg);
           } else if (started) {
             rej(msg.msg ?? "Error in worker");
-          } else {
+          }
+
+          else {
             status.running = false;
             status.error = true;
             status.message = msg.msg ?? "Error in worker";
@@ -80,6 +86,7 @@ export const managedWorker = (
           update();
           if (done) {
             console.log(`Finished ${name} worker`);
+            updateByChangesetType(name)
             postRunCallbacks.forEach((cb) => cb());
             if (
               (await kv.get("lastStaled")) &&

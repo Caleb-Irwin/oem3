@@ -6,8 +6,8 @@
 	import CopyableText from '$lib/helpers/CopyableText.svelte';
 	import DOMPurify from 'isomorphic-dompurify';
 	import EnhancedImages from './EnhancedContent.svelte';
-	import { readable } from 'svelte/store';
 	import Image from '$lib/Image.svelte';
+	import { client, sub } from '$lib/client';
 
 	interface Props {
 		data: PageData;
@@ -15,16 +15,22 @@
 
 	let { data }: Props = $props();
 
-	let res = readable(data.res);
+	const _res = sub(client.resources.get, client.resources.onUpdate, {
+		init: data.res,
+		queryInput: { uniId: data.res.uniId as number },
+		subInput: data.res.resourceType
+	});
+
+	const res = $derived($_res) as typeof data.res;
 
 	let history: (typeof historyType.$inferSelect)[] = $derived(
-		$res ? ($res as any)['history'] : undefined
+		res ? (res as any)['history'] : undefined
 	);
 
-	let product = $derived($res ? productDetails($res) : undefined);
+	let product = $derived(res ? productDetails(res) : undefined);
 </script>
 
-{#if $res === null}
+{#if data.res === null}
 	<p class="text-center text-xl">Resource not found</p>
 {:else}
 	{#if product}

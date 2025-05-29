@@ -59,7 +59,7 @@ export function createUnifier<
       .execute();
   }
 
-  async function _updateRow({ id, db }: { id: number; db: Tx | typeof DB }) {
+  async function _updateRow({ id, db, onUpdateCallback }: { id: number; db: Tx | typeof DB, onUpdateCallback: OnUpdateCallback }) {
     const originalRow = await getRow(id, db);
     let updatedRow = structuredClone(originalRow);
     const cellConfigurator = await createCellConfigurator(confTable, id, db);
@@ -200,24 +200,30 @@ export function createUnifier<
         ...history,
       });
 
+    if (hasChanges) {
+      onUpdateCallback(originalRow.uniref.uniId);
+    }
+
     return {
       history,
       newErrors,
     };
   }
 
-  async function updateRow(id: number) {
+  async function updateRow(id: number, onUpdateCallback: OnUpdateCallback) {
     return await runSerializable(async (tx) => {
-      return await _updateRow({ id, db: tx });
+      return await _updateRow({ id, db: tx, onUpdateCallback });
     });
   }
 
   async function updateUnifiedTable({
     updateAll = false,
     progress,
+    onUpdateCallback
   }: {
     updateAll?: boolean;
     progress?: (progress: number) => void;
+    onUpdateCallback: OnUpdateCallback;
   }) {
     if (progress) progress(-1);
     const kv = new KV("unifier/" + unifiedTableName, DB),
@@ -341,7 +347,7 @@ export function createUnifier<
         if (progress && done % 100 === 0) progress(done / rowsToUpdate.size);
       })
       .process(async (id) => {
-        await updateRow(id);
+        await updateRow(id, onUpdateCallback);
       });
     if (progress) progress(1);
 
@@ -411,3 +417,5 @@ interface Connections<RowType, UnifiedTable extends UnifiedTables> {
   // secondaryTable?: TableConnections<RowType, SecondarySourceTables>;
   otherTables: TableConnection<RowType, UnifiedTable, OtherSourceTables>[];
 }
+
+type OnUpdateCallback = (uniId: number) => void;

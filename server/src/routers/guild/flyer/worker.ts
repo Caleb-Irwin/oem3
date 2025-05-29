@@ -49,6 +49,7 @@ work({
           ]
         ),
         progress,
+        fileId,
       });
     });
   },
