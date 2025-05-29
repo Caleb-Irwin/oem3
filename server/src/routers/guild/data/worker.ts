@@ -11,17 +11,14 @@ import { addOrSmartUpdateImage } from "../../../utils/images";
 import { changesets } from "../../../db.schema";
 import PromisePool from "@supercharge/promise-pool";
 
-declare var self: Worker;
-
 work({
-  self,
   process: async ({
     db,
     message,
     progress,
     utils: { getFileDataUrl, createChangeset, notifier },
   }) => {
-    const fileId = (message.data as { fileId: number }).fileId,
+    const fileId = (message as { fileId: number }).fileId,
       startTime = Date.now(),
       changeset = await createChangeset(guildData, fileId),
       dataUrl = await getFileDataUrl(fileId),

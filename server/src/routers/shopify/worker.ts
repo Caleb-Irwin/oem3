@@ -8,16 +8,14 @@ import {
   removeNaN,
 } from "../../utils/changeset.helpers";
 
-declare var self: Worker;
 work({
-  self,
   process: async ({
     db,
     message,
     progress,
     utils: { getFileDataUrl, createChangeset },
   }) => {
-    const fileId = (message.data as { fileId: number }).fileId,
+    const fileId = (message as { fileId: number }).fileId,
       changeset = await createChangeset(shopify, fileId),
       dataUrl = await getFileDataUrl(fileId),
       rows = atob(dataUrl.slice(dataUrl.indexOf("base64,") + 7)).split("\n"),

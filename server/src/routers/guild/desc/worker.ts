@@ -8,10 +8,7 @@ import { eq } from "drizzle-orm";
 import { guildData } from "../data/table";
 import { addOrSmartUpdateImage } from "../../../utils/images";
 
-declare var self: Worker;
-
 work({
-  self,
   process: async ({ db, progress }) => {
     const guildList = (
       await db.query.guildData

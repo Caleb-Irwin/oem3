@@ -3,17 +3,14 @@ import { work } from "../../../utils/workerBase";
 import { guildFlyer } from "./table";
 import * as xlsx from "xlsx";
 
-declare var self: Worker;
-
 work({
-  self,
   process: async ({
     db,
     message,
     progress,
     utils: { getFileDataUrl, createChangeset },
   }) => {
-    const fileId = (message.data as { fileId: number }).fileId,
+    const fileId = (message as { fileId: number }).fileId,
       changeset = await createChangeset(guildFlyer, fileId),
       dataUrl = await getFileDataUrl(fileId),
       workbook = xlsx.read(dataUrl.slice(dataUrl.indexOf(";base64,") + 8)),

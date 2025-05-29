@@ -6,17 +6,15 @@ import {
   genDiffer,
   removeNaN,
 } from "../../utils/changeset.helpers";
-declare var self: Worker;
 
 work({
-  self,
   process: async ({
     db,
     progress,
     message,
     utils: { createChangeset, getFileDataUrl },
   }) => {
-    const fileId = (message.data as { fileId: number }).fileId,
+    const fileId = (message as { fileId: number }).fileId,
       changeset = await createChangeset(qb, fileId),
       dataUrl = await getFileDataUrl(fileId),
       res = Papa.parse(atob(dataUrl.slice(dataUrl.indexOf("base64,") + 7)), {

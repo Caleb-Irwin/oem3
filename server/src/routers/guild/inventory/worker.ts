@@ -8,17 +8,14 @@ import { guildUmEnum } from "../data/table";
 import { guildInventory } from "./table";
 import Papa from "papaparse";
 
-declare var self: Worker;
-
 work({
-  self,
   process: async ({
     db,
     message,
     progress,
     utils: { getFileDataUrl, createChangeset },
   }) => {
-    const fileId = (message.data as { fileId: number }).fileId,
+    const fileId = (message as { fileId: number }).fileId,
       changeset = await createChangeset(guildInventory, fileId),
       dataUrl = await getFileDataUrl(fileId),
       res = Papa.parse(

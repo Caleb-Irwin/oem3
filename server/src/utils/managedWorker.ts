@@ -7,6 +7,7 @@ import { getChangeset } from "./changeset";
 import { changesetType } from "./changeset.table";
 import { KV } from "./kv";
 import { updateByChangesetType } from "../routers/resources";
+import type { Subprocess } from "bun";
 
 export type RunWorker = (data: HostMessage, time?: number) => Promise<void>;
 export type PostRunHook = (cb: () => void) => void;
@@ -37,46 +38,47 @@ export const managedWorker = (
       status.progress = -1;
       console.log(`Running ${name} worker`);
       update();
+
       return new Promise<void>((res, rej) => {
-        const worker = new Worker(workerUrl, {
-          //@ts-ignore Due to svelte check
-          smol: true,
+        const proc = Bun.spawn(["bun", workerUrl.slice(7)], {
+          ipc(message: WorkerMessage, subprocess: Subprocess) {
+            if (message.type === "ready") {
+              subprocess.send(data);
+            } else if (message.type === "done") {
+              done = true;
+              update();
+            } else if (message.type === "started") {
+              status.progress = 0;
+              update();
+              started = true;
+              res();
+            } else if (message.type === "progress") {
+              status.progress = parseFloat(message.msg ?? "0");
+              update();
+            } else if (message.type === "changesetUpdate") {
+              update("changeset");
+            } else if (message.type === 'custom') {
+              customMessageCallback?.(message);
+            } else if (message.type === "error") {
+              status.running = false;
+              status.error = true;
+              status.message = message.msg ?? "Error in worker";
+              update();
+              if (started) {
+                rej(message.msg ?? "Error in worker");
+              } else {
+                rej("Worker failed to start");
+              }
+            }
+          },
+          serialization: "advanced",
+          stdio: ["inherit", "inherit", "inherit"],
         });
+
         let done = false,
           started = false;
 
-        worker.onmessage = (event) => {
-          const msg: WorkerMessage = event.data;
-
-          if (msg.type === "ready") {
-            worker.postMessage(data);
-          } else if (msg.type === "done") {
-            done = true;
-            update();
-          } else if (msg.type === "started") {
-            status.progress = 0;
-            update();
-            started = true;
-            res();
-          } else if (msg.type === "progress") {
-            status.progress = parseFloat(msg.msg ?? "0");
-            update();
-          } else if (msg.type === "changesetUpdate") {
-            update("changeset");
-          } else if (msg.type === 'custom') {
-            customMessageCallback?.(msg);
-          } else if (started) {
-            rej(msg.msg ?? "Error in worker");
-          }
-
-          else {
-            status.running = false;
-            status.error = true;
-            status.message = msg.msg ?? "Error in worker";
-          }
-        };
-
-        worker.addEventListener("close", async () => {
+        proc.exited.then(async () => {
           await kv.set("lastRan", time.toString());
           status.running = false;
           status.message = done
@@ -84,9 +86,10 @@ export const managedWorker = (
             : "Worker closed before completing task";
           status.error = done ? false : true;
           update();
+
           if (done) {
             console.log(`Finished ${name} worker`);
-            updateByChangesetType(name)
+            updateByChangesetType(name);
             postRunCallbacks.forEach((cb) => cb());
             if (
               (await kv.get("lastStaled")) &&

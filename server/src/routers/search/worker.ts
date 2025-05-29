@@ -16,10 +16,8 @@ import {
   type ResourceType,
 } from "../../db.schema";
 import { getTableConfig } from "drizzle-orm/pg-core";
-declare var self: Worker;
 
 work({
-  self,
   process: async ({ db }) => {
     const kv = new KV("searchIndexing");
     async function updateSearchIndex<T extends ChangesetTable>(
@@ -30,9 +28,9 @@ work({
       }
     ) {
       const resourceName = getTableConfig(searchTable).name as Exclude<
-          ResourceType,
-          "changeset"
-        >,
+        ResourceType,
+        "changeset"
+      >,
         lastSearchUpdate = parseInt(
           (await kv.get("lastSearchUpdate/" + resourceName)) ?? "0"
         );
@@ -85,21 +83,18 @@ work({
         ? item.qbId.split(":")[1]
         : item.qbId;
       return {
-        keyInfo: `${
-          baseId.includes(" ") || baseId.includes("-") ? "" : baseId
-        }`,
-        otherInfo: `${item.desc} ${
-          !baseId.includes(" ") && baseId.length < 20
+        keyInfo: `${baseId.includes(" ") || baseId.includes("-") ? "" : baseId
+          }`,
+        otherInfo: `${item.desc} ${!baseId.includes(" ") && baseId.length < 20
             ? getSubStrings(baseId)
             : baseId
-        }`,
+          }`,
       };
     });
     await updateSearchIndex(guildData, (item) => {
       return {
-        keyInfo: `${item.gid} ${item.upc ?? ""} ${item.basics ?? ""} ${
-          item.cis ?? ""
-        } ${item.spr ?? ""}`,
+        keyInfo: `${item.gid} ${item.upc ?? ""} ${item.basics ?? ""} ${item.cis ?? ""
+          } ${item.spr ?? ""}`,
         otherInfo: `${item.shortDesc} ${item.longDesc} ${getSubStrings(
           item.gid
         )} ${getSubStrings(item.upc ?? "")}`,
@@ -107,9 +102,8 @@ work({
     });
     await updateSearchIndex(guildInventory, (item) => {
       return {
-        keyInfo: `${item.gid} ${item.upc ?? ""} ${item.basics ?? ""} ${
-          item.cis ?? ""
-        } ${item.spr ?? ""}`,
+        keyInfo: `${item.gid} ${item.upc ?? ""} ${item.basics ?? ""} ${item.cis ?? ""
+          } ${item.spr ?? ""}`,
         otherInfo: `${getSubStrings(item.gid)} ${getSubStrings(
           item.upc ?? ""
         )}`,
@@ -140,16 +134,14 @@ work({
     await updateSearchIndex(sprFlatFile, (item) => {
       return {
         keyInfo: `${item.sprcSku} ${item.etilizeId}`,
-        otherInfo: `${item.fullDescription} ${item.manufacturerName} ${
-          item.keywords
-        } ${getSubStrings(item.sprcSku ?? "")} `,
+        otherInfo: `${item.fullDescription} ${item.manufacturerName} ${item.keywords
+          } ${getSubStrings(item.sprcSku ?? "")} `,
       };
     });
     await updateSearchIndex(unifiedGuild, (item) => {
       return {
-        keyInfo: `${item.gid} ${item.upc ?? ""} ${item.basics ?? ""} ${
-          item.cis ?? ""
-        } ${item.spr ?? ""}`,
+        keyInfo: `${item.gid} ${item.upc ?? ""} ${item.basics ?? ""} ${item.cis ?? ""
+          } ${item.spr ?? ""}`,
         otherInfo: `${item.title} ${item.description} ${getSubStrings(
           item.gid
         )} ${getSubStrings(item.upc ?? "")}`,

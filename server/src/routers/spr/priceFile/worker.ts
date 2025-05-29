@@ -3,16 +3,14 @@ import * as xlsx from "xlsx";
 import { sprPriceFile } from "./table";
 import { genDiffer, removeNaN } from "../../../utils/changeset.helpers";
 
-declare var self: Worker;
 work({
-  self,
   process: async ({
     db,
     message,
     progress,
     utils: { getFileDataUrl, createChangeset },
   }) => {
-    const fileId = (message.data as { fileId: number }).fileId,
+    const fileId = (message as { fileId: number }).fileId,
       changeset = await createChangeset(sprPriceFile, fileId),
       dataUrl = await getFileDataUrl(fileId),
       workbook = xlsx.read(dataUrl.slice(dataUrl.indexOf(";base64,") + 8)),

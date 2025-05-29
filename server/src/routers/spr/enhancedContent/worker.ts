@@ -11,12 +11,9 @@ import { eq, isNull } from "drizzle-orm";
 import { DEV } from "../../../config";
 import { chunk } from "../../../utils/chunk";
 
-declare var self: Worker;
-
 const tempFolderPath = DEV ? join(process.cwd(), "temp") : "/tmp/oem3";
 
 work({
-  self,
   process: async ({ db, progress }) => {
     if (existsSync(tempFolderPath)) {
       rmSync(tempFolderPath, { recursive: true, force: true });

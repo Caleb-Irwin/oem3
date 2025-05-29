@@ -12,10 +12,8 @@ import { eq, isNull, notExists, sql } from "drizzle-orm";
 import type { db as DB } from "../../db";
 import { insertHistory } from "../../utils/history";
 
-declare var self: Worker;
 work({
-  self,
-  process: async ({ db, message, progress }) => {
+  process: async ({ db }) => {
     console.log("unified worker started");
     const lastUpdated = Date.now();
     await db.transaction(async (db) => {

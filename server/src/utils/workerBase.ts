@@ -8,12 +8,11 @@ export interface WorkerMessage {
   msg?: string;
 }
 export type HostMessage = {} | { fileId: number };
-type StartMessage = MessageEvent<HostMessage>;
+
 interface WorkerParams {
-  self: Worker;
   process: (params: {
     db: typeof dbType;
-    message: StartMessage;
+    message: HostMessage;
     progress: (percentDone: number) => void;
     utils: {
       notifier: () => void;
@@ -27,20 +26,20 @@ interface WorkerParams {
   }) => Promise<void>;
 }
 
-export const work = async ({ self, process: processFunc }: WorkerParams) => {
+export const work = async ({ process: processFunc }: WorkerParams) => {
   const sendMessage = (
     type: WorkerMessage["type"],
     msg?: WorkerMessage["msg"]
   ) => {
-    self.postMessage({ type, msg });
+    process.send!({ type, msg });
   };
 
-  self.onmessage = async (event: StartMessage) => {
+  process.on("message", async (message: HostMessage) => {
     try {
       sendMessage("started");
       await processFunc({
         db,
-        message: event,
+        message,
         progress: (amountDone) => {
           sendMessage("progress", amountDone.toString());
         },
@@ -70,13 +69,13 @@ export const work = async ({ self, process: processFunc }: WorkerParams) => {
         },
       });
       sendMessage("done");
-      process.exit();
+      process.exit(0);
     } catch (e: any) {
       sendMessage("error", e["message"] ?? "Unknown Error Occurred");
       console.log(e);
-      process.exit();
+      process.exit(1);
     }
-  };
+  });
 
   sendMessage("ready");
 };
