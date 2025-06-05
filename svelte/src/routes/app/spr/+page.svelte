@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Button from '$lib/Button.svelte';
 	import ChangesetStatus from '$lib/ChangesetStatus.svelte';
-	import { client, sub } from '$lib/client';
+	import { client, subVal } from '$lib/client';
 	import Files from '$lib/Files.svelte';
 	import WorkerStatus from '$lib/WorkerStatus.svelte';
 	import type { PageProps } from './$types';
@@ -15,14 +15,12 @@
 		<div class="w-full max-w-xl mb-2">
 			<ChangesetStatus
 				name="SPR Price File"
-				status={sub(client.spr.priceFile.worker.status, client.spr.priceFile.worker.onUpdate, {
+				status={subVal(client.spr.priceFile.worker.statusSub, {
 					init: data.sprPriceFileStatus
 				})}
-				changeset={sub(
-					client.spr.priceFile.worker.changeset,
-					client.spr.priceFile.worker.onUpdate,
-					{ init: data.sprPriceFileChangeset }
-				)}
+				changeset={subVal(client.spr.priceFile.worker.changesetSub, {
+					init: data.sprPriceFileChangeset
+				})}
 			/>
 		</div>
 		<div class="w-full max-w-xl">
@@ -39,10 +37,10 @@
 		<div class="w-full max-w-xl mb-2">
 			<ChangesetStatus
 				name="SPR Flat File"
-				status={sub(client.spr.flatFile.worker.status, client.spr.flatFile.worker.onUpdate, {
+				status={subVal(client.spr.flatFile.worker.statusSub, {
 					init: data.sprFlatFileStatus
 				})}
-				changeset={sub(client.spr.flatFile.worker.changeset, client.spr.flatFile.worker.onUpdate, {
+				changeset={subVal(client.spr.flatFile.worker.changesetSub, {
 					init: data.sprFlatFileChangeset
 				})}
 			/>
@@ -64,11 +62,9 @@
 				>Update Enhanced Content</Button
 			>
 			<WorkerStatus
-				status={sub(
-					client.spr.enhancedContent.worker.status,
-					client.spr.enhancedContent.worker.onUpdate,
-					{ init: data.sprEnhancedContentStatus }
-				)}
+				status={subVal(client.spr.enhancedContent.worker.statusSub, {
+					init: data.sprEnhancedContentStatus
+				})}
 			/>
 		</div>
 	</div>

@@ -21,7 +21,7 @@ export const managedWorker = (
   const changeset = changesetType.enumValues.includes(name as any)
     ? (name as (typeof changesetType.enumValues)[number])
     : null,
-    { onUpdate, update } = eventSubscription(),
+    { update, createSub } = eventSubscription(),
     kv = new KV(name),
     status = {
       running: false,
@@ -139,10 +139,15 @@ export const managedWorker = (
       status: viewerProcedure.query(() => {
         return status;
       }),
+      statusSub: createSub(async () => {
+        return status;
+      }),
       changeset: viewerProcedure.query(async () => {
         return changeset ? await getChangeset(changeset) : null;
       }),
-      onUpdate,
+      changesetSub: createSub(async () => {
+        return changeset ? await getChangeset(changeset) : null;
+      }),
     }),
     hook: (cb: () => void) => {
       postRunCallbacks.push(cb);

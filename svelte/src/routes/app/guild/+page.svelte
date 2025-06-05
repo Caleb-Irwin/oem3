@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Files from '$lib/Files.svelte';
 	import ChangesetStatus from '$lib/ChangesetStatus.svelte';
-	import { client, sub } from '$lib/client';
+	import { client, subVal } from '$lib/client';
 	import WorkerStatus from '$lib/WorkerStatus.svelte';
 	import Button from '$lib/Button.svelte';
 	import type { PageProps } from './$types';
@@ -15,10 +15,10 @@
 		<div class="w-full max-w-xl mb-2">
 			<ChangesetStatus
 				name="Guild Data"
-				status={sub(client.guild.data.worker.status, client.guild.data.worker.onUpdate, {
+				status={subVal(client.guild.data.worker.statusSub, {
 					init: data.guildDataStatus
 				})}
-				changeset={sub(client.guild.data.worker.changeset, client.guild.data.worker.onUpdate, {
+				changeset={subVal(client.guild.data.worker.changesetSub, {
 					init: data.guildDataChangeset
 				})}
 			/>
@@ -37,14 +37,12 @@
 		<div class="w-full max-w-xl mb-2">
 			<ChangesetStatus
 				name="Guild Inventory"
-				status={sub(client.guild.inventory.worker.status, client.guild.inventory.worker.onUpdate, {
+				status={subVal(client.guild.inventory.worker.statusSub, {
 					init: data.guildInventoryStatus
 				})}
-				changeset={sub(
-					client.guild.inventory.worker.changeset,
-					client.guild.inventory.worker.onUpdate,
-					{ init: data.guildInventoryChangeset }
-				)}
+				changeset={subVal(client.guild.inventory.worker.changesetSub, {
+					init: data.guildInventoryChangeset
+				})}
 			/>
 		</div>
 		<div class="w-full max-w-xl">
@@ -62,10 +60,10 @@
 		<div class="w-full max-w-xl mb-2">
 			<ChangesetStatus
 				name="Guild Flyer"
-				status={sub(client.guild.flyer.worker.status, client.guild.flyer.worker.onUpdate, {
+				status={subVal(client.guild.flyer.worker.statusSub, {
 					init: data.guildFlyerStatus
 				})}
-				changeset={sub(client.guild.flyer.worker.changeset, client.guild.flyer.worker.onUpdate, {
+				changeset={subVal(client.guild.flyer.worker.changesetSub, {
 					init: data.guildFlyerChangeset
 				})}
 			/>
@@ -88,7 +86,7 @@
 				>Update Enhanced Descriptions</Button
 			>
 			<WorkerStatus
-				status={sub(client.guild.desc.worker.status, client.guild.desc.worker.onUpdate, {
+				status={subVal(client.guild.desc.worker.statusSub, {
 					init: data.guildDescStatus
 				})}
 			/>
@@ -101,7 +99,7 @@
 				>Update Unified Guild</Button
 			>
 			<WorkerStatus
-				status={sub(client.guild.worker.status, client.guild.worker.onUpdate, {
+				status={subVal(client.guild.worker.statusSub, {
 					init: data.guildWorkerStatus
 				})}
 			/>

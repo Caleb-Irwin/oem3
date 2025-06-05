@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Download from './Download.svelte';
-	import { client, sub } from '$lib/client';
+	import { client, subVal } from '$lib/client';
 	import { ProgressBar, getModalStore } from '@skeletonlabs/skeleton';
 	import AddLabel from './AddLabel.svelte';
 	import { formatPrice } from '$lib/formatPrice';
@@ -19,9 +19,10 @@
 	}
 
 	let { sheetId, sheetName, init }: Props = $props();
-	const _sheet = sub(client.labels.all, client.labels.onUpdate, {
-			queryInput: { sheetId },
-			subInput: sheetId.toString()
+	const _sheet = subVal(client.labels.allSub, {
+			input: { sheetId },
+			updateTopic: sheetId.toString(),
+			sendInit: init === undefined
 		}),
 		modalStore = getModalStore();
 

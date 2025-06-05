@@ -7,7 +7,7 @@
 	import DOMPurify from 'isomorphic-dompurify';
 	import EnhancedImages from './EnhancedContent.svelte';
 	import Image from '$lib/Image.svelte';
-	import { client, sub } from '$lib/client';
+	import { client, subVal } from '$lib/client';
 
 	interface Props {
 		data: PageData;
@@ -15,10 +15,10 @@
 
 	let { data }: Props = $props();
 
-	const _res = sub(client.resources.get, client.resources.onUpdate, {
+	const _res = subVal(client.resources.getSub, {
 		init: data.res,
-		queryInput: { uniId: data.res.uniId as number },
-		subInput: data.res.resourceType
+		input: { uniId: data.res.uniId as number },
+		updateTopic: data.res.resourceType
 	});
 
 	const res = $derived($_res) as typeof data.res;

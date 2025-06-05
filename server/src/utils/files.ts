@@ -23,7 +23,7 @@ export const fileProcedures = (
     | undefined = undefined,
   dailyRunCloudDownload = false
 ) => {
-  const { onUpdate, update } = eventSubscription();
+  const { createSub, update } = eventSubscription();
 
   const upload = async ({
     input: { file, fileName, processFile },
@@ -91,7 +91,20 @@ export const fileProcedures = (
   }
 
   return router({
-    onUpdate,
+    get: viewerProcedure.query(async () => {
+      return await db.query.files.findMany({
+        where: eq(files.type, type),
+        columns: { content: false },
+        orderBy: [desc(files.uploadedTime)],
+      });
+    }),
+    getSub: createSub(async () => {
+      return await db.query.files.findMany({
+        where: eq(files.type, type),
+        columns: { content: false },
+        orderBy: [desc(files.uploadedTime)],
+      });
+    }),
     upload: generalProcedure
       .input(
         z.object({
@@ -107,13 +120,6 @@ export const fileProcedures = (
         await deleteFile(fileId);
         update();
       }),
-    get: viewerProcedure.query(async () => {
-      return await db.query.files.findMany({
-        where: eq(files.type, type),
-        columns: { content: false },
-        orderBy: [desc(files.uploadedTime)],
-      });
-    }),
     download: viewerProcedure
       .input(z.object({ fileId: z.number().int() }))
       .query(async ({ input: { fileId } }) => {
@@ -154,20 +160,20 @@ type inputs = inferRouterInputs<ReturnType<typeof fileProcedures>>;
 type outputs = inferRouterOutputs<ReturnType<typeof fileProcedures>>;
 
 export type FileRouterType = {
-  onUpdate: {
+  getSub: {
     subscribe: (
-      param: void,
+      param: any,
       opts: {
-        onData?: (data: null) => void;
+        onData?: (data: outputs["get"]) => void;
         onError?: (err: TRPCClientError<any>) => void;
       }
     ) => any;
   };
-  upload: {
-    mutate: (input: inputs["upload"]) => Promise<outputs["upload"]>;
-  };
   get: {
     query: (input: inputs["get"]) => Promise<outputs["get"]>;
+  };
+  upload: {
+    mutate: (input: inputs["upload"]) => Promise<outputs["upload"]>;
   };
   del: {
     mutate: (input: inputs["del"]) => Promise<outputs["del"]>;

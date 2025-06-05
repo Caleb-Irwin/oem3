@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Files from '$lib/Files.svelte';
 	import ChangesetStatus from '$lib/ChangesetStatus.svelte';
-	import { client, sub } from '$lib/client';
+	import { client, subVal } from '$lib/client';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -12,8 +12,8 @@
 	<div class="w-full max-w-xl mb-2">
 		<ChangesetStatus
 			name="QuickBooks"
-			status={sub(client.qb.worker.status, client.qb.worker.onUpdate, { init: data.status })}
-			changeset={sub(client.qb.worker.changeset, client.qb.worker.onUpdate, {
+			status={subVal(client.qb.worker.statusSub, { init: data.status })}
+			changeset={subVal(client.qb.worker.changesetSub, {
 				init: data.changeset
 			})}
 		/>

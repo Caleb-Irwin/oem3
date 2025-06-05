@@ -8,25 +8,30 @@ import type { CellConfigRowSelect, CellConfigTables } from "../utils/cellConfigu
 import { getResource } from "./resources";
 import { eventSubscription } from "../utils/eventSubscription";
 
-const { onUpdate, update } = eventSubscription();
+const { update, createSub } = eventSubscription();
 
 export const updateUnifiedTopicByUniId = update
 
+async function getUnified(uniId: number) {
+    return {
+        ...await getUnifiedRow(uniId),
+        history: await db.query.history.findMany({
+            where: eq(history.uniref, uniId),
+            orderBy: desc(history.id),
+        })
+    }
+}
 export const unifiedRouter = router({
-    onUpdate,
     get: viewerProcedure.input(
         z.object({
             uniId: z.number(),
         })
     ).query(async ({ input: { uniId } }) => {
-        return {
-            ...await getUnifiedRow(uniId),
-            history: await db.query.history.findMany({
-                where: eq(history.uniref, uniId),
-                orderBy: desc(history.id),
-            })
-        }
-    })
+        return await getUnified(uniId);
+    }),
+    getSub: createSub<{ uniId: number }, Awaited<ReturnType<typeof getUnified>>>(async ({ input: { uniId } }) => {
+        return await getUnified(uniId);
+    }),
 });
 
 async function getUnifiedRow(uniId: number): Promise<UnifiedRow<UnifiedTables>> {
@@ -107,7 +112,7 @@ export interface UnifiedCell {
     cellSettingConf: CellConfigRowSelect | null;
     activeErrors: CellConfigRowSelect[];
     allCellConfigs: CellConfigRowSelect[];
-    connectionRow: Awaited<ReturnType<typeof getResourceByCol>>;
+    connectionRow?: Awaited<ReturnType<typeof getResourceByCol>>;
 }
 
 export type UnifiedRowTypes = typeof unifiedGuild['$inferSelect'];

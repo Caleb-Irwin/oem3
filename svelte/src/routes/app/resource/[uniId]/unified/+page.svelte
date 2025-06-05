@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { client, sub } from '$lib/client';
+	import { client, subVal } from '$lib/client';
 	import History from '$lib/History.svelte';
 	import type { PageProps } from './$types';
 	import GuildItem from './GuildItem.svelte';
 
 	let props: PageProps = $props();
 
-	const _data = sub(client.unified.get, client.unified.onUpdate, {
+	const _data = subVal(client.unified.getSub, {
 		init: props.data,
-		queryInput: { uniId: props.data.uniId },
-		subInput: props.data.uniId.toString()
+		input: { uniId: props.data.uniId },
+		updateTopic: props.data.uniId.toString()
 	});
 
 	const data = $derived($_data) as typeof props.data;

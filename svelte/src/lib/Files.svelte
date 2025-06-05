@@ -5,7 +5,7 @@
 	import Button from './Button.svelte';
 	import UploadFile from '$lib/UploadFile.svelte';
 	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
-	import { client, sub } from './client';
+	import { client, subVal } from './client';
 	import type { FileRouterType } from '../../../server/src/utils/files';
 	import type { Resolver } from '@trpc/client';
 
@@ -45,7 +45,7 @@
 		initVal
 	}: Props = $props();
 
-	const _files = sub(filesRouter.get, filesRouter.onUpdate, { init: initVal });
+	const _files = subVal(filesRouter.getSub, { init: initVal });
 	const files = $derived($_files);
 
 	const modalStore = getModalStore(),

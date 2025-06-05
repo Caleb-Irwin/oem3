@@ -100,3 +100,35 @@ export const sub = <I, O, SI, SO>(
 
 	return { subscribe };
 };
+
+export const subVal = <SI extends object | void, SO>(
+	{
+		subscribe: sub
+	}: {
+		subscribe: (
+			param: SI,
+			opts: {
+				onData?: (data: SO) => void;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				onError?: (err: TRPCClientError<any>) => void;
+			}
+		) => unknown;
+	},
+	args:
+		SI extends void ? { init?: SO | undefined; } : SI & { init?: SO | undefined; }
+): Readable<SO | undefined> => {
+	const { subscribe, set } = writable<SO | undefined>(args.init ?? undefined);
+
+	if (browser) {
+		const input = args;
+		delete input.init;
+		sub(input as SI, {
+			onData(val) {
+				set(val);
+			},
+			onError: handleTRPCError
+		});
+	}
+
+	return { subscribe };
+};

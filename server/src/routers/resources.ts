@@ -59,11 +59,10 @@ export const getResource = async ({ input: { uniId, type, id, includeHistory } }
   return { history: null, ...res };
 }
 
-const { onUpdate, update } = eventSubscription();
+const { update, createSub } = eventSubscription();
 export const updateByChangesetType = update;
 
 export const resourcesRouter = router({
-  onUpdate,
   get: viewerProcedure
     .input(
       z.object({
@@ -74,6 +73,11 @@ export const resourcesRouter = router({
       })
     )
     .query(getResource),
+  getSub: createSub<{ uniId: number; type?: string; id?: number; includeHistory: boolean }, Awaited<ReturnType<typeof getResource>>>(
+    async ({ input }) => {
+      return await getResource({ input });
+    }
+  ),
   getChangesets: viewerProcedure
     .input(z.object({ type: z.enum(changesetType.enumValues) }))
     .query(async ({ input: { type } }) => {

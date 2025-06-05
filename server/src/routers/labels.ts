@@ -12,14 +12,22 @@ import { eq } from "drizzle-orm";
 import { eventSubscription } from "../utils/eventSubscription";
 import { KV } from "../utils/kv";
 
-const { onUpdate, update } = eventSubscription();
+const { update, createSub } = eventSubscription();
 
 const kv = new KV('labels')
 
 export const labelsRouter = router({
-  onUpdate,
   sheet: {
     all: viewerProcedure.query(async ({ ctx }) => {
+      const allSheets = await db.query.labelSheets.findMany();
+      return allSheets.filter(
+        (sheet) =>
+          ctx.user.permissionLevel === "admin" ||
+          sheet.public ||
+          sheet.owner === ctx.user.username
+      );
+    }),
+    allSub: createSub(async ({ ctx }) => {
       const allSheets = await db.query.labelSheets.findMany();
       return allSheets.filter(
         (sheet) =>
@@ -94,10 +102,16 @@ export const labelsRouter = router({
         return null;
       }
       const id = parseInt(lastAccessed);
-      await checkSheetPermissions(ctx, id);
+      try {
+        await checkSheetPermissions(ctx, id);
+
+      } catch (e) {
+        // If the user doesn't have permission, return null
+        return null;
+      }
       return {
         id,
-        labels: await db.query.labels.findMany({ where: eq(labels.sheet, id) })
+        labels: await db.query.labels.findMany({ where: eq(labels.sheet, id) }) ?? null
       };
     }),
   all: viewerProcedure
@@ -108,9 +122,14 @@ export const labelsRouter = router({
     )
     .query(async ({ ctx, input: { sheetId: id } }) => {
       await checkSheetPermissions(ctx, id);
-      kv.set(ctx.user.username, id.toString());
-      return await db.query.labels.findMany({ where: eq(labels.sheet, id) });
+      await kv.set(ctx.user.username, id.toString());
+      return await db.query.labels.findMany({ where: eq(labels.sheet, id) }) ?? null;
     }),
+  allSub: createSub<{ sheetId: number }, typeof labels.$inferSelect[]>(async ({ ctx, input: { sheetId } }) => {
+    await checkSheetPermissions(ctx, sheetId);
+    await kv.set(ctx.user.username, sheetId.toString());
+    return await db.query.labels.findMany({ where: eq(labels.sheet, sheetId) }) ?? null;
+  }),
   add: generalProcedure
     .input(
       z.object({

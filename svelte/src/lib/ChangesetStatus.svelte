@@ -83,7 +83,7 @@
 			Created at {new Date($changeset.created ?? 0).toLocaleString()}
 			{$changeset.file ? `based on file #${$changeset.file}` : ''}
 		</p>
-		{#if $changeset?.status === 'generating'}
+		{#if $changeset?.status === 'generating' || $status?.running}
 			<WorkerStatus {status} />
 		{/if}
 		{#if $changeset.status === 'completed'}

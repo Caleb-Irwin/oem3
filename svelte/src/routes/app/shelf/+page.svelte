@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { client, sub } from '$lib/client';
+	import { client, subVal } from '$lib/client';
 	import AddSheet from './AddSheet.svelte';
 	import { ProgressBar, getModalStore } from '@skeletonlabs/skeleton';
 	import Plus from 'lucide-svelte/icons/plus';
@@ -13,18 +13,20 @@
 
 	let { data }: PageProps = $props();
 
-	const allSheets = sub(client.labels.sheet.all, client.labels.onUpdate, { init: data.allSheets });
+	const allSheets = subVal(client.labels.sheet.allSub, { init: data.allSheets });
 	const modalStore = getModalStore();
-	let sheetId: number = $state(-1),
-		newSheet: number | undefined = $state();
-	let currentSheet = $derived(($allSheets || []).filter(({ id }) => id === sheetId)[0]);
+
+	let sheetId: number = $state(data.lastAccessed?.id ?? -1),
+		newSheet: number | undefined = $state(),
+		currentSheet = $derived(($allSheets || []).filter(({ id }) => id === sheetId)[0]),
+		mounted = $state(false);
 	$effect(() => {
 		if (
 			$allSheets &&
 			$allSheets.length > 0 &&
-			(sheetId === -1 || !$allSheets.map(({ id }) => id).includes(sheetId))
+			(!mounted || !$allSheets.map(({ id }) => id).includes(sheetId))
 		)
-			if (sheetId === -1 && browser && localStorage.getItem('lastSheetId')) {
+			if (!mounted && browser && localStorage.getItem('lastSheetId')) {
 				const sheetIdStore = parseInt(localStorage.getItem('lastSheetId') ?? '0');
 				if ($allSheets.map(({ id }) => id).includes(sheetIdStore)) sheetId = sheetIdStore;
 				else sheetId = $allSheets[$allSheets.length - 1].id;
@@ -39,7 +41,7 @@
 		}
 	});
 	$effect(() => {
-		if (browser && sheetId >= 0) localStorage.setItem('lastSheetId', sheetId.toString());
+		if (browser && sheetId !== -1) localStorage.setItem('lastSheetId', sheetId.toString());
 	});
 </script>
 
@@ -120,5 +122,6 @@
 		<div class="w-full max-w-lg py-2">
 			<ProgressBar />
 		</div>
+		<p>Hello</p>
 	{/if}
 </div>
