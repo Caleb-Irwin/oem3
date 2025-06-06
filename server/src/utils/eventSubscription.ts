@@ -37,18 +37,7 @@ export const eventSubscription = () => {
 
   return {
     update,
-    createSub,
-    onUpdate: viewerProcedure.input(z.string().default("default")).subscription(
-      async function* (opts) {
-        // listen for new events
-        for await (const _ of on(ee, opts.input, {
-          // Passing the AbortSignal from the request automatically cancels the event emitter when the subscription is aborted
-          signal: opts.signal,
-        })) {
-          yield null;
-        }
-      }
-    ),
+    createSub
   };
 };
 

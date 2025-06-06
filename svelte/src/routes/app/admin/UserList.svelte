@@ -1,12 +1,12 @@
 <script lang="ts">
 	import Button from '$lib/Button.svelte';
-	import { client, sub } from '$lib/client';
+	import { client, subVal } from '$lib/client';
 	import Pencil from 'lucide-svelte/icons/pencil';
 	import Trash2 from 'lucide-svelte/icons/trash-2';
 	import ChangePassword from './ChangePassword.svelte';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 
-	const allUsers = sub(client.users.all, client.users.onUpdate, { init: undefined });
+	const allUsers = subVal(client.users.allSub, { sendInit: true });
 	const modalStore = getModalStore();
 </script>
 

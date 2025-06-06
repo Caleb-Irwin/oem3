@@ -23,7 +23,7 @@ export const fileProcedures = (
     | undefined = undefined,
   dailyRunCloudDownload = false
 ) => {
-  const { createSub, update } = eventSubscription();
+  const { update, createSub } = eventSubscription();
 
   const upload = async ({
     input: { file, fileName, processFile },

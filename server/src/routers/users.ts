@@ -7,11 +7,14 @@ import { eq } from "drizzle-orm";
 import { eventSubscription } from "../utils/eventSubscription";
 import { usersKv } from "../utils/kv";
 
-const { onUpdate, update } = eventSubscription();
+const { update, createSub } = eventSubscription();
 
 export const usersRouter = router({
-  onUpdate,
   all: adminProcedure.query(async () => {
+    return await db.query.users.findMany();
+  }),
+  allSub: createSub(async ({ ctx }) => {
+    if (ctx.user.permissionLevel !== "admin") throw new TRPCError({ code: "UNAUTHORIZED" });
     return await db.query.users.findMany();
   }),
   create: adminProcedure

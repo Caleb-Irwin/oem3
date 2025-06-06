@@ -68,39 +68,6 @@ export const query = <I, O>(
 	return { subscribe };
 };
 
-export const sub = <I, O, SI, SO>(
-	q: { query: (input: I) => Promise<O> },
-	{
-		subscribe: sub
-	}: {
-		subscribe: (
-			param: SI,
-			opts: {
-				onData?: (data: SO) => void;
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				onError?: (err: TRPCClientError<any>) => void;
-			}
-		) => unknown;
-	},
-	args: (I extends void ? { queryInput?: undefined } : { queryInput: I }) & (SI extends void ? { subInput?: undefined } : { subInput: SI }) & { init?: O | undefined; }
-): Readable<O | undefined> => {
-	const { subscribe, set } = writable<O | undefined>(args.init ?? undefined);
-
-	if (browser) {
-		if (args.init === undefined) q.query(args.queryInput as I)
-			.then((v) => set(v))
-			.catch(handleTRPCError);
-		sub(args.subInput as SI, {
-			onData() {
-				q.query(args.queryInput as I).then((v) => set(v));
-			},
-			onError: handleTRPCError
-		});
-	}
-
-	return { subscribe };
-};
-
 export const subVal = <SI extends object | void, SO>(
 	{
 		subscribe: sub
