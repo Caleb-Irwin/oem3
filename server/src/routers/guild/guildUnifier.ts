@@ -7,6 +7,8 @@ import {
   guildInventory,
   guildFlyer,
   unifiedGuildCellConfig,
+  categoryEnum,
+  guildUmEnum,
 } from "../../db.schema";
 
 const getRow = async (id: number, db: typeof DB | Tx) => {
@@ -169,7 +171,6 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
     primaryTable: {
       table: guildData,
       refCol: "dataRow",
-      recheckConnectionsOnFieldChange: ["gid", "upc"],
       findConnections: async (row, db) => {
         if (row.gid === null || row.gid === "") return [];
         const res = await db.query.guildData.findMany({
@@ -196,7 +197,6 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
       {
         table: guildInventory,
         refCol: "inventoryRow",
-        recheckConnectionsOnFieldChange: ["gid", "upc"],
         findConnections: async (row, db) => {
           if (
             (row.gid === null || row.gid === "") &&
@@ -237,7 +237,6 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
       {
         table: guildFlyer,
         refCol: "flyerRow",
-        recheckConnectionsOnFieldChange: ["gid"],
         findConnections: async (row, db) => {
           if (row.gid === null || row.gid === "") return [];
           const res = await db.query.guildFlyer
@@ -255,6 +254,28 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
         }
       },
     ],
+  },
+  additionalColValidators: {
+    um: (value) => {
+      if (!guildUmEnum.enumValues.includes(value as any)) {
+        return {
+          invalidDataType: {
+            value: value as string,
+            message: `Value "${value}" is not a valid unit of measure; Valid units are: ${guildUmEnum.enumValues.join(", ")}`,
+          },
+        };
+      }
+    },
+    category: (value) => {
+      if (!categoryEnum.enumValues.includes(value as any)) {
+        return {
+          invalidDataType: {
+            value: value as string,
+            message: `Value "${value}" is not a valid category; Valid categories are: ${categoryEnum.enumValues.join(", ")}`,
+          },
+        };
+      }
+    },
   },
 });
 

@@ -1,7 +1,7 @@
 import { eq, inArray } from "drizzle-orm";
 import { db as DB, type Tx } from "../db";
 import { unifiedGuildCellConfig, type CellSetting } from "../db.schema";
-import type { UnifiedTables } from "./unifier";
+import type { UnifiedTables, VerifyCellValue } from "./unifier";
 
 type CellConfigTable = typeof unifiedGuildCellConfig;
 
@@ -54,18 +54,11 @@ export async function createCellConfigurator(
     });
   }
 
-  function getConfiguredCellValue<T extends typeof cellTransformer>(
+  async function getConfiguredCellValue<T extends typeof cellTransformer>(
     { key, val, options }: ReturnType<T>,
-    {
-      oldVal,
-      dataType,
-      notNull,
-    }: {
-      oldVal: ReturnType<T>["val"];
-      dataType: "string" | "number" | "boolean";
-      notNull: boolean;
-    }
-  ): ReturnType<T>["val"] {
+    oldVal: ReturnType<T>["val"],
+    verifyCellValue: VerifyCellValue,
+  ): Promise<ReturnType<T>["val"]> {
     let setting = getCellSettings(key);
     let newVal = val;
 
@@ -88,20 +81,13 @@ export async function createCellConfigurator(
       }
     }
 
-    if (newVal === null && notNull) {
-      addError(key as any, {
-        canNotBeSetToNull: {
-          message: `Value "${newVal}" is null but must not be null; This is not allowed. It should be set to a "${dataType}" value.`,
-        },
-      });
-      newVal = oldVal;
-    } else if (newVal !== null && typeof newVal !== dataType) {
-      addError(key as any, {
-        canNotBeSetToWrongType: {
-          value: newVal,
-          message: `Value "${newVal}" is of type "${typeof newVal}" but must be of type "${dataType}"; This is not allowed.`,
-        },
-      });
+    const valError = await verifyCellValue({
+      value: newVal,
+      col: key,
+      db,
+    })
+    if (valError) {
+      addError(key as any, valError);
       newVal = oldVal;
     }
 
@@ -181,7 +167,7 @@ function doErrorsMatch(
   error: CellConfigRowSelect | CellConfigRowInsert,
   newError: CellConfigRowInsert | CellConfigRowSelect
 ): boolean {
-  for (const k of Object.keys(error)) {
+  for (const k of new Set([...Object.keys(error), ...Object.keys(newError)])) {
     const key = k as keyof typeof error;
     if (key === "id" || key === "created" || key === 'refId') continue;
     if ((error[key] !== newError[key])) return false;
@@ -203,7 +189,7 @@ export type CellConfigRowSelect = typeof unifiedGuildCellConfig.$inferSelect;
 
 type ValType = string | number | boolean | null;
 
-interface NewError {
+export interface NewError {
   multipleOptions?: {
     options: ValType[];
     value: ValType;
@@ -220,6 +206,7 @@ interface NewError {
   shouldNotBeNull?: {};
   invalidDataType?: {
     value: ValType;
+    message: string;
   };
   contradictorySources?: {
     value: ValType;

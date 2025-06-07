@@ -16,7 +16,7 @@ import {
   type InsertHistoryRowOptions,
 } from "./history";
 import { KV } from "./kv";
-import { cellTransformer, createCellConfigurator } from "./cellConfigurator";
+import { cellTransformer, createCellConfigurator, type NewError } from "./cellConfigurator";
 import { runSerializable } from "./runSerializable";
 import PromisePool from "@supercharge/promise-pool";
 
@@ -29,6 +29,7 @@ export function createUnifier<
   getRow,
   transform,
   connections,
+  additionalColValidators,
   version,
 }: {
   table: TableType;
@@ -41,6 +42,7 @@ export function createUnifier<
       [K in keyof TableType["$inferSelect"]]: ReturnType<typeof cellTransformer>;
     };
   connections: Connections<RowType, TableType>;
+  additionalColValidators: AdditionalColValidator<TableType>;
   version: number;
 }) {
   const tableConf = getTableConfig(table),
@@ -57,6 +59,65 @@ export function createUnifier<
       .set(row as unknown as any)
       .where(eq(table.id, id))
       .execute();
+  }
+
+  async function verifyCellValue<K extends keyof TableType["$inferSelect"]>(
+    {
+      value,
+      col,
+      db,
+      verifyConnections = false
+    }: {
+      value: TableType["$inferSelect"][K],
+      col: K,
+      db: typeof DB | Tx,
+      verifyConnections?: boolean;
+    }
+  ): Promise<NewError | null> {
+    const dataType = colTypes[col].dataType,
+      notNull = colTypes[col].notNull;
+
+    if (value === null && notNull) {
+      return {
+        canNotBeSetToNull: {
+          message: `Value "${value}" is null but must not be null; This is not allowed. It should be set to a "${dataType}" value.`,
+        },
+      };
+    } else if (value !== null && typeof value !== dataType) {
+      return {
+        canNotBeSetToWrongType: {
+          value: value as 'string' | 'number' | 'boolean',
+          message: `Value "${value}" is of type "${typeof value}" but must be of type "${dataType}"; This is not allowed.`,
+        },
+      };
+    } else if (value !== null) {
+      const additionalValidator = additionalColValidators[col];
+      if (additionalValidator) {
+        const error = await additionalValidator(value, db);
+        if (error) {
+          return error;
+        }
+      }
+      if (verifyConnections) {
+        const connectionTable = [connections.primaryTable, ...connections.otherTables]
+          .find((c) => c.refCol === col);
+        if (connectionTable) {
+          const exists = await db.select({ id: table.id })
+            .from(connectionTable.table)
+            .where(eq(connectionTable.table.id, value as number));
+          if (exists.length === 0) {
+            return {
+              invalidDataType: {
+                value: value as number,
+                message: `Value "${value}" is not a valid ID in the connected table. Hint: Use the search function to select connection.`,
+              },
+            };
+          }
+        }
+      }
+
+    }
+    return null;
   }
 
   async function _updateRow({ id, db, onUpdateCallback }: { id: number; db: Tx | typeof DB, onUpdateCallback: OnUpdateCallback }) {
@@ -101,17 +162,14 @@ export function createUnifier<
           },
         });
       }
-      const newVal = cellConfigurator.getConfiguredCellValue(
+      const newVal = await cellConfigurator.getConfiguredCellValue(
         {
           key: connectionRowKey as any,
           val: updatedRow[connectionRowKey] as number,
           options: {},
         },
-        {
-          oldVal: originalRow[connectionRowKey] as number | null,
-          dataType: "number",
-          notNull: connectionTable === connections.primaryTable,
-        }
+        originalRow[connectionRowKey] as number | null,
+        verifyCellValue
       );
       if (originalRow[connectionRowKey] !== updatedRow[connectionRowKey]) {
         const existing = await db
@@ -139,15 +197,14 @@ export function createUnifier<
       }
     }
     if (connections.primaryTable.isDeleted(updatedRow) && !updatedRow.deleted) {
-      const newVal = cellConfigurator.getConfiguredCellValue({
+      const newVal = await cellConfigurator.getConfiguredCellValue({
         key: "deleted",
         val: true,
         options: {},
-      }, {
-        oldVal: originalRow.deleted,
-        dataType: "boolean",
-        notNull: true,
-      }) as boolean;
+      },
+        originalRow.deleted,
+        verifyCellValue
+      ) as boolean;
       if (newVal !== updatedRow.deleted) {
         updatedRow.deleted = newVal;
         await _modifyRow(id, { deleted: newVal } as any, db);
@@ -162,12 +219,10 @@ export function createUnifier<
     for (const k of Object.keys(transformed)) {
       if (k === "id" || k === "lastUpdated") continue;
       const key = k as keyof (typeof table)["$inferInsert"];
-      const newVal = cellConfigurator.getConfiguredCellValue(
+      const newVal = await cellConfigurator.getConfiguredCellValue(
         transformed[k as keyof typeof transformed],
-        {
-          oldVal: originalRow[key] as any,
-          ...colTypes[key],
-        }
+        originalRow[key] as any,
+        verifyCellValue
       ) as any;
       if (originalRow[key] !== newVal) {
         changes[key] = newVal;
@@ -356,9 +411,12 @@ export function createUnifier<
     await kv.set("version", version.toString());
   }
 
+
+
   return {
     updateUnifiedTable,
     updateRow,
+    verifyCellValue,
   };
 }
 
@@ -392,7 +450,6 @@ interface TableConnection<
 > {
   table: T;
   refCol: keyof UnifiedTable;
-  recheckConnectionsOnFieldChange: string[];
   findConnections: (row: RowType, db: typeof DB) => Promise<number[]>; // Should not return deleted items
   isDeleted: (row: RowType) => boolean;
 }
@@ -417,5 +474,14 @@ interface Connections<RowType, UnifiedTable extends UnifiedTables> {
   // secondaryTable?: TableConnections<RowType, SecondarySourceTables>;
   otherTables: TableConnection<RowType, UnifiedTable, OtherSourceTables>[];
 }
+
+type AdditionalColValidator<TableType extends UnifiedTables> = {
+  [K in keyof TableType["$inferSelect"]]?: (
+    value: TableType["$inferSelect"][K],
+    db: typeof DB | Tx
+  ) => NewError | undefined | void | Promise<NewError | undefined | void>;
+};
+
+export type VerifyCellValue = ReturnType<typeof createUnifier>["verifyCellValue"];
 
 type OnUpdateCallback = (uniId: number) => void;
