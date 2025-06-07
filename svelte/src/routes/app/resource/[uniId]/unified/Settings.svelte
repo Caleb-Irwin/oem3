@@ -11,7 +11,10 @@
 
 <script lang="ts">
 	import BreakableText from '$lib/helpers/BreakableText.svelte';
-	import type { Cell, CellConfigData } from './types';
+	import Search from 'lucide-svelte/icons/search';
+	import CompactSearch from '$lib/search/CompactSearch.svelte';
+	import { getModalStore } from '@skeletonlabs/skeleton';
+	import { ColToTableName, type Cell } from './types';
 
 	interface Props {
 		cell: Cell;
@@ -21,22 +24,68 @@
 
 	let newSetting = $derived(cell.setting);
 
-	const cellSettingData = $derived(
-		cell.cellSettingConf?.data ? JSON.parse(cell.cellSettingConf.data) : null
-	) as CellConfigData | null;
-
-	let customValue = $derived(cellSettingData?.value),
+	let customValue = $derived(cell.cellSettingConf?.value),
 		approveThreshold = $derived(
-			cell.setting === 'setting:approve' ? ((cellSettingData?.value as number) ?? 15) : 15
+			cell.setting === 'setting:approve' ? ((cell.value as number) ?? 15) : 15
 		),
-		approveCustomValue = $derived(newSetting === 'setting:approveCustom');
+		approveCustomValue = $derived(newSetting === 'setting:approveCustom'),
+		isConnection = $derived(cell.connectionRow !== undefined);
 
+	// Search for connections
+	const modalStore = getModalStore();
+	function openSearchModal() {
+		modalStore.trigger({
+			type: 'component',
+			component: {
+				ref: CompactSearch,
+				props: {
+					queryType: ColToTableName[cell.col as keyof typeof ColToTableName],
+					select: async (selection: { uniref: number; id: number }) => {
+						// Set the customValue to the selected item's ID
+						customValue = selection.id.toString();
+						modalStore.close();
+					}
+				}
+			}
+		});
+	}
+
+	// For auto-approve custom value
 	$effect(() => {
 		if (approveCustomValue && newSetting !== 'setting:approveCustom') {
 			newSetting = 'setting:approveCustom';
 		} else if (!approveCustomValue && newSetting === 'setting:approveCustom') {
 			newSetting = 'setting:custom';
 		}
+	});
+
+	const newCellSettingData: Cell | undefined | null = $derived.by(() => {
+		if (newSetting !== cell.setting) {
+			if (newSetting === null) {
+				return null;
+			}
+			// else if (newSetting === 'setting:approve') {
+			// 	return {
+			// 		type: 'approve',
+			// 		value: approveThreshold,
+			// 		lastValue: cell.value
+			// 	} satisfies CellConfigData;
+			// } else if (newSetting === 'setting:custom') {
+			// 	return {
+			// 		type: 'custom',
+			// 		value: customValue,
+			// 		lastValue: cell.value
+			// 	} as CellConfigData;
+			// } else if (newSetting === 'setting:approveCustom') {
+			// 	return {
+			// 		type: 'approveCustom',
+			// 		value: customValue,
+			// 		lastValue: cell.value
+			// 	} as CellConfigData;
+			// }
+		}
+
+		return undefined;
 	});
 </script>
 
@@ -96,27 +145,35 @@
 					<p>
 						Last approved value is <span class="font-semibold"
 							><BreakableText
-								text={cellSettingData?.lastValue?.toString() ?? cell.value?.toString() ?? 'Null'}
+								text={cell.cellSettingConf?.lastValue?.toString() ??
+									cell.value?.toString() ??
+									'Null'}
 							/></span
 						>
 					</p>
 				{:else}
 					<p>Cell <span class="font-semibold">{cell.col}</span> is set to a custom value</p>
 					<label class="label pt-2">
-						<label class="label">
-							<span class="label-text font-bold"
-								>Custom Value (must be {`${
-									{ string: 'text', number: 'a number', boolean: 'true or false' }[cell.type]
-								}${cell.nullable ? ' or Null' : ''}`})</span
-							>
+						<span class="label-text font-bold"
+							>Custom Value (must be {`${
+								{ string: 'text', number: 'a number', boolean: 'true or false' }[cell.type]
+							}${cell.nullable ? ' or Null' : ''}`})</span
+						>
+						<div class="flex items-center">
 							<textarea
 								class="textarea"
 								rows={cell.value && cell.value.toString().length > 100 ? 4 : 1}
 								placeholder="Value"
 								bind:value={customValue}
 							></textarea>
-						</label>
+							{#if isConnection}
+								<button class="ml-1 btn variant-filled-secondary" onclick={openSearchModal}
+									>Find Item <Search class="ml-1" /></button
+								>
+							{/if}
+						</div>
 					</label>
+
 					<label class="flex justify-center items-center p-2 w-full">
 						<input class="checkbox" type="checkbox" bind:checked={approveCustomValue} />
 						<p class="pl-2">Approve custom value on underlying value change</p>
@@ -129,7 +186,9 @@
 					<p class="pt-1">
 						Last auto (underlying) value is <span class="font-semibold"
 							><BreakableText
-								text={cellSettingData?.lastValue?.toString() ?? cell.value?.toString() ?? 'Null'}
+								text={cell.cellSettingConf?.lastValue?.toString() ??
+									cell.value?.toString() ??
+									'Null'}
 							/></span
 						>
 					</p>

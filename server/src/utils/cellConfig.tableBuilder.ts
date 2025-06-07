@@ -73,7 +73,11 @@ export function cellConfigTable<COLS extends [string, ...string[]]>({
         .references(() => primaryKey, { onDelete: "cascade" }),
       col: columnEnum("col").notNull(),
       confType: cellConfigType("confType").notNull(),
-      data: text("data"), // JSON
+      value: text("value"),
+      lastValue: text("lastValue"),
+      options: text("options"), // JSON Array
+      message: text("message"), // User Viewable
+      otherData: text("otherData"), // JSON
       resolved: boolean("resolved"),
       notes: text("notes"), // User Viewable (HTML Encoded)
       created: bigint("created", { mode: "number" }).notNull(),

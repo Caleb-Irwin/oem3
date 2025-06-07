@@ -7,6 +7,7 @@ import { getColConfig, type UnifiedTableNames, type UnifiedTables } from "../uti
 import type { CellConfigRowSelect, CellConfigTables } from "../utils/cellConfigurator";
 import { getResource } from "./resources";
 import { eventSubscription } from "../utils/eventSubscription";
+import { ColToTableName } from "./unified.helpers";
 
 const { update, createSub } = eventSubscription();
 
@@ -86,11 +87,6 @@ async function getResourceByCol(col: string, value: string | number | boolean | 
     return await getResource({ input: { uniId: -1, type: tableName, id: value as number, includeHistory: false } });
 }
 
-const ColToTableName = {
-    'dataRow': 'guildData',
-    'inventoryRow': 'guildInventory',
-    'flyerRow': 'guildFlyer',
-};
 
 export interface UnifiedRow<T extends UnifiedTables = UnifiedTables> {
     uniId: number;

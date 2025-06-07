@@ -40,12 +40,14 @@ export async function createCellConfigurator(
     notes?: string
   ) {
     const errorType = Object.keys(error)[0] as keyof NewError;
-    const errorData = error[errorType];
+    const errorData = error[errorType] as NewErrorMerged;
     newErrors.push({
       refId: id,
       confType: `error:${errorType}` as any,
       col,
-      data: JSON.stringify(errorData),
+      message: errorData.message ?? null,
+      value: errorData.value !== undefined && errorData.value !== null ? String(errorData.value) : null,
+      options: errorData.options ? JSON.stringify(errorData.options) : null,
       resolved: false,
       notes,
       created: Date.now(),
@@ -75,9 +77,8 @@ export async function createCellConfigurator(
     }
 
     if (setting !== null) {
-      const data = JSON.parse(setting.conf?.data ?? "{}") as CellConfigData;
       if (setting.setting === "setting:custom") {
-        newVal = data?.value ?? null;
+        newVal = setting.conf?.value ?? null;
       } else if (setting.setting === "setting:approve" && oldVal !== val) {
         throw new Error("Not implemented");
         //TODO
@@ -176,7 +177,28 @@ type CellTransformerOptions<T> = {
   defaultSettingOfApprove?: boolean;
 };
 
-type CellConfigRowInsert = typeof unifiedGuildCellConfig.$inferInsert;
+function doErrorsMatch(
+  error: CellConfigRowSelect | CellConfigRowInsert,
+  newError: CellConfigRowInsert | CellConfigRowSelect
+): boolean {
+  for (const k of Object.keys(error)) {
+    const key = k as keyof typeof error;
+    if (key === "id" || key === "created" || key === 'refId') continue;
+    if ((error[key] !== newError[key])) return false;
+  }
+  return true;
+}
+
+function findMatchingError(errors: (CellConfigRowSelect | CellConfigRowInsert)[], matchError: (CellConfigRowInsert | CellConfigRowSelect)): (CellConfigRowSelect | CellConfigRowInsert) | null {
+  for (const error of errors) {
+    if (doErrorsMatch(error, matchError)) {
+      return error;
+    }
+  }
+  return null;
+}
+
+export type CellConfigRowInsert = typeof unifiedGuildCellConfig.$inferInsert;
 export type CellConfigRowSelect = typeof unifiedGuildCellConfig.$inferSelect;
 
 type ValType = string | number | boolean | null;
@@ -212,43 +234,11 @@ interface NewError {
   };
 }
 
-export interface CellConfigData {
-  resolved?: boolean;
-
+type NewErrorMerged = {
   value?: ValType;
-  lastValue?: ValType;
-  options?: ValType[];
-  name?: string;
   message?: string;
+  options?: ValType[];
 }
 
-function doErrorsMatch(
-  error: CellConfigRowSelect | CellConfigRowInsert,
-  newError: CellConfigRowInsert | CellConfigRowSelect
-): boolean {
-  if (error.refId !== newError.refId) return false;
-  if (error.col !== newError.col) return false;
-  if (error.confType !== newError.confType) return false;
-  if ((error.data === null && newError.data !== null) || (error.data !== null && newError.data === null)) return false;
-  if (error.data && newError.data) {
-    const oldData = JSON.parse(error.data), newData = JSON.parse(newError.data);
-    for (const key of Object.keys(oldData)) {
-      if (!Bun.deepEquals(oldData[key], newData[key])) return false;
-    }
-    for (const key of Object.keys(newData)) {
-      if (!Bun.deepEquals(oldData[key], newData[key])) return false;
-    }
-  }
-  return true;
-}
-
-function findMatchingError(errors: (CellConfigRowSelect | CellConfigRowInsert)[], matchError: (CellConfigRowInsert | CellConfigRowSelect)): (CellConfigRowSelect | CellConfigRowInsert) | null {
-  for (const error of errors) {
-    if (doErrorsMatch(error, matchError)) {
-      return error;
-    }
-  }
-  return null;
-}
 
 export type CellConfigTables = typeof unifiedGuildCellConfig;

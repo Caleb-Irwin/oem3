@@ -30,7 +30,7 @@
 		center
 	>
 		<div class="h-16 my-3 p-1 max-w-2xl form w-full flex">
-			<div class="input-group input-group-divider grid-cols-[1fr_auto]" use:focusTrap={focus}>
+			<div class="input-group input-group-divider grid-cols-[1fr_auto] mx-2" use:focusTrap={focus}>
 				<input type="text" placeholder="Search Query" name="query" bind:value={query} />
 				<select name="type" class="hidden" bind:value={queryType}>
 					<option value={queryType}>QUERY TYPE</option>

@@ -9,4 +9,4 @@ export interface NamedCell {
     cell: Cell;
 }
 
-export type { CellConfigData } from "../../../../../../../server/src/utils/cellConfigurator";
+export { ColToTableName } from "../../../../../../../server/src/routers/unified.helpers";
