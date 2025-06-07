@@ -9,4 +9,10 @@ export interface NamedCell {
     cell: Cell;
 }
 
-export { ColToTableName } from "../../../../../../../server/src/routers/unified.helpers";
+import type { ColToTableName as ColToTableNameType } from "../../../../../../../server/src/routers/unified.helpers";
+
+export const ColToTableName: typeof ColToTableNameType = {
+    dataRow: "guildData",
+    inventoryRow: "guildInventory",
+    flyerRow: "guildFlyer",
+};
