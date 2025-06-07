@@ -15,8 +15,8 @@
 	let val = $derived(
 		typeof nc.cell.value === 'boolean'
 			? nc.cell.value
-				? 'Yes'
-				: 'No'
+				? 'True'
+				: 'False'
 			: price && nc.cell.value !== null
 				? formatPrice((nc.cell.value as number) / 100)
 				: nc.cell.value

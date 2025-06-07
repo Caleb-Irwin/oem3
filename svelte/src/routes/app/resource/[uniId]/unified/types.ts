@@ -9,6 +9,8 @@ export interface NamedCell {
     cell: Cell;
 }
 
+export type { CellConfigRowInsert, CellConfigRowSelect } from "../../../../../../../server/src/utils/cellConfigurator";
+
 import type { ColToTableName as ColToTableNameType } from "../../../../../../../server/src/routers/unified.helpers";
 
 export const ColToTableName: typeof ColToTableNameType = {

@@ -14,7 +14,9 @@
 	import Search from 'lucide-svelte/icons/search';
 	import CompactSearch from '$lib/search/CompactSearch.svelte';
 	import { getModalStore } from '@skeletonlabs/skeleton';
-	import { ColToTableName, type Cell } from './types';
+	import { ColToTableName, type Cell, type CellConfigRowInsert } from './types';
+	import type { CellSetting } from '../../../../../../../server/src/db.schema';
+	import { objectsEqual, validateCustomValue } from './utils';
 
 	interface Props {
 		cell: Cell;
@@ -25,10 +27,12 @@
 	let newSetting = $derived(cell.setting);
 
 	let customValue = $derived(cell.cellSettingConf?.value),
+		customValueError: string | null = $state(null),
 		approveThreshold = $derived(
 			cell.setting === 'setting:approve' ? ((cell.value as number) ?? 15) : 15
 		),
 		approveCustomValue = $derived(newSetting === 'setting:approveCustom'),
+		approveThresholdError: string | null = $state(null),
 		isConnection = $derived(cell.connectionRow !== undefined);
 
 	// Search for connections
@@ -50,7 +54,6 @@
 		});
 	}
 
-	// For auto-approve custom value
 	$effect(() => {
 		if (approveCustomValue && newSetting !== 'setting:approveCustom') {
 			newSetting = 'setting:approveCustom';
@@ -59,43 +62,65 @@
 		}
 	});
 
-	const newCellSettingData: Cell | undefined | null = $derived.by(() => {
-		if (newSetting !== cell.setting) {
-			if (newSetting === null) {
-				return null;
-			}
-			// else if (newSetting === 'setting:approve') {
-			// 	return {
-			// 		type: 'approve',
-			// 		value: approveThreshold,
-			// 		lastValue: cell.value
-			// 	} satisfies CellConfigData;
-			// } else if (newSetting === 'setting:custom') {
-			// 	return {
-			// 		type: 'custom',
-			// 		value: customValue,
-			// 		lastValue: cell.value
-			// 	} as CellConfigData;
-			// } else if (newSetting === 'setting:approveCustom') {
-			// 	return {
-			// 		type: 'approveCustom',
-			// 		value: customValue,
-			// 		lastValue: cell.value
-			// 	} as CellConfigData;
-			// }
-		}
+	let newCellSettingData: CellConfigRowInsert | undefined | null = $state(undefined);
+	$effect(() => {
+		const partialSetting = {
+			col: cell.col as CellConfigRowInsert['col'],
+			confType: newSetting as CellSetting,
+			refId: Number(cell.compoundId.split(':')[1]),
+			created: Date.now()
+		} satisfies Partial<CellConfigRowInsert>;
 
-		return undefined;
+		if (newSetting === null) {
+			newCellSettingData = null;
+			return;
+		} else if (newSetting === 'setting:approve') {
+			if (approveThreshold === null || approveThreshold < 0) {
+				newCellSettingData = undefined;
+				approveThresholdError =
+					approveThreshold === null ? 'Cannot be empty' : 'Threshold must be a non-negative number';
+				return;
+			}
+			approveThresholdError = null;
+			newCellSettingData = {
+				...partialSetting,
+				value: approveThreshold?.toString() ?? 0,
+				lastValue: cell.value?.toString() ?? null
+			} satisfies CellConfigRowInsert;
+			return;
+		} else if (newSetting === 'setting:custom' || newSetting === 'setting:approveCustom') {
+			const validation = validateCustomValue(customValue, cell.type, cell.nullable);
+			customValueError = validation.error;
+			if (validation.res === undefined) {
+				newCellSettingData = undefined;
+				return;
+			}
+			newCellSettingData = {
+				...partialSetting,
+				value: validation.res
+			} satisfies CellConfigRowInsert;
+			return;
+		}
+		newCellSettingData = undefined;
 	});
+	const hasChanges = $derived(
+			newCellSettingData !== undefined &&
+				!(cell.cellSettingConf === null && newCellSettingData === null) &&
+				(newCellSettingData === null ||
+					!objectsEqual(newCellSettingData, cell.cellSettingConf, ['created', 'id']))
+		),
+		showSaveButton = $derived(
+			newCellSettingData === undefined || hasChanges || newSetting !== cell.setting
+		);
 </script>
 
 {#if openSettings[cell.compoundId]?.[cell.col]}
 	<div class="flex-grow w-full min-h-16 place-content-center min-w-52 p-0.5 {extraClass ?? ''}">
 		<div class="card p-2">
 			<p class="font-semibold text-center text-lg">Cell Setting</p>
-			<div class="flex w-full items-center py-1">
+			<div class="flex w-full items-center py-1 flex-wrap">
 				<button
-					class="mx-0.5 w-full btn {!newSetting ? 'variant-filled-primary' : 'variant-filled'}"
+					class="m-0.5 btn flex-1 {!newSetting ? 'variant-filled-primary' : 'variant-filled'}"
 					onclick={() => {
 						newSetting = null;
 					}}
@@ -104,7 +129,7 @@
 				</button>
 				{#if cell.type === 'number' && cell.connectionRow === undefined}
 					<button
-						class="mx-0.5 w-full btn {newSetting === 'setting:approve'
+						class="m-0.5 btn flex-1 {newSetting === 'setting:approve'
 							? 'variant-filled-primary'
 							: 'variant-filled'}"
 						onclick={() => {
@@ -115,7 +140,7 @@
 					</button>
 				{/if}
 				<button
-					class="mx-0.5 w-full btn {newSetting === 'setting:custom' ||
+					class="m-0.5 btn flex-1 {newSetting === 'setting:custom' ||
 					newSetting === 'setting:approveCustom'
 						? 'variant-filled-primary'
 						: 'variant-filled'}"
@@ -137,11 +162,15 @@
 						<span class="label-text font-bold">Approval Threshold (by % change)</span>
 						<input
 							type="number"
-							class="input"
+							class="input {approveThresholdError ? 'variant-ghost-error' : ''}"
 							placeholder="Percent Change"
 							bind:value={approveThreshold}
 						/>
 					</label>
+					{#if approveThresholdError}
+						<p class="font-bold text-error-600 -mt-1">{approveThresholdError}</p>
+					{/if}
+
 					<p>
 						Last approved value is <span class="font-semibold"
 							><BreakableText
@@ -161,7 +190,7 @@
 						>
 						<div class="flex items-center">
 							<textarea
-								class="textarea"
+								class="textarea {customValueError ? 'variant-ghost-error' : ''} w-full"
 								rows={cell.value && cell.value.toString().length > 100 ? 4 : 1}
 								placeholder="Value"
 								bind:value={customValue}
@@ -173,12 +202,15 @@
 							{/if}
 						</div>
 					</label>
+					{#if customValueError}
+						<p class="font-bold text-error-600 pt-1">{customValueError}</p>
+					{/if}
 
 					<label class="flex justify-center items-center p-2 w-full">
 						<input class="checkbox" type="checkbox" bind:checked={approveCustomValue} />
 						<p class="pl-2">Approve custom value on underlying value change</p>
 					</label>
-					<p class="pt-1">
+					<p>
 						Current value is <span class="font-semibold"
 							><BreakableText text={cell.value === null ? 'Null' : cell.value.toString()} /></span
 						>
@@ -194,6 +226,14 @@
 					</p>
 				{/if}
 			</div>
+			{#if showSaveButton}
+				<div class="w-full px-0.5 pt-2">
+					<button class="btn variant-filled-primary w-full" disabled={!hasChanges}> Save </button>
+				</div>
+				<p class="pre m-2">
+					{newCellSettingData ? JSON.stringify(newCellSettingData, null, 2) : newCellSettingData}
+				</p>
+			{/if}
 		</div>
 	</div>
 {/if}
