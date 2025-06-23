@@ -16,12 +16,20 @@ import {
   type InsertHistoryRowOptions,
 } from "./history";
 import { KV } from "./kv";
-import { cellTransformer, createCellConfigurator, type NewError } from "./cellConfigurator";
+import {
+  cellTransformer,
+  createCellConfigurator,
+  type NewError,
+} from "./cellConfigurator";
 import { runSerializable } from "./runSerializable";
 import PromisePool from "@supercharge/promise-pool";
 
 export function createUnifier<
-  RowType extends TableType["$inferSelect"] & { uniref: { uniId: number }; id: number; deleted: boolean },
+  RowType extends TableType["$inferSelect"] & {
+    uniref: { uniId: number };
+    id: number;
+    deleted: boolean;
+  },
   TableType extends UnifiedTables
 >({
   table,
@@ -39,8 +47,8 @@ export function createUnifier<
     item: RowType,
     t: typeof cellTransformer
   ) => {
-      [K in keyof TableType["$inferSelect"]]: ReturnType<typeof cellTransformer>;
-    };
+    [K in keyof TableType["$inferSelect"]]: ReturnType<typeof cellTransformer>;
+  };
   connections: Connections<RowType, TableType>;
   additionalColValidators: AdditionalColValidator<TableType>;
   version: number;
@@ -61,33 +69,62 @@ export function createUnifier<
       .execute();
   }
 
-  async function verifyCellValue<K extends keyof TableType["$inferSelect"]>(
-    {
-      value,
-      col,
-      db,
-      verifyConnections = false
-    }: {
-      value: TableType["$inferSelect"][K],
-      col: K,
-      db: typeof DB | Tx,
-      verifyConnections?: boolean;
-    }
-  ): Promise<NewError | null> {
+  async function verifyCellValue<K extends keyof TableType["$inferSelect"]>({
+    value: rawValue,
+    col,
+    db,
+    verifyConnections = false,
+  }: {
+    value: TableType["$inferSelect"][K] | string;
+    col: K;
+    db: typeof DB | Tx;
+    verifyConnections?: boolean;
+  }): Promise<
+    | {
+        err: NewError;
+        coercedValue?: null;
+      }
+    | {
+        err: null;
+        coercedValue: TableType["$inferSelect"][K];
+      }
+  > {
     const dataType = colTypes[col].dataType,
       notNull = colTypes[col].notNull;
 
+    let value: TableType["$inferSelect"][K] | null = rawValue as
+      | TableType["$inferSelect"][K]
+      | null;
+    if (typeof rawValue === "string") {
+      if (rawValue.toLowerCase() === "null") {
+        value = null;
+      } else if (
+        dataType === "number" &&
+        rawValue &&
+        !isNaN(parseFloat(rawValue))
+      ) {
+        value = parseFloat(rawValue) as TableType["$inferSelect"][K];
+      } else if (dataType === "boolean") {
+        value = (rawValue.toLowerCase() ===
+          "true") as TableType["$inferSelect"][K];
+      }
+    }
+
     if (value === null && notNull) {
       return {
-        canNotBeSetToNull: {
-          message: `Value "${value}" is null but must not be null; This is not allowed. It should be set to a "${dataType}" value.`,
+        err: {
+          canNotBeSetToNull: {
+            message: `Value "${value}" is null but must not be null; This is not allowed. It should be set to a "${dataType}" value.`,
+          },
         },
       };
     } else if (value !== null && typeof value !== dataType) {
       return {
-        canNotBeSetToWrongType: {
-          value: value as 'string' | 'number' | 'boolean',
-          message: `Value "${value}" is of type "${typeof value}" but must be of type "${dataType}"; This is not allowed.`,
+        err: {
+          canNotBeSetToWrongType: {
+            value: value as "string" | "number" | "boolean",
+            message: `Value "${value}" is of type "${typeof value}" but must be of type "${dataType}"; This is not allowed.`,
+          },
         },
       };
     } else if (value !== null) {
@@ -95,32 +132,44 @@ export function createUnifier<
       if (additionalValidator) {
         const error = await additionalValidator(value, db);
         if (error) {
-          return error;
+          return { err: error };
         }
       }
       if (verifyConnections) {
-        const connectionTable = [connections.primaryTable, ...connections.otherTables]
-          .find((c) => c.refCol === col);
+        const connectionTable = [
+          connections.primaryTable,
+          ...connections.otherTables,
+        ].find((c) => c.refCol === col);
         if (connectionTable) {
-          const exists = await db.select({ id: table.id })
+          const exists = await db
+            .select({ id: table.id })
             .from(connectionTable.table)
             .where(eq(connectionTable.table.id, value as number));
           if (exists.length === 0) {
             return {
-              invalidDataType: {
-                value: value as number,
-                message: `Value "${value}" is not a valid ID in the connected table. Hint: Use the search function to select connection.`,
+              err: {
+                invalidDataType: {
+                  value: value as number,
+                  message: `Value "${value}" is not a valid ID in the connected table. Hint: Use the search function to select connection.`,
+                },
               },
             };
           }
         }
       }
-
     }
-    return null;
+    return { err: null, coercedValue: value as TableType["$inferSelect"][K] };
   }
 
-  async function _updateRow({ id, db, onUpdateCallback }: { id: number; db: Tx | typeof DB, onUpdateCallback: OnUpdateCallback }) {
+  async function _updateRow({
+    id,
+    db,
+    onUpdateCallback,
+  }: {
+    id: number;
+    db: Tx | typeof DB;
+    onUpdateCallback: OnUpdateCallback;
+  }) {
     const originalRow = await getRow(id, db);
     let updatedRow = structuredClone(originalRow);
     const cellConfigurator = await createCellConfigurator(confTable, id, db);
@@ -139,7 +188,12 @@ export function createUnifier<
         connectionTable.refCol as keyof TableType["$inferInsert"];
 
       // Un-match the connection if it is deleted and not primary
-      if (!(connectionTable as PrimaryTableConnection<any, any, any>).newRowTransform && updatedRow[connectionRowKey] !== null && connectionTable.isDeleted(updatedRow)) {
+      if (
+        !(connectionTable as PrimaryTableConnection<any, any, any>)
+          .newRowTransform &&
+        updatedRow[connectionRowKey] !== null &&
+        connectionTable.isDeleted(updatedRow)
+      ) {
         updatedRow[connectionRowKey] = null as any;
       }
       if (
@@ -197,14 +251,15 @@ export function createUnifier<
       }
     }
     if (connections.primaryTable.isDeleted(updatedRow) && !updatedRow.deleted) {
-      const newVal = await cellConfigurator.getConfiguredCellValue({
-        key: "deleted",
-        val: true,
-        options: {},
-      },
+      const newVal = (await cellConfigurator.getConfiguredCellValue(
+        {
+          key: "deleted",
+          val: true,
+          options: {},
+        },
         originalRow.deleted,
         verifyCellValue
-      ) as boolean;
+      )) as boolean;
       if (newVal !== updatedRow.deleted) {
         updatedRow.deleted = newVal;
         await _modifyRow(id, { deleted: newVal } as any, db);
@@ -219,11 +274,11 @@ export function createUnifier<
     for (const k of Object.keys(transformed)) {
       if (k === "id" || k === "lastUpdated") continue;
       const key = k as keyof (typeof table)["$inferInsert"];
-      const newVal = await cellConfigurator.getConfiguredCellValue(
+      const newVal = (await cellConfigurator.getConfiguredCellValue(
         transformed[k as keyof typeof transformed],
         originalRow[key] as any,
         verifyCellValue
-      ) as any;
+      )) as any;
       if (originalRow[key] !== newVal) {
         changes[key] = newVal;
       }
@@ -234,19 +289,18 @@ export function createUnifier<
 
     // 4. Update Row
     const time = Date.now();
-    if (hasChanges)
-      await _modifyRow(id, { lastUpdated: time, ...changes }, db);
+    if (hasChanges) await _modifyRow(id, { lastUpdated: time, ...changes }, db);
 
     // 5. Update History
     const history: InsertHistoryRowOptions<TableType["$inferSelect"]> | null =
       hasChanges
         ? {
-          uniref: originalRow.uniref.uniId,
-          prev: originalRow,
-          entryType: "update",
-          data: changes,
-          created: time,
-        }
+            uniref: originalRow.uniref.uniId,
+            prev: originalRow,
+            entryType: "update",
+            data: changes,
+            created: time,
+          }
         : null;
     if (history)
       await insertHistory({
@@ -274,7 +328,7 @@ export function createUnifier<
   async function updateUnifiedTable({
     updateAll = false,
     progress,
-    onUpdateCallback
+    onUpdateCallback,
   }: {
     updateAll?: boolean;
     progress?: (progress: number) => void;
@@ -383,7 +437,8 @@ export function createUnifier<
               : prev,
           lastUpdated
         );
-        if (lastUpdatedBySource[sourceTable.refCol as string] > lastUpdated) // If no rows are updated, there will also be no new connections
+        if (lastUpdatedBySource[sourceTable.refCol as string] > lastUpdated)
+          // If no rows are updated, there will also be no new connections
           rows.forEach((r) => rowsToUpdate.add(r.id));
       }
     }
@@ -411,8 +466,6 @@ export function createUnifier<
     await kv.set("version", version.toString());
   }
 
-
-
   return {
     updateUnifiedTable,
     updateRow,
@@ -420,7 +473,9 @@ export function createUnifier<
   };
 }
 
-export function getColConfig<TableType extends UnifiedTables>(table: TableType) {
+export function getColConfig<TableType extends UnifiedTables>(
+  table: TableType
+) {
   const tableConf = getTableConfig(table),
     colTypes = {} as Record<
       keyof TableType["$inferSelect"],
@@ -436,7 +491,7 @@ export function getColConfig<TableType extends UnifiedTables>(table: TableType) 
 }
 
 export type UnifiedTables = typeof unifiedGuild;
-export type UnifiedTableNames = 'unifiedGuild';
+export type UnifiedTableNames = "unifiedGuild";
 export type PrimarySourceTables = typeof unifiedGuild | typeof guildData;
 // export type SecondarySourceTables = typeof unifiedSPR
 export type OtherSourceTables = typeof guildInventory | typeof guildFlyer;
@@ -482,6 +537,8 @@ type AdditionalColValidator<TableType extends UnifiedTables> = {
   ) => NewError | undefined | void | Promise<NewError | undefined | void>;
 };
 
-export type VerifyCellValue = ReturnType<typeof createUnifier>["verifyCellValue"];
+export type VerifyCellValue = ReturnType<
+  typeof createUnifier
+>["verifyCellValue"];
 
 type OnUpdateCallback = (uniId: number) => void;

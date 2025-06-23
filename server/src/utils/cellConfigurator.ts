@@ -46,7 +46,10 @@ export async function createCellConfigurator(
       confType: `error:${errorType}` as any,
       col,
       message: errorData.message ?? null,
-      value: errorData.value !== undefined && errorData.value !== null ? String(errorData.value) : null,
+      value:
+        errorData.value !== undefined && errorData.value !== null
+          ? String(errorData.value)
+          : null,
       options: errorData.options ? JSON.stringify(errorData.options) : null,
       resolved: false,
       notes,
@@ -57,7 +60,7 @@ export async function createCellConfigurator(
   async function getConfiguredCellValue<T extends typeof cellTransformer>(
     { key, val, options }: ReturnType<T>,
     oldVal: ReturnType<T>["val"],
-    verifyCellValue: VerifyCellValue,
+    verifyCellValue: VerifyCellValue
   ): Promise<ReturnType<T>["val"]> {
     let setting = getCellSettings(key);
     let newVal = val;
@@ -73,22 +76,27 @@ export async function createCellConfigurator(
       if (setting.setting === "setting:custom") {
         newVal = setting.conf?.value ?? null;
       } else if (setting.setting === "setting:approve" && oldVal !== val) {
+        // const thresholdPercent = parseFloat(setting.conf?.value ?? "0"),
+        //   lastApprovedValue = parseInt(setting.conf?.lastValue ?? "0");
         throw new Error("Not implemented");
         //TODO
       } else if (setting.setting === "setting:approveCustom") {
+        newVal = setting.conf?.value ?? null;
         throw new Error("Not implemented");
         //TODO
       }
     }
 
-    const valError = await verifyCellValue({
+    const { err, coercedValue } = await verifyCellValue({
       value: newVal,
       col: key,
       db,
-    })
-    if (valError) {
-      addError(key as any, valError);
+    });
+    if (err) {
+      addError(key as any, err);
       newVal = oldVal;
+    } else {
+      newVal = coercedValue ?? null;
     }
 
     if (options?.shouldNotBeNull && newVal === null) {
@@ -115,8 +123,12 @@ export async function createCellConfigurator(
   }
 
   async function commitErrors() {
-    const existingErrors = cellConfigs.filter((c) => c.confType.startsWith("error:"));
-    const errorsToRemove = new Set<number>(existingErrors.filter(c => c.resolved === false).map((c) => c.id));
+    const existingErrors = cellConfigs.filter((c) =>
+      c.confType.startsWith("error:")
+    );
+    const errorsToRemove = new Set<number>(
+      existingErrors.filter((c) => c.resolved === false).map((c) => c.id)
+    );
     const errorsToAdd = newErrors.filter((newError) => {
       const existingError = findMatchingError(existingErrors, newError);
       if (existingError?.id) {
@@ -127,7 +139,9 @@ export async function createCellConfigurator(
     });
 
     if (errorsToRemove.size > 0) {
-      await db.delete(table).where(inArray(table.id, Array.from(errorsToRemove)));
+      await db
+        .delete(table)
+        .where(inArray(table.id, Array.from(errorsToRemove)));
     }
     if (errorsToAdd.length > 0) {
       await db.insert(table).values(errorsToAdd);
@@ -169,13 +183,16 @@ function doErrorsMatch(
 ): boolean {
   for (const k of new Set([...Object.keys(error), ...Object.keys(newError)])) {
     const key = k as keyof typeof error;
-    if (key === "id" || key === "created" || key === 'refId') continue;
-    if ((error[key] !== newError[key])) return false;
+    if (key === "id" || key === "created" || key === "refId") continue;
+    if (error[key] !== newError[key]) return false;
   }
   return true;
 }
 
-function findMatchingError(errors: (CellConfigRowSelect | CellConfigRowInsert)[], matchError: (CellConfigRowInsert | CellConfigRowSelect)): (CellConfigRowSelect | CellConfigRowInsert) | null {
+function findMatchingError(
+  errors: (CellConfigRowSelect | CellConfigRowInsert)[],
+  matchError: CellConfigRowInsert | CellConfigRowSelect
+): (CellConfigRowSelect | CellConfigRowInsert) | null {
   for (const error of errors) {
     if (doErrorsMatch(error, matchError)) {
       return error;
@@ -225,7 +242,6 @@ type NewErrorMerged = {
   value?: ValType;
   message?: string;
   options?: ValType[];
-}
-
+};
 
 export type CellConfigTables = typeof unifiedGuildCellConfig;

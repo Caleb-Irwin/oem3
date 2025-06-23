@@ -80,12 +80,12 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
       description: t(
         "description",
         item.dataRowContent.desc?.sanitizedDescription ||
-        item.dataRowContent.longDesc
+          item.dataRowContent.longDesc
       ),
       priceCents: t(
         "priceCents",
         item.flyerRowContent?.flyerPriceL1Cents ??
-        item.dataRowContent.priceL1Cents,
+          item.dataRowContent.priceL1Cents,
         {
           shouldNotBeNull: true,
         }
@@ -109,9 +109,9 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
         (item.dataRowContent.dropshipPriceCents === -1
           ? null
           : item.dataRowContent.dropshipPriceCents) ??
-        (item.dataRowContent.memberPriceCents === -1
-          ? null
-          : item.dataRowContent.memberPriceCents)
+          (item.dataRowContent.memberPriceCents === -1
+            ? null
+            : item.dataRowContent.memberPriceCents)
       ),
       um: t("um", item.dataRowContent.um, {
         shouldMatch: {
@@ -134,28 +134,31 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
           ? JSON.parse(item.dataRowContent.desc?.imageListJSON)[0] ?? null
           : null) ?? item.dataRowContent.imageURL
       ),
-      primaryImageDescription: t("primaryImageDescription", `Image of ${item.gid}`),
+      primaryImageDescription: t(
+        "primaryImageDescription",
+        `Image of ${item.gid}`
+      ),
       otherImageListJSON: t(
         "otherImageListJSON",
         item.dataRowContent.desc?.imageListJSON &&
           JSON.parse(item.dataRowContent.desc?.imageListJSON).length > 1
           ? JSON.stringify(
-            (
-              JSON.parse(item.dataRowContent.desc?.imageListJSON).slice(
-                1
-              ) as string[]
-            ).map((url, idx) => ({
-              url,
-              description: `Alternate image #${idx + 1} of ${item.gid}`,
-            }))
-          )
+              (
+                JSON.parse(item.dataRowContent.desc?.imageListJSON).slice(
+                  1
+                ) as string[]
+              ).map((url, idx) => ({
+                url,
+                description: `Alternate image #${idx + 1} of ${item.gid}`,
+              }))
+            )
           : null
       ),
       vendor: t("vendor", item.dataRowContent.vendor),
       category: t(
         "category",
         categoryMap[item.dataRowContent.webCategory.toString().slice(0, 1)] ??
-        null
+          null
       ),
       weightGrams: t("weightGrams", item.dataRowContent.weightGrams),
       heavyGoodsChargeSkCents: t(
@@ -191,7 +194,7 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
       },
       isDeleted: (row) => {
         return row.dataRowContent.deleted;
-      }
+      },
     },
     otherTables: [
       {
@@ -210,17 +213,17 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
               where: or(
                 row.gid !== null && row.gid !== ""
                   ? and(
-                    eq(guildInventory.gid, row.gid),
-                    not(guildInventory.deleted)
-                  )
+                      eq(guildInventory.gid, row.gid),
+                      not(guildInventory.deleted)
+                    )
                   : undefined,
                 row.dataRowContent !== null &&
                   row.dataRowContent.upc !== null &&
                   row.dataRowContent.upc !== ""
                   ? and(
-                    eq(guildInventory.upc, row.dataRowContent.upc),
-                    not(guildInventory.deleted)
-                  )
+                      eq(guildInventory.upc, row.dataRowContent.upc),
+                      not(guildInventory.deleted)
+                    )
                   : undefined
               ),
               columns: {
@@ -232,7 +235,7 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
         },
         isDeleted: (row) => {
           return row.inventoryRowContent?.deleted ?? true;
-        }
+        },
       },
       {
         table: guildFlyer,
@@ -251,7 +254,7 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
         },
         isDeleted: (row) => {
           return row.flyerRowContent?.deleted ?? true;
-        }
+        },
       },
     ],
   },
@@ -261,7 +264,9 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
         return {
           invalidDataType: {
             value: value as string,
-            message: `Value "${value}" is not a valid unit of measure; Valid units are: ${guildUmEnum.enumValues.join(", ")}`,
+            message: `Value "${value}" is not a valid unit of measure; Valid units are: ${guildUmEnum.enumValues.join(
+              ", "
+            )}`,
           },
         };
       }
@@ -271,7 +276,9 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
         return {
           invalidDataType: {
             value: value as string,
-            message: `Value "${value}" is not a valid category; Valid categories are: ${categoryEnum.enumValues.join(", ")}`,
+            message: `Value "${value}" is not a valid category; Valid categories are: ${categoryEnum.enumValues.join(
+              ", "
+            )}`,
           },
         };
       }
@@ -288,9 +295,9 @@ const categoryMap = {
   "7": "inkToner",
 } as {
   [key: string]:
-  | "officeSchool"
-  | "technology"
-  | "furniture"
-  | "cleaningBreakRoom"
-  | "inkToner";
+    | "officeSchool"
+    | "technology"
+    | "furniture"
+    | "cleaningBreakRoom"
+    | "inkToner";
 };
