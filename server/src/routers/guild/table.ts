@@ -1,136 +1,134 @@
 import {
-  bigint,
-  boolean,
-  index,
-  integer,
-  pgEnum,
-  pgTable,
-  serial,
-  text,
-  uniqueIndex,
-  varchar,
-} from "drizzle-orm/pg-core";
-import { guildData, guildUmEnum } from "./data/table";
-import { guildInventory } from "./inventory/table";
-import { guildFlyer } from "./flyer/table";
-import { relations } from "drizzle-orm";
-import { uniref, cellConfigTable } from "../../db.schema";
+	bigint,
+	boolean,
+	index,
+	integer,
+	pgEnum,
+	pgTable,
+	serial,
+	text,
+	uniqueIndex,
+	varchar
+} from 'drizzle-orm/pg-core';
+import { guildData, guildUmEnum } from './data/table';
+import { guildInventory } from './inventory/table';
+import { guildFlyer } from './flyer/table';
+import { relations } from 'drizzle-orm';
+import { uniref, cellConfigTable } from '../../db.schema';
 
-export const categoryEnum = pgEnum("category", [
-  "officeSchool",
-  "technology",
-  "furniture",
-  "cleaningBreakRoom",
-  "inkToner",
+export const categoryEnum = pgEnum('category', [
+	'officeSchool',
+	'technology',
+	'furniture',
+	'cleaningBreakRoom',
+	'inkToner'
 ]);
 
 export const unifiedGuild = pgTable(
-  "unifiedGuild",
-  {
-    id: serial("id").primaryKey(),
-    gid: varchar("gid", { length: 256 }).notNull().unique(),
+	'unifiedGuild',
+	{
+		id: serial('id').primaryKey(),
+		gid: varchar('gid', { length: 256 }).notNull().unique(),
 
-    dataRow: integer("dataRow")
-      .notNull()
-      .references(() => guildData.id, { onDelete: "cascade" }),
-    inventoryRow: integer("inventoryRow").references(() => guildInventory.id, {
-      onDelete: "set null",
-    }),
-    flyerRow: integer("flyerRow").references(() => guildFlyer.id, {
-      onDelete: "set null",
-    }),
+		dataRow: integer('dataRow')
+			.notNull()
+			.references(() => guildData.id, { onDelete: 'cascade' }),
+		inventoryRow: integer('inventoryRow').references(() => guildInventory.id, {
+			onDelete: 'set null'
+		}),
+		flyerRow: integer('flyerRow').references(() => guildFlyer.id, {
+			onDelete: 'set null'
+		}),
 
-    upc: varchar("upc", { length: 256 }),
-    spr: varchar("spr", { length: 256 }),
-    basics: varchar("basics", { length: 256 }),
-    cis: varchar("cis", { length: 256 }),
+		upc: varchar('upc', { length: 256 }),
+		spr: varchar('spr', { length: 256 }),
+		basics: varchar('basics', { length: 256 }),
+		cis: varchar('cis', { length: 256 }),
 
-    title: varchar("title", { length: 256 }),
-    description: text("description"),
-    priceCents: integer("priceCents"),
-    comparePriceCents: integer("comparePriceCents"),
-    costCents: integer("costCents"),
-    um: guildUmEnum("um"),
-    qtyPerUm: integer("qtyPerUm"),
-    masterPackQty: integer("masterPackQty"),
-    imageUrl: varchar("imageUrl", { length: 256 }),
-    primaryImageDescription: text("primaryImageDescription"),
-    otherImageListJSON: text("otherImageListJSON"), // {url: string, description: string}[]
-    vendor: varchar("vendor", { length: 256 }),
-    category: categoryEnum("category"),
+		title: varchar('title', { length: 256 }),
+		description: text('description'),
+		priceCents: integer('priceCents'),
+		comparePriceCents: integer('comparePriceCents'),
+		costCents: integer('costCents'),
+		um: guildUmEnum('um'),
+		qtyPerUm: integer('qtyPerUm'),
+		masterPackQty: integer('masterPackQty'),
+		imageUrl: varchar('imageUrl', { length: 256 }),
+		primaryImageDescription: text('primaryImageDescription'),
+		otherImageListJSON: text('otherImageListJSON'), // {url: string, description: string}[]
+		vendor: varchar('vendor', { length: 256 }),
+		category: categoryEnum('category'),
 
-    weightGrams: integer("weightGrams"),
-    heavyGoodsChargeSkCents: integer("heavyGoodsChargeSkCents"),
-    freightFlag: boolean("freightFlag").default(false),
+		weightGrams: integer('weightGrams'),
+		heavyGoodsChargeSkCents: integer('heavyGoodsChargeSkCents'),
+		freightFlag: boolean('freightFlag').default(false),
 
-    inventory: integer("inventory"),
+		inventory: integer('inventory'),
 
-    deleted: boolean("deleted").default(false).notNull(),
-    lastUpdated: bigint("lastUpdated", { mode: "number" }).notNull(),
-  },
-  (unifiedGuildTable) => [
-    uniqueIndex("dataRow_idx").on(unifiedGuildTable.dataRow),
-    uniqueIndex("inventoryRow_idx").on(unifiedGuildTable.inventoryRow),
-    uniqueIndex("flyerRow_idx").on(unifiedGuildTable.flyerRow),
-    index("upc_idx").on(unifiedGuildTable.upc),
-    index("spr_idx").on(unifiedGuildTable.spr),
-    index("cis_idx").on(unifiedGuildTable.cis),
-    index("lastUpdated_idx").on(unifiedGuildTable.lastUpdated),
-  ]
+		deleted: boolean('deleted').default(false).notNull(),
+		lastUpdated: bigint('lastUpdated', { mode: 'number' }).notNull()
+	},
+	(unifiedGuildTable) => [
+		uniqueIndex('dataRow_idx').on(unifiedGuildTable.dataRow),
+		uniqueIndex('inventoryRow_idx').on(unifiedGuildTable.inventoryRow),
+		uniqueIndex('flyerRow_idx').on(unifiedGuildTable.flyerRow),
+		index('upc_idx').on(unifiedGuildTable.upc),
+		index('spr_idx').on(unifiedGuildTable.spr),
+		index('cis_idx').on(unifiedGuildTable.cis),
+		index('lastUpdated_idx').on(unifiedGuildTable.lastUpdated)
+	]
 );
 
 export const unifiedGuildRelations = relations(unifiedGuild, ({ one }) => ({
-  uniref: one(uniref, {
-    fields: [unifiedGuild.id],
-    references: [uniref.unifiedGuild],
-  }),
-  dataRowContent: one(guildData, {
-    fields: [unifiedGuild.dataRow],
-    references: [guildData.id],
-  }),
-  inventoryRowContent: one(guildInventory, {
-    fields: [unifiedGuild.inventoryRow],
-    references: [guildInventory.id],
-  }),
-  flyerRowContent: one(guildFlyer, {
-    fields: [unifiedGuild.flyerRow],
-    references: [guildFlyer.id],
-  }),
+	uniref: one(uniref, {
+		fields: [unifiedGuild.id],
+		references: [uniref.unifiedGuild]
+	}),
+	dataRowContent: one(guildData, {
+		fields: [unifiedGuild.dataRow],
+		references: [guildData.id]
+	}),
+	inventoryRowContent: one(guildInventory, {
+		fields: [unifiedGuild.inventoryRow],
+		references: [guildInventory.id]
+	}),
+	flyerRowContent: one(guildFlyer, {
+		fields: [unifiedGuild.flyerRow],
+		references: [guildFlyer.id]
+	})
 }));
 
-export const unifiedGuildColumnEnum = pgEnum("unifiedGuildColumn", [
-  "gid",
-  "dataRow",
-  "inventoryRow",
-  "flyerRow",
-  "upc",
-  "spr",
-  "basics",
-  "cis",
-  "title",
-  "description",
-  "priceCents",
-  "comparePriceCents",
-  "costCents",
-  "um",
-  "qtyPerUm",
-  "masterPackQty",
-  "imageUrl",
-  "imageDescriptions",
-  "otherImageListJSON",
-  "vendor",
-  "category",
-  "weightGrams",
-  "heavyGoodsChargeSkCents",
-  "freightFlag",
-  "inventory",
+export const unifiedGuildColumnEnum = pgEnum('unifiedGuildColumn', [
+	'gid',
+	'dataRow',
+	'inventoryRow',
+	'flyerRow',
+	'upc',
+	'spr',
+	'basics',
+	'cis',
+	'title',
+	'description',
+	'priceCents',
+	'comparePriceCents',
+	'costCents',
+	'um',
+	'qtyPerUm',
+	'masterPackQty',
+	'imageUrl',
+	'imageDescriptions',
+	'otherImageListJSON',
+	'vendor',
+	'category',
+	'weightGrams',
+	'heavyGoodsChargeSkCents',
+	'freightFlag',
+	'inventory'
 ]);
 
-export const {
-  table: unifiedGuildCellConfig,
-  relations: unifiedGuildCellConfigRelations,
-} = cellConfigTable({
-  originalTable: unifiedGuild,
-  primaryKey: unifiedGuild.id,
-  columnEnum: unifiedGuildColumnEnum,
-});
+export const { table: unifiedGuildCellConfig, relations: unifiedGuildCellConfigRelations } =
+	cellConfigTable({
+		originalTable: unifiedGuild,
+		primaryKey: unifiedGuild.id,
+		columnEnum: unifiedGuildColumnEnum
+	});

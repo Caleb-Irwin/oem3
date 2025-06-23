@@ -14,7 +14,7 @@ export const client = createTRPCClient<AppRouter>({
 	links: [
 		splitLink({
 			condition(op) {
-				return (op.path.startsWith('user.'));
+				return op.path.startsWith('user.');
 			},
 			true: httpBatchLink({
 				url: '/trpc'
@@ -22,12 +22,12 @@ export const client = createTRPCClient<AppRouter>({
 			false: wsLink({
 				client: browser
 					? createWSClient({
-						url: `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/trpc`
-					})
+							url: `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/trpc`
+						})
 					: (undefined as unknown as ReturnType<typeof createWSClient>)
 			})
 		})
-	],
+	]
 });
 
 export function isTRPCClientError(cause: unknown): cause is TRPCClientError<AppRouter> {
@@ -81,8 +81,7 @@ export const subVal = <SI extends object | void, SO>(
 			}
 		) => unknown;
 	},
-	args:
-		SI extends void ? { init?: SO | undefined; } : SI & { init?: SO | undefined; }
+	args: SI extends void ? { init?: SO | undefined } : SI & { init?: SO | undefined }
 ): Readable<SO | undefined> => {
 	const { subscribe, set } = writable<SO | undefined>(args.init ?? undefined);
 

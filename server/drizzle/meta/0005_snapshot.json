@@ -1,291 +1,274 @@
 {
-  "version": "7",
-  "dialect": "postgresql",
-  "tables": {
-    "public.kv": {
-      "name": "kv",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "varchar(256)",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "namespace": {
-          "name": "namespace",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "key": {
-          "name": "key",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "value": {
-          "name": "value",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "kv_id_idx": {
-          "columns": [
-            {
-              "expression": "key",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "with": {},
-          "name": "kv_id_idx",
-          "isUnique": false,
-          "method": "btree",
-          "concurrently": false
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "kv_id_unique": {
-          "name": "kv_id_unique",
-          "columns": [
-            "id"
-          ],
-          "nullsNotDistinct": false
-        }
-      }
-    },
-    "public.labelSheets": {
-      "name": "labelSheets",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "public": {
-          "name": "public",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "owner": {
-          "name": "owner",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "labelSheet_id_idx": {
-          "columns": [
-            {
-              "expression": "id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "with": {},
-          "name": "labelSheet_id_idx",
-          "isUnique": true,
-          "method": "btree",
-          "concurrently": false
-        }
-      },
-      "foreignKeys": {
-        "labelSheets_owner_users_username_fk": {
-          "name": "labelSheets_owner_users_username_fk",
-          "tableFrom": "labelSheets",
-          "columnsFrom": [
-            "owner"
-          ],
-          "tableTo": "users",
-          "columnsTo": [
-            "username"
-          ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.labels": {
-      "name": "labels",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "sheet": {
-          "name": "sheet",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "barcode": {
-          "name": "barcode",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "price_cents": {
-          "name": "price_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "qbId": {
-          "name": "qbId",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "labels_id_idx": {
-          "columns": [
-            {
-              "expression": "id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "with": {},
-          "name": "labels_id_idx",
-          "isUnique": false,
-          "method": "btree",
-          "concurrently": false
-        },
-        "labels_sheet_idx": {
-          "columns": [
-            {
-              "expression": "sheet",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "with": {},
-          "name": "labels_sheet_idx",
-          "isUnique": false,
-          "method": "btree",
-          "concurrently": false
-        }
-      },
-      "foreignKeys": {
-        "labels_sheet_labelSheets_id_fk": {
-          "name": "labels_sheet_labelSheets_id_fk",
-          "tableFrom": "labels",
-          "columnsFrom": [
-            "sheet"
-          ],
-          "tableTo": "labelSheets",
-          "columnsTo": [
-            "id"
-          ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.users": {
-      "name": "users",
-      "schema": "",
-      "columns": {
-        "username": {
-          "name": "username",
-          "type": "varchar(256)",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "password_hash": {
-          "name": "password_hash",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "permissionLevel": {
-          "name": "permissionLevel",
-          "type": "permissionLevel",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "username_idx": {
-          "columns": [
-            {
-              "expression": "username",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "with": {},
-          "name": "username_idx",
-          "isUnique": true,
-          "method": "btree",
-          "concurrently": false
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "users_username_unique": {
-          "name": "users_username_unique",
-          "columns": [
-            "username"
-          ],
-          "nullsNotDistinct": false
-        }
-      }
-    }
-  },
-  "enums": {
-    "public.permissionLevel": {
-      "name": "permissionLevel",
-      "schema": "public",
-      "values": [
-        "admin",
-        "general",
-        "viewer",
-        "public"
-      ]
-    }
-  },
-  "schemas": {},
-  "_meta": {
-    "schemas": {},
-    "tables": {},
-    "columns": {}
-  },
-  "id": "d58dd4b6-61df-43f5-8264-6528e94ae26a",
-  "prevId": "f13fd4d3-9e50-440e-bca6-d486fbb2f9cc"
+	"version": "7",
+	"dialect": "postgresql",
+	"tables": {
+		"public.kv": {
+			"name": "kv",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "varchar(256)",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"namespace": {
+					"name": "namespace",
+					"type": "varchar(128)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"key": {
+					"name": "key",
+					"type": "varchar(128)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"value": {
+					"name": "value",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"kv_id_idx": {
+					"columns": [
+						{
+							"expression": "key",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
+					"name": "kv_id_idx",
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"kv_id_unique": {
+					"name": "kv_id_unique",
+					"columns": ["id"],
+					"nullsNotDistinct": false
+				}
+			}
+		},
+		"public.labelSheets": {
+			"name": "labelSheets",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"name": {
+					"name": "name",
+					"type": "varchar(128)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"public": {
+					"name": "public",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"owner": {
+					"name": "owner",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"labelSheet_id_idx": {
+					"columns": [
+						{
+							"expression": "id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
+					"name": "labelSheet_id_idx",
+					"isUnique": true,
+					"method": "btree",
+					"concurrently": false
+				}
+			},
+			"foreignKeys": {
+				"labelSheets_owner_users_username_fk": {
+					"name": "labelSheets_owner_users_username_fk",
+					"tableFrom": "labelSheets",
+					"columnsFrom": ["owner"],
+					"tableTo": "users",
+					"columnsTo": ["username"],
+					"onUpdate": "no action",
+					"onDelete": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {}
+		},
+		"public.labels": {
+			"name": "labels",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"sheet": {
+					"name": "sheet",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"barcode": {
+					"name": "barcode",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"name": {
+					"name": "name",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"price_cents": {
+					"name": "price_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"qbId": {
+					"name": "qbId",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"labels_id_idx": {
+					"columns": [
+						{
+							"expression": "id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
+					"name": "labels_id_idx",
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
+				},
+				"labels_sheet_idx": {
+					"columns": [
+						{
+							"expression": "sheet",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
+					"name": "labels_sheet_idx",
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
+				}
+			},
+			"foreignKeys": {
+				"labels_sheet_labelSheets_id_fk": {
+					"name": "labels_sheet_labelSheets_id_fk",
+					"tableFrom": "labels",
+					"columnsFrom": ["sheet"],
+					"tableTo": "labelSheets",
+					"columnsTo": ["id"],
+					"onUpdate": "no action",
+					"onDelete": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {}
+		},
+		"public.users": {
+			"name": "users",
+			"schema": "",
+			"columns": {
+				"username": {
+					"name": "username",
+					"type": "varchar(256)",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"password_hash": {
+					"name": "password_hash",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"permissionLevel": {
+					"name": "permissionLevel",
+					"type": "permissionLevel",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"username_idx": {
+					"columns": [
+						{
+							"expression": "username",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
+					"name": "username_idx",
+					"isUnique": true,
+					"method": "btree",
+					"concurrently": false
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"users_username_unique": {
+					"name": "users_username_unique",
+					"columns": ["username"],
+					"nullsNotDistinct": false
+				}
+			}
+		}
+	},
+	"enums": {
+		"public.permissionLevel": {
+			"name": "permissionLevel",
+			"schema": "public",
+			"values": ["admin", "general", "viewer", "public"]
+		}
+	},
+	"schemas": {},
+	"_meta": {
+		"schemas": {},
+		"tables": {},
+		"columns": {}
+	},
+	"id": "d58dd4b6-61df-43f5-8264-6528e94ae26a",
+	"prevId": "f13fd4d3-9e50-440e-bca6-d486fbb2f9cc"
 }

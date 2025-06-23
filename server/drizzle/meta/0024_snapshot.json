@@ -1,1354 +1,1261 @@
 {
-  "id": "c747c522-b171-4fdf-8abb-39dfd99b1f82",
-  "prevId": "0ba533d4-0139-4746-9f67-974b7a0dc6fd",
-  "version": "7",
-  "dialect": "postgresql",
-  "tables": {
-    "public.files": {
-      "name": "files",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "type": {
-          "name": "type",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "author": {
-          "name": "author",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "content": {
-          "name": "content",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "uploadedTime": {
-          "name": "uploadedTime",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "files_id_idx": {
-          "name": "files_id_idx",
-          "columns": [
-            {
-              "expression": "id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "files_author_users_username_fk": {
-          "name": "files_author_users_username_fk",
-          "tableFrom": "files",
-          "tableTo": "users",
-          "columnsFrom": [
-            "author"
-          ],
-          "columnsTo": [
-            "username"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.kv": {
-      "name": "kv",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "varchar(256)",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "namespace": {
-          "name": "namespace",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "key": {
-          "name": "key",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "value": {
-          "name": "value",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "kv_id_idx": {
-          "name": "kv_id_idx",
-          "columns": [
-            {
-              "expression": "key",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "kv_id_unique": {
-          "name": "kv_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "id"
-          ]
-        }
-      }
-    },
-    "public.labelSheets": {
-      "name": "labelSheets",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "public": {
-          "name": "public",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "owner": {
-          "name": "owner",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "labelSheet_id_idx": {
-          "name": "labelSheet_id_idx",
-          "columns": [
-            {
-              "expression": "id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "labelSheets_owner_users_username_fk": {
-          "name": "labelSheets_owner_users_username_fk",
-          "tableFrom": "labelSheets",
-          "tableTo": "users",
-          "columnsFrom": [
-            "owner"
-          ],
-          "columnsTo": [
-            "username"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.labels": {
-      "name": "labels",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "sheet": {
-          "name": "sheet",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "barcode": {
-          "name": "barcode",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "price_cents": {
-          "name": "price_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "qbId": {
-          "name": "qbId",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "labels_id_idx": {
-          "name": "labels_id_idx",
-          "columns": [
-            {
-              "expression": "id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "labels_sheet_idx": {
-          "name": "labels_sheet_idx",
-          "columns": [
-            {
-              "expression": "sheet",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "labels_sheet_labelSheets_id_fk": {
-          "name": "labels_sheet_labelSheets_id_fk",
-          "tableFrom": "labels",
-          "tableTo": "labelSheets",
-          "columnsFrom": [
-            "sheet"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.users": {
-      "name": "users",
-      "schema": "",
-      "columns": {
-        "username": {
-          "name": "username",
-          "type": "varchar(256)",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "password_hash": {
-          "name": "password_hash",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "permissionLevel": {
-          "name": "permissionLevel",
-          "type": "permissionLevel",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "username_idx": {
-          "name": "username_idx",
-          "columns": [
-            {
-              "expression": "username",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "users_username_unique": {
-          "name": "users_username_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "username"
-          ]
-        }
-      }
-    },
-    "public.qb": {
-      "name": "qb",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "qb_id": {
-          "name": "qb_id",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "desc": {
-          "name": "desc",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "''"
-        },
-        "type": {
-          "name": "type",
-          "type": "qb_item_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "cost_cents": {
-          "name": "cost_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "price_cents": {
-          "name": "price_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "sales_tax_code": {
-          "name": "sales_tax_code",
-          "type": "tax_code",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "purchase_tax_code": {
-          "name": "purchase_tax_code",
-          "type": "tax_code",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "account": {
-          "name": "account",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "quantity_on_hand": {
-          "name": "quantity_on_hand",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "quantity_on_sales_order": {
-          "name": "quantity_on_sales_order",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "quantity_on_purchase_order": {
-          "name": "quantity_on_purchase_order",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "um": {
-          "name": "um",
-          "type": "qb_um",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "preferred_vendor": {
-          "name": "preferred_vendor",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "deleted": {
-          "name": "deleted",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "lastUpdated": {
-          "name": "lastUpdated",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "qb_qbId_idx": {
-          "name": "qb_qbId_idx",
-          "columns": [
-            {
-              "expression": "qb_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.uniref": {
-      "name": "uniref",
-      "schema": "",
-      "columns": {
-        "uniId": {
-          "name": "uniId",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "resource_type": {
-          "name": "resource_type",
-          "type": "resource_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "changeset": {
-          "name": "changeset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "qb": {
-          "name": "qb",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "guild": {
-          "name": "guild",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "guildInventory": {
-          "name": "guildInventory",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "resource_type_idx": {
-          "name": "resource_type_idx",
-          "columns": [
-            {
-              "expression": "uniId",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "uniref_changesets_idx": {
-          "name": "uniref_changesets_idx",
-          "columns": [
-            {
-              "expression": "changeset",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "uniref_qb_idx": {
-          "name": "uniref_qb_idx",
-          "columns": [
-            {
-              "expression": "qb",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "uniref_guild_idx": {
-          "name": "uniref_guild_idx",
-          "columns": [
-            {
-              "expression": "guild",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "uniref_guildInventory_idx": {
-          "name": "uniref_guildInventory_idx",
-          "columns": [
-            {
-              "expression": "guildInventory",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "uniref_changeset_changesets_id_fk": {
-          "name": "uniref_changeset_changesets_id_fk",
-          "tableFrom": "uniref",
-          "tableTo": "changesets",
-          "columnsFrom": [
-            "changeset"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "uniref_qb_qb_id_fk": {
-          "name": "uniref_qb_qb_id_fk",
-          "tableFrom": "uniref",
-          "tableTo": "qb",
-          "columnsFrom": [
-            "qb"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "uniref_guild_guild_id_fk": {
-          "name": "uniref_guild_guild_id_fk",
-          "tableFrom": "uniref",
-          "tableTo": "guild",
-          "columnsFrom": [
-            "guild"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "uniref_guildInventory_guildInventory_id_fk": {
-          "name": "uniref_guildInventory_guildInventory_id_fk",
-          "tableFrom": "uniref",
-          "tableTo": "guildInventory",
-          "columnsFrom": [
-            "guildInventory"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.changesets": {
-      "name": "changesets",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "type": {
-          "name": "type",
-          "type": "changeset_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "status": {
-          "name": "status",
-          "type": "changeset_status_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "file": {
-          "name": "file",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "summary": {
-          "name": "summary",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "uploadedTime": {
-          "name": "uploadedTime",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "changesets_file_files_id_fk": {
-          "name": "changesets_file_files_id_fk",
-          "tableFrom": "changesets",
-          "tableTo": "files",
-          "columnsFrom": [
-            "file"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.history": {
-      "name": "history",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "entry_type": {
-          "name": "entry_type",
-          "type": "history_entry_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "set": {
-          "name": "set",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "uniref": {
-          "name": "uniref",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "resource_type": {
-          "name": "resource_type",
-          "type": "resource_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "data": {
-          "name": "data",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created": {
-          "name": "created",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "history_changes_set_idx": {
-          "name": "history_changes_set_idx",
-          "columns": [
-            {
-              "expression": "set",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "history_uniref_idx": {
-          "name": "history_uniref_idx",
-          "columns": [
-            {
-              "expression": "uniref",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "history_resource_type_idx": {
-          "name": "history_resource_type_idx",
-          "columns": [
-            {
-              "expression": "resource_type",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "history_created_idx": {
-          "name": "history_created_idx",
-          "columns": [
-            {
-              "expression": "created",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "history_entry_type_idx": {
-          "name": "history_entry_type_idx",
-          "columns": [
-            {
-              "expression": "entry_type",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "history_set_changesets_id_fk": {
-          "name": "history_set_changesets_id_fk",
-          "tableFrom": "history",
-          "tableTo": "changesets",
-          "columnsFrom": [
-            "set"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "history_uniref_uniref_uniId_fk": {
-          "name": "history_uniref_uniref_uniId_fk",
-          "tableFrom": "history",
-          "tableTo": "uniref",
-          "columnsFrom": [
-            "uniref"
-          ],
-          "columnsTo": [
-            "uniId"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.search": {
-      "name": "search",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "uniref": {
-          "name": "uniref",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "type": {
-          "name": "type",
-          "type": "resource_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "keyInfo": {
-          "name": "keyInfo",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "otherInfo": {
-          "name": "otherInfo",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "search_index": {
-          "name": "search_index",
-          "columns": [
-            {
-              "expression": "(\n          setweight(to_tsvector('english', \"keyInfo\"), 'A') ||\n          setweight(to_tsvector('english', \"otherInfo\"), 'B')\n      )",
-              "asc": true,
-              "isExpression": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "gin",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "search_uniref_uniref_uniId_fk": {
-          "name": "search_uniref_uniref_uniId_fk",
-          "tableFrom": "search",
-          "tableTo": "uniref",
-          "columnsFrom": [
-            "uniref"
-          ],
-          "columnsTo": [
-            "uniId"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "search_uniref_unique": {
-          "name": "search_uniref_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "uniref"
-          ]
-        }
-      }
-    },
-    "public.guild": {
-      "name": "guild",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "gid": {
-          "name": "gid",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "upc": {
-          "name": "upc",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "spr": {
-          "name": "spr",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "basics": {
-          "name": "basics",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "cis": {
-          "name": "cis",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "price_l0_cents": {
-          "name": "price_l0_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "price_l1_cents": {
-          "name": "price_l1_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "price_retail_cents": {
-          "name": "price_retail_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "member_price_cents": {
-          "name": "member_price_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "dropship_price_cents": {
-          "name": "dropship_price_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "short_desc": {
-          "name": "short_desc",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "''"
-        },
-        "long_desc": {
-          "name": "long_desc",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "''"
-        },
-        "image_url": {
-          "name": "image_url",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "vendor": {
-          "name": "vendor",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "web_category": {
-          "name": "web_category",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": -1
-        },
-        "web_category_1_desc": {
-          "name": "web_category_1_desc",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "''"
-        },
-        "web_category_2_desc": {
-          "name": "web_category_2_desc",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "''"
-        },
-        "web_category_3_desc": {
-          "name": "web_category_3_desc",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "''"
-        },
-        "web_category_4_desc": {
-          "name": "web_category_4_desc",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "''"
-        },
-        "um": {
-          "name": "um",
-          "type": "guild_um",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "standard_pack_qty": {
-          "name": "standard_pack_qty",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": -1
-        },
-        "master_pack_qty": {
-          "name": "master_pack_qty",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": -1
-        },
-        "freight_flag": {
-          "name": "freight_flag",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "weight_grams": {
-          "name": "weight_grams",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": -1
-        },
-        "heavy_goods_charge_sk_cents": {
-          "name": "heavy_goods_charge_sk_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "min_order_qty": {
-          "name": "min_order_qty",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": -1
-        },
-        "guild_date_changed": {
-          "name": "guild_date_changed",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "deleted": {
-          "name": "deleted",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "lastUpdated": {
-          "name": "lastUpdated",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.guildInventory": {
-      "name": "guildInventory",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "gid": {
-          "name": "gid",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "on_hand": {
-          "name": "on_hand",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "sku": {
-          "name": "sku",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "upc": {
-          "name": "upc",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "spr_id": {
-          "name": "spr_id",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "basics_id": {
-          "name": "basics_id",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "cis_id": {
-          "name": "cis_id",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "qty_per_um": {
-          "name": "qty_per_um",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "um": {
-          "name": "um",
-          "type": "guild_um",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "time_updated": {
-          "name": "time_updated",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "deleted": {
-          "name": "deleted",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "lastUpdated": {
-          "name": "lastUpdated",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    }
-  },
-  "enums": {
-    "public.permissionLevel": {
-      "name": "permissionLevel",
-      "schema": "public",
-      "values": [
-        "admin",
-        "general",
-        "viewer",
-        "public"
-      ]
-    },
-    "public.qb_item_type": {
-      "name": "qb_item_type",
-      "schema": "public",
-      "values": [
-        "Service",
-        "Inventory Part",
-        "Inventory Assembly",
-        "Non-inventory Part",
-        "Other Charge",
-        "Subtotal",
-        "Group",
-        "Discount",
-        "Sales Tax Item",
-        "Sales Tax Group"
-      ]
-    },
-    "public.qb_um": {
-      "name": "qb_um",
-      "schema": "public",
-      "values": [
-        "ea",
-        "pk",
-        "cs"
-      ]
-    },
-    "public.tax_code": {
-      "name": "tax_code",
-      "schema": "public",
-      "values": [
-        "S",
-        "G",
-        "E"
-      ]
-    },
-    "public.resource_type": {
-      "name": "resource_type",
-      "schema": "public",
-      "values": [
-        "changeset",
-        "qb",
-        "guild",
-        "guildInventory"
-      ]
-    },
-    "public.changeset_status_type": {
-      "name": "changeset_status_type",
-      "schema": "public",
-      "values": [
-        "generating",
-        "completed"
-      ]
-    },
-    "public.changeset_type": {
-      "name": "changeset_type",
-      "schema": "public",
-      "values": [
-        "qb",
-        "guild",
-        "guildInventory"
-      ]
-    },
-    "public.history_entry_type": {
-      "name": "history_entry_type",
-      "schema": "public",
-      "values": [
-        "create",
-        "delete",
-        "update"
-      ]
-    },
-    "public.guild_um": {
-      "name": "guild_um",
-      "schema": "public",
-      "values": [
-        "bx",
-        "bg",
-        "ct",
-        "cs",
-        "cd",
-        "ea",
-        "ev",
-        "kt",
-        "st",
-        "sl",
-        "tb",
-        "pr",
-        "pk"
-      ]
-    }
-  },
-  "schemas": {},
-  "_meta": {
-    "columns": {},
-    "schemas": {},
-    "tables": {}
-  }
+	"id": "c747c522-b171-4fdf-8abb-39dfd99b1f82",
+	"prevId": "0ba533d4-0139-4746-9f67-974b7a0dc6fd",
+	"version": "7",
+	"dialect": "postgresql",
+	"tables": {
+		"public.files": {
+			"name": "files",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"name": {
+					"name": "name",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"type": {
+					"name": "type",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"author": {
+					"name": "author",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"content": {
+					"name": "content",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"uploadedTime": {
+					"name": "uploadedTime",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"files_id_idx": {
+					"name": "files_id_idx",
+					"columns": [
+						{
+							"expression": "id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"files_author_users_username_fk": {
+					"name": "files_author_users_username_fk",
+					"tableFrom": "files",
+					"tableTo": "users",
+					"columnsFrom": ["author"],
+					"columnsTo": ["username"],
+					"onDelete": "set null",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {}
+		},
+		"public.kv": {
+			"name": "kv",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "varchar(256)",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"namespace": {
+					"name": "namespace",
+					"type": "varchar(128)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"key": {
+					"name": "key",
+					"type": "varchar(128)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"value": {
+					"name": "value",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"kv_id_idx": {
+					"name": "kv_id_idx",
+					"columns": [
+						{
+							"expression": "key",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"kv_id_unique": {
+					"name": "kv_id_unique",
+					"nullsNotDistinct": false,
+					"columns": ["id"]
+				}
+			}
+		},
+		"public.labelSheets": {
+			"name": "labelSheets",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"name": {
+					"name": "name",
+					"type": "varchar(128)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"public": {
+					"name": "public",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"owner": {
+					"name": "owner",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"labelSheet_id_idx": {
+					"name": "labelSheet_id_idx",
+					"columns": [
+						{
+							"expression": "id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"labelSheets_owner_users_username_fk": {
+					"name": "labelSheets_owner_users_username_fk",
+					"tableFrom": "labelSheets",
+					"tableTo": "users",
+					"columnsFrom": ["owner"],
+					"columnsTo": ["username"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {}
+		},
+		"public.labels": {
+			"name": "labels",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"sheet": {
+					"name": "sheet",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"barcode": {
+					"name": "barcode",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"name": {
+					"name": "name",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"price_cents": {
+					"name": "price_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"qbId": {
+					"name": "qbId",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"labels_id_idx": {
+					"name": "labels_id_idx",
+					"columns": [
+						{
+							"expression": "id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"labels_sheet_idx": {
+					"name": "labels_sheet_idx",
+					"columns": [
+						{
+							"expression": "sheet",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"labels_sheet_labelSheets_id_fk": {
+					"name": "labels_sheet_labelSheets_id_fk",
+					"tableFrom": "labels",
+					"tableTo": "labelSheets",
+					"columnsFrom": ["sheet"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {}
+		},
+		"public.users": {
+			"name": "users",
+			"schema": "",
+			"columns": {
+				"username": {
+					"name": "username",
+					"type": "varchar(256)",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"password_hash": {
+					"name": "password_hash",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"permissionLevel": {
+					"name": "permissionLevel",
+					"type": "permissionLevel",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"username_idx": {
+					"name": "username_idx",
+					"columns": [
+						{
+							"expression": "username",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"users_username_unique": {
+					"name": "users_username_unique",
+					"nullsNotDistinct": false,
+					"columns": ["username"]
+				}
+			}
+		},
+		"public.qb": {
+			"name": "qb",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"qb_id": {
+					"name": "qb_id",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"desc": {
+					"name": "desc",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "''"
+				},
+				"type": {
+					"name": "type",
+					"type": "qb_item_type",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"cost_cents": {
+					"name": "cost_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"price_cents": {
+					"name": "price_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"sales_tax_code": {
+					"name": "sales_tax_code",
+					"type": "tax_code",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"purchase_tax_code": {
+					"name": "purchase_tax_code",
+					"type": "tax_code",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"account": {
+					"name": "account",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"quantity_on_hand": {
+					"name": "quantity_on_hand",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"quantity_on_sales_order": {
+					"name": "quantity_on_sales_order",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"quantity_on_purchase_order": {
+					"name": "quantity_on_purchase_order",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"um": {
+					"name": "um",
+					"type": "qb_um",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"preferred_vendor": {
+					"name": "preferred_vendor",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"deleted": {
+					"name": "deleted",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"lastUpdated": {
+					"name": "lastUpdated",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"qb_qbId_idx": {
+					"name": "qb_qbId_idx",
+					"columns": [
+						{
+							"expression": "qb_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {}
+		},
+		"public.uniref": {
+			"name": "uniref",
+			"schema": "",
+			"columns": {
+				"uniId": {
+					"name": "uniId",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"resource_type": {
+					"name": "resource_type",
+					"type": "resource_type",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"changeset": {
+					"name": "changeset",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"qb": {
+					"name": "qb",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"guild": {
+					"name": "guild",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"guildInventory": {
+					"name": "guildInventory",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"resource_type_idx": {
+					"name": "resource_type_idx",
+					"columns": [
+						{
+							"expression": "uniId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"uniref_changesets_idx": {
+					"name": "uniref_changesets_idx",
+					"columns": [
+						{
+							"expression": "changeset",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"uniref_qb_idx": {
+					"name": "uniref_qb_idx",
+					"columns": [
+						{
+							"expression": "qb",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"uniref_guild_idx": {
+					"name": "uniref_guild_idx",
+					"columns": [
+						{
+							"expression": "guild",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"uniref_guildInventory_idx": {
+					"name": "uniref_guildInventory_idx",
+					"columns": [
+						{
+							"expression": "guildInventory",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"uniref_changeset_changesets_id_fk": {
+					"name": "uniref_changeset_changesets_id_fk",
+					"tableFrom": "uniref",
+					"tableTo": "changesets",
+					"columnsFrom": ["changeset"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				},
+				"uniref_qb_qb_id_fk": {
+					"name": "uniref_qb_qb_id_fk",
+					"tableFrom": "uniref",
+					"tableTo": "qb",
+					"columnsFrom": ["qb"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				},
+				"uniref_guild_guild_id_fk": {
+					"name": "uniref_guild_guild_id_fk",
+					"tableFrom": "uniref",
+					"tableTo": "guild",
+					"columnsFrom": ["guild"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				},
+				"uniref_guildInventory_guildInventory_id_fk": {
+					"name": "uniref_guildInventory_guildInventory_id_fk",
+					"tableFrom": "uniref",
+					"tableTo": "guildInventory",
+					"columnsFrom": ["guildInventory"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {}
+		},
+		"public.changesets": {
+			"name": "changesets",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"type": {
+					"name": "type",
+					"type": "changeset_type",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"status": {
+					"name": "status",
+					"type": "changeset_status_type",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"file": {
+					"name": "file",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"summary": {
+					"name": "summary",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"uploadedTime": {
+					"name": "uploadedTime",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"changesets_file_files_id_fk": {
+					"name": "changesets_file_files_id_fk",
+					"tableFrom": "changesets",
+					"tableTo": "files",
+					"columnsFrom": ["file"],
+					"columnsTo": ["id"],
+					"onDelete": "set null",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {}
+		},
+		"public.history": {
+			"name": "history",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"entry_type": {
+					"name": "entry_type",
+					"type": "history_entry_type",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"set": {
+					"name": "set",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"uniref": {
+					"name": "uniref",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"resource_type": {
+					"name": "resource_type",
+					"type": "resource_type",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"data": {
+					"name": "data",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"created": {
+					"name": "created",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"history_changes_set_idx": {
+					"name": "history_changes_set_idx",
+					"columns": [
+						{
+							"expression": "set",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"history_uniref_idx": {
+					"name": "history_uniref_idx",
+					"columns": [
+						{
+							"expression": "uniref",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"history_resource_type_idx": {
+					"name": "history_resource_type_idx",
+					"columns": [
+						{
+							"expression": "resource_type",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"history_created_idx": {
+					"name": "history_created_idx",
+					"columns": [
+						{
+							"expression": "created",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"history_entry_type_idx": {
+					"name": "history_entry_type_idx",
+					"columns": [
+						{
+							"expression": "entry_type",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"history_set_changesets_id_fk": {
+					"name": "history_set_changesets_id_fk",
+					"tableFrom": "history",
+					"tableTo": "changesets",
+					"columnsFrom": ["set"],
+					"columnsTo": ["id"],
+					"onDelete": "set null",
+					"onUpdate": "no action"
+				},
+				"history_uniref_uniref_uniId_fk": {
+					"name": "history_uniref_uniref_uniId_fk",
+					"tableFrom": "history",
+					"tableTo": "uniref",
+					"columnsFrom": ["uniref"],
+					"columnsTo": ["uniId"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {}
+		},
+		"public.search": {
+			"name": "search",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"uniref": {
+					"name": "uniref",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"type": {
+					"name": "type",
+					"type": "resource_type",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"keyInfo": {
+					"name": "keyInfo",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"otherInfo": {
+					"name": "otherInfo",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"search_index": {
+					"name": "search_index",
+					"columns": [
+						{
+							"expression": "(\n          setweight(to_tsvector('english', \"keyInfo\"), 'A') ||\n          setweight(to_tsvector('english', \"otherInfo\"), 'B')\n      )",
+							"asc": true,
+							"isExpression": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "gin",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"search_uniref_uniref_uniId_fk": {
+					"name": "search_uniref_uniref_uniId_fk",
+					"tableFrom": "search",
+					"tableTo": "uniref",
+					"columnsFrom": ["uniref"],
+					"columnsTo": ["uniId"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"search_uniref_unique": {
+					"name": "search_uniref_unique",
+					"nullsNotDistinct": false,
+					"columns": ["uniref"]
+				}
+			}
+		},
+		"public.guild": {
+			"name": "guild",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"gid": {
+					"name": "gid",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"upc": {
+					"name": "upc",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"spr": {
+					"name": "spr",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"basics": {
+					"name": "basics",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"cis": {
+					"name": "cis",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"price_l0_cents": {
+					"name": "price_l0_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"price_l1_cents": {
+					"name": "price_l1_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"price_retail_cents": {
+					"name": "price_retail_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"member_price_cents": {
+					"name": "member_price_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"dropship_price_cents": {
+					"name": "dropship_price_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"short_desc": {
+					"name": "short_desc",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "''"
+				},
+				"long_desc": {
+					"name": "long_desc",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "''"
+				},
+				"image_url": {
+					"name": "image_url",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"vendor": {
+					"name": "vendor",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"web_category": {
+					"name": "web_category",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": -1
+				},
+				"web_category_1_desc": {
+					"name": "web_category_1_desc",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "''"
+				},
+				"web_category_2_desc": {
+					"name": "web_category_2_desc",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "''"
+				},
+				"web_category_3_desc": {
+					"name": "web_category_3_desc",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "''"
+				},
+				"web_category_4_desc": {
+					"name": "web_category_4_desc",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "''"
+				},
+				"um": {
+					"name": "um",
+					"type": "guild_um",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"standard_pack_qty": {
+					"name": "standard_pack_qty",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": -1
+				},
+				"master_pack_qty": {
+					"name": "master_pack_qty",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": -1
+				},
+				"freight_flag": {
+					"name": "freight_flag",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"weight_grams": {
+					"name": "weight_grams",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": -1
+				},
+				"heavy_goods_charge_sk_cents": {
+					"name": "heavy_goods_charge_sk_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": 0
+				},
+				"min_order_qty": {
+					"name": "min_order_qty",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": -1
+				},
+				"guild_date_changed": {
+					"name": "guild_date_changed",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"deleted": {
+					"name": "deleted",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"lastUpdated": {
+					"name": "lastUpdated",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {}
+		},
+		"public.guildInventory": {
+			"name": "guildInventory",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"gid": {
+					"name": "gid",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"on_hand": {
+					"name": "on_hand",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"sku": {
+					"name": "sku",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"upc": {
+					"name": "upc",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"spr_id": {
+					"name": "spr_id",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"basics_id": {
+					"name": "basics_id",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"cis_id": {
+					"name": "cis_id",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"qty_per_um": {
+					"name": "qty_per_um",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"um": {
+					"name": "um",
+					"type": "guild_um",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"time_updated": {
+					"name": "time_updated",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"deleted": {
+					"name": "deleted",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"lastUpdated": {
+					"name": "lastUpdated",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {}
+		}
+	},
+	"enums": {
+		"public.permissionLevel": {
+			"name": "permissionLevel",
+			"schema": "public",
+			"values": ["admin", "general", "viewer", "public"]
+		},
+		"public.qb_item_type": {
+			"name": "qb_item_type",
+			"schema": "public",
+			"values": [
+				"Service",
+				"Inventory Part",
+				"Inventory Assembly",
+				"Non-inventory Part",
+				"Other Charge",
+				"Subtotal",
+				"Group",
+				"Discount",
+				"Sales Tax Item",
+				"Sales Tax Group"
+			]
+		},
+		"public.qb_um": {
+			"name": "qb_um",
+			"schema": "public",
+			"values": ["ea", "pk", "cs"]
+		},
+		"public.tax_code": {
+			"name": "tax_code",
+			"schema": "public",
+			"values": ["S", "G", "E"]
+		},
+		"public.resource_type": {
+			"name": "resource_type",
+			"schema": "public",
+			"values": ["changeset", "qb", "guild", "guildInventory"]
+		},
+		"public.changeset_status_type": {
+			"name": "changeset_status_type",
+			"schema": "public",
+			"values": ["generating", "completed"]
+		},
+		"public.changeset_type": {
+			"name": "changeset_type",
+			"schema": "public",
+			"values": ["qb", "guild", "guildInventory"]
+		},
+		"public.history_entry_type": {
+			"name": "history_entry_type",
+			"schema": "public",
+			"values": ["create", "delete", "update"]
+		},
+		"public.guild_um": {
+			"name": "guild_um",
+			"schema": "public",
+			"values": ["bx", "bg", "ct", "cs", "cd", "ea", "ev", "kt", "st", "sl", "tb", "pr", "pk"]
+		}
+	},
+	"schemas": {},
+	"_meta": {
+		"columns": {},
+		"schemas": {},
+		"tables": {}
+	}
 }

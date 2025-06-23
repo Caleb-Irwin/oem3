@@ -1,78 +1,71 @@
 {
-  "version": "7",
-  "dialect": "postgresql",
-  "tables": {
-    "public.users": {
-      "name": "users",
-      "schema": "",
-      "columns": {
-        "username": {
-          "name": "username",
-          "type": "varchar(256)",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "password_hash": {
-          "name": "password_hash",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "permissionLevel": {
-          "name": "permissionLevel",
-          "type": "permissionLevel",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "username_idx": {
-          "columns": [
-            {
-              "expression": "username",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "with": {},
-          "name": "username_idx",
-          "isUnique": true,
-          "method": "btree",
-          "concurrently": false
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "users_username_unique": {
-          "name": "users_username_unique",
-          "columns": [
-            "username"
-          ],
-          "nullsNotDistinct": false
-        }
-      }
-    }
-  },
-  "enums": {
-    "public.permissionLevel": {
-      "name": "permissionLevel",
-      "schema": "public",
-      "values": [
-        "admin",
-        "general",
-        "viewer",
-        "public"
-      ]
-    }
-  },
-  "schemas": {},
-  "_meta": {
-    "schemas": {},
-    "tables": {},
-    "columns": {}
-  },
-  "id": "1dd9f0f7-db6a-4ff0-940e-875c741a8fcc",
-  "prevId": "00000000-0000-0000-0000-000000000000"
+	"version": "7",
+	"dialect": "postgresql",
+	"tables": {
+		"public.users": {
+			"name": "users",
+			"schema": "",
+			"columns": {
+				"username": {
+					"name": "username",
+					"type": "varchar(256)",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"password_hash": {
+					"name": "password_hash",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"permissionLevel": {
+					"name": "permissionLevel",
+					"type": "permissionLevel",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"username_idx": {
+					"columns": [
+						{
+							"expression": "username",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
+					"name": "username_idx",
+					"isUnique": true,
+					"method": "btree",
+					"concurrently": false
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"users_username_unique": {
+					"name": "users_username_unique",
+					"columns": ["username"],
+					"nullsNotDistinct": false
+				}
+			}
+		}
+	},
+	"enums": {
+		"public.permissionLevel": {
+			"name": "permissionLevel",
+			"schema": "public",
+			"values": ["admin", "general", "viewer", "public"]
+		}
+	},
+	"schemas": {},
+	"_meta": {
+		"schemas": {},
+		"tables": {},
+		"columns": {}
+	},
+	"id": "1dd9f0f7-db6a-4ff0-940e-875c741a8fcc",
+	"prevId": "00000000-0000-0000-0000-000000000000"
 }

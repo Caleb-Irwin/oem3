@@ -1,3218 +1,3014 @@
 {
-  "id": "002f9a25-e148-46d3-9c06-1df0c86c8225",
-  "prevId": "637587e5-503d-4c56-868d-d39f602c654d",
-  "version": "7",
-  "dialect": "postgresql",
-  "tables": {
-    "public.files": {
-      "name": "files",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "type": {
-          "name": "type",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "author": {
-          "name": "author",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "content": {
-          "name": "content",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "uploadedTime": {
-          "name": "uploadedTime",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "files_id_idx": {
-          "name": "files_id_idx",
-          "columns": [
-            {
-              "expression": "id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "files_author_users_username_fk": {
-          "name": "files_author_users_username_fk",
-          "tableFrom": "files",
-          "tableTo": "users",
-          "columnsFrom": [
-            "author"
-          ],
-          "columnsTo": [
-            "username"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.kv": {
-      "name": "kv",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "varchar(256)",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "namespace": {
-          "name": "namespace",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "key": {
-          "name": "key",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "value": {
-          "name": "value",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "kv_id_idx": {
-          "name": "kv_id_idx",
-          "columns": [
-            {
-              "expression": "key",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "kv_id_unique": {
-          "name": "kv_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "id"
-          ]
-        }
-      }
-    },
-    "public.labelSheets": {
-      "name": "labelSheets",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "public": {
-          "name": "public",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "owner": {
-          "name": "owner",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "labelSheet_id_idx": {
-          "name": "labelSheet_id_idx",
-          "columns": [
-            {
-              "expression": "id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "labelSheets_owner_users_username_fk": {
-          "name": "labelSheets_owner_users_username_fk",
-          "tableFrom": "labelSheets",
-          "tableTo": "users",
-          "columnsFrom": [
-            "owner"
-          ],
-          "columnsTo": [
-            "username"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.labels": {
-      "name": "labels",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "sheet": {
-          "name": "sheet",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "barcode": {
-          "name": "barcode",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "price_cents": {
-          "name": "price_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "qbId": {
-          "name": "qbId",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "labels_id_idx": {
-          "name": "labels_id_idx",
-          "columns": [
-            {
-              "expression": "id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "labels_sheet_idx": {
-          "name": "labels_sheet_idx",
-          "columns": [
-            {
-              "expression": "sheet",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "labels_sheet_labelSheets_id_fk": {
-          "name": "labels_sheet_labelSheets_id_fk",
-          "tableFrom": "labels",
-          "tableTo": "labelSheets",
-          "columnsFrom": [
-            "sheet"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.users": {
-      "name": "users",
-      "schema": "",
-      "columns": {
-        "username": {
-          "name": "username",
-          "type": "varchar(256)",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "password_hash": {
-          "name": "password_hash",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "permissionLevel": {
-          "name": "permissionLevel",
-          "type": "permissionLevel",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "username_idx": {
-          "name": "username_idx",
-          "columns": [
-            {
-              "expression": "username",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "users_username_unique": {
-          "name": "users_username_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "username"
-          ]
-        }
-      }
-    },
-    "public.qb": {
-      "name": "qb",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "qb_id": {
-          "name": "qb_id",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "desc": {
-          "name": "desc",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "''"
-        },
-        "type": {
-          "name": "type",
-          "type": "qb_item_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "cost_cents": {
-          "name": "cost_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "price_cents": {
-          "name": "price_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "sales_tax_code": {
-          "name": "sales_tax_code",
-          "type": "tax_code",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "purchase_tax_code": {
-          "name": "purchase_tax_code",
-          "type": "tax_code",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "account": {
-          "name": "account",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "quantity_on_hand": {
-          "name": "quantity_on_hand",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "quantity_on_sales_order": {
-          "name": "quantity_on_sales_order",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "quantity_on_purchase_order": {
-          "name": "quantity_on_purchase_order",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "um": {
-          "name": "um",
-          "type": "qb_um",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "preferred_vendor": {
-          "name": "preferred_vendor",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "deleted": {
-          "name": "deleted",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "lastUpdated": {
-          "name": "lastUpdated",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "qb_qbId_idx": {
-          "name": "qb_qbId_idx",
-          "columns": [
-            {
-              "expression": "qb_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "qb_shortUpc_idx": {
-          "name": "qb_shortUpc_idx",
-          "columns": [
-            {
-              "expression": "substr(substr((qb.qb_id)::text, (POSITION((':'::text) IN (qb.qb_id)) + 1)), (length(substr((qb.qb_id)::text, (POSITION((':'::text) IN (qb.qb_id)) + 1))) - 10), 10)",
-              "asc": true,
-              "isExpression": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.uniref": {
-      "name": "uniref",
-      "schema": "",
-      "columns": {
-        "uniId": {
-          "name": "uniId",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "resource_type": {
-          "name": "resource_type",
-          "type": "resource_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "changeset": {
-          "name": "changeset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "qb": {
-          "name": "qb",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "guild": {
-          "name": "guild",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "guildInventory": {
-          "name": "guildInventory",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "guildFlyer": {
-          "name": "guildFlyer",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "shopify": {
-          "name": "shopify",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "sprPriceFile": {
-          "name": "sprPriceFile",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "sprFlatFile": {
-          "name": "sprFlatFile",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "unifiedItem": {
-          "name": "unifiedItem",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "resource_type_idx": {
-          "name": "resource_type_idx",
-          "columns": [
-            {
-              "expression": "uniId",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "uniref_changesets_idx": {
-          "name": "uniref_changesets_idx",
-          "columns": [
-            {
-              "expression": "changeset",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "uniref_qb_idx": {
-          "name": "uniref_qb_idx",
-          "columns": [
-            {
-              "expression": "qb",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "uniref_guild_idx": {
-          "name": "uniref_guild_idx",
-          "columns": [
-            {
-              "expression": "guild",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "uniref_guildInventory_idx": {
-          "name": "uniref_guildInventory_idx",
-          "columns": [
-            {
-              "expression": "guildInventory",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "uniref_guildFlyer_idx": {
-          "name": "uniref_guildFlyer_idx",
-          "columns": [
-            {
-              "expression": "guildFlyer",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "uniref_shopify_idx": {
-          "name": "uniref_shopify_idx",
-          "columns": [
-            {
-              "expression": "shopify",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "spr_price_file_idx": {
-          "name": "spr_price_file_idx",
-          "columns": [
-            {
-              "expression": "sprPriceFile",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "spr_flat_file_idx": {
-          "name": "spr_flat_file_idx",
-          "columns": [
-            {
-              "expression": "sprFlatFile",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "uniref_unifiedItem_idx": {
-          "name": "uniref_unifiedItem_idx",
-          "columns": [
-            {
-              "expression": "unifiedItem",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "uniref_changeset_changesets_id_fk": {
-          "name": "uniref_changeset_changesets_id_fk",
-          "tableFrom": "uniref",
-          "tableTo": "changesets",
-          "columnsFrom": [
-            "changeset"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "uniref_qb_qb_id_fk": {
-          "name": "uniref_qb_qb_id_fk",
-          "tableFrom": "uniref",
-          "tableTo": "qb",
-          "columnsFrom": [
-            "qb"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "uniref_guild_guild_id_fk": {
-          "name": "uniref_guild_guild_id_fk",
-          "tableFrom": "uniref",
-          "tableTo": "guild",
-          "columnsFrom": [
-            "guild"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "uniref_guildInventory_guildInventory_id_fk": {
-          "name": "uniref_guildInventory_guildInventory_id_fk",
-          "tableFrom": "uniref",
-          "tableTo": "guildInventory",
-          "columnsFrom": [
-            "guildInventory"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "uniref_guildFlyer_guildFlyer_id_fk": {
-          "name": "uniref_guildFlyer_guildFlyer_id_fk",
-          "tableFrom": "uniref",
-          "tableTo": "guildFlyer",
-          "columnsFrom": [
-            "guildFlyer"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "uniref_shopify_shopify_id_fk": {
-          "name": "uniref_shopify_shopify_id_fk",
-          "tableFrom": "uniref",
-          "tableTo": "shopify",
-          "columnsFrom": [
-            "shopify"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "uniref_sprPriceFile_sprPriceFile_id_fk": {
-          "name": "uniref_sprPriceFile_sprPriceFile_id_fk",
-          "tableFrom": "uniref",
-          "tableTo": "sprPriceFile",
-          "columnsFrom": [
-            "sprPriceFile"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "uniref_sprFlatFile_sprFlatFile_id_fk": {
-          "name": "uniref_sprFlatFile_sprFlatFile_id_fk",
-          "tableFrom": "uniref",
-          "tableTo": "sprFlatFile",
-          "columnsFrom": [
-            "sprFlatFile"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "uniref_unifiedItem_unifiedItems_id_fk": {
-          "name": "uniref_unifiedItem_unifiedItems_id_fk",
-          "tableFrom": "uniref",
-          "tableTo": "unifiedItems",
-          "columnsFrom": [
-            "unifiedItem"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "uniref_changeset_unique": {
-          "name": "uniref_changeset_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "changeset"
-          ]
-        },
-        "uniref_qb_unique": {
-          "name": "uniref_qb_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "qb"
-          ]
-        },
-        "uniref_guild_unique": {
-          "name": "uniref_guild_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "guild"
-          ]
-        },
-        "uniref_guildInventory_unique": {
-          "name": "uniref_guildInventory_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "guildInventory"
-          ]
-        },
-        "uniref_guildFlyer_unique": {
-          "name": "uniref_guildFlyer_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "guildFlyer"
-          ]
-        },
-        "uniref_shopify_unique": {
-          "name": "uniref_shopify_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "shopify"
-          ]
-        },
-        "uniref_sprPriceFile_unique": {
-          "name": "uniref_sprPriceFile_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "sprPriceFile"
-          ]
-        },
-        "uniref_sprFlatFile_unique": {
-          "name": "uniref_sprFlatFile_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "sprFlatFile"
-          ]
-        },
-        "uniref_unifiedItem_unique": {
-          "name": "uniref_unifiedItem_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "unifiedItem"
-          ]
-        }
-      }
-    },
-    "public.changesets": {
-      "name": "changesets",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "type": {
-          "name": "type",
-          "type": "changeset_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "status": {
-          "name": "status",
-          "type": "changeset_status_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "file": {
-          "name": "file",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "summary": {
-          "name": "summary",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "uploadedTime": {
-          "name": "uploadedTime",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "changesets_file_files_id_fk": {
-          "name": "changesets_file_files_id_fk",
-          "tableFrom": "changesets",
-          "tableTo": "files",
-          "columnsFrom": [
-            "file"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.history": {
-      "name": "history",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "entry_type": {
-          "name": "entry_type",
-          "type": "history_entry_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "set": {
-          "name": "set",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "uniref": {
-          "name": "uniref",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "resource_type": {
-          "name": "resource_type",
-          "type": "resource_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "data": {
-          "name": "data",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created": {
-          "name": "created",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "history_changes_set_idx": {
-          "name": "history_changes_set_idx",
-          "columns": [
-            {
-              "expression": "set",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "history_uniref_idx": {
-          "name": "history_uniref_idx",
-          "columns": [
-            {
-              "expression": "uniref",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "history_resource_type_idx": {
-          "name": "history_resource_type_idx",
-          "columns": [
-            {
-              "expression": "resource_type",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "history_created_idx": {
-          "name": "history_created_idx",
-          "columns": [
-            {
-              "expression": "created",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "history_entry_type_idx": {
-          "name": "history_entry_type_idx",
-          "columns": [
-            {
-              "expression": "entry_type",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "history_set_changesets_id_fk": {
-          "name": "history_set_changesets_id_fk",
-          "tableFrom": "history",
-          "tableTo": "changesets",
-          "columnsFrom": [
-            "set"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "history_uniref_uniref_uniId_fk": {
-          "name": "history_uniref_uniref_uniId_fk",
-          "tableFrom": "history",
-          "tableTo": "uniref",
-          "columnsFrom": [
-            "uniref"
-          ],
-          "columnsTo": [
-            "uniId"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.search": {
-      "name": "search",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "uniref": {
-          "name": "uniref",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "type": {
-          "name": "type",
-          "type": "resource_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "keyInfo": {
-          "name": "keyInfo",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "otherInfo": {
-          "name": "otherInfo",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "search_index": {
-          "name": "search_index",
-          "columns": [
-            {
-              "expression": "(\n          setweight(to_tsvector('english', \"keyInfo\"), 'A') ||\n          setweight(to_tsvector('english', \"otherInfo\"), 'B')\n      )",
-              "asc": true,
-              "isExpression": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "gin",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "search_uniref_uniref_uniId_fk": {
-          "name": "search_uniref_uniref_uniId_fk",
-          "tableFrom": "search",
-          "tableTo": "uniref",
-          "columnsFrom": [
-            "uniref"
-          ],
-          "columnsTo": [
-            "uniId"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "search_uniref_unique": {
-          "name": "search_uniref_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "uniref"
-          ]
-        }
-      }
-    },
-    "public.guild": {
-      "name": "guild",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "gid": {
-          "name": "gid",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "upc": {
-          "name": "upc",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "spr": {
-          "name": "spr",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "basics": {
-          "name": "basics",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "cis": {
-          "name": "cis",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "price_l0_cents": {
-          "name": "price_l0_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "price_l1_cents": {
-          "name": "price_l1_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "price_retail_cents": {
-          "name": "price_retail_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "member_price_cents": {
-          "name": "member_price_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "dropship_price_cents": {
-          "name": "dropship_price_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "short_desc": {
-          "name": "short_desc",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "''"
-        },
-        "long_desc": {
-          "name": "long_desc",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "''"
-        },
-        "image_url": {
-          "name": "image_url",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "vendor": {
-          "name": "vendor",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "web_category": {
-          "name": "web_category",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": -1
-        },
-        "web_category_1_desc": {
-          "name": "web_category_1_desc",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "''"
-        },
-        "web_category_2_desc": {
-          "name": "web_category_2_desc",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "''"
-        },
-        "web_category_3_desc": {
-          "name": "web_category_3_desc",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "''"
-        },
-        "web_category_4_desc": {
-          "name": "web_category_4_desc",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "''"
-        },
-        "um": {
-          "name": "um",
-          "type": "guild_um",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "standard_pack_qty": {
-          "name": "standard_pack_qty",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": -1
-        },
-        "master_pack_qty": {
-          "name": "master_pack_qty",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": -1
-        },
-        "freight_flag": {
-          "name": "freight_flag",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "weight_grams": {
-          "name": "weight_grams",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": -1
-        },
-        "heavy_goods_charge_sk_cents": {
-          "name": "heavy_goods_charge_sk_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "min_order_qty": {
-          "name": "min_order_qty",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": -1
-        },
-        "guild_date_changed": {
-          "name": "guild_date_changed",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "deleted": {
-          "name": "deleted",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "lastUpdated": {
-          "name": "lastUpdated",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "guild_upc_idx": {
-          "name": "guild_upc_idx",
-          "columns": [
-            {
-              "expression": "upc",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "guild_shortUpc_idx": {
-          "name": "guild_shortUpc_idx",
-          "columns": [
-            {
-              "expression": "(NULLIF(\"substring\"((guild.upc)::text, (length((guild.upc)::text) - 10), 10), ''::text))",
-              "asc": true,
-              "isExpression": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.guildInventory": {
-      "name": "guildInventory",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "gid": {
-          "name": "gid",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "on_hand": {
-          "name": "on_hand",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "sku": {
-          "name": "sku",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "upc": {
-          "name": "upc",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "spr": {
-          "name": "spr",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "basics": {
-          "name": "basics",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "cis": {
-          "name": "cis",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "qty_per_um": {
-          "name": "qty_per_um",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "um": {
-          "name": "um",
-          "type": "guild_um",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "deleted": {
-          "name": "deleted",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "lastUpdated": {
-          "name": "lastUpdated",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.guildFlyer": {
-      "name": "guildFlyer",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "gid": {
-          "name": "gid",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "flyer_number": {
-          "name": "flyer_number",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "start_date": {
-          "name": "start_date",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "end_date": {
-          "name": "end_date",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "vendor_code": {
-          "name": "vendor_code",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "flyer_cost_cents": {
-          "name": "flyer_cost_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "flyer_price_l0_cents": {
-          "name": "flyer_price_l0_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "flyer_price_l1_cents": {
-          "name": "flyer_price_l1_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "flyer_price_retail_cents": {
-          "name": "flyer_price_retail_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "regular_price_l0_cents": {
-          "name": "regular_price_l0_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "regular_price_l1_cents": {
-          "name": "regular_price_l1_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "deleted": {
-          "name": "deleted",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "lastUpdated": {
-          "name": "lastUpdated",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "guildFlyer_gid_unique": {
-          "name": "guildFlyer_gid_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "gid"
-          ]
-        }
-      }
-    },
-    "public.shopify": {
-      "name": "shopify",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "productId": {
-          "name": "productId",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "handle": {
-          "name": "handle",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "title": {
-          "name": "title",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "htmlDescription": {
-          "name": "htmlDescription",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "imageId": {
-          "name": "imageId",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "imageAltText": {
-          "name": "imageAltText",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "imageUrl": {
-          "name": "imageUrl",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "totalInventory": {
-          "name": "totalInventory",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "tagsJsonArr": {
-          "name": "tagsJsonArr",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "hasOnlyDefaultVariant": {
-          "name": "hasOnlyDefaultVariant",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "publishedAt": {
-          "name": "publishedAt",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "status": {
-          "name": "status",
-          "type": "shopifyStatus",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "variantId": {
-          "name": "variantId",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "vPriceCents": {
-          "name": "vPriceCents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "vComparePriceCents": {
-          "name": "vComparePriceCents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "vWeightGrams": {
-          "name": "vWeightGrams",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "vSku": {
-          "name": "vSku",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "vBarcode": {
-          "name": "vBarcode",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "vInventoryPolicyContinue": {
-          "name": "vInventoryPolicyContinue",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "vRequiresShipping": {
-          "name": "vRequiresShipping",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "vUnitCostCents": {
-          "name": "vUnitCostCents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "vInventoryAvailableStore": {
-          "name": "vInventoryAvailableStore",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "vInventoryOnHandStore": {
-          "name": "vInventoryOnHandStore",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "vInventoryCommittedStore": {
-          "name": "vInventoryCommittedStore",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "vInventoryOnHandWarehouse0": {
-          "name": "vInventoryOnHandWarehouse0",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "deleted": {
-          "name": "deleted",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "lastUpdated": {
-          "name": "lastUpdated",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "shopify_productId_idx": {
-          "name": "shopify_productId_idx",
-          "columns": [
-            {
-              "expression": "productId",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "shopify_variantId_idx": {
-          "name": "shopify_variantId_idx",
-          "columns": [
-            {
-              "expression": "variantId",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "shopify_variantBarcode_idx": {
-          "name": "shopify_variantBarcode_idx",
-          "columns": [
-            {
-              "expression": "vBarcode",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "shopify_variantId_unique": {
-          "name": "shopify_variantId_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "variantId"
-          ]
-        }
-      }
-    },
-    "public.unifiedItems": {
-      "name": "unifiedItems",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "type": {
-          "name": "type",
-          "type": "unified_item_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "guild": {
-          "name": "guild",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "guildInventory": {
-          "name": "guildInventory",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "guildFlyer": {
-          "name": "guildFlyer",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "qb": {
-          "name": "qb",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "qbAlt": {
-          "name": "qbAlt",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "shopify": {
-          "name": "shopify",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "shopifyAlt": {
-          "name": "shopifyAlt",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "defaultAltConversionFactor": {
-          "name": "defaultAltConversionFactor",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "defaultAltConversionFactorColumnSettings": {
-          "name": "defaultAltConversionFactorColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "packageUM": {
-          "name": "packageUM",
-          "type": "guild_um",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "defaultUmColumnSettings": {
-          "name": "defaultUmColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "altUM": {
-          "name": "altUM",
-          "type": "guild_um",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "altUmColumnSettings": {
-          "name": "altUmColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "barcode": {
-          "name": "barcode",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "barcodeColumnSettings": {
-          "name": "barcodeColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "sku": {
-          "name": "sku",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "skuColumnSettings": {
-          "name": "skuColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "priceCents": {
-          "name": "priceCents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "priceCentsColumnSettings": {
-          "name": "priceCentsColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "altPriceCents": {
-          "name": "altPriceCents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "altPriceCentsColumnSettings": {
-          "name": "altPriceCentsColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "salePriceCents": {
-          "name": "salePriceCents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "flyerPriceCentsColumnSettings": {
-          "name": "flyerPriceCentsColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "altSalePriceCents": {
-          "name": "altSalePriceCents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "altFlyerPriceCentsColumnSettings": {
-          "name": "altFlyerPriceCentsColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "storePriceCents": {
-          "name": "storePriceCents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "storePriceCentsColumnSettings": {
-          "name": "storePriceCentsColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "storeAltPriceCents": {
-          "name": "storeAltPriceCents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "storeAltPriceCentsColumnSettings": {
-          "name": "storeAltPriceCentsColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "onlinePriceCents": {
-          "name": "onlinePriceCents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "onlinePriceCentsColumnSettings": {
-          "name": "onlinePriceCentsColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "onlineAltPriceCents": {
-          "name": "onlineAltPriceCents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "onlineAltPriceCentsColumnSettings": {
-          "name": "onlineAltPriceCentsColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "storeFlyerPriceCents": {
-          "name": "storeFlyerPriceCents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "storeFlyerPriceCentsColumnSettings": {
-          "name": "storeFlyerPriceCentsColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "storeFlyerAltPriceCents": {
-          "name": "storeFlyerAltPriceCents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "storeFlyerAltPriceCentsColumnSettings": {
-          "name": "storeFlyerAltPriceCentsColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "onlineFlyerPriceCents": {
-          "name": "onlineFlyerPriceCents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "onlineFlyerPriceCentsColumnSettings": {
-          "name": "onlineFlyerPriceCentsColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "onlineFlyerAltPriceCents": {
-          "name": "onlineFlyerAltPriceCents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "onlineFlyerAltPriceCentsColumnSettings": {
-          "name": "onlineFlyerAltPriceCentsColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "title": {
-          "name": "title",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "titleColumnSettings": {
-          "name": "titleColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "descriptionColumnSettings": {
-          "name": "descriptionColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "imageUrl": {
-          "name": "imageUrl",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "imageUrlColumnSettings": {
-          "name": "imageUrlColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "storeInventory": {
-          "name": "storeInventory",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "storeInventoryColumnSettings": {
-          "name": "storeInventoryColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "storeAltInventory": {
-          "name": "storeAltInventory",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "storeAltInventoryColumnSettings": {
-          "name": "storeAltInventoryColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "warehouse0Inventory": {
-          "name": "warehouse0Inventory",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "warehouse0InventoryColumnSettings": {
-          "name": "warehouse0InventoryColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "warehouse0AltInventory": {
-          "name": "warehouse0AltInventory",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "warehouse0AltInventoryColumnSettings": {
-          "name": "warehouse0AltInventoryColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "allowBackorder": {
-          "name": "allowBackorder",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "allowBackorderColumnSettings": {
-          "name": "allowBackorderColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "costCents": {
-          "name": "costCents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "costCentsColumnSettings": {
-          "name": "costCentsColumnSettings",
-          "type": "column_settings",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'automatic'"
-        },
-        "deleted": {
-          "name": "deleted",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "lastUpdated": {
-          "name": "lastUpdated",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "unifiedItems_guild_idx": {
-          "name": "unifiedItems_guild_idx",
-          "columns": [
-            {
-              "expression": "guild",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "unifiedItems_guildInventory_idx": {
-          "name": "unifiedItems_guildInventory_idx",
-          "columns": [
-            {
-              "expression": "guildInventory",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "unifiedItems_guildFlyer_idx": {
-          "name": "unifiedItems_guildFlyer_idx",
-          "columns": [
-            {
-              "expression": "guildFlyer",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "unifiedItems_qb_idx": {
-          "name": "unifiedItems_qb_idx",
-          "columns": [
-            {
-              "expression": "qb",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "unifiedItems_qbAlt_idx": {
-          "name": "unifiedItems_qbAlt_idx",
-          "columns": [
-            {
-              "expression": "qbAlt",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "unifiedItems_shopify_idx": {
-          "name": "unifiedItems_shopify_idx",
-          "columns": [
-            {
-              "expression": "shopify",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "unifiedItems_shopifyAlt_idx": {
-          "name": "unifiedItems_shopifyAlt_idx",
-          "columns": [
-            {
-              "expression": "shopifyAlt",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "unifiedItems_barcode_idx": {
-          "name": "unifiedItems_barcode_idx",
-          "columns": [
-            {
-              "expression": "barcode",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "unifiedItems_guild_guild_id_fk": {
-          "name": "unifiedItems_guild_guild_id_fk",
-          "tableFrom": "unifiedItems",
-          "tableTo": "guild",
-          "columnsFrom": [
-            "guild"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "unifiedItems_guildInventory_guildInventory_id_fk": {
-          "name": "unifiedItems_guildInventory_guildInventory_id_fk",
-          "tableFrom": "unifiedItems",
-          "tableTo": "guildInventory",
-          "columnsFrom": [
-            "guildInventory"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "unifiedItems_guildFlyer_guildFlyer_id_fk": {
-          "name": "unifiedItems_guildFlyer_guildFlyer_id_fk",
-          "tableFrom": "unifiedItems",
-          "tableTo": "guildFlyer",
-          "columnsFrom": [
-            "guildFlyer"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "unifiedItems_qb_qb_id_fk": {
-          "name": "unifiedItems_qb_qb_id_fk",
-          "tableFrom": "unifiedItems",
-          "tableTo": "qb",
-          "columnsFrom": [
-            "qb"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "unifiedItems_qbAlt_qb_id_fk": {
-          "name": "unifiedItems_qbAlt_qb_id_fk",
-          "tableFrom": "unifiedItems",
-          "tableTo": "qb",
-          "columnsFrom": [
-            "qbAlt"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "unifiedItems_shopify_shopify_id_fk": {
-          "name": "unifiedItems_shopify_shopify_id_fk",
-          "tableFrom": "unifiedItems",
-          "tableTo": "shopify",
-          "columnsFrom": [
-            "shopify"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "unifiedItems_shopifyAlt_shopify_id_fk": {
-          "name": "unifiedItems_shopifyAlt_shopify_id_fk",
-          "tableFrom": "unifiedItems",
-          "tableTo": "shopify",
-          "columnsFrom": [
-            "shopifyAlt"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "unifiedItems_guild_unique": {
-          "name": "unifiedItems_guild_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "guild"
-          ]
-        },
-        "unifiedItems_guildInventory_unique": {
-          "name": "unifiedItems_guildInventory_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "guildInventory"
-          ]
-        },
-        "unifiedItems_guildFlyer_unique": {
-          "name": "unifiedItems_guildFlyer_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "guildFlyer"
-          ]
-        },
-        "unifiedItems_qb_unique": {
-          "name": "unifiedItems_qb_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "qb"
-          ]
-        },
-        "unifiedItems_qbAlt_unique": {
-          "name": "unifiedItems_qbAlt_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "qbAlt"
-          ]
-        },
-        "unifiedItems_shopify_unique": {
-          "name": "unifiedItems_shopify_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "shopify"
-          ]
-        },
-        "unifiedItems_shopifyAlt_unique": {
-          "name": "unifiedItems_shopifyAlt_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "shopifyAlt"
-          ]
-        },
-        "unifiedItems_shopify_shopifyAlt_unique": {
-          "name": "unifiedItems_shopify_shopifyAlt_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "shopify",
-            "shopifyAlt"
-          ]
-        },
-        "unifiedItems_qb_qbAlt_unique": {
-          "name": "unifiedItems_qb_qbAlt_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "qb",
-            "qbAlt"
-          ]
-        }
-      }
-    },
-    "public.guildDescriptions": {
-      "name": "guildDescriptions",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "gid": {
-          "name": "gid",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "sanitized_description": {
-          "name": "sanitized_description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "image_list_json": {
-          "name": "image_list_json",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "price": {
-          "name": "price",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "uom": {
-          "name": "uom",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "raw_result": {
-          "name": "raw_result",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "found": {
-          "name": "found",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "times_scrape_failed": {
-          "name": "times_scrape_failed",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "deleted": {
-          "name": "deleted",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "lastUpdated": {
-          "name": "lastUpdated",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "guildDescriptions_gid_unique": {
-          "name": "guildDescriptions_gid_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "gid"
-          ]
-        }
-      }
-    },
-    "public.sprPriceFile": {
-      "name": "sprPriceFile",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "sprcSku": {
-          "name": "sprcSku",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "etilizeId": {
-          "name": "etilizeId",
-          "type": "varchar(32)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "status": {
-          "name": "status",
-          "type": "spr_price_status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "um": {
-          "name": "um",
-          "type": "spr_price_um",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "upc": {
-          "name": "upc",
-          "type": "varchar(32)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "catPage": {
-          "name": "catPage",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "dealerNetPriceCents": {
-          "name": "dealerNetPriceCents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "netPriceCents": {
-          "name": "netPriceCents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "listPriceCents": {
-          "name": "listPriceCents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "deleted": {
-          "name": "deleted",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "lastUpdated": {
-          "name": "lastUpdated",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "spr_sprcSku_idx": {
-          "name": "spr_sprcSku_idx",
-          "columns": [
-            {
-              "expression": "sprcSku",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "spr_etilizeId_idx": {
-          "name": "spr_etilizeId_idx",
-          "columns": [
-            {
-              "expression": "etilizeId",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "sprPriceFile_sprcSku_unique": {
-          "name": "sprPriceFile_sprcSku_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "sprcSku"
-          ]
-        },
-        "sprPriceFile_etilizeId_unique": {
-          "name": "sprPriceFile_etilizeId_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "etilizeId"
-          ]
-        }
-      }
-    },
-    "public.sprFlatFile": {
-      "name": "sprFlatFile",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "sprcSku": {
-          "name": "sprcSku",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "etilizeId": {
-          "name": "etilizeId",
-          "type": "varchar(32)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "sprCatalogSku": {
-          "name": "sprCatalogSku",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "brandName": {
-          "name": "brandName",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "productType": {
-          "name": "productType",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "productLine": {
-          "name": "productLine",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "productSeries": {
-          "name": "productSeries",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "fullDescription": {
-          "name": "fullDescription",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "mainTitle": {
-          "name": "mainTitle",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "subTitle": {
-          "name": "subTitle",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "marketingText": {
-          "name": "marketingText",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "subClassNumber": {
-          "name": "subClassNumber",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "subClassName": {
-          "name": "subClassName",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "classNumber": {
-          "name": "classNumber",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "className": {
-          "name": "className",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "departmentNumber": {
-          "name": "departmentNumber",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "departmentName": {
-          "name": "departmentName",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "masterDepartmentNumber": {
-          "name": "masterDepartmentNumber",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "masterDepartmentName": {
-          "name": "masterDepartmentName",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "unspsc": {
-          "name": "unspsc",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "keywords": {
-          "name": "keywords",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "manufacturerId": {
-          "name": "manufacturerId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "manufacturerName": {
-          "name": "manufacturerName",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "productSpecs": {
-          "name": "productSpecs",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "countyOfOrigin": {
-          "name": "countyOfOrigin",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "assemblyRequired": {
-          "name": "assemblyRequired",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "image255": {
-          "name": "image255",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "image75": {
-          "name": "image75",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "deleted": {
-          "name": "deleted",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "lastUpdated": {
-          "name": "lastUpdated",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "sprFlatFile_sprcSku_idx": {
-          "name": "sprFlatFile_sprcSku_idx",
-          "columns": [
-            {
-              "expression": "sprcSku",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "sprFlatFile_etilizeId_idx": {
-          "name": "sprFlatFile_etilizeId_idx",
-          "columns": [
-            {
-              "expression": "etilizeId",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "sprFlatFile_sprcSku_unique": {
-          "name": "sprFlatFile_sprcSku_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "sprcSku"
-          ]
-        },
-        "sprFlatFile_etilizeId_unique": {
-          "name": "sprFlatFile_etilizeId_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "etilizeId"
-          ]
-        }
-      }
-    }
-  },
-  "enums": {
-    "public.permissionLevel": {
-      "name": "permissionLevel",
-      "schema": "public",
-      "values": [
-        "admin",
-        "general",
-        "viewer",
-        "public"
-      ]
-    },
-    "public.qb_item_type": {
-      "name": "qb_item_type",
-      "schema": "public",
-      "values": [
-        "Service",
-        "Inventory Part",
-        "Inventory Assembly",
-        "Non-inventory Part",
-        "Other Charge",
-        "Subtotal",
-        "Group",
-        "Discount",
-        "Sales Tax Item",
-        "Sales Tax Group"
-      ]
-    },
-    "public.qb_um": {
-      "name": "qb_um",
-      "schema": "public",
-      "values": [
-        "ea",
-        "pk",
-        "cs"
-      ]
-    },
-    "public.tax_code": {
-      "name": "tax_code",
-      "schema": "public",
-      "values": [
-        "S",
-        "G",
-        "E"
-      ]
-    },
-    "public.resource_type": {
-      "name": "resource_type",
-      "schema": "public",
-      "values": [
-        "changeset",
-        "qb",
-        "guild",
-        "guildInventory",
-        "guildFlyer",
-        "shopify",
-        "unifiedItem",
-        "sprPriceFile"
-      ]
-    },
-    "public.changeset_status_type": {
-      "name": "changeset_status_type",
-      "schema": "public",
-      "values": [
-        "generating",
-        "completed"
-      ]
-    },
-    "public.changeset_type": {
-      "name": "changeset_type",
-      "schema": "public",
-      "values": [
-        "qb",
-        "guild",
-        "guildInventory",
-        "guildFlyer",
-        "shopify",
-        "sprPriceFile",
-        "sprFlatFile"
-      ]
-    },
-    "public.history_entry_type": {
-      "name": "history_entry_type",
-      "schema": "public",
-      "values": [
-        "create",
-        "delete",
-        "update"
-      ]
-    },
-    "public.guild_um": {
-      "name": "guild_um",
-      "schema": "public",
-      "values": [
-        "bx",
-        "bg",
-        "ct",
-        "cs",
-        "cd",
-        "ea",
-        "ev",
-        "kt",
-        "st",
-        "sl",
-        "tb",
-        "pr",
-        "pk"
-      ]
-    },
-    "public.shopifyStatus": {
-      "name": "shopifyStatus",
-      "schema": "public",
-      "values": [
-        "ACTIVE",
-        "ARCHIVED",
-        "DRAFT"
-      ]
-    },
-    "public.column_settings": {
-      "name": "column_settings",
-      "schema": "public",
-      "values": [
-        "automatic",
-        "automaticSmallChanges",
-        "approval",
-        "manual"
-      ]
-    },
-    "public.unified_item_type": {
-      "name": "unified_item_type",
-      "schema": "public",
-      "values": [
-        "custom",
-        "guild"
-      ]
-    },
-    "public.spr_price_status": {
-      "name": "spr_price_status",
-      "schema": "public",
-      "values": [
-        "Active",
-        "Discontinued",
-        "Not available"
-      ]
-    },
-    "public.spr_price_um": {
-      "name": "spr_price_um",
-      "schema": "public",
-      "values": [
-        "EA",
-        "PAC",
-        "BOX"
-      ]
-    }
-  },
-  "schemas": {},
-  "_meta": {
-    "columns": {},
-    "schemas": {},
-    "tables": {}
-  }
+	"id": "002f9a25-e148-46d3-9c06-1df0c86c8225",
+	"prevId": "637587e5-503d-4c56-868d-d39f602c654d",
+	"version": "7",
+	"dialect": "postgresql",
+	"tables": {
+		"public.files": {
+			"name": "files",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"name": {
+					"name": "name",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"type": {
+					"name": "type",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"author": {
+					"name": "author",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"content": {
+					"name": "content",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"uploadedTime": {
+					"name": "uploadedTime",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"files_id_idx": {
+					"name": "files_id_idx",
+					"columns": [
+						{
+							"expression": "id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"files_author_users_username_fk": {
+					"name": "files_author_users_username_fk",
+					"tableFrom": "files",
+					"tableTo": "users",
+					"columnsFrom": ["author"],
+					"columnsTo": ["username"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {}
+		},
+		"public.kv": {
+			"name": "kv",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "varchar(256)",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"namespace": {
+					"name": "namespace",
+					"type": "varchar(128)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"key": {
+					"name": "key",
+					"type": "varchar(128)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"value": {
+					"name": "value",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"kv_id_idx": {
+					"name": "kv_id_idx",
+					"columns": [
+						{
+							"expression": "key",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"kv_id_unique": {
+					"name": "kv_id_unique",
+					"nullsNotDistinct": false,
+					"columns": ["id"]
+				}
+			}
+		},
+		"public.labelSheets": {
+			"name": "labelSheets",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"name": {
+					"name": "name",
+					"type": "varchar(128)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"public": {
+					"name": "public",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"owner": {
+					"name": "owner",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"labelSheet_id_idx": {
+					"name": "labelSheet_id_idx",
+					"columns": [
+						{
+							"expression": "id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"labelSheets_owner_users_username_fk": {
+					"name": "labelSheets_owner_users_username_fk",
+					"tableFrom": "labelSheets",
+					"tableTo": "users",
+					"columnsFrom": ["owner"],
+					"columnsTo": ["username"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {}
+		},
+		"public.labels": {
+			"name": "labels",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"sheet": {
+					"name": "sheet",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"barcode": {
+					"name": "barcode",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"name": {
+					"name": "name",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"price_cents": {
+					"name": "price_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"qbId": {
+					"name": "qbId",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"labels_id_idx": {
+					"name": "labels_id_idx",
+					"columns": [
+						{
+							"expression": "id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"labels_sheet_idx": {
+					"name": "labels_sheet_idx",
+					"columns": [
+						{
+							"expression": "sheet",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"labels_sheet_labelSheets_id_fk": {
+					"name": "labels_sheet_labelSheets_id_fk",
+					"tableFrom": "labels",
+					"tableTo": "labelSheets",
+					"columnsFrom": ["sheet"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {}
+		},
+		"public.users": {
+			"name": "users",
+			"schema": "",
+			"columns": {
+				"username": {
+					"name": "username",
+					"type": "varchar(256)",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"password_hash": {
+					"name": "password_hash",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"permissionLevel": {
+					"name": "permissionLevel",
+					"type": "permissionLevel",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"username_idx": {
+					"name": "username_idx",
+					"columns": [
+						{
+							"expression": "username",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"users_username_unique": {
+					"name": "users_username_unique",
+					"nullsNotDistinct": false,
+					"columns": ["username"]
+				}
+			}
+		},
+		"public.qb": {
+			"name": "qb",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"qb_id": {
+					"name": "qb_id",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"desc": {
+					"name": "desc",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "''"
+				},
+				"type": {
+					"name": "type",
+					"type": "qb_item_type",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"cost_cents": {
+					"name": "cost_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"price_cents": {
+					"name": "price_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"sales_tax_code": {
+					"name": "sales_tax_code",
+					"type": "tax_code",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"purchase_tax_code": {
+					"name": "purchase_tax_code",
+					"type": "tax_code",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"account": {
+					"name": "account",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"quantity_on_hand": {
+					"name": "quantity_on_hand",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"quantity_on_sales_order": {
+					"name": "quantity_on_sales_order",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"quantity_on_purchase_order": {
+					"name": "quantity_on_purchase_order",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"um": {
+					"name": "um",
+					"type": "qb_um",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"preferred_vendor": {
+					"name": "preferred_vendor",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"deleted": {
+					"name": "deleted",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"lastUpdated": {
+					"name": "lastUpdated",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"qb_qbId_idx": {
+					"name": "qb_qbId_idx",
+					"columns": [
+						{
+							"expression": "qb_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"qb_shortUpc_idx": {
+					"name": "qb_shortUpc_idx",
+					"columns": [
+						{
+							"expression": "substr(substr((qb.qb_id)::text, (POSITION((':'::text) IN (qb.qb_id)) + 1)), (length(substr((qb.qb_id)::text, (POSITION((':'::text) IN (qb.qb_id)) + 1))) - 10), 10)",
+							"asc": true,
+							"isExpression": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {}
+		},
+		"public.uniref": {
+			"name": "uniref",
+			"schema": "",
+			"columns": {
+				"uniId": {
+					"name": "uniId",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"resource_type": {
+					"name": "resource_type",
+					"type": "resource_type",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"changeset": {
+					"name": "changeset",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"qb": {
+					"name": "qb",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"guild": {
+					"name": "guild",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"guildInventory": {
+					"name": "guildInventory",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"guildFlyer": {
+					"name": "guildFlyer",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"shopify": {
+					"name": "shopify",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"sprPriceFile": {
+					"name": "sprPriceFile",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"sprFlatFile": {
+					"name": "sprFlatFile",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"unifiedItem": {
+					"name": "unifiedItem",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"resource_type_idx": {
+					"name": "resource_type_idx",
+					"columns": [
+						{
+							"expression": "uniId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"uniref_changesets_idx": {
+					"name": "uniref_changesets_idx",
+					"columns": [
+						{
+							"expression": "changeset",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"uniref_qb_idx": {
+					"name": "uniref_qb_idx",
+					"columns": [
+						{
+							"expression": "qb",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"uniref_guild_idx": {
+					"name": "uniref_guild_idx",
+					"columns": [
+						{
+							"expression": "guild",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"uniref_guildInventory_idx": {
+					"name": "uniref_guildInventory_idx",
+					"columns": [
+						{
+							"expression": "guildInventory",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"uniref_guildFlyer_idx": {
+					"name": "uniref_guildFlyer_idx",
+					"columns": [
+						{
+							"expression": "guildFlyer",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"uniref_shopify_idx": {
+					"name": "uniref_shopify_idx",
+					"columns": [
+						{
+							"expression": "shopify",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"spr_price_file_idx": {
+					"name": "spr_price_file_idx",
+					"columns": [
+						{
+							"expression": "sprPriceFile",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"spr_flat_file_idx": {
+					"name": "spr_flat_file_idx",
+					"columns": [
+						{
+							"expression": "sprFlatFile",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"uniref_unifiedItem_idx": {
+					"name": "uniref_unifiedItem_idx",
+					"columns": [
+						{
+							"expression": "unifiedItem",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"uniref_changeset_changesets_id_fk": {
+					"name": "uniref_changeset_changesets_id_fk",
+					"tableFrom": "uniref",
+					"tableTo": "changesets",
+					"columnsFrom": ["changeset"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				},
+				"uniref_qb_qb_id_fk": {
+					"name": "uniref_qb_qb_id_fk",
+					"tableFrom": "uniref",
+					"tableTo": "qb",
+					"columnsFrom": ["qb"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				},
+				"uniref_guild_guild_id_fk": {
+					"name": "uniref_guild_guild_id_fk",
+					"tableFrom": "uniref",
+					"tableTo": "guild",
+					"columnsFrom": ["guild"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				},
+				"uniref_guildInventory_guildInventory_id_fk": {
+					"name": "uniref_guildInventory_guildInventory_id_fk",
+					"tableFrom": "uniref",
+					"tableTo": "guildInventory",
+					"columnsFrom": ["guildInventory"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				},
+				"uniref_guildFlyer_guildFlyer_id_fk": {
+					"name": "uniref_guildFlyer_guildFlyer_id_fk",
+					"tableFrom": "uniref",
+					"tableTo": "guildFlyer",
+					"columnsFrom": ["guildFlyer"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				},
+				"uniref_shopify_shopify_id_fk": {
+					"name": "uniref_shopify_shopify_id_fk",
+					"tableFrom": "uniref",
+					"tableTo": "shopify",
+					"columnsFrom": ["shopify"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				},
+				"uniref_sprPriceFile_sprPriceFile_id_fk": {
+					"name": "uniref_sprPriceFile_sprPriceFile_id_fk",
+					"tableFrom": "uniref",
+					"tableTo": "sprPriceFile",
+					"columnsFrom": ["sprPriceFile"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				},
+				"uniref_sprFlatFile_sprFlatFile_id_fk": {
+					"name": "uniref_sprFlatFile_sprFlatFile_id_fk",
+					"tableFrom": "uniref",
+					"tableTo": "sprFlatFile",
+					"columnsFrom": ["sprFlatFile"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				},
+				"uniref_unifiedItem_unifiedItems_id_fk": {
+					"name": "uniref_unifiedItem_unifiedItems_id_fk",
+					"tableFrom": "uniref",
+					"tableTo": "unifiedItems",
+					"columnsFrom": ["unifiedItem"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"uniref_changeset_unique": {
+					"name": "uniref_changeset_unique",
+					"nullsNotDistinct": false,
+					"columns": ["changeset"]
+				},
+				"uniref_qb_unique": {
+					"name": "uniref_qb_unique",
+					"nullsNotDistinct": false,
+					"columns": ["qb"]
+				},
+				"uniref_guild_unique": {
+					"name": "uniref_guild_unique",
+					"nullsNotDistinct": false,
+					"columns": ["guild"]
+				},
+				"uniref_guildInventory_unique": {
+					"name": "uniref_guildInventory_unique",
+					"nullsNotDistinct": false,
+					"columns": ["guildInventory"]
+				},
+				"uniref_guildFlyer_unique": {
+					"name": "uniref_guildFlyer_unique",
+					"nullsNotDistinct": false,
+					"columns": ["guildFlyer"]
+				},
+				"uniref_shopify_unique": {
+					"name": "uniref_shopify_unique",
+					"nullsNotDistinct": false,
+					"columns": ["shopify"]
+				},
+				"uniref_sprPriceFile_unique": {
+					"name": "uniref_sprPriceFile_unique",
+					"nullsNotDistinct": false,
+					"columns": ["sprPriceFile"]
+				},
+				"uniref_sprFlatFile_unique": {
+					"name": "uniref_sprFlatFile_unique",
+					"nullsNotDistinct": false,
+					"columns": ["sprFlatFile"]
+				},
+				"uniref_unifiedItem_unique": {
+					"name": "uniref_unifiedItem_unique",
+					"nullsNotDistinct": false,
+					"columns": ["unifiedItem"]
+				}
+			}
+		},
+		"public.changesets": {
+			"name": "changesets",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"type": {
+					"name": "type",
+					"type": "changeset_type",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"status": {
+					"name": "status",
+					"type": "changeset_status_type",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"file": {
+					"name": "file",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"summary": {
+					"name": "summary",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"uploadedTime": {
+					"name": "uploadedTime",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"changesets_file_files_id_fk": {
+					"name": "changesets_file_files_id_fk",
+					"tableFrom": "changesets",
+					"tableTo": "files",
+					"columnsFrom": ["file"],
+					"columnsTo": ["id"],
+					"onDelete": "set null",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {}
+		},
+		"public.history": {
+			"name": "history",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"entry_type": {
+					"name": "entry_type",
+					"type": "history_entry_type",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"set": {
+					"name": "set",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"uniref": {
+					"name": "uniref",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"resource_type": {
+					"name": "resource_type",
+					"type": "resource_type",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"data": {
+					"name": "data",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"created": {
+					"name": "created",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"history_changes_set_idx": {
+					"name": "history_changes_set_idx",
+					"columns": [
+						{
+							"expression": "set",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"history_uniref_idx": {
+					"name": "history_uniref_idx",
+					"columns": [
+						{
+							"expression": "uniref",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"history_resource_type_idx": {
+					"name": "history_resource_type_idx",
+					"columns": [
+						{
+							"expression": "resource_type",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"history_created_idx": {
+					"name": "history_created_idx",
+					"columns": [
+						{
+							"expression": "created",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"history_entry_type_idx": {
+					"name": "history_entry_type_idx",
+					"columns": [
+						{
+							"expression": "entry_type",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"history_set_changesets_id_fk": {
+					"name": "history_set_changesets_id_fk",
+					"tableFrom": "history",
+					"tableTo": "changesets",
+					"columnsFrom": ["set"],
+					"columnsTo": ["id"],
+					"onDelete": "set null",
+					"onUpdate": "no action"
+				},
+				"history_uniref_uniref_uniId_fk": {
+					"name": "history_uniref_uniref_uniId_fk",
+					"tableFrom": "history",
+					"tableTo": "uniref",
+					"columnsFrom": ["uniref"],
+					"columnsTo": ["uniId"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {}
+		},
+		"public.search": {
+			"name": "search",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"uniref": {
+					"name": "uniref",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"type": {
+					"name": "type",
+					"type": "resource_type",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"keyInfo": {
+					"name": "keyInfo",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"otherInfo": {
+					"name": "otherInfo",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"search_index": {
+					"name": "search_index",
+					"columns": [
+						{
+							"expression": "(\n          setweight(to_tsvector('english', \"keyInfo\"), 'A') ||\n          setweight(to_tsvector('english', \"otherInfo\"), 'B')\n      )",
+							"asc": true,
+							"isExpression": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "gin",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"search_uniref_uniref_uniId_fk": {
+					"name": "search_uniref_uniref_uniId_fk",
+					"tableFrom": "search",
+					"tableTo": "uniref",
+					"columnsFrom": ["uniref"],
+					"columnsTo": ["uniId"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"search_uniref_unique": {
+					"name": "search_uniref_unique",
+					"nullsNotDistinct": false,
+					"columns": ["uniref"]
+				}
+			}
+		},
+		"public.guild": {
+			"name": "guild",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"gid": {
+					"name": "gid",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"upc": {
+					"name": "upc",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"spr": {
+					"name": "spr",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"basics": {
+					"name": "basics",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"cis": {
+					"name": "cis",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"price_l0_cents": {
+					"name": "price_l0_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"price_l1_cents": {
+					"name": "price_l1_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"price_retail_cents": {
+					"name": "price_retail_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"member_price_cents": {
+					"name": "member_price_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"dropship_price_cents": {
+					"name": "dropship_price_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"short_desc": {
+					"name": "short_desc",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "''"
+				},
+				"long_desc": {
+					"name": "long_desc",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "''"
+				},
+				"image_url": {
+					"name": "image_url",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"vendor": {
+					"name": "vendor",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"web_category": {
+					"name": "web_category",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": -1
+				},
+				"web_category_1_desc": {
+					"name": "web_category_1_desc",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "''"
+				},
+				"web_category_2_desc": {
+					"name": "web_category_2_desc",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "''"
+				},
+				"web_category_3_desc": {
+					"name": "web_category_3_desc",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "''"
+				},
+				"web_category_4_desc": {
+					"name": "web_category_4_desc",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "''"
+				},
+				"um": {
+					"name": "um",
+					"type": "guild_um",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"standard_pack_qty": {
+					"name": "standard_pack_qty",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": -1
+				},
+				"master_pack_qty": {
+					"name": "master_pack_qty",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": -1
+				},
+				"freight_flag": {
+					"name": "freight_flag",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"weight_grams": {
+					"name": "weight_grams",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": -1
+				},
+				"heavy_goods_charge_sk_cents": {
+					"name": "heavy_goods_charge_sk_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": 0
+				},
+				"min_order_qty": {
+					"name": "min_order_qty",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": -1
+				},
+				"guild_date_changed": {
+					"name": "guild_date_changed",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"deleted": {
+					"name": "deleted",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"lastUpdated": {
+					"name": "lastUpdated",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"guild_upc_idx": {
+					"name": "guild_upc_idx",
+					"columns": [
+						{
+							"expression": "upc",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"guild_shortUpc_idx": {
+					"name": "guild_shortUpc_idx",
+					"columns": [
+						{
+							"expression": "(NULLIF(\"substring\"((guild.upc)::text, (length((guild.upc)::text) - 10), 10), ''::text))",
+							"asc": true,
+							"isExpression": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {}
+		},
+		"public.guildInventory": {
+			"name": "guildInventory",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"gid": {
+					"name": "gid",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"on_hand": {
+					"name": "on_hand",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"sku": {
+					"name": "sku",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"upc": {
+					"name": "upc",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"spr": {
+					"name": "spr",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"basics": {
+					"name": "basics",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"cis": {
+					"name": "cis",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"qty_per_um": {
+					"name": "qty_per_um",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"um": {
+					"name": "um",
+					"type": "guild_um",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"deleted": {
+					"name": "deleted",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"lastUpdated": {
+					"name": "lastUpdated",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {}
+		},
+		"public.guildFlyer": {
+			"name": "guildFlyer",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"gid": {
+					"name": "gid",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"flyer_number": {
+					"name": "flyer_number",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"start_date": {
+					"name": "start_date",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"end_date": {
+					"name": "end_date",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"vendor_code": {
+					"name": "vendor_code",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"flyer_cost_cents": {
+					"name": "flyer_cost_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"flyer_price_l0_cents": {
+					"name": "flyer_price_l0_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"flyer_price_l1_cents": {
+					"name": "flyer_price_l1_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"flyer_price_retail_cents": {
+					"name": "flyer_price_retail_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"regular_price_l0_cents": {
+					"name": "regular_price_l0_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"regular_price_l1_cents": {
+					"name": "regular_price_l1_cents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"deleted": {
+					"name": "deleted",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"lastUpdated": {
+					"name": "lastUpdated",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"guildFlyer_gid_unique": {
+					"name": "guildFlyer_gid_unique",
+					"nullsNotDistinct": false,
+					"columns": ["gid"]
+				}
+			}
+		},
+		"public.shopify": {
+			"name": "shopify",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"productId": {
+					"name": "productId",
+					"type": "varchar(128)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"handle": {
+					"name": "handle",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"title": {
+					"name": "title",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"htmlDescription": {
+					"name": "htmlDescription",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"imageId": {
+					"name": "imageId",
+					"type": "varchar(128)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"imageAltText": {
+					"name": "imageAltText",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"imageUrl": {
+					"name": "imageUrl",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"totalInventory": {
+					"name": "totalInventory",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"tagsJsonArr": {
+					"name": "tagsJsonArr",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"hasOnlyDefaultVariant": {
+					"name": "hasOnlyDefaultVariant",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"publishedAt": {
+					"name": "publishedAt",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"updatedAt": {
+					"name": "updatedAt",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"status": {
+					"name": "status",
+					"type": "shopifyStatus",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"variantId": {
+					"name": "variantId",
+					"type": "varchar(128)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"vPriceCents": {
+					"name": "vPriceCents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"vComparePriceCents": {
+					"name": "vComparePriceCents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"vWeightGrams": {
+					"name": "vWeightGrams",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"vSku": {
+					"name": "vSku",
+					"type": "varchar(128)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"vBarcode": {
+					"name": "vBarcode",
+					"type": "varchar(128)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"vInventoryPolicyContinue": {
+					"name": "vInventoryPolicyContinue",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"vRequiresShipping": {
+					"name": "vRequiresShipping",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"vUnitCostCents": {
+					"name": "vUnitCostCents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"vInventoryAvailableStore": {
+					"name": "vInventoryAvailableStore",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"vInventoryOnHandStore": {
+					"name": "vInventoryOnHandStore",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"vInventoryCommittedStore": {
+					"name": "vInventoryCommittedStore",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"vInventoryOnHandWarehouse0": {
+					"name": "vInventoryOnHandWarehouse0",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"deleted": {
+					"name": "deleted",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"lastUpdated": {
+					"name": "lastUpdated",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"shopify_productId_idx": {
+					"name": "shopify_productId_idx",
+					"columns": [
+						{
+							"expression": "productId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"shopify_variantId_idx": {
+					"name": "shopify_variantId_idx",
+					"columns": [
+						{
+							"expression": "variantId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"shopify_variantBarcode_idx": {
+					"name": "shopify_variantBarcode_idx",
+					"columns": [
+						{
+							"expression": "vBarcode",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"shopify_variantId_unique": {
+					"name": "shopify_variantId_unique",
+					"nullsNotDistinct": false,
+					"columns": ["variantId"]
+				}
+			}
+		},
+		"public.unifiedItems": {
+			"name": "unifiedItems",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"type": {
+					"name": "type",
+					"type": "unified_item_type",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"guild": {
+					"name": "guild",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"guildInventory": {
+					"name": "guildInventory",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"guildFlyer": {
+					"name": "guildFlyer",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"qb": {
+					"name": "qb",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"qbAlt": {
+					"name": "qbAlt",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"shopify": {
+					"name": "shopify",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"shopifyAlt": {
+					"name": "shopifyAlt",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"defaultAltConversionFactor": {
+					"name": "defaultAltConversionFactor",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"defaultAltConversionFactorColumnSettings": {
+					"name": "defaultAltConversionFactorColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"packageUM": {
+					"name": "packageUM",
+					"type": "guild_um",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"defaultUmColumnSettings": {
+					"name": "defaultUmColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"altUM": {
+					"name": "altUM",
+					"type": "guild_um",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"altUmColumnSettings": {
+					"name": "altUmColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"barcode": {
+					"name": "barcode",
+					"type": "varchar(128)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"barcodeColumnSettings": {
+					"name": "barcodeColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"sku": {
+					"name": "sku",
+					"type": "varchar(128)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"skuColumnSettings": {
+					"name": "skuColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"priceCents": {
+					"name": "priceCents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"priceCentsColumnSettings": {
+					"name": "priceCentsColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"altPriceCents": {
+					"name": "altPriceCents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"altPriceCentsColumnSettings": {
+					"name": "altPriceCentsColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"salePriceCents": {
+					"name": "salePriceCents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"flyerPriceCentsColumnSettings": {
+					"name": "flyerPriceCentsColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"altSalePriceCents": {
+					"name": "altSalePriceCents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"altFlyerPriceCentsColumnSettings": {
+					"name": "altFlyerPriceCentsColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"storePriceCents": {
+					"name": "storePriceCents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"storePriceCentsColumnSettings": {
+					"name": "storePriceCentsColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"storeAltPriceCents": {
+					"name": "storeAltPriceCents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"storeAltPriceCentsColumnSettings": {
+					"name": "storeAltPriceCentsColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"onlinePriceCents": {
+					"name": "onlinePriceCents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"onlinePriceCentsColumnSettings": {
+					"name": "onlinePriceCentsColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"onlineAltPriceCents": {
+					"name": "onlineAltPriceCents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"onlineAltPriceCentsColumnSettings": {
+					"name": "onlineAltPriceCentsColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"storeFlyerPriceCents": {
+					"name": "storeFlyerPriceCents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"storeFlyerPriceCentsColumnSettings": {
+					"name": "storeFlyerPriceCentsColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"storeFlyerAltPriceCents": {
+					"name": "storeFlyerAltPriceCents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"storeFlyerAltPriceCentsColumnSettings": {
+					"name": "storeFlyerAltPriceCentsColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"onlineFlyerPriceCents": {
+					"name": "onlineFlyerPriceCents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"onlineFlyerPriceCentsColumnSettings": {
+					"name": "onlineFlyerPriceCentsColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"onlineFlyerAltPriceCents": {
+					"name": "onlineFlyerAltPriceCents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"onlineFlyerAltPriceCentsColumnSettings": {
+					"name": "onlineFlyerAltPriceCentsColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"title": {
+					"name": "title",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"titleColumnSettings": {
+					"name": "titleColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"description": {
+					"name": "description",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"descriptionColumnSettings": {
+					"name": "descriptionColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"imageUrl": {
+					"name": "imageUrl",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"imageUrlColumnSettings": {
+					"name": "imageUrlColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"storeInventory": {
+					"name": "storeInventory",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"storeInventoryColumnSettings": {
+					"name": "storeInventoryColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"storeAltInventory": {
+					"name": "storeAltInventory",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"storeAltInventoryColumnSettings": {
+					"name": "storeAltInventoryColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"warehouse0Inventory": {
+					"name": "warehouse0Inventory",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"warehouse0InventoryColumnSettings": {
+					"name": "warehouse0InventoryColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"warehouse0AltInventory": {
+					"name": "warehouse0AltInventory",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"warehouse0AltInventoryColumnSettings": {
+					"name": "warehouse0AltInventoryColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"allowBackorder": {
+					"name": "allowBackorder",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"allowBackorderColumnSettings": {
+					"name": "allowBackorderColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"costCents": {
+					"name": "costCents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"costCentsColumnSettings": {
+					"name": "costCentsColumnSettings",
+					"type": "column_settings",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'automatic'"
+				},
+				"deleted": {
+					"name": "deleted",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"lastUpdated": {
+					"name": "lastUpdated",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"unifiedItems_guild_idx": {
+					"name": "unifiedItems_guild_idx",
+					"columns": [
+						{
+							"expression": "guild",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"unifiedItems_guildInventory_idx": {
+					"name": "unifiedItems_guildInventory_idx",
+					"columns": [
+						{
+							"expression": "guildInventory",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"unifiedItems_guildFlyer_idx": {
+					"name": "unifiedItems_guildFlyer_idx",
+					"columns": [
+						{
+							"expression": "guildFlyer",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"unifiedItems_qb_idx": {
+					"name": "unifiedItems_qb_idx",
+					"columns": [
+						{
+							"expression": "qb",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"unifiedItems_qbAlt_idx": {
+					"name": "unifiedItems_qbAlt_idx",
+					"columns": [
+						{
+							"expression": "qbAlt",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"unifiedItems_shopify_idx": {
+					"name": "unifiedItems_shopify_idx",
+					"columns": [
+						{
+							"expression": "shopify",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"unifiedItems_shopifyAlt_idx": {
+					"name": "unifiedItems_shopifyAlt_idx",
+					"columns": [
+						{
+							"expression": "shopifyAlt",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"unifiedItems_barcode_idx": {
+					"name": "unifiedItems_barcode_idx",
+					"columns": [
+						{
+							"expression": "barcode",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"unifiedItems_guild_guild_id_fk": {
+					"name": "unifiedItems_guild_guild_id_fk",
+					"tableFrom": "unifiedItems",
+					"tableTo": "guild",
+					"columnsFrom": ["guild"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"unifiedItems_guildInventory_guildInventory_id_fk": {
+					"name": "unifiedItems_guildInventory_guildInventory_id_fk",
+					"tableFrom": "unifiedItems",
+					"tableTo": "guildInventory",
+					"columnsFrom": ["guildInventory"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"unifiedItems_guildFlyer_guildFlyer_id_fk": {
+					"name": "unifiedItems_guildFlyer_guildFlyer_id_fk",
+					"tableFrom": "unifiedItems",
+					"tableTo": "guildFlyer",
+					"columnsFrom": ["guildFlyer"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"unifiedItems_qb_qb_id_fk": {
+					"name": "unifiedItems_qb_qb_id_fk",
+					"tableFrom": "unifiedItems",
+					"tableTo": "qb",
+					"columnsFrom": ["qb"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"unifiedItems_qbAlt_qb_id_fk": {
+					"name": "unifiedItems_qbAlt_qb_id_fk",
+					"tableFrom": "unifiedItems",
+					"tableTo": "qb",
+					"columnsFrom": ["qbAlt"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"unifiedItems_shopify_shopify_id_fk": {
+					"name": "unifiedItems_shopify_shopify_id_fk",
+					"tableFrom": "unifiedItems",
+					"tableTo": "shopify",
+					"columnsFrom": ["shopify"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"unifiedItems_shopifyAlt_shopify_id_fk": {
+					"name": "unifiedItems_shopifyAlt_shopify_id_fk",
+					"tableFrom": "unifiedItems",
+					"tableTo": "shopify",
+					"columnsFrom": ["shopifyAlt"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"unifiedItems_guild_unique": {
+					"name": "unifiedItems_guild_unique",
+					"nullsNotDistinct": false,
+					"columns": ["guild"]
+				},
+				"unifiedItems_guildInventory_unique": {
+					"name": "unifiedItems_guildInventory_unique",
+					"nullsNotDistinct": false,
+					"columns": ["guildInventory"]
+				},
+				"unifiedItems_guildFlyer_unique": {
+					"name": "unifiedItems_guildFlyer_unique",
+					"nullsNotDistinct": false,
+					"columns": ["guildFlyer"]
+				},
+				"unifiedItems_qb_unique": {
+					"name": "unifiedItems_qb_unique",
+					"nullsNotDistinct": false,
+					"columns": ["qb"]
+				},
+				"unifiedItems_qbAlt_unique": {
+					"name": "unifiedItems_qbAlt_unique",
+					"nullsNotDistinct": false,
+					"columns": ["qbAlt"]
+				},
+				"unifiedItems_shopify_unique": {
+					"name": "unifiedItems_shopify_unique",
+					"nullsNotDistinct": false,
+					"columns": ["shopify"]
+				},
+				"unifiedItems_shopifyAlt_unique": {
+					"name": "unifiedItems_shopifyAlt_unique",
+					"nullsNotDistinct": false,
+					"columns": ["shopifyAlt"]
+				},
+				"unifiedItems_shopify_shopifyAlt_unique": {
+					"name": "unifiedItems_shopify_shopifyAlt_unique",
+					"nullsNotDistinct": false,
+					"columns": ["shopify", "shopifyAlt"]
+				},
+				"unifiedItems_qb_qbAlt_unique": {
+					"name": "unifiedItems_qb_qbAlt_unique",
+					"nullsNotDistinct": false,
+					"columns": ["qb", "qbAlt"]
+				}
+			}
+		},
+		"public.guildDescriptions": {
+			"name": "guildDescriptions",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"gid": {
+					"name": "gid",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"sanitized_description": {
+					"name": "sanitized_description",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"image_list_json": {
+					"name": "image_list_json",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"name": {
+					"name": "name",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"price": {
+					"name": "price",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"uom": {
+					"name": "uom",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"raw_result": {
+					"name": "raw_result",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"found": {
+					"name": "found",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"times_scrape_failed": {
+					"name": "times_scrape_failed",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": 0
+				},
+				"deleted": {
+					"name": "deleted",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"lastUpdated": {
+					"name": "lastUpdated",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"guildDescriptions_gid_unique": {
+					"name": "guildDescriptions_gid_unique",
+					"nullsNotDistinct": false,
+					"columns": ["gid"]
+				}
+			}
+		},
+		"public.sprPriceFile": {
+			"name": "sprPriceFile",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"sprcSku": {
+					"name": "sprcSku",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"etilizeId": {
+					"name": "etilizeId",
+					"type": "varchar(32)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"status": {
+					"name": "status",
+					"type": "spr_price_status",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"description": {
+					"name": "description",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"um": {
+					"name": "um",
+					"type": "spr_price_um",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"upc": {
+					"name": "upc",
+					"type": "varchar(32)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"catPage": {
+					"name": "catPage",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"dealerNetPriceCents": {
+					"name": "dealerNetPriceCents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"netPriceCents": {
+					"name": "netPriceCents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"listPriceCents": {
+					"name": "listPriceCents",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"deleted": {
+					"name": "deleted",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"lastUpdated": {
+					"name": "lastUpdated",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"spr_sprcSku_idx": {
+					"name": "spr_sprcSku_idx",
+					"columns": [
+						{
+							"expression": "sprcSku",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"spr_etilizeId_idx": {
+					"name": "spr_etilizeId_idx",
+					"columns": [
+						{
+							"expression": "etilizeId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"sprPriceFile_sprcSku_unique": {
+					"name": "sprPriceFile_sprcSku_unique",
+					"nullsNotDistinct": false,
+					"columns": ["sprcSku"]
+				},
+				"sprPriceFile_etilizeId_unique": {
+					"name": "sprPriceFile_etilizeId_unique",
+					"nullsNotDistinct": false,
+					"columns": ["etilizeId"]
+				}
+			}
+		},
+		"public.sprFlatFile": {
+			"name": "sprFlatFile",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"sprcSku": {
+					"name": "sprcSku",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"etilizeId": {
+					"name": "etilizeId",
+					"type": "varchar(32)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"sprCatalogSku": {
+					"name": "sprCatalogSku",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"brandName": {
+					"name": "brandName",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"productType": {
+					"name": "productType",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"productLine": {
+					"name": "productLine",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"productSeries": {
+					"name": "productSeries",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"fullDescription": {
+					"name": "fullDescription",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"mainTitle": {
+					"name": "mainTitle",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"subTitle": {
+					"name": "subTitle",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"marketingText": {
+					"name": "marketingText",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"subClassNumber": {
+					"name": "subClassNumber",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"subClassName": {
+					"name": "subClassName",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"classNumber": {
+					"name": "classNumber",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"className": {
+					"name": "className",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"departmentNumber": {
+					"name": "departmentNumber",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"departmentName": {
+					"name": "departmentName",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"masterDepartmentNumber": {
+					"name": "masterDepartmentNumber",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"masterDepartmentName": {
+					"name": "masterDepartmentName",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"unspsc": {
+					"name": "unspsc",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"keywords": {
+					"name": "keywords",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"manufacturerId": {
+					"name": "manufacturerId",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"manufacturerName": {
+					"name": "manufacturerName",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"productSpecs": {
+					"name": "productSpecs",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"countyOfOrigin": {
+					"name": "countyOfOrigin",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"assemblyRequired": {
+					"name": "assemblyRequired",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"image255": {
+					"name": "image255",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"image75": {
+					"name": "image75",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"deleted": {
+					"name": "deleted",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"lastUpdated": {
+					"name": "lastUpdated",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"sprFlatFile_sprcSku_idx": {
+					"name": "sprFlatFile_sprcSku_idx",
+					"columns": [
+						{
+							"expression": "sprcSku",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"sprFlatFile_etilizeId_idx": {
+					"name": "sprFlatFile_etilizeId_idx",
+					"columns": [
+						{
+							"expression": "etilizeId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"sprFlatFile_sprcSku_unique": {
+					"name": "sprFlatFile_sprcSku_unique",
+					"nullsNotDistinct": false,
+					"columns": ["sprcSku"]
+				},
+				"sprFlatFile_etilizeId_unique": {
+					"name": "sprFlatFile_etilizeId_unique",
+					"nullsNotDistinct": false,
+					"columns": ["etilizeId"]
+				}
+			}
+		}
+	},
+	"enums": {
+		"public.permissionLevel": {
+			"name": "permissionLevel",
+			"schema": "public",
+			"values": ["admin", "general", "viewer", "public"]
+		},
+		"public.qb_item_type": {
+			"name": "qb_item_type",
+			"schema": "public",
+			"values": [
+				"Service",
+				"Inventory Part",
+				"Inventory Assembly",
+				"Non-inventory Part",
+				"Other Charge",
+				"Subtotal",
+				"Group",
+				"Discount",
+				"Sales Tax Item",
+				"Sales Tax Group"
+			]
+		},
+		"public.qb_um": {
+			"name": "qb_um",
+			"schema": "public",
+			"values": ["ea", "pk", "cs"]
+		},
+		"public.tax_code": {
+			"name": "tax_code",
+			"schema": "public",
+			"values": ["S", "G", "E"]
+		},
+		"public.resource_type": {
+			"name": "resource_type",
+			"schema": "public",
+			"values": [
+				"changeset",
+				"qb",
+				"guild",
+				"guildInventory",
+				"guildFlyer",
+				"shopify",
+				"unifiedItem",
+				"sprPriceFile"
+			]
+		},
+		"public.changeset_status_type": {
+			"name": "changeset_status_type",
+			"schema": "public",
+			"values": ["generating", "completed"]
+		},
+		"public.changeset_type": {
+			"name": "changeset_type",
+			"schema": "public",
+			"values": [
+				"qb",
+				"guild",
+				"guildInventory",
+				"guildFlyer",
+				"shopify",
+				"sprPriceFile",
+				"sprFlatFile"
+			]
+		},
+		"public.history_entry_type": {
+			"name": "history_entry_type",
+			"schema": "public",
+			"values": ["create", "delete", "update"]
+		},
+		"public.guild_um": {
+			"name": "guild_um",
+			"schema": "public",
+			"values": ["bx", "bg", "ct", "cs", "cd", "ea", "ev", "kt", "st", "sl", "tb", "pr", "pk"]
+		},
+		"public.shopifyStatus": {
+			"name": "shopifyStatus",
+			"schema": "public",
+			"values": ["ACTIVE", "ARCHIVED", "DRAFT"]
+		},
+		"public.column_settings": {
+			"name": "column_settings",
+			"schema": "public",
+			"values": ["automatic", "automaticSmallChanges", "approval", "manual"]
+		},
+		"public.unified_item_type": {
+			"name": "unified_item_type",
+			"schema": "public",
+			"values": ["custom", "guild"]
+		},
+		"public.spr_price_status": {
+			"name": "spr_price_status",
+			"schema": "public",
+			"values": ["Active", "Discontinued", "Not available"]
+		},
+		"public.spr_price_um": {
+			"name": "spr_price_um",
+			"schema": "public",
+			"values": ["EA", "PAC", "BOX"]
+		}
+	},
+	"schemas": {},
+	"_meta": {
+		"columns": {},
+		"schemas": {},
+		"tables": {}
+	}
 }

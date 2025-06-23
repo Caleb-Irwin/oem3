@@ -1,4 +1,4 @@
-import JSZip from "jszip";
+import JSZip from 'jszip';
 
 /**
  * Zips the content of a single data URL into a Buffer.
@@ -9,37 +9,37 @@ import JSZip from "jszip";
  * @returns A Promise that resolves to a Buffer containing the zipped data.
  */
 export async function zipDataUrlToBuffer(dataUrl: string, filename: string): Promise<Buffer> {
-    if (!dataUrl.startsWith("data:")) {
-        throw new Error("Invalid Data URL: Must start with 'data:'");
-    }
+	if (!dataUrl.startsWith('data:')) {
+		throw new Error("Invalid Data URL: Must start with 'data:'");
+	}
 
-    const parts = dataUrl.split(",");
-    if (parts.length < 2) {
-        throw new Error("Invalid Data URL format: Missing data part.");
-    }
+	const parts = dataUrl.split(',');
+	if (parts.length < 2) {
+		throw new Error('Invalid Data URL format: Missing data part.');
+	}
 
-    const base64Content = parts[1];
+	const base64Content = parts[1];
 
-    const zip = new JSZip();
+	const zip = new JSZip();
 
-    // Add the decoded content to the zip file
-    // JSZip can take a Buffer directly
-    zip.file(filename, base64Content, {
-        base64: true
-    });
+	// Add the decoded content to the zip file
+	// JSZip can take a Buffer directly
+	zip.file(filename, base64Content, {
+		base64: true
+	});
 
-    // Generate the zip file as a Node.js Buffer (compatible with Bun's Buffer)
-    const zipBuffer = await zip.generateAsync({
-        type: "nodebuffer",
-        compression: "DEFLATE",
-        compressionOptions: {
-            level: 9, // Max compression
-        },
-        // Optional: metadata about the entire zip file
-        // comment: `Zip generated from data URL: ${dataUrl.substring(0, 50)}...`,
-    });
+	// Generate the zip file as a Node.js Buffer (compatible with Bun's Buffer)
+	const zipBuffer = await zip.generateAsync({
+		type: 'nodebuffer',
+		compression: 'DEFLATE',
+		compressionOptions: {
+			level: 9 // Max compression
+		}
+		// Optional: metadata about the entire zip file
+		// comment: `Zip generated from data URL: ${dataUrl.substring(0, 50)}...`,
+	});
 
-    return zipBuffer;
+	return zipBuffer;
 }
 
 /**
@@ -52,51 +52,51 @@ export async function zipDataUrlToBuffer(dataUrl: string, filename: string): Pro
  * @throws An Error if the zipBuffer is invalid or the file is not found.
  */
 export async function unzipBufferToDataUrl(
-    zipBuffer: ArrayBuffer,
-    filenameInZip: string,
+	zipBuffer: ArrayBuffer,
+	filenameInZip: string
 ): Promise<string> {
-    if (!(zipBuffer instanceof ArrayBuffer)) {
-        throw new Error("Invalid input: zipBuffer must be a Buffer.");
-    }
+	if (!(zipBuffer instanceof ArrayBuffer)) {
+		throw new Error('Invalid input: zipBuffer must be a Buffer.');
+	}
 
-    const zip = new JSZip();
+	const zip = new JSZip();
 
-    // Load the zip file from the Buffer
-    try {
-        await zip.loadAsync(zipBuffer);
-    } catch (error) {
-        throw new Error(`Failed to load zip file from buffer: ${error}`);
-    }
+	// Load the zip file from the Buffer
+	try {
+		await zip.loadAsync(zipBuffer);
+	} catch (error) {
+		throw new Error(`Failed to load zip file from buffer: ${error}`);
+	}
 
-    const fileEntry = zip.file(filenameInZip);
+	const fileEntry = zip.file(filenameInZip);
 
-    if (!fileEntry) {
-        throw new Error(`File '${filenameInZip}' not found in the zip archive.`);
-    }
+	if (!fileEntry) {
+		throw new Error(`File '${filenameInZip}' not found in the zip archive.`);
+	}
 
-    // Determine media type based on file extension
-    let mediaType = "application/octet-stream";
-    const parts = filenameInZip.split(".");
-    const extension = parts.length > 1 ? parts[parts.length - 1].toLowerCase() : "";
+	// Determine media type based on file extension
+	let mediaType = 'application/octet-stream';
+	const parts = filenameInZip.split('.');
+	const extension = parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
 
-    switch (extension.toLowerCase()) {
-        case "json":
-            mediaType = "application/json";
-            break;
-        case "jsonl":
-            mediaType = "application/jsonl";
-            break;
-        case "csv":
-            mediaType = "text/csv";
-            break;
-        case "xlsx":
-            mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-            break;
-    }
+	switch (extension.toLowerCase()) {
+		case 'json':
+			mediaType = 'application/json';
+			break;
+		case 'jsonl':
+			mediaType = 'application/jsonl';
+			break;
+		case 'csv':
+			mediaType = 'text/csv';
+			break;
+		case 'xlsx':
+			mediaType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+			break;
+	}
 
-    // Get the file content as a base64 string
-    const base64Content = await fileEntry.async("base64");
+	// Get the file content as a base64 string
+	const base64Content = await fileEntry.async('base64');
 
-    // Construct the data URL
-    return `data:${mediaType};base64,${base64Content}`;
+	// Construct the data URL
+	return `data:${mediaType};base64,${base64Content}`;
 }

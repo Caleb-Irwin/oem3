@@ -1,136 +1,127 @@
 {
-  "version": "7",
-  "dialect": "postgresql",
-  "tables": {
-    "public.kv": {
-      "name": "kv",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "varchar(256)",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "namespace": {
-          "name": "namespace",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "key": {
-          "name": "key",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "value": {
-          "name": "value",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "kv_id_idx": {
-          "columns": [
-            {
-              "expression": "key",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "with": {},
-          "name": "kv_id_idx",
-          "isUnique": false,
-          "method": "btree",
-          "concurrently": false
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "kv_id_unique": {
-          "name": "kv_id_unique",
-          "columns": [
-            "id"
-          ],
-          "nullsNotDistinct": false
-        }
-      }
-    },
-    "public.users": {
-      "name": "users",
-      "schema": "",
-      "columns": {
-        "username": {
-          "name": "username",
-          "type": "varchar(256)",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "password_hash": {
-          "name": "password_hash",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "permissionLevel": {
-          "name": "permissionLevel",
-          "type": "permissionLevel",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "username_idx": {
-          "columns": [
-            {
-              "expression": "username",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "with": {},
-          "name": "username_idx",
-          "isUnique": true,
-          "method": "btree",
-          "concurrently": false
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "users_username_unique": {
-          "name": "users_username_unique",
-          "columns": [
-            "username"
-          ],
-          "nullsNotDistinct": false
-        }
-      }
-    }
-  },
-  "enums": {
-    "public.permissionLevel": {
-      "name": "permissionLevel",
-      "schema": "public",
-      "values": [
-        "admin",
-        "general",
-        "viewer",
-        "public"
-      ]
-    }
-  },
-  "schemas": {},
-  "_meta": {
-    "schemas": {},
-    "tables": {},
-    "columns": {}
-  },
-  "id": "437f66c8-f14b-4c88-9573-63cae69cf543",
-  "prevId": "1dd9f0f7-db6a-4ff0-940e-875c741a8fcc"
+	"version": "7",
+	"dialect": "postgresql",
+	"tables": {
+		"public.kv": {
+			"name": "kv",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "varchar(256)",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"namespace": {
+					"name": "namespace",
+					"type": "varchar(128)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"key": {
+					"name": "key",
+					"type": "varchar(128)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"value": {
+					"name": "value",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"kv_id_idx": {
+					"columns": [
+						{
+							"expression": "key",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
+					"name": "kv_id_idx",
+					"isUnique": false,
+					"method": "btree",
+					"concurrently": false
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"kv_id_unique": {
+					"name": "kv_id_unique",
+					"columns": ["id"],
+					"nullsNotDistinct": false
+				}
+			}
+		},
+		"public.users": {
+			"name": "users",
+			"schema": "",
+			"columns": {
+				"username": {
+					"name": "username",
+					"type": "varchar(256)",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"password_hash": {
+					"name": "password_hash",
+					"type": "varchar(256)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"permissionLevel": {
+					"name": "permissionLevel",
+					"type": "permissionLevel",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"username_idx": {
+					"columns": [
+						{
+							"expression": "username",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"with": {},
+					"name": "username_idx",
+					"isUnique": true,
+					"method": "btree",
+					"concurrently": false
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"users_username_unique": {
+					"name": "users_username_unique",
+					"columns": ["username"],
+					"nullsNotDistinct": false
+				}
+			}
+		}
+	},
+	"enums": {
+		"public.permissionLevel": {
+			"name": "permissionLevel",
+			"schema": "public",
+			"values": ["admin", "general", "viewer", "public"]
+		}
+	},
+	"schemas": {},
+	"_meta": {
+		"schemas": {},
+		"tables": {},
+		"columns": {}
+	},
+	"id": "437f66c8-f14b-4c88-9573-63cae69cf543",
+	"prevId": "1dd9f0f7-db6a-4ff0-940e-875c741a8fcc"
 }

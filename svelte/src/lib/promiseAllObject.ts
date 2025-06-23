@@ -17,24 +17,22 @@
  * @throws Rejects with the error of the first promise that rejects.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function promiseAllObject<T extends Record<string, any>>(
-    promisesMap: { [K in keyof T]: Promise<T[K]> },
-): Promise<T> {
-    const keys = Object.keys(promisesMap) as Array<keyof T>;
+export async function promiseAllObject<T extends Record<string, any>>(promisesMap: {
+	[K in keyof T]: Promise<T[K]>;
+}): Promise<T> {
+	const keys = Object.keys(promisesMap) as Array<keyof T>;
 
-    const promiseList: Array<Promise<T[keyof T]>> = keys.map(
-        (key) => promisesMap[key],
-    );
+	const promiseList: Array<Promise<T[keyof T]>> = keys.map((key) => promisesMap[key]);
 
-    const resolvedValuesList = await Promise.all(promiseList);
+	const resolvedValuesList = await Promise.all(promiseList);
 
-    const result = {} as T; // Initialize as T.
+	const result = {} as T; // Initialize as T.
 
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i]; // `key` is of type `keyof T`
-        const resolvedValue = resolvedValuesList[i]; // `resolvedValue` is typed as `T[keyof T]`
-        result[key] = resolvedValue as T[keyof T];
-    }
+	for (let i = 0; i < keys.length; i++) {
+		const key = keys[i]; // `key` is of type `keyof T`
+		const resolvedValue = resolvedValuesList[i]; // `resolvedValue` is typed as `T[keyof T]`
+		result[key] = resolvedValue as T[keyof T];
+	}
 
-    return result;
+	return result;
 }

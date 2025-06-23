@@ -24,7 +24,7 @@ OEM3 is intended to make these processes more reliable, easier to use, and impro
   - [x] QuickBooks
   - [x] Shopify
 - [x] Search
-- [x] Matching 
+- [x] Matching
   - [ ] Guild
   - [ ] SPR
   - [ ] Unified Items
@@ -74,4 +74,4 @@ For a successful deployment, set all environment variables listed in the example
 
 ## License
 
-This project is *not* licensed under an open-source license.
+This project is _not_ licensed under an open-source license.
