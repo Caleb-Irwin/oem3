@@ -97,7 +97,8 @@
 			}
 			newCellSettingData = {
 				...partialSetting,
-				value: validation.res
+				value: validation.res,
+				lastValue: newSetting === 'setting:approveCustom' ? (cell.value?.toString() ?? null) : null
 			} satisfies CellConfigRowInsert;
 			return;
 		}
@@ -171,7 +172,7 @@
 						<p class="font-bold text-error-600 -mt-1">{approveThresholdError}</p>
 					{/if}
 
-					<p>
+					<p class="text-sm">
 						Last approved value is <span class="font-semibold"
 							><BreakableText
 								text={cell.cellSettingConf?.lastValue?.toString() ??
@@ -210,13 +211,12 @@
 						<input class="checkbox" type="checkbox" bind:checked={approveCustomValue} />
 						<p class="pl-2">Approve custom value on underlying value change</p>
 					</label>
-					<p>
+					<p class="text-sm">
 						Current value is <span class="font-semibold"
 							><BreakableText text={cell.value === null ? 'Null' : cell.value.toString()} /></span
 						>
-					</p>
-					<p class="pt-1">
-						Last auto (underlying) value is <span class="font-semibold"
+						| Last auto (underlying) value is
+						<span class="font-semibold"
 							><BreakableText
 								text={cell.cellSettingConf?.lastValue?.toString() ??
 									cell.value?.toString() ??
@@ -230,9 +230,6 @@
 				<div class="w-full px-0.5 pt-2">
 					<button class="btn variant-filled-primary w-full" disabled={!hasChanges}> Save </button>
 				</div>
-				<p class="pre m-2">
-					{newCellSettingData ? JSON.stringify(newCellSettingData, null, 2) : newCellSettingData}
-				</p>
 			{/if}
 		</div>
 	</div>

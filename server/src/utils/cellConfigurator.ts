@@ -73,14 +73,50 @@ export async function createCellConfigurator(
 			if (setting.setting === 'setting:custom') {
 				newVal = setting.conf?.value ?? null;
 			} else if (setting.setting === 'setting:approve' && oldVal !== val) {
-				// const thresholdPercent = parseFloat(setting.conf?.value ?? "0"),
-				//   lastApprovedValue = parseInt(setting.conf?.lastValue ?? "0");
-				throw new Error('Not implemented');
-				//TODO
+				const thresholdPercent = parseFloat(setting.conf?.value ?? '0');
+				const lastApprovedValue = parseFloat(setting.conf?.lastValue ?? '0');
+
+				const currentValue = parseFloat(val?.toString() ?? '0');
+				const percentChange =
+					lastApprovedValue === 0
+						? currentValue === 0
+							? 0
+							: 100
+						: Math.abs((currentValue - lastApprovedValue) / lastApprovedValue) * 100;
+
+				if (percentChange > thresholdPercent) {
+					addError(
+						key as any,
+						{
+							needsApproval: {
+								value: val
+							}
+						},
+						`Value changed by ${percentChange.toFixed(2)}% which exceeds threshold of ${thresholdPercent}%`
+					);
+					newVal = oldVal;
+				} else {
+					await db
+						.update(table)
+						.set({ lastValue: currentValue.toString() })
+						.where(eq(table.id, setting.conf!.id));
+				}
 			} else if (setting.setting === 'setting:approveCustom') {
 				newVal = setting.conf?.value ?? null;
-				throw new Error('Not implemented');
-				//TODO
+
+				const lastTrackedValue = setting.conf?.lastValue ?? null;
+				const currentValue = val?.toString() ?? null;
+				if (lastTrackedValue !== currentValue) {
+					addError(
+						key as any,
+						{
+							needsApprovalCustom: {
+								value: val
+							}
+						},
+						`Underlying value changed from "${lastTrackedValue}" to "${currentValue}"`
+					);
+				}
 			}
 		}
 
@@ -205,6 +241,9 @@ export interface NewError {
 		value: ValType;
 	};
 	needsApproval?: {
+		value: ValType;
+	};
+	needsApprovalCustom?: {
 		value: ValType;
 	};
 	matchWouldCauseDuplicate?: {

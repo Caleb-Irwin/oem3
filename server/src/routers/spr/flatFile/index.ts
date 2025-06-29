@@ -3,7 +3,7 @@ import { router } from '../../../trpc';
 import { fileProcedures } from '../../../utils/files';
 import { managedWorker } from '../../../utils/managedWorker';
 import { Client } from 'basic-ftp';
-import { createDataURLStream } from './dataUrlStream';
+import { createDataURLStream } from './dataUrlStream.ts';
 
 const { worker, hook, runWorker } = managedWorker(
 	new URL('worker.ts', import.meta.url).href,

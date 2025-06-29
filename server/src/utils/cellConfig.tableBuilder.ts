@@ -35,6 +35,7 @@ export const cellConfigType = pgEnum('cellConfigType', [
 	'error:multipleOptions',
 	'error:missingValue',
 	'error:needsApproval',
+	'error:needsApprovalCustom',
 	'error:matchWouldCauseDuplicate',
 	'error:shouldNotBeNull',
 	'error:invalidDataType',
