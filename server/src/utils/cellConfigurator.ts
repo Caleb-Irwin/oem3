@@ -1,9 +1,7 @@
 import { eq, inArray } from 'drizzle-orm';
 import { db as DB, type Tx } from '../db';
-import { unifiedGuildCellConfig, type CellSetting } from '../db.schema';
-import type { UnifiedTables, VerifyCellValue } from './unifier';
-
-type CellConfigTable = typeof unifiedGuildCellConfig;
+import { type CellSetting } from '../db.schema';
+import type { UnifiedTables, VerifyCellValue, CellConfigTable } from './unifier';
 
 export async function createCellConfigurator(
 	table: CellConfigTable,
@@ -227,8 +225,9 @@ function findMatchingError(
 	return null;
 }
 
-export type CellConfigRowInsert = typeof unifiedGuildCellConfig.$inferInsert;
-export type CellConfigRowSelect = typeof unifiedGuildCellConfig.$inferSelect;
+// Generic types that work with any unified table's config table
+export type CellConfigRowInsert = CellConfigTable['$inferInsert'];
+export type CellConfigRowSelect = CellConfigTable['$inferSelect'];
 
 type ValType = string | number | boolean | null;
 
@@ -272,5 +271,3 @@ type NewErrorMerged = {
 	message?: string;
 	options?: ValType[];
 };
-
-export type CellConfigTables = typeof unifiedGuildCellConfig;

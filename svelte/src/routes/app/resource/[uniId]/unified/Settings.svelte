@@ -17,6 +17,8 @@
 	import { ColToTableName, type Cell, type CellConfigRowInsert } from './types';
 	import type { CellSetting } from '../../../../../../../server/src/db.schema';
 	import { objectsEqual, validateCustomValue } from './utils';
+	import Form from '$lib/Form.svelte';
+	import { client } from '$lib/client';
 
 	interface Props {
 		cell: Cell;
@@ -26,16 +28,17 @@
 
 	let newSetting = $derived(cell.setting);
 
-	let customValue = $derived(cell.cellSettingConf?.value),
+	let customValue = $derived(
+			cell.setting === 'setting:custom' ? cell.cellSettingConf?.value : null
+		),
 		customValueError: string | null = $state(null),
 		approveThreshold = $derived(
-			cell.setting === 'setting:approve' ? ((cell.value as number) ?? 15) : 15
+			cell.setting === 'setting:approve' ? parseInt(cell.cellSettingConf?.value ?? '15') : 15
 		),
 		approveCustomValue = $derived(newSetting === 'setting:approveCustom'),
 		approveThresholdError: string | null = $state(null),
 		isConnection = $derived(cell.connectionRow !== undefined);
 
-	// Search for connections
 	const modalStore = getModalStore();
 	function openSearchModal() {
 		modalStore.trigger({
@@ -105,25 +108,41 @@
 		newCellSettingData = undefined;
 	});
 	const hasChanges = $derived(
-			newCellSettingData !== undefined &&
-				!(cell.cellSettingConf === null && newCellSettingData === null) &&
-				(newCellSettingData === null ||
-					!objectsEqual(newCellSettingData, cell.cellSettingConf, ['created', 'id']))
-		),
-		showSaveButton = $derived(
-			newCellSettingData === undefined || hasChanges || newSetting !== cell.setting
-		);
+		newCellSettingData !== undefined &&
+			!(cell.cellSettingConf === null && newCellSettingData === null) &&
+			(newCellSettingData === null ||
+				!objectsEqual(newCellSettingData, cell.cellSettingConf, [
+					'created',
+					'id',
+					'message',
+					'notes',
+					'options',
+					'resolved',
+					'otherData'
+				]))
+	);
 </script>
 
 {#if openSettings[cell.compoundId]?.[cell.col]}
-	<div class="flex-grow w-full min-h-16 place-content-center min-w-52 p-0.5 {extraClass ?? ''}">
+	<Form
+		class="flex-grow w-full min-h-16 place-content-center min-w-52 p-0.5 {extraClass ?? ''}"
+		action={client.unified.updateSetting}
+		input={{
+			compoundId: cell.compoundId,
+			col: cell.col,
+			settingData: newCellSettingData ?? null
+		}}
+		noReset
+		successMessage="Cell setting updated successfully"
+	>
 		<div class="card p-2">
 			<p class="font-semibold text-center text-lg">Cell Setting</p>
 			<div class="flex w-full items-center py-1 flex-wrap">
 				<button
 					class="m-0.5 btn flex-1 {!newSetting ? 'variant-filled-primary' : 'variant-filled'}"
-					onclick={() => {
+					onclick={(e) => {
 						newSetting = null;
+						e.preventDefault();
 					}}
 				>
 					Auto
@@ -133,8 +152,9 @@
 						class="m-0.5 btn flex-1 {newSetting === 'setting:approve'
 							? 'variant-filled-primary'
 							: 'variant-filled'}"
-						onclick={() => {
+						onclick={(e) => {
 							newSetting = 'setting:approve';
+							e.preventDefault();
 						}}
 					>
 						Approve
@@ -145,20 +165,21 @@
 					newSetting === 'setting:approveCustom'
 						? 'variant-filled-primary'
 						: 'variant-filled'}"
-					onclick={() => {
+					onclick={(e) => {
 						newSetting = 'setting:custom';
+						e.preventDefault();
 					}}
 				>
 					Custom
 				</button>
 			</div>
-			<div class="text-center">
+			<div class="text-center px-0.5">
 				{#if newSetting === null}
-					<p>Cell <span class="font-semibold">{cell.col}</span> is set automatically</p>
+					<!-- <p>Cell <span class="font-semibold">{cell.col}</span> is set automatically</p> -->
 				{:else if newSetting === 'setting:approve'}
-					<p>
+					<!-- <p>
 						Cell <span class="font-semibold">{cell.col}</span> is set to approve mode
-					</p>
+					</p> -->
 					<label class="label py-2">
 						<span class="label-text font-bold">Approval Threshold (by % change)</span>
 						<input
@@ -173,7 +194,7 @@
 					{/if}
 
 					<p class="text-sm">
-						Last approved value is <span class="font-semibold"
+						Last approved value is <span class="font-semibold px-1 bg-primary-500/30"
 							><BreakableText
 								text={cell.cellSettingConf?.lastValue?.toString() ??
 									cell.value?.toString() ??
@@ -182,7 +203,7 @@
 						>
 					</p>
 				{:else}
-					<p>Cell <span class="font-semibold">{cell.col}</span> is set to a custom value</p>
+					<!-- <p>Cell <span class="font-semibold">{cell.col}</span> is set to a custom value</p> -->
 					<label class="label pt-2">
 						<span class="label-text font-bold"
 							>Custom Value (must be {`${
@@ -197,8 +218,12 @@
 								bind:value={customValue}
 							></textarea>
 							{#if isConnection}
-								<button class="ml-1 btn variant-filled-secondary" onclick={openSearchModal}
-									>Find Item <Search class="ml-1" /></button
+								<button
+									class="ml-1 btn variant-filled-primary"
+									onclick={(e) => {
+										e.preventDefault();
+										openSearchModal();
+									}}>Find Item <Search class="ml-1" /></button
 								>
 							{/if}
 						</div>
@@ -212,12 +237,12 @@
 						<p class="pl-2">Approve custom value on underlying value change</p>
 					</label>
 					<p class="text-sm">
-						Current value is <span class="font-semibold"
+						Current value is <span class="font-semibold px-1 bg-primary-500/30 mr-0.5"
 							><BreakableText text={cell.value === null ? 'Null' : cell.value.toString()} /></span
 						>
 						| Last auto (underlying) value is
-						<span class="font-semibold"
-							><BreakableText
+						<span class="font-semibold px-1 bg-primary-500/30 ml-0.5">
+							<BreakableText
 								text={cell.cellSettingConf?.lastValue?.toString() ??
 									cell.value?.toString() ??
 									'Null'}
@@ -226,11 +251,11 @@
 					</p>
 				{/if}
 			</div>
-			{#if showSaveButton}
-				<div class="w-full px-0.5 pt-2">
-					<button class="btn variant-filled-primary w-full" disabled={!hasChanges}> Save </button>
-				</div>
-			{/if}
+			<div class="w-full pt-2">
+				<button class="btn variant-filled-primary w-full" disabled={!hasChanges}>
+					Save Setting
+				</button>
+			</div>
 		</div>
-	</div>
+	</Form>
 {/if}

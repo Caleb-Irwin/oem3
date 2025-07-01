@@ -1,19 +1,15 @@
 import { z } from 'zod';
-import {
-	history,
-	unifiedGuild,
-	unifiedGuildCellConfig,
-	uniref,
-	type CellSetting
-} from '../db.schema';
-import { router, viewerProcedure } from '../trpc';
+import { history, unifiedGuild, uniref, type CellSetting } from '../db.schema';
+import { generalProcedure, router, viewerProcedure } from '../trpc';
 import { db } from '../db';
 import { desc, eq } from 'drizzle-orm';
 import { getColConfig, type UnifiedTableNames, type UnifiedTables } from '../utils/unifier';
-import type { CellConfigRowSelect, CellConfigTables } from '../utils/cellConfigurator';
+import type { CellConfigRowInsert, CellConfigRowSelect } from '../utils/cellConfigurator';
 import { getResource } from './resources';
 import { eventSubscription } from '../utils/eventSubscription';
 import { ColToTableName } from './unified.helpers';
+import { getCellConfigHelper } from '../utils/cellConfigHelper';
+import { UnifierMap } from '../utils/unifier.map';
 
 const { update, createSub } = eventSubscription();
 
@@ -42,7 +38,30 @@ export const unifiedRouter = router({
 		async ({ input: { uniId } }) => {
 			return await getUnified(uniId);
 		}
-	)
+	),
+	updateSetting: generalProcedure
+		.input(
+			z.object({
+				compoundId: z.string(),
+				col: z.string(),
+				settingData: z.union([
+					z.null(),
+					z.custom<CellConfigRowInsert>((val) => (typeof val === 'object' ? true : false))
+				])
+			})
+		)
+		.mutation(async ({ input }) => {
+			await db.transaction(async (tx) => {
+				const { updateSetting, meta, unifier } = await getCellConfigHelper(
+					input.compoundId,
+					input.col,
+					tx
+				);
+				await updateSetting(input.settingData);
+				await unifier._updateRow({ id: meta.refId, db: tx, onUpdateCallback: () => null });
+				update(meta.uniId.toString());
+			});
+		})
 });
 
 async function getUnifiedRow(uniId: number): Promise<UnifiedRow<UnifiedTables>> {
@@ -51,7 +70,7 @@ async function getUnifiedRow(uniId: number): Promise<UnifiedRow<UnifiedTables>> 
 		throw new Error('No row found');
 	}
 	const type = uniRow.resourceType as UnifiedTableNames;
-	const table = UnifiedTableMap[type];
+	const table = UnifierMap[type].table;
 	const id = uniRow[type] as number;
 	const row = (await db.select().from(table).where(eq(table.id, id)))?.[0];
 	if (!row) {
@@ -59,8 +78,8 @@ async function getUnifiedRow(uniId: number): Promise<UnifiedRow<UnifiedTables>> 
 	}
 	const cellConfig = await db
 		.select()
-		.from(ConfTableMap[type])
-		.where(eq(ConfTableMap[type].refId, id));
+		.from(UnifierMap[type].confTable)
+		.where(eq(UnifierMap[type].confTable.refId, id));
 	const allActiveErrors = cellConfig.filter((c) => c.confType.startsWith('error:') && !c.resolved);
 	const colConfig = getColConfig(table);
 
@@ -71,7 +90,7 @@ async function getUnifiedRow(uniId: number): Promise<UnifiedRow<UnifiedTables>> 
 		const settingConf = cellConfig.find((c) => c.col === col && c.confType.startsWith('setting:'));
 		cells[col] = {
 			compoundId: `${type}:${id}`,
-			col,
+			col: columnName,
 			value: row[col],
 			type: colConfig[col].dataType,
 			nullable: !colConfig[col].notNull,
@@ -79,7 +98,7 @@ async function getUnifiedRow(uniId: number): Promise<UnifiedRow<UnifiedTables>> 
 			cellSettingConf: settingConf || null,
 			activeErrors: allActiveErrors.filter((c) => c.col === col),
 			allCellConfigs: cellConfig,
-			connectionRow: await getResourceByCol(col, row[col])
+			connectionRow: await getResourceByCol(columnName, row[col])
 		};
 	}
 
@@ -126,9 +145,3 @@ export interface UnifiedCell {
 }
 
 export type UnifiedRowTypes = (typeof unifiedGuild)['$inferSelect'];
-const UnifiedTableMap: { [key in UnifiedTableNames]: UnifiedTables } = {
-	unifiedGuild: unifiedGuild
-};
-const ConfTableMap: { [key in UnifiedTableNames]: CellConfigTables } = {
-	unifiedGuild: unifiedGuildCellConfig
-};

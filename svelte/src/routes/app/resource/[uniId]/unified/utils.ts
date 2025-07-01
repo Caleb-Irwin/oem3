@@ -58,7 +58,6 @@ export function objectsEqual<T extends object, U extends object>(
 	obj2: U | T | null | undefined,
 	exclude: (keyof (T & U))[]
 ): boolean {
-	console.log('Comparing objects:', obj1, obj2, 'with exclude:', exclude);
 	if (typeof obj1 !== 'object' || !obj1 || typeof obj2 !== 'object' || !obj2) {
 		return false;
 	}

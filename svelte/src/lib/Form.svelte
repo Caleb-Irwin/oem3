@@ -24,7 +24,7 @@
 		invalidateAll: invalidateAllFlag = false,
 		reloadPage = false,
 		action,
-		res = (ouput) => undefined,
+		res = (output) => undefined,
 		successMessage = null,
 		noReset = false,
 		confirm = false,

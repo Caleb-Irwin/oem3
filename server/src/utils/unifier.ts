@@ -434,6 +434,7 @@ export function createUnifier<
 	return {
 		updateUnifiedTable,
 		updateRow,
+		_updateRow,
 		verifyCellValue
 	};
 }
