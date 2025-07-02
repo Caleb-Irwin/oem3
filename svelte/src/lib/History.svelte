@@ -10,7 +10,7 @@
 
 <ul class="card p-2">
 	<h2 class="pt-2 text-center h3 font-semibold">History</h2>
-	{#each history as entry}
+	{#each history as entry (entry.id)}
 		<HistoryLine {entry} />
 	{/each}
 </ul>

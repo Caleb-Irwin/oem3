@@ -3,7 +3,6 @@
 	import SettingButton from './SettingButton.svelte';
 	import Settings from './Settings.svelte';
 	import Image from '$lib/Image.svelte';
-	// import Text from './Text.svelte';
 
 	interface Props {
 		primary: Cell;
@@ -27,10 +26,8 @@
 		</div>
 		<Settings cell={primary} extraClass="p-2" />
 	</div>
-	<div class="py-1 flex">
-		<!-- <Text namedCell={{ name: 'Primary Image Description', cell: primaryDescription }} /> //Integrate with Primary -->
-	</div>
-	<div class=" card">
+
+	<div class="mt-2 card">
 		{#if other.value}
 			<div class=" w-full grid grid-cols-2 p-1 px-2">
 				{#each JSON.parse(other.value as string) as img, i}
@@ -39,7 +36,12 @@
 						href={img.url}
 						target="_blank"
 					>
-						<Image src={img.url} thumbnail alt="" class="rounded bg-white w-full p-0.5" />
+						<Image
+							src={img.url}
+							thumbnail
+							alt={img.description}
+							class="rounded bg-white w-full p-0.5"
+						/>
 					</a>
 				{/each}
 			</div>

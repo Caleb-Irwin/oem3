@@ -109,7 +109,7 @@ export async function createCellConfigurator(
 						key as any,
 						{
 							needsApprovalCustom: {
-								value: val
+								value: val?.toString() ?? 'Null'
 							}
 						},
 						`Underlying value changed from "${lastTrackedValue}" to "${currentValue}"`

@@ -10,8 +10,8 @@
 </script>
 
 <script lang="ts">
-	import BreakableText from '$lib/helpers/BreakableText.svelte';
 	import Search from 'lucide-svelte/icons/search';
+	import Info from 'lucide-svelte/icons/info';
 	import CompactSearch from '$lib/search/CompactSearch.svelte';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { ColToTableName, type Cell, type CellConfigRowInsert } from './types';
@@ -29,7 +29,9 @@
 	let newSetting = $derived(cell.setting);
 
 	let customValue = $derived(
-			cell.setting === 'setting:custom' ? cell.cellSettingConf?.value : null
+			cell.setting === 'setting:custom' || cell.setting === 'setting:approveCustom'
+				? cell.cellSettingConf?.value
+				: cell.value?.toString()
 		),
 		customValueError: string | null = $state(null),
 		approveThreshold = $derived(
@@ -123,6 +125,23 @@
 	);
 </script>
 
+<div>
+	{#if cell.setting !== null}
+		<div class="card bg-surface-200 p-2 mx-0.5 mt-1 text-sm">
+			<div class="flex items-center">
+				<span class="mr-2"><Info /></span>
+				<span>
+					{#if cell.setting === 'setting:approve'}
+						Manual approval required for changes exceeding threshold
+					{:else if cell.setting === 'setting:custom' || cell.setting === 'setting:approveCustom'}
+						Custom value override is active
+					{/if}
+				</span>
+			</div>
+		</div>
+	{/if}
+</div>
+
 {#if openSettings[cell.compoundId]?.[cell.col]}
 	<Form
 		class="flex-grow w-full min-h-16 place-content-center min-w-52 p-0.5 {extraClass ?? ''}"
@@ -136,8 +155,10 @@
 		successMessage="Cell setting updated successfully"
 	>
 		<div class="card p-2">
-			<p class="font-semibold text-center text-lg">Cell Setting</p>
-			<div class="flex w-full items-center py-1 flex-wrap">
+			<p class="font-semibold text-center text-lg">
+				<span class="code text-lg">{cell.col}</span> Cell Setting
+			</p>
+			<div class="flex w-full items-center my-1 p-1 variant-filled rounded-full">
 				<button
 					class="m-0.5 btn flex-1 {!newSetting ? 'variant-filled-primary' : 'variant-filled'}"
 					onclick={(e) => {
@@ -174,12 +195,7 @@
 				</button>
 			</div>
 			<div class="text-center px-0.5">
-				{#if newSetting === null}
-					<!-- <p>Cell <span class="font-semibold">{cell.col}</span> is set automatically</p> -->
-				{:else if newSetting === 'setting:approve'}
-					<!-- <p>
-						Cell <span class="font-semibold">{cell.col}</span> is set to approve mode
-					</p> -->
+				{#if newSetting === 'setting:approve'}
 					<label class="label py-2">
 						<span class="label-text font-bold">Approval Threshold (by % change)</span>
 						<input
@@ -192,18 +208,7 @@
 					{#if approveThresholdError}
 						<p class="font-bold text-error-600 -mt-1">{approveThresholdError}</p>
 					{/if}
-
-					<p class="text-sm">
-						Last approved value is <span class="font-semibold px-1 bg-primary-500/30"
-							><BreakableText
-								text={cell.cellSettingConf?.lastValue?.toString() ??
-									cell.value?.toString() ??
-									'Null'}
-							/></span
-						>
-					</p>
-				{:else}
-					<!-- <p>Cell <span class="font-semibold">{cell.col}</span> is set to a custom value</p> -->
+				{:else if newSetting === 'setting:custom' || newSetting === 'setting:approveCustom'}
 					<label class="label pt-2">
 						<span class="label-text font-bold"
 							>Custom Value (must be {`${
@@ -236,19 +241,6 @@
 						<input class="checkbox" type="checkbox" bind:checked={approveCustomValue} />
 						<p class="pl-2">Approve custom value on underlying value change</p>
 					</label>
-					<p class="text-sm">
-						Current value is <span class="font-semibold px-1 bg-primary-500/30 mr-0.5"
-							><BreakableText text={cell.value === null ? 'Null' : cell.value.toString()} /></span
-						>
-						| Last auto (underlying) value is
-						<span class="font-semibold px-1 bg-primary-500/30 ml-0.5">
-							<BreakableText
-								text={cell.cellSettingConf?.lastValue?.toString() ??
-									cell.value?.toString() ??
-									'Null'}
-							/></span
-						>
-					</p>
 				{/if}
 			</div>
 			<div class="w-full pt-2">

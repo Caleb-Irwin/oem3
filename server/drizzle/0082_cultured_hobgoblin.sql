@@ -1,0 +1,1 @@
+ALTER TYPE "public"."unifiedGuildColumn" ADD VALUE 'deleted';

@@ -575,6 +575,13 @@
       "when": 1751170790394,
       "tag": "0081_ordinary_paibok",
       "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1751414823709,
+      "tag": "0082_cultured_hobgoblin",
+      "breakpoints": true
     }
   ]
 }

@@ -123,7 +123,8 @@ export const unifiedGuildColumnEnum = pgEnum('unifiedGuildColumn', [
 	'weightGrams',
 	'heavyGoodsChargeSkCents',
 	'freightFlag',
-	'inventory'
+	'inventory',
+	'deleted'
 ]);
 
 export const { table: unifiedGuildCellConfig, relations: unifiedGuildCellConfigRelations } =
