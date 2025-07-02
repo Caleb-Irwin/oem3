@@ -149,6 +149,9 @@ export const managedWorker = (
 		}),
 		hook: (cb: () => void) => {
 			postRunCallbacks.push(cb);
+		},
+		triggerHooks: () => {
+			postRunCallbacks.forEach((cb) => cb());
 		}
 	};
 };

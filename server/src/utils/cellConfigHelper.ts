@@ -4,6 +4,11 @@ import type { CellConfigTable, UnifiedTableNames } from './unifier';
 import type { CellConfigRowInsert } from './cellConfigurator';
 import { eq, and } from 'drizzle-orm';
 import { uniref } from '../db.schema';
+import { guildTriggerHooks } from '../routers/guild';
+
+const triggerMap: { [key in keyof typeof UnifierMap]: () => void } = {
+	unifiedGuild: guildTriggerHooks
+};
 
 export async function getCellConfigHelper(compoundId: string, col: string, db: typeof DB | Tx) {
 	const parts = compoundId.split(':');
@@ -11,21 +16,23 @@ export async function getCellConfigHelper(compoundId: string, col: string, db: t
 		throw new Error(`Invalid compoundId format: ${compoundId}. Expected format: "table:refId"`);
 	}
 
-	const [tablePrefix, refIdStr] = parts;
+	const [tablePrefixRaw, refIdStr] = parts;
 	const refId = Number(refIdStr);
 
 	if (isNaN(refId) || refId <= 0) {
 		throw new Error(`Invalid refId in compoundId: ${refIdStr}. Must be a positive number`);
 	}
 
-	if (!(tablePrefix in UnifierMap)) {
+	if (!(tablePrefixRaw in UnifierMap)) {
 		const supportedTables = Object.keys(UnifierMap).join(', ');
 		throw new Error(
-			`Unsupported table prefix: ${tablePrefix}. Supported tables: ${supportedTables}`
+			`Unsupported table prefix: ${tablePrefixRaw}. Supported tables: ${supportedTables}`
 		);
 	}
 
-	const table: CellConfigTable = UnifierMap[tablePrefix as UnifiedTableNames].confTable;
+	const tablePrefix = tablePrefixRaw as UnifiedTableNames;
+
+	const table: CellConfigTable = UnifierMap[tablePrefix].confTable;
 
 	const unirefColumn = (uniref as any)[tablePrefix];
 	if (!unirefColumn) {
@@ -42,6 +49,8 @@ export async function getCellConfigHelper(compoundId: string, col: string, db: t
 
 	const uniId = unirefRow.uniId;
 
+	const unifier = UnifierMap[tablePrefix].unifier;
+
 	async function getConfigs() {
 		return await db
 			.select()
@@ -57,10 +66,8 @@ export async function getCellConfigHelper(compoundId: string, col: string, db: t
 	async function updateSetting(settingData: CellConfigRowInsert | null) {
 		const existing = await getSetting();
 		if (existing === null && settingData === null) {
-			return;
 		} else if (settingData === null) {
 			await db.delete(table).where(and(eq(table.refId, refId), eq(table.col, col as any)));
-			return;
 		} else if (existing?.id) {
 			if (settingData.id) throw new Error('Setting data should not contain an id when updating');
 			await db
@@ -69,10 +76,14 @@ export async function getCellConfigHelper(compoundId: string, col: string, db: t
 					...settingData
 				})
 				.where(eq(table.id, existing.id));
-			return;
 		} else {
 			await db.insert(table).values(settingData);
-			return;
+		}
+		await unifier._updateRow({ id: refId, db: db, onUpdateCallback: () => null });
+		if (triggerMap[tablePrefix]) {
+			triggerMap[tablePrefix]();
+		} else {
+			throw new Error(`No trigger found for table prefix: ${tablePrefix}`);
 		}
 	}
 
@@ -82,9 +93,9 @@ export async function getCellConfigHelper(compoundId: string, col: string, db: t
 			refId,
 			tablePrefix,
 			compoundId,
-			uniId
+			uniId,
+			unifier
 		},
-		unifier: UnifierMap[tablePrefix as UnifiedTableNames].unifier,
 		getConfigs,
 		getSetting,
 		updateSetting

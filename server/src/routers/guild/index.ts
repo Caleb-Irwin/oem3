@@ -4,9 +4,9 @@ import { flyerRouter, guildFlyerHook } from './flyer';
 import { descRouter, guildDescHook } from './desc';
 import { guildDataHook, guildDataRouter } from './data';
 import { managedWorker } from '../../utils/managedWorker';
-import { updateUnifiedTopicByUniId } from '../unified';
+import { updateUnifiedTopicByUniId } from '../unified.helpers';
 
-const { worker, hook } = managedWorker(
+const { worker, hook, triggerHooks } = managedWorker(
 	new URL('worker.ts', import.meta.url).href,
 	'unifiedGuild',
 	[guildDataHook, guildFlyerHook, guildInventoryHook, guildDescHook],
@@ -14,6 +14,7 @@ const { worker, hook } = managedWorker(
 );
 
 export const guildHook = hook;
+export const guildTriggerHooks = triggerHooks;
 
 export const guildRouter = router({
 	worker,

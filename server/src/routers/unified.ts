@@ -6,14 +6,9 @@ import { desc, eq } from 'drizzle-orm';
 import { getColConfig, type UnifiedTableNames, type UnifiedTables } from '../utils/unifier';
 import type { CellConfigRowInsert, CellConfigRowSelect } from '../utils/cellConfigurator';
 import { getResource } from './resources';
-import { eventSubscription } from '../utils/eventSubscription';
-import { ColToTableName } from './unified.helpers';
+import { ColToTableName, createUnifiedSub, updateUnifiedTopicByUniId } from './unified.helpers';
 import { getCellConfigHelper } from '../utils/cellConfigHelper';
 import { UnifierMap } from '../utils/unifier.map';
-
-const { update, createSub } = eventSubscription();
-
-export const updateUnifiedTopicByUniId = update;
 
 async function getUnified(uniId: number) {
 	return {
@@ -34,7 +29,7 @@ export const unifiedRouter = router({
 		.query(async ({ input: { uniId } }) => {
 			return await getUnified(uniId);
 		}),
-	getSub: createSub<{ uniId: number }, Awaited<ReturnType<typeof getUnified>>>(
+	getSub: createUnifiedSub<{ uniId: number }, Awaited<ReturnType<typeof getUnified>>>(
 		async ({ input: { uniId } }) => {
 			return await getUnified(uniId);
 		}
@@ -52,14 +47,9 @@ export const unifiedRouter = router({
 		)
 		.mutation(async ({ input }) => {
 			await db.transaction(async (tx) => {
-				const { updateSetting, meta, unifier } = await getCellConfigHelper(
-					input.compoundId,
-					input.col,
-					tx
-				);
+				const { updateSetting, meta } = await getCellConfigHelper(input.compoundId, input.col, tx);
 				await updateSetting(input.settingData);
-				await unifier._updateRow({ id: meta.refId, db: tx, onUpdateCallback: () => null });
-				update(meta.uniId.toString());
+				updateUnifiedTopicByUniId(meta.uniId.toString());
 			});
 		})
 });

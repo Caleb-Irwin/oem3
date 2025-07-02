@@ -9,5 +9,9 @@ export const UnifierMap: {
 		confTable: CellConfigTable;
 	};
 } = {
-	unifiedGuild: { unifier: guildUnifier, table: unifiedGuild, confTable: unifiedGuildCellConfig }
+	unifiedGuild: {
+		unifier: guildUnifier,
+		table: unifiedGuild,
+		confTable: unifiedGuildCellConfig
+	}
 };
