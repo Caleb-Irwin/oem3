@@ -23,5 +23,5 @@
 		<div class="flex-grow"></div>
 		<SettingButton {cell} />
 	</div>
-	<Settings {cell} extraClass="p-2 text-normal" />
+	<Settings {cell} extraClass="text-normal" />
 </div>

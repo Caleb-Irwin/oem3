@@ -25,5 +25,5 @@
 		<p class="text-lg font-bold flex-grow pl-1">{name}</p>
 		<SettingButton {cell} />
 	</div>
-	<Settings {cell} extraClass="p-2" />
+	<Settings {cell} extraClass="p-2 pt-0" />
 </div>

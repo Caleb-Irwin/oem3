@@ -85,7 +85,7 @@ export async function getAccessURLBySourceURL(
 	const image = await getImageRefBySourceURL(sourceURL, thumbnail);
 	if (!image) return null;
 	return image.presign({
-		expiresIn: 60 * 60,
+		expiresIn: 7 * 24 * 60 * 60,
 		method: 'GET',
 		acl: 'public-read'
 	});

@@ -46,11 +46,12 @@ export const unifiedRouter = router({
 			})
 		)
 		.mutation(async ({ input }) => {
-			await db.transaction(async (tx) => {
+			const uniId = await db.transaction(async (tx) => {
 				const { updateSetting, meta } = await getCellConfigHelper(input.compoundId, input.col, tx);
 				await updateSetting(input.settingData);
-				updateUnifiedTopicByUniId(meta.uniId.toString());
+				return meta.uniId;
 			});
+			updateUnifiedTopicByUniId(uniId.toString());
 		})
 });
 
