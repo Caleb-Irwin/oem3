@@ -5,6 +5,8 @@ import { resourceTypeEnum, uniref } from './uniref.table';
 export const entryType = pgEnum('history_entry_type', ['create', 'delete', 'update']);
 export type EntryType = (typeof entryType.enumValues)[number];
 
+export const confType = pgEnum('history_conf_type', ['setting', 'error']);
+
 export const history = pgTable(
 	'history',
 	{
@@ -18,6 +20,8 @@ export const history = pgTable(
 			.notNull(),
 		resourceType: resourceTypeEnum('resource_type').notNull(),
 		data: text('data'),
+		confCell: text('conf_cell'),
+		confType: confType('conf_type'),
 		created: bigint('created', { mode: 'number' }).notNull()
 	},
 	(history) => [

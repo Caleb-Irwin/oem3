@@ -18,7 +18,7 @@
 			else return value.toString();
 		}
 		if (typeof value === 'boolean') return value ? 'True' : 'False';
-		if (value === null) return 'NULL';
+		if (value === null) return 'Null';
 		return 'undefined';
 	}
 </script>
@@ -28,15 +28,10 @@
 		class="chip hover:cursor-default whitespace-break-spaces variant-filled-surface flex flex-col sm:flex-row m-0"
 	>
 		<span class="font-bold text-primary-500 pr-1">{key}:</span>
-		{#if !create}
+		{#if !create && prev !== value}
 			<BreakableText text={toReadable(prev)} />
-			{#if prev !== value}
-				<span class="font-bold text-primary-500 pr-2">-></span>
-			{/if}
+			<span class="font-bold text-primary-500 pr-2">-></span>
 		{/if}
 		<BreakableText text={toReadable(value)} />
-		{#if create}
-			<span class="font-bold text-primary-500">New</span>
-		{/if}
 	</span>
 </div>

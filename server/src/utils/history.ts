@@ -9,6 +9,8 @@ export interface InsertHistoryRowOptions<T extends object> {
 	data?: Partial<T> | null;
 	prev?: T;
 	exclude?: (keyof T)[];
+	confCell?: string;
+	confType?: 'setting' | 'error';
 	created: number;
 }
 
@@ -26,6 +28,8 @@ export const insertHistory = async <T extends object>({
 	data,
 	prev,
 	exclude = [],
+	confCell,
+	confType,
 	created
 }: InsertHistoryParams<T>) => {
 	await db.insert(history).values({
@@ -33,8 +37,10 @@ export const insertHistory = async <T extends object>({
 		resourceType,
 		changeset,
 		entryType,
+		confCell,
+		confType,
 		data:
-			entryType === 'create'
+			entryType === 'create' || entryType === 'delete'
 				? JSON.stringify(data)
 				: entryType === 'update' && data
 					? JSON.stringify(
@@ -62,27 +68,41 @@ export const insertMultipleHistoryRows = async <T extends object>({
 	rows: InsertHistoryRowOptions<T>[];
 }) => {
 	await db.insert(history).values(
-		rows.map(({ uniref, changeset = undefined, entryType, data, prev, exclude = [], created }) => ({
-			uniref,
-			resourceType,
-			changeset,
-			entryType,
-			data:
-				entryType === 'create'
-					? JSON.stringify(data)
-					: entryType === 'update' && data
-						? JSON.stringify(
-								Object.entries(data)
-									.map(([key, newValue]): [string, any, any] => [
-										key,
-										//@ts-expect-error
-										prev[key],
-										newValue
-									])
-									.filter(([key]) => !exclude.includes(key as keyof T))
-							)
-						: null,
-			created
-		}))
+		rows.map(
+			({
+				uniref,
+				changeset = undefined,
+				entryType,
+				data,
+				prev,
+				exclude = [],
+				confCell,
+				confType,
+				created
+			}) => ({
+				uniref,
+				resourceType,
+				changeset,
+				entryType,
+				confCell,
+				confType,
+				data:
+					entryType === 'create' || entryType === 'delete'
+						? JSON.stringify(data ?? null)
+						: entryType === 'update' && data
+							? JSON.stringify(
+									Object.entries(data)
+										.map(([key, newValue]): [string, any, any] => [
+											key,
+											//@ts-expect-error
+											prev[key],
+											newValue
+										])
+										.filter(([key]) => !exclude.includes(key as keyof T))
+								)
+							: null,
+				created
+			})
+		)
 	);
 };

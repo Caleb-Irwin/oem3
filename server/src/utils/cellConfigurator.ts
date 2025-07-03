@@ -2,10 +2,12 @@ import { eq, inArray } from 'drizzle-orm';
 import { db as DB, type Tx } from '../db';
 import { type CellSetting } from '../db.schema';
 import type { UnifiedTables, VerifyCellValue, CellConfigTable } from './unifier';
+import { insertHistory, insertMultipleHistoryRows, type InsertHistoryRowOptions } from './history';
 
 export async function createCellConfigurator(
 	table: CellConfigTable,
 	id: number,
+	uniId: number,
 	db: typeof DB | Tx
 ) {
 	const cellConfigs = await db.select().from(table).where(eq(table.refId, id));
@@ -98,6 +100,21 @@ export async function createCellConfigurator(
 						.update(table)
 						.set({ lastValue: currentValue.toString() })
 						.where(eq(table.id, setting.conf!.id));
+					await insertHistory({
+						db,
+						uniref: uniId,
+						resourceType: 'unifiedGuild',
+						entryType: 'update',
+						data: {
+							cellConfigChange: {
+								type: 'settingUpdated',
+								col: key,
+								confType: setting.setting,
+								change: { lastValue: currentValue.toString() }
+							}
+						},
+						created: Date.now()
+					});
 				}
 			} else if (setting.setting === 'setting:approveCustom') {
 				newVal = setting.conf?.value ?? null;
@@ -167,12 +184,54 @@ export async function createCellConfigurator(
 			return true;
 		});
 
+		const historyRows: InsertHistoryRowOptions<{}>[] = [];
+		const time = Date.now();
+
 		if (errorsToRemove.size > 0) {
+			const removedErrorObjects = existingErrors.filter((e) => errorsToRemove.has(e.id));
+			historyRows.push(
+				...removedErrorObjects.map((err) => ({
+					uniref: uniId,
+					entryType: 'delete' as const,
+					confType: 'error' as const,
+					confCell: err.col,
+					data: {
+						confType: err.confType
+					},
+					created: time
+				}))
+			);
 			await db.delete(table).where(inArray(table.id, Array.from(errorsToRemove)));
 		}
 		if (errorsToAdd.length > 0) {
+			historyRows.push(
+				...errorsToAdd.map((err) => ({
+					uniref: uniId,
+					entryType: 'create' as const,
+					confType: 'error' as const,
+					confCell: err.col,
+					data: {
+						confType: err.confType,
+						value: err.value,
+						message: err.message,
+						options: err.options,
+						lastValue: err.lastValue,
+						resolved: err.resolved
+					},
+					created: time
+				}))
+			);
 			await db.insert(table).values(errorsToAdd);
 		}
+
+		if (historyRows.length > 0) {
+			await insertMultipleHistoryRows({
+				db,
+				resourceType: 'unifiedGuild',
+				rows: historyRows
+			});
+		}
+
 		return errorsToAdd;
 	}
 
@@ -208,7 +267,10 @@ function doErrorsMatch(
 	for (const k of new Set([...Object.keys(error), ...Object.keys(newError)])) {
 		const key = k as keyof typeof error;
 		if (key === 'id' || key === 'created' || key === 'refId') continue;
-		if (error[key] !== newError[key]) return false;
+		if ((error[key] ?? null) !== (newError[key] ?? null)) {
+			console.log(`Error mismatch on key "${key}": "${error[key]}" !== "${newError[key]}"`);
+			return false;
+		}
 	}
 	return true;
 }

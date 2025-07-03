@@ -129,7 +129,7 @@
 	{#if cell.setting !== null}
 		<div class="card bg-surface-200 p-2 mx-0.5 mt-1 text-sm">
 			<div class="flex items-center">
-				<span class="mr-2"><Info /></span>
+				<span class="pr-2"><Info /></span>
 				<span>
 					{#if cell.setting === 'setting:approve'}
 						Manual approval required for changes exceeding threshold
