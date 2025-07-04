@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types';
+import type { LayoutServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params, locals: { client } }) => {
+export const load: LayoutServerLoad = async ({ params, locals: { client } }) => {
 	const res = await client.resources.get.query({
 		uniId: parseInt(params.uniId),
 		includeHistory: false
