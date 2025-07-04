@@ -68,7 +68,7 @@ export async function getCellConfigHelper(compoundId: string, col: string, db: t
 		const existing = await getSetting();
 		if (existing === null && settingData === null) {
 		} else if (settingData === null) {
-			await db.delete(table).where(and(eq(table.refId, refId), eq(table.col, col as any)));
+			await db.delete(table).where(eq(table.id, existing!.id));
 			await insertHistory({
 				db,
 				uniref: uniId,
