@@ -7,11 +7,13 @@ export const UnifierMap: {
 		unifier: ReturnType<typeof createUnifier>;
 		table: UnifiedTables;
 		confTable: CellConfigTable;
+		pageUrl: string;
 	};
 } = {
 	unifiedGuild: {
 		unifier: guildUnifier,
 		table: unifiedGuild,
-		confTable: unifiedGuildCellConfig
+		confTable: unifiedGuildCellConfig,
+		pageUrl: '/app/guild'
 	}
 };

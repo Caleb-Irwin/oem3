@@ -1,0 +1,4 @@
+ALTER TABLE "unifiedGuildCellConfig" ALTER COLUMN "confType" SET DATA TYPE text;--> statement-breakpoint
+DROP TYPE "public"."cellConfigType";--> statement-breakpoint
+CREATE TYPE "public"."cellConfigType" AS ENUM('setting:custom', 'setting:approve', 'setting:approveCustom', 'error:multipleOptions', 'error:missingValue', 'error:needsApproval', 'error:needsApprovalCustom', 'error:matchWouldCauseDuplicate', 'error:shouldNotBeNull', 'error:invalidDataType', 'error:contradictorySources', 'error:canNotBeSetToNull', 'error:canNotBeSetToWrongType');--> statement-breakpoint
+ALTER TABLE "unifiedGuildCellConfig" ALTER COLUMN "confType" SET DATA TYPE "public"."cellConfigType" USING "confType"::"public"."cellConfigType";

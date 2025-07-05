@@ -13,25 +13,13 @@ import {
 	type PgEnum
 } from 'drizzle-orm/pg-core';
 
-export type CellSetting = 'setting:custom' | 'setting:approve' | 'setting:approveCustom';
-export type CellError =
-	| 'error:multipleOptions'
-	| 'error:missingValue'
-	| 'error:needsApproval'
-	| 'error:matchWouldCauseDuplicate'
-	| 'error:shouldNotBeNull'
-	| 'error:invalidDataType'
-	| 'error:contradictorySources'
-	| 'error:canNotBeSetToNull'
-	| 'error:canNotBeSetToWrongType';
-export type CellData = 'data:lastApprovedValue' | 'data:lastDisapprovedValue' | 'data:userNote';
-
-export const cellConfigType = pgEnum('cellConfigType', [
-	//Field settings
+export const CellSettingArray = [
 	'setting:custom',
 	'setting:approve',
-	'setting:approveCustom',
-	// Field errors
+	'setting:approveCustom'
+] as const;
+export type CellSetting = (typeof CellSettingArray)[number];
+export const CellErrorArray = [
 	'error:multipleOptions',
 	'error:missingValue',
 	'error:needsApproval',
@@ -41,12 +29,16 @@ export const cellConfigType = pgEnum('cellConfigType', [
 	'error:invalidDataType',
 	'error:contradictorySources',
 	'error:canNotBeSetToNull',
-	'error:canNotBeSetToWrongType',
-	// Field data
-	'data:lastApprovedValue',
-	'data:lastDisapprovedValue',
-	'data:userNote'
-]);
+	'error:canNotBeSetToWrongType'
+] as const;
+export type CellError = (typeof CellErrorArray)[number];
+
+export const cellConfigType = pgEnum('cellConfigType', [
+	...CellSettingArray,
+	...CellErrorArray
+] as const);
+
+export type CellConfigType = (typeof cellConfigType.enumValues)[number];
 
 export function cellConfigTable<COLS extends [string, ...string[]]>({
 	originalTable,

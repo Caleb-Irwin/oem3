@@ -1,9 +1,14 @@
 import { z } from 'zod';
-import { history, unifiedGuild, uniref, type CellSetting } from '../db.schema';
+import { CellErrorArray, history, unifiedGuild, uniref, type CellSetting } from '../db.schema';
 import { generalProcedure, router, viewerProcedure } from '../trpc';
 import { db } from '../db';
-import { desc, eq } from 'drizzle-orm';
-import { getColConfig, type UnifiedTableNames, type UnifiedTables } from '../utils/unifier';
+import { and, desc, eq, inArray, max } from 'drizzle-orm';
+import {
+	getColConfig,
+	UnifiedTableNamesArray,
+	type UnifiedTableNames,
+	type UnifiedTables
+} from '../utils/unifier';
 import type { CellConfigRowInsert, CellConfigRowSelect } from '../utils/cellConfigurator';
 import { getResource } from './resources';
 import { ColToTableName, createUnifiedSub, updateUnifiedTopicByUniId } from './unified.helpers';
@@ -59,6 +64,93 @@ export const unifiedRouter = router({
 				{ isolationLevel: 'serializable' }
 			);
 			updateUnifiedTopicByUniId(uniId.toString());
+		}),
+	getErrorUrl: viewerProcedure
+		.input(
+			z.object({
+				mode: z.enum(['prev', 'next']),
+				currentUniId: z.number()
+			})
+		)
+		.query(async ({ input: { mode, currentUniId } }) => {
+			const uniRow = await db.query.uniref.findFirst({
+				where: eq(uniref.uniId, currentUniId)
+			});
+			const tableName = uniRow!.resourceType as UnifiedTableNames;
+			const refId = uniRow![tableName] as number;
+
+			const allItemsWithErrors = await db
+				.selectDistinct({
+					id: UnifierMap[tableName].table.id,
+					maxCreated: max(UnifierMap[tableName].confTable.created)
+				})
+				.from(UnifierMap[tableName].table)
+				.innerJoin(
+					UnifierMap[tableName].confTable,
+					eq(UnifierMap[tableName].confTable.refId, UnifierMap[tableName].table.id)
+				)
+				.where(
+					and(
+						eq(UnifierMap[tableName].confTable.resolved, false),
+						inArray(UnifierMap[tableName].confTable.confType, CellErrorArray)
+					)
+				)
+				.groupBy(UnifierMap[tableName].table.id)
+				.orderBy(desc(max(UnifierMap[tableName].confTable.created)));
+
+			if (allItemsWithErrors.length === 0) {
+				return {
+					url: UnifierMap[tableName].pageUrl
+				};
+			}
+
+			let newRefId: number | undefined;
+			const currentIndex = allItemsWithErrors.findIndex((c) => c.id === refId);
+			console.log('Current Index:', currentIndex, newRefId);
+			if (currentIndex >= 0) {
+				if (mode === 'prev') {
+					newRefId = allItemsWithErrors[currentIndex - 1]?.id;
+				} else if (mode === 'next') {
+					newRefId = allItemsWithErrors[currentIndex + 1]?.id;
+				}
+			}
+			if (!newRefId) {
+				newRefId =
+					mode === 'prev'
+						? allItemsWithErrors[allItemsWithErrors.length - 1].id
+						: allItemsWithErrors[0].id;
+			}
+			const unirefRow = await db.query.uniref.findFirst({
+				where: eq(uniref[tableName], newRefId)
+			});
+			return {
+				url: `/app/resource/${unirefRow!.uniId}/unified/errors`
+			};
+		}),
+	getFirstErrorUrl: viewerProcedure
+		.input(
+			z.object({
+				tableName: z.enum(UnifiedTableNamesArray)
+			})
+		)
+		.query(async ({ input: { tableName } }) => {
+			const table = UnifierMap[tableName].confTable;
+			const firstError = await db
+				.select()
+				.from(table)
+				.where(and(eq(table.resolved, false), inArray(table.confType, CellErrorArray)))
+				.orderBy(desc(table.created))
+				.limit(1);
+			if (firstError.length === 0) {
+				throw new Error('No errors found for this table');
+			}
+			const refId = firstError[0].refId;
+			const unirefRow = await db.query.uniref.findFirst({
+				where: eq(uniref[tableName], refId)
+			});
+			return {
+				url: `/app/resource/${unirefRow!.uniId}/unified/errors`
+			};
 		})
 });
 

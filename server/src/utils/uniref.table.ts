@@ -70,20 +70,18 @@ export const uniref = pgTable(
 			onDelete: 'cascade'
 		})
 	},
-	(uniref) => {
-		return {
-			resourceTypeIndex: index('resource_type_idx').on(uniref.uniId),
-			changesetsIndex: index('uniref_changesets_idx').on(uniref.changeset),
-			qbIndex: index('uniref_qb_idx').on(uniref.qb),
-			guildIndex: index('uniref_guild_idx').on(uniref.guildData),
-			guildInventoryIndex: index('uniref_guildInventory_idx').on(uniref.guildInventory),
-			guildFlyerIndex: index('uniref_guildFlyer_idx').on(uniref.guildFlyer),
-			shopifyIndex: index('uniref_shopify_idx').on(uniref.shopify),
-			sprPriceFileIndex: index('spr_price_file_idx').on(uniref.sprPriceFile),
-			sprFlatFileIndex: index('spr_flat_file_idx').on(uniref.sprFlatFile),
-			unifiedGuildIndex: index('uniref_unifiedGuild_idx').on(uniref.unifiedGuild)
-		};
-	}
+	(uniref) => [
+		index('resource_type_idx').on(uniref.uniId),
+		index('uniref_changesets_idx').on(uniref.changeset),
+		index('uniref_qb_idx').on(uniref.qb),
+		index('uniref_guild_idx').on(uniref.guildData),
+		index('uniref_guildInventory_idx').on(uniref.guildInventory),
+		index('uniref_guildFlyer_idx').on(uniref.guildFlyer),
+		index('uniref_shopify_idx').on(uniref.shopify),
+		index('spr_price_file_idx').on(uniref.sprPriceFile),
+		index('spr_flat_file_idx').on(uniref.sprFlatFile),
+		index('uniref_unifiedGuild_idx').on(uniref.unifiedGuild)
+	]
 );
 
 export const unirefRelations = relations(uniref, ({ one }) => ({

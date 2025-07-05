@@ -8,7 +8,8 @@
 		class?: string;
 		invalidateAll?: boolean;
 		reloadPage?: boolean;
-		action: { mutate: (input: I) => Promise<T> };
+		action: { mutate: (input: I) => Promise<T> } | { query: (input: any) => Promise<T> };
+		queryMode: boolean;
 		res?: (output: T) => Promise<void> | void;
 		successMessage?: string | null;
 		noReset?: boolean;
@@ -24,6 +25,7 @@
 		invalidateAll: invalidateAllFlag = false,
 		reloadPage = false,
 		action,
+		queryMode = false,
 		res = (output) => undefined,
 		successMessage = null,
 		noReset = false,
@@ -75,13 +77,14 @@
 				formData.file = await readFile(formData.file);
 			}
 			//@ts-ignore
-			await res(await action.mutate({ ...input, ...formData }));
+			const actionRes = await action[queryMode ? 'query' : 'mutate']({ ...input, ...formData });
 			if (!noReset) formEl.reset();
 			if (successMessage !== null)
 				toastStore.trigger({
 					message: successMessage,
 					background: 'variant-filled-success'
 				});
+			await res(actionRes);
 			if (invalidateAllFlag) await invalidateAll();
 			if (modalMode) modalStore.close();
 			if (reloadPage) window.location.reload();

@@ -460,7 +460,8 @@ export function getColConfig<TableType extends UnifiedTables>(table: TableType) 
 }
 
 export type UnifiedTables = typeof unifiedGuild;
-export type UnifiedTableNames = 'unifiedGuild';
+export const UnifiedTableNamesArray = ['unifiedGuild'] as const;
+export type UnifiedTableNames = (typeof UnifiedTableNamesArray)[number];
 export type PrimarySourceTables = typeof unifiedGuild | typeof guildData;
 // export type SecondarySourceTables = typeof unifiedSPR
 export type OtherSourceTables = typeof guildInventory | typeof guildFlyer;

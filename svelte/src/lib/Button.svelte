@@ -5,7 +5,8 @@
 		class?: string;
 		invalidateAll?: boolean;
 		reloadPage?: boolean;
-		action: { mutate: (input: any) => Promise<T> };
+		action: { mutate: (input: any) => Promise<T> } | { query: (input: any) => Promise<T> };
+		queryMode?: boolean;
 		res?: (output: T) => Promise<void> | void;
 		successMessage?: string | null;
 		confirm?: boolean | string;
@@ -19,7 +20,8 @@
 		invalidateAll: invalidateAllFlag = false,
 		reloadPage = false,
 		action,
-		res = (ouput) => undefined,
+		queryMode = false,
+		res = (output: T) => undefined,
 		successMessage = null,
 		confirm = false,
 		input = {},
@@ -37,6 +39,7 @@
 	{successMessage}
 	{confirm}
 	{input}
+	{queryMode}
 >
 	<button class={btnClass} {disabled}>{@render children?.()}</button>
 </Form>
