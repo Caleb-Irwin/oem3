@@ -5,6 +5,7 @@ import type { jwtFields } from '../routers/user';
 
 export const eventSubscription = () => {
 	const ee = new EventEmitter();
+	ee.setMaxListeners(100);
 	const update = (updateTopic = 'default') => {
 		ee.emit(updateTopic);
 	};

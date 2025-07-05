@@ -16,7 +16,11 @@
 <div class="p-2 w-full flex flex-col justify-center">
 	<div class="w-full h-full card relative min-h-16">
 		{#if primary.value}
-			<a class="p-2 w-full flex justify-center" href={primary.value as string} target="_blank">
+			<a
+				class="p-2 w-full flex justify-center aspect-square"
+				href={primary.value as string}
+				target="_blank"
+			>
 				<Image src={primary.value as string} alt="" class="rounded p-2 bg-white w-full" />
 			</a>
 		{/if}
@@ -32,7 +36,7 @@
 			<div class=" w-full grid grid-cols-2 p-1 px-2">
 				{#each JSON.parse(other.value as string) as img, i}
 					<a
-						class="w-full flex justify-center py-1 {i % 2 === 0 ? 'pr-1' : 'pl-1'}"
+						class="w-full flex justify-center py-1 {i % 2 === 0 ? 'pr-1' : 'pl-1'} aspect-square"
 						href={img.url}
 						target="_blank"
 					>
