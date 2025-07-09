@@ -2,6 +2,7 @@
 	import { client, query } from '$lib/client';
 	import CopyableText from '$lib/helpers/CopyableText.svelte';
 	import Image from '$lib/Image.svelte';
+	import { imageRedirect } from '$lib/imageRedirector';
 
 	interface Props {
 		etilizeId: string | undefined;
@@ -47,10 +48,13 @@
 
 			<a
 				class="grid place-content-center p-0.5"
-				href={$res.spr
-					? `https://content.etilize.com/${$res.spr.primaryImage}/${etilizeId}.jpg`
-					: JSON.parse($res.guild?.imageListJSON ?? '[]')[0]}
+				href={imageRedirect(
+					$res.spr
+						? `https://content.etilize.com/${$res.spr.primaryImage}/${etilizeId}.jpg`
+						: JSON.parse($res.guild?.imageListJSON ?? '[]')[0]
+				)}
 				target="_blank"
+				rel="noopener noreferrer"
 			>
 				<Image
 					src={$res.spr
@@ -64,7 +68,9 @@
 				{#each $res.spr ? JSON.parse($res.spr.otherImagesJsonArr ?? '[]') : $res.guild ? JSON.parse($res.guild.imageListJSON ?? '[]').slice(1) : [] as image}
 					<a
 						class="p-0.5 w-full flex justify-center"
-						href={$res.spr ? `https://content.etilize.com/${image}/${etilizeId}.jpg` : image}
+						href={imageRedirect(
+							$res.spr ? `https://content.etilize.com/${image}/${etilizeId}.jpg` : image
+						)}
 						target="_blank"
 					>
 						<Image

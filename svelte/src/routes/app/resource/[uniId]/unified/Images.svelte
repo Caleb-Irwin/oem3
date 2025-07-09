@@ -3,6 +3,7 @@
 	import SettingButton from './SettingButton.svelte';
 	import Settings from './Settings.svelte';
 	import Image from '$lib/Image.svelte';
+	import { imageRedirect } from '$lib/imageRedirector';
 
 	interface Props {
 		primary: Cell;
@@ -18,8 +19,9 @@
 		{#if primary.value}
 			<a
 				class="p-2 w-full flex justify-center aspect-square"
-				href={primary.value as string}
+				href={imageRedirect(primary.value as string)}
 				target="_blank"
+				rel="noopener noreferrer"
 			>
 				<Image src={primary.value as string} alt="" class="rounded p-2 bg-white w-full" />
 			</a>
@@ -37,8 +39,9 @@
 				{#each JSON.parse(other.value as string) as img, i}
 					<a
 						class="w-full flex justify-center py-1 {i % 2 === 0 ? 'pr-1' : 'pl-1'} aspect-square"
-						href={img.url}
+						href={imageRedirect(img.url)}
 						target="_blank"
+						rel="noopener noreferrer"
 					>
 						<Image
 							src={img.url}

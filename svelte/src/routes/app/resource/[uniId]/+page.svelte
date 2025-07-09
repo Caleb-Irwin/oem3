@@ -8,6 +8,7 @@
 	import EnhancedImages from './EnhancedContent.svelte';
 	import Image from '$lib/Image.svelte';
 	import { client, subVal } from '$lib/client';
+	import { imageRedirect } from '$lib/imageRedirector';
 
 	interface Props {
 		data: PageData;
@@ -40,7 +41,14 @@
 					<div
 						class="p-2 w-full flex flex-col justify-center md:block md:min-w-96 md:max-w-96 lg:min-w-[512px] lg:max-w-[512px]"
 					>
-						<Image src={product.imageUrl} alt="" class="rounded p-2 bg-white w-full" />
+						<a
+							class="p-2 w-full flex justify-center aspect-square"
+							href={imageRedirect(product.imageUrl)}
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							<Image src={product.imageUrl} alt="" class="rounded p-2 bg-white w-full" />
+						</a>
 						{#if product.otherImageUrls}
 							<div class="pt-1 w-full grid grid-cols-2">
 								{#each product.otherImageUrls as image, i}

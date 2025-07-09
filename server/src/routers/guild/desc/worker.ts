@@ -10,6 +10,8 @@ import { addOrSmartUpdateImage } from '../../../utils/images';
 
 work({
 	process: async ({ db, progress }) => {
+		return; // Temp disabled
+
 		const guildList = (
 			await db.query.guildData
 				.findMany({
@@ -34,7 +36,7 @@ work({
 			total = guildList.length;
 
 		await PromisePool.withConcurrency(1)
-			.for(new Array(10).fill(null))
+			.for(new Array(2).fill(null))
 			.process(async () => {
 				const session = new SessionManager();
 				session.init();
