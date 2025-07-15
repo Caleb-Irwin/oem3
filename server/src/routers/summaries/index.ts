@@ -29,7 +29,7 @@ async function getSummaryByType(type: 'all' | 'unifiedGuild') {
 	return {
 		id: summary.id,
 		type: summary.type,
-		data: JSON.parse(summary.data)
+		data: JSON.parse(summary.data ?? 'null') ?? null
 	};
 }
 

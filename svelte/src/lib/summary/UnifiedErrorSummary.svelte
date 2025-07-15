@@ -23,11 +23,11 @@
 	const _data = subVal(client.summaries.getSub, {
 		init: initialData,
 		input: {
-			tableName
+			type: tableName
 		}
 	});
 
-	const summary: UnifiedErrorSummary | null = $derived($_data?.data);
+	const summary: UnifiedErrorSummary | null = $derived($_data?.data ?? null);
 
 	let showDeletedItems = $state(false);
 </script>
