@@ -5,28 +5,14 @@
 	import WorkerStatus from '$lib/WorkerStatus.svelte';
 	import Button from '$lib/Button.svelte';
 	import type { PageProps } from './$types';
-	import { goto } from '$app/navigation';
-	import ChevronRight from 'lucide-svelte/icons/chevron-right';
+	import UnifiedErrorSummary from '$lib/summary/UnifiedErrorSummary.svelte';
 
 	let { data }: PageProps = $props();
 </script>
 
 <h1 class="text-center h2 p-2 pt-4">Guild</h1>
 
-<div class="card mx-4 p-4 flex">
-	<Button
-		class="btn w-36 variant-filled-primary"
-		action={client.unified.getFirstErrorUrl}
-		queryMode
-		input={{
-			tableName: 'unifiedGuild'
-		}}
-		res={async (output) => goto(output.url)}
-	>
-		<span class="flex-grow">Fix Errors</span>
-		<ChevronRight />
-	</Button>
-</div>
+<UnifiedErrorSummary tableName="unifiedGuild" initialData={data.guildErrorSummary} />
 
 <div class="w-full flex flex-col xl:grid xl:grid-cols-3 justify-center p-2">
 	<div class="p-2 w-full xl:w-auto flex flex-col items-center min-w-96">

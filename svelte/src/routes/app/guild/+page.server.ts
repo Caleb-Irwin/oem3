@@ -22,6 +22,9 @@ export const load: PageServerLoad = async ({ locals: { client } }) => {
 		guildDescStatus: client.guild.desc.worker.status.query(),
 
 		// Guild Worker
-		guildWorkerStatus: client.guild.worker.status.query()
+		guildWorkerStatus: client.guild.worker.status.query(),
+
+		// Guild Error Summary
+		guildErrorSummary: client.summaries.get.query({ type: 'unifiedGuild' })
 	});
 };

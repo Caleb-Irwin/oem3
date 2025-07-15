@@ -69,34 +69,18 @@ export const unifiedRouter = router({
 		.input(
 			z.object({
 				mode: z.enum(['prev', 'next']),
-				currentUniId: z.number()
+				currentUniId: z.number(),
+				deletedMode: z.boolean().default(false)
 			})
 		)
-		.query(async ({ input: { mode, currentUniId } }) => {
+		.query(async ({ input: { mode, currentUniId, deletedMode } }) => {
 			const uniRow = await db.query.uniref.findFirst({
 				where: eq(uniref.uniId, currentUniId)
 			});
 			const tableName = uniRow!.resourceType as UnifiedTableNames;
 			const refId = uniRow![tableName] as number;
 
-			const allItemsWithErrors = await db
-				.selectDistinct({
-					id: UnifierMap[tableName].table.id,
-					maxCreated: max(UnifierMap[tableName].confTable.created)
-				})
-				.from(UnifierMap[tableName].table)
-				.innerJoin(
-					UnifierMap[tableName].confTable,
-					eq(UnifierMap[tableName].confTable.refId, UnifierMap[tableName].table.id)
-				)
-				.where(
-					and(
-						eq(UnifierMap[tableName].confTable.resolved, false),
-						inArray(UnifierMap[tableName].confTable.confType, CellErrorArray)
-					)
-				)
-				.groupBy(UnifierMap[tableName].table.id)
-				.orderBy(desc(max(UnifierMap[tableName].confTable.created)));
+			const allItemsWithErrors = await errorQueryBuilder(tableName, deletedMode);
 
 			if (allItemsWithErrors.length === 0) {
 				return {
@@ -106,7 +90,6 @@ export const unifiedRouter = router({
 
 			let newRefId: number | undefined;
 			const currentIndex = allItemsWithErrors.findIndex((c) => c.id === refId);
-			console.log('Current Index:', currentIndex, newRefId);
 			if (currentIndex >= 0) {
 				if (mode === 'prev') {
 					newRefId = allItemsWithErrors[currentIndex - 1]?.id;
@@ -130,21 +113,17 @@ export const unifiedRouter = router({
 	getFirstErrorUrl: viewerProcedure
 		.input(
 			z.object({
-				tableName: z.enum(UnifiedTableNamesArray)
+				tableName: z.enum(UnifiedTableNamesArray),
+				deletedMode: z.boolean().default(false)
 			})
 		)
-		.query(async ({ input: { tableName } }) => {
-			const table = UnifierMap[tableName].confTable;
-			const firstError = await db
-				.select()
-				.from(table)
-				.where(and(eq(table.resolved, false), inArray(table.confType, CellErrorArray)))
-				.orderBy(desc(table.created))
-				.limit(1);
+		.query(async ({ input: { tableName, deletedMode } }) => {
+			const query = errorQueryBuilder(tableName, deletedMode);
+			const firstError = await query.limit(1);
 			if (firstError.length === 0) {
 				throw new Error('No errors found for this table');
 			}
-			const refId = firstError[0].refId;
+			const refId = firstError[0].id;
 			const unirefRow = await db.query.uniref.findFirst({
 				where: eq(uniref[tableName], refId)
 			});
@@ -200,6 +179,29 @@ async function getUnifiedRow(uniId: number): Promise<UnifiedRow<UnifiedTables>> 
 		allActiveErrors,
 		cells
 	};
+}
+
+function errorQueryBuilder(tableName: UnifiedTableNames, deletedMode: boolean) {
+	return db
+		.selectDistinct({
+			id: UnifierMap[tableName].table.id,
+			mostRecentErrorTime: max(UnifierMap[tableName].confTable.created)
+		})
+		.from(UnifierMap[tableName].table)
+		.innerJoin(
+			UnifierMap[tableName].confTable,
+			eq(UnifierMap[tableName].confTable.refId, UnifierMap[tableName].table.id)
+		)
+		.where(
+			and(
+				eq(UnifierMap[tableName].confTable.resolved, false),
+				inArray(UnifierMap[tableName].confTable.confType, CellErrorArray),
+				eq(UnifierMap[tableName].table.deleted, deletedMode)
+			)
+		)
+		.groupBy(UnifierMap[tableName].table.id)
+		.orderBy(desc(max(UnifierMap[tableName].confTable.created)))
+		.$dynamic();
 }
 
 async function getResourceByCol(col: string, value: string | number | boolean | null) {

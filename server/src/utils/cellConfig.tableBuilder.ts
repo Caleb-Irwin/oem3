@@ -12,6 +12,7 @@ import {
 	type AnyPgTable,
 	type PgEnum
 } from 'drizzle-orm/pg-core';
+import type { UnifiedTableNames } from './unifier';
 
 export const CellSettingArray = [
 	'setting:custom',
@@ -39,6 +40,7 @@ export const cellConfigType = pgEnum('cellConfigType', [
 ] as const);
 
 export type CellConfigType = (typeof cellConfigType.enumValues)[number];
+export const UnifiedTableNamesArray = ['unifiedGuild'] as UnifiedTableNames[];
 
 export function cellConfigTable<COLS extends [string, ...string[]]>({
 	originalTable,

@@ -9,6 +9,8 @@ export function getErrorTitle(confType: CellConfigType) {
 			return 'Missing Value';
 		case 'needsApproval':
 			return 'Needs Approval';
+		case 'needsApprovalCustom':
+			return 'Custom Value Needs Approval';
 		case 'matchWouldCauseDuplicate':
 			return 'Match Would Cause Duplicate';
 		case 'shouldNotBeNull':

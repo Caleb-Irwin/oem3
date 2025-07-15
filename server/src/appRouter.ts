@@ -9,6 +9,7 @@ import { guildRouter } from './routers/guild';
 import { shopifyRouter } from './routers/shopify';
 import { sprRouter } from './routers/spr';
 import { unifiedRouter } from './routers/unified';
+import { summariesRouter } from './routers/summaries';
 
 export const appRouter = router({
 	user: userRouter,
@@ -20,5 +21,6 @@ export const appRouter = router({
 	guild: guildRouter,
 	shopify: shopifyRouter,
 	spr: sprRouter,
-	unified: unifiedRouter
+	unified: unifiedRouter,
+	summaries: summariesRouter
 });
