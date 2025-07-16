@@ -134,7 +134,10 @@ export const unifiedRouter = router({
 						: allItemsWithErrors[allItemsWithErrors.length - 1].id
 			};
 
-			await kv.set(`lastError-${tableName}-${user.username}`, String(newRefId));
+			await kv.set(
+				`lastError-${tableName}-${user.username}${deletedMode ? '-deleteMode' : ''}`,
+				String(newRefId)
+			);
 
 			const unirefRow = await db.query.uniref.findFirst({
 				where: eq(uniref[tableName], newRefId)
@@ -162,7 +165,9 @@ export const unifiedRouter = router({
 
 			let refId: number | undefined, refIndex: number | undefined;
 			const lastAccessed = parseInt(
-				(await kv.get(`lastError-${tableName}-${user.username}`)) || '-1'
+				(await kv.get(
+					`lastError-${tableName}-${user.username}${deletedMode ? '-deleteMode' : ''}`
+				)) || '-1'
 			);
 			const lastAccessedIndex =
 				lastAccessed > -1 ? errors.findIndex((c) => c.id === lastAccessed) : null;

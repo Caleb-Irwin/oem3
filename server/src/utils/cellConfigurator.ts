@@ -268,7 +268,6 @@ function doErrorsMatch(
 		const key = k as keyof typeof error;
 		if (key === 'id' || key === 'created' || key === 'refId') continue;
 		if ((error[key] ?? null) !== (newError[key] ?? null)) {
-			console.log(`Error mismatch on key "${key}": "${error[key]}" !== "${newError[key]}"`);
 			return false;
 		}
 	}

@@ -165,21 +165,23 @@ export const resourcesRouter = router({
 				: null;
 			if (gid) originalURL = `https://shopofficeonline.com/ProductImages/${gid}.jpg`;
 
-			const image = await getAccessURLBySourceURL(originalURL, thumbnail);
+			const imageURL = await getAccessURLBySourceURL(originalURL, thumbnail);
+			if (imageURL) return imageURL;
 
-			if (!image) {
-				if (gid) {
-					await addOrSmartUpdateImage(
-						`https://shopofficeonline.com/ProductImages/${gid.replace(/[\W_]+/g, '')}.jpg`,
-						gid,
-						'shopofficeonline',
-						true
-					);
-					return (await getAccessURLBySourceURL(originalURL, thumbnail)) ?? originalURL;
-				}
-
-				return originalURL;
+			if (gid) {
+				await addOrSmartUpdateImage(
+					`https://shopofficeonline.com/ProductImages/${gid.replace(/[\W_]+/g, '')}.jpg`,
+					gid,
+					'shopofficeonline',
+					true
+				);
+				const potentialNewURL = await getAccessURLBySourceURL(originalURL, thumbnail);
+				if (potentialNewURL) return potentialNewURL;
 			}
-			return image;
+
+			throw new TRPCError({
+				code: 'NOT_FOUND',
+				message: 'Image not found'
+			});
 		})
 });
