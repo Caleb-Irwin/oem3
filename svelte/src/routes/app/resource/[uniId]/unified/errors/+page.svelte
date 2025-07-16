@@ -11,6 +11,7 @@
 	import Button from '$lib/Button.svelte';
 	import { client } from '$lib/client';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 
 	let props: PageProps = $props();
 
@@ -40,7 +41,8 @@
 					queryMode
 					input={{
 						currentUniId: data.uniId,
-						mode: 'prev'
+						mode: 'prev',
+						urlHash: page.url.hash
 					}}
 					res={async (output) => goto(output.url)}
 				>
@@ -55,7 +57,8 @@
 					queryMode
 					input={{
 						currentUniId: data.uniId,
-						mode: 'next'
+						mode: 'next',
+						urlHash: page.url.hash
 					}}
 					res={async (output) => goto(output.url)}
 				>

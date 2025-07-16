@@ -14,6 +14,9 @@ import { getResource } from './resources';
 import { ColToTableName, createUnifiedSub, updateUnifiedTopicByUniId } from './unified.helpers';
 import { getCellConfigHelper } from '../utils/cellConfigHelper';
 import { UnifierMap } from '../utils/unifier.map';
+import { KV } from '../utils/kv';
+
+const kv = new KV('unifiedErrors');
 
 async function getUnified(uniId: number) {
 	return {
@@ -70,10 +73,15 @@ export const unifiedRouter = router({
 			z.object({
 				mode: z.enum(['prev', 'next']),
 				currentUniId: z.number(),
-				deletedMode: z.boolean().default(false)
+				urlHash: z.string()
 			})
 		)
-		.query(async ({ input: { mode, currentUniId, deletedMode } }) => {
+		.query(async ({ input: { mode, currentUniId, urlHash }, ctx: { user } }) => {
+			const meta = JSON.parse(decodeURIComponent(urlHash.replace(/^#/, '') || '{}'));
+			const deletedMode = meta.deleted === true,
+				likelyPrev = (meta.prev as number) || null,
+				likelyNext = (meta.next as number) || null;
+
 			const uniRow = await db.query.uniref.findFirst({
 				where: eq(uniref.uniId, currentUniId)
 			});
@@ -89,25 +97,53 @@ export const unifiedRouter = router({
 			}
 
 			let newRefId: number | undefined;
-			const currentIndex = allItemsWithErrors.findIndex((c) => c.id === refId);
-			if (currentIndex >= 0) {
-				if (mode === 'prev') {
-					newRefId = allItemsWithErrors[currentIndex - 1]?.id;
-				} else if (mode === 'next') {
-					newRefId = allItemsWithErrors[currentIndex + 1]?.id;
-				}
+
+			if (
+				likelyPrev &&
+				mode === 'prev' &&
+				allItemsWithErrors.findIndex((c) => c.id === likelyPrev) >= 0
+			) {
+				newRefId = likelyPrev;
+			} else if (
+				likelyNext &&
+				mode === 'next' &&
+				allItemsWithErrors.findIndex((c) => c.id === likelyNext) >= 0
+			) {
+				newRefId = likelyNext;
 			}
+
 			if (!newRefId) {
+				const currentIndex = allItemsWithErrors.findIndex((c) => c.id === refId);
+				if (currentIndex >= 0) {
+					newRefId = allItemsWithErrors[currentIndex + (mode === 'next' ? 1 : -1)]?.id;
+				}
 				newRefId =
 					mode === 'prev'
 						? allItemsWithErrors[allItemsWithErrors.length - 1].id
 						: allItemsWithErrors[0].id;
 			}
+
+			const newIndex = allItemsWithErrors.findIndex((c) => c.id === newRefId);
+
+			const newMeta = {
+				deleted: deletedMode,
+				prev: newIndex > 0 ? allItemsWithErrors[newIndex - 1].id : allItemsWithErrors[0].id,
+				next:
+					newIndex < allItemsWithErrors.length - 1
+						? allItemsWithErrors[newIndex + 1].id
+						: allItemsWithErrors[allItemsWithErrors.length - 1].id
+			};
+
+			await kv.set(`lastError-${tableName}-${user.username}`, String(newRefId));
+
 			const unirefRow = await db.query.uniref.findFirst({
 				where: eq(uniref[tableName], newRefId)
 			});
+
 			return {
-				url: `/app/resource/${unirefRow!.uniId}/unified/errors`
+				url: `/app/resource/${unirefRow!.uniId}/unified/errors#${encodeURIComponent(
+					JSON.stringify(newMeta)
+				)}`
 			};
 		}),
 	getFirstErrorUrl: viewerProcedure
@@ -117,18 +153,38 @@ export const unifiedRouter = router({
 				deletedMode: z.boolean().default(false)
 			})
 		)
-		.query(async ({ input: { tableName, deletedMode } }) => {
+		.query(async ({ input: { tableName, deletedMode }, ctx: { user } }) => {
 			const query = errorQueryBuilder(tableName, deletedMode);
-			const firstError = await query.limit(1);
-			if (firstError.length === 0) {
+			const errors = await query;
+			if (errors.length === 0) {
 				throw new Error('No errors found for this table');
 			}
-			const refId = firstError[0].id;
+
+			let refId: number | undefined, refIndex: number | undefined;
+			const lastAccessed = parseInt(
+				(await kv.get(`lastError-${tableName}-${user.username}`)) || '-1'
+			);
+			const lastAccessedIndex =
+				lastAccessed > -1 ? errors.findIndex((c) => c.id === lastAccessed) : null;
+			if (lastAccessedIndex !== null) {
+				refId = lastAccessed;
+				refIndex = lastAccessedIndex;
+			} else {
+				refId = errors[0].id;
+				refIndex = 0;
+			}
 			const unirefRow = await db.query.uniref.findFirst({
 				where: eq(uniref[tableName], refId)
 			});
 			return {
-				url: `/app/resource/${unirefRow!.uniId}/unified/errors`
+				url: `/app/resource/${unirefRow!.uniId}/unified/errors#${encodeURIComponent(
+					JSON.stringify({
+						deleted: deletedMode,
+						prev: refIndex > 0 ? errors[refIndex - 1].id : errors[0].id,
+						next:
+							refIndex < errors.length - 1 ? errors[refIndex + 1].id : errors[errors.length - 1].id
+					})
+				)}`
 			};
 		})
 });
