@@ -117,37 +117,23 @@ export const unifiedRouter = router({
 				if (currentIndex >= 0) {
 					newRefId = allItemsWithErrors[currentIndex + (mode === 'next' ? 1 : -1)]?.id;
 				}
-				newRefId =
-					mode === 'prev'
-						? allItemsWithErrors[allItemsWithErrors.length - 1].id
-						: allItemsWithErrors[0].id;
+
+				if (!newRefId) {
+					newRefId =
+						mode === 'prev'
+							? allItemsWithErrors[allItemsWithErrors.length - 1].id
+							: allItemsWithErrors[0].id;
+				}
 			}
 
 			const newIndex = allItemsWithErrors.findIndex((c) => c.id === newRefId);
-
-			const newMeta = {
-				deleted: deletedMode,
-				prev: newIndex > 0 ? allItemsWithErrors[newIndex - 1].id : allItemsWithErrors[0].id,
-				next:
-					newIndex < allItemsWithErrors.length - 1
-						? allItemsWithErrors[newIndex + 1].id
-						: allItemsWithErrors[allItemsWithErrors.length - 1].id
-			};
 
 			await kv.set(
 				`lastError-${tableName}-${user.username}${deletedMode ? '-deleteMode' : ''}`,
 				String(newRefId)
 			);
 
-			const unirefRow = await db.query.uniref.findFirst({
-				where: eq(uniref[tableName], newRefId)
-			});
-
-			return {
-				url: `/app/resource/${unirefRow!.uniId}/unified/errors#${encodeURIComponent(
-					JSON.stringify(newMeta)
-				)}`
-			};
+			return await getErrorReturn(allItemsWithErrors, tableName, deletedMode, newRefId, newIndex);
 		}),
 	getFirstErrorUrl: viewerProcedure
 		.input(
@@ -178,19 +164,8 @@ export const unifiedRouter = router({
 				refId = errors[0].id;
 				refIndex = 0;
 			}
-			const unirefRow = await db.query.uniref.findFirst({
-				where: eq(uniref[tableName], refId)
-			});
-			return {
-				url: `/app/resource/${unirefRow!.uniId}/unified/errors#${encodeURIComponent(
-					JSON.stringify({
-						deleted: deletedMode,
-						prev: refIndex > 0 ? errors[refIndex - 1].id : errors[0].id,
-						next:
-							refIndex < errors.length - 1 ? errors[refIndex + 1].id : errors[errors.length - 1].id
-					})
-				)}`
-			};
+
+			return await getErrorReturn(errors, tableName, deletedMode, refId, refIndex);
 		})
 });
 
@@ -240,6 +215,39 @@ async function getUnifiedRow(uniId: number): Promise<UnifiedRow<UnifiedTables>> 
 		allActiveErrors,
 		cells
 	};
+}
+
+async function getErrorReturn(
+	errors: { id: number }[],
+	tableName: UnifiedTableNames,
+	deletedMode: boolean,
+	refId: number,
+	refIndex: number
+) {
+	const prev = refIndex > 0 ? errors[refIndex - 1].id : errors[errors.length - 1].id,
+		next = refIndex < errors.length - 1 ? errors[refIndex + 1].id : errors[0].id;
+
+	const meta = {
+		deleted: deletedMode,
+		prev,
+		next,
+		prefetchURLs: (await Promise.all([getUniId(tableName, prev), getUniId(tableName, next)])).map(
+			(id) => `/app/resource/${id}/unified/errors`
+		)
+	};
+
+	return {
+		url: `/app/resource/${await getUniId(tableName, refId)}/unified/errors#${encodeURIComponent(
+			JSON.stringify(meta)
+		)}`
+	};
+}
+
+async function getUniId(tableName: UnifiedTableNames, id: number) {
+	const row = await db.query.uniref.findFirst({
+		where: eq(uniref[tableName], id)
+	});
+	return row!.uniId;
 }
 
 function errorQueryBuilder(tableName: UnifiedTableNames, deletedMode: boolean) {

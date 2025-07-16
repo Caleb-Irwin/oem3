@@ -10,7 +10,7 @@
 	import { getErrorTitle } from './helpers';
 	import Button from '$lib/Button.svelte';
 	import { client } from '$lib/client';
-	import { goto } from '$app/navigation';
+	import { goto, preloadData } from '$app/navigation';
 	import { page } from '$app/state';
 
 	let props: PageProps = $props();
@@ -22,6 +22,16 @@
 
 	let isExpanded = $state(false);
 	const visibleErrors = $derived(isExpanded ? allErrors : allErrors.slice(0, 3));
+
+	$effect(() => {
+		const json = page.url.hash.split('#')[1];
+		if (json) {
+			const { prefetchURLs } = JSON.parse(decodeURIComponent(json));
+			prefetchURLs?.forEach((url: string) => {
+				preloadData(url);
+			});
+		}
+	});
 </script>
 
 <div class="sticky top-0 z-10 p-2 md:px-4">

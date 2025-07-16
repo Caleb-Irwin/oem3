@@ -15,7 +15,7 @@ export const eventSubscription = () => {
 			.input(
 				z.object({
 					updateTopic: z.string().default('default'),
-					sendInit: z.boolean().default(false),
+					sendInit: z.boolean().default(true),
 					input: z.any()
 				})
 			)

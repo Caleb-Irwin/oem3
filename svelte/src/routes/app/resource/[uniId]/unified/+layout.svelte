@@ -4,7 +4,7 @@
 	import { setContext } from 'svelte';
 	import type { LayoutProps } from './$types';
 	import GuildItem from './GuildItem.svelte';
-	import { readable, toStore } from 'svelte/store';
+	import { toStore } from 'svelte/store';
 
 	let props: LayoutProps = $props();
 
