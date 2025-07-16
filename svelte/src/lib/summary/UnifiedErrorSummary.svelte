@@ -32,64 +32,67 @@
 	let showDeletedItems = $state(false);
 </script>
 
-<div class="card mx-4 p-4">
+<div class="">
 	{#if summary !== null}
-		<div class="space-y-4">
-			<div class="">
-				<div class="flex items-center gap-3 mb-3">
-					<AlertTriangle class="ml-1 text-error-600 dark:text-error-400" size={24} />
-					<div class="flex items-center gap-2 w-full">
-						<span class="text-lg font-medium text-error-900 dark:text-error-100"
-							>Active Items with Errors</span
-						>
-						<span class="badge variant-soft-error"
-							>{summary.itemCounts.nonDeletedWithErrors} Items</span
-						>
-						<div class="flex-grow"></div>
-						<Button
-							class="btn variant-filled-error"
-							action={client.unified.getFirstErrorUrl}
-							queryMode
-							input={{
-								tableName,
-								deletedMode: false
-							}}
-							res={async (output) => goto(output.url)}
-							disabled={summary.itemCounts.nonDeletedWithErrors === 0}
-						>
-							<span class="flex-grow">Fix Active Errors</span>
-							<ChevronRight />
-						</Button>
+		<div class="space-y-2">
+			{#if summary.itemCounts.nonDeletedWithErrors > 0}
+				<div class="pb-2">
+					<div class="flex items-center gap-3 mb-3">
+						<AlertTriangle class="ml-1 text-error-600 dark:text-error-400" size={24} />
+						<div class="flex items-center gap-2 w-full">
+							<span class="text-lg font-medium text-error-900 dark:text-error-100"
+								>Active Items with Errors</span
+							>
+							<span class="badge variant-soft-error"
+								>{summary.itemCounts.nonDeletedWithErrors} Items</span
+							>
+							<div class="flex-grow"></div>
+							<Button
+								class="btn variant-filled-error"
+								action={client.unified.getFirstErrorUrl}
+								queryMode
+								input={{
+									tableName,
+									deletedMode: false
+								}}
+								res={async (output) => goto(output.url)}
+								disabled={summary.itemCounts.nonDeletedWithErrors === 0}
+							>
+								<span class="flex-grow">Fix Active Errors</span>
+								<ChevronRight />
+							</Button>
+						</div>
 					</div>
+					{#if summary.itemCounts.nonDeletedWithErrors > 0}
+						<div class="p-1">
+							<BarChart
+								data={summary.errorsByType.nonDeleted}
+								variant="error"
+								labelFormatter={(val) => getErrorTitle(val as any)}
+								showTotal={true}
+								totalLabel="Total Errors"
+							/>
+						</div>
+					{/if}
 				</div>
-				{#if summary.itemCounts.nonDeletedWithErrors > 0}
-					<div class="p-1">
-						<BarChart
-							data={summary.errorsByType.nonDeleted}
-							variant="error"
-							labelFormatter={(val) => getErrorTitle(val as any)}
-							showTotal={true}
-							totalLabel="Total Errors"
-						/>
-					</div>
-				{:else}
-					<div
-						class="card variant-soft-secondary flex p-4 items-center justify-center gap-x-2 text-success-800 dark:text-success-200"
-					>
-						<CheckCircle class="" size={32} />
-						<h3 class="text-lg font-semibold">
-							No {summary.itemCounts.deletedWithErrors > 0 ? 'Active' : ''} Items With Errors
-						</h3>
-					</div>
-				{/if}
-			</div>
+			{:else}
+				<div
+					class="card variant-soft-secondary flex p-4 items-center justify-center gap-x-2 text-success-800 dark:text-success-200"
+				>
+					<CheckCircle size={28} />
+					<h3 class="text-lg">
+						No {summary.itemCounts.deletedWithErrors > 0 ? 'Active' : ''} Items With Errors
+					</h3>
+				</div>
+			{/if}
 
-			{#if summary.itemCounts.deletedWithErrors > 0}
+			{#if summary.itemCounts.deletedWithErrors > 0 || summary.itemCounts.nonDeletedWithErrors > 0}
 				<Accordion
 					{showDeletedItems}
 					onValueChange={(e: any) => (showDeletedItems = e.value)}
 					collapsible={false}
 					class="card"
+					disabled={!summary.itemCounts.deletedWithErrors}
 				>
 					<AccordionItem>
 						<svelte:fragment slot="lead">

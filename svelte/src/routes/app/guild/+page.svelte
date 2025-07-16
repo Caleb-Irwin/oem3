@@ -2,17 +2,25 @@
 	import Files from '$lib/Files.svelte';
 	import ChangesetStatus from '$lib/ChangesetStatus.svelte';
 	import { client, subVal } from '$lib/client';
-	import WorkerStatus from '$lib/WorkerStatus.svelte';
-	import Button from '$lib/Button.svelte';
+	// import WorkerStatus from '$lib/WorkerStatus.svelte';
+	// import Button from '$lib/Button.svelte';
 	import type { PageProps } from './$types';
-	import UnifiedErrorSummary from '$lib/summary/UnifiedErrorSummary.svelte';
+	import UnifiedSummary from '$lib/summary/UnifiedSummary.svelte';
 
 	let { data }: PageProps = $props();
 </script>
 
 <h1 class="text-center h2 p-2 pt-4">Guild</h1>
 
-<UnifiedErrorSummary tableName="unifiedGuild" initialData={data.guildErrorSummary} />
+<UnifiedSummary
+	tableName="unifiedGuild"
+	initialErrorData={data.guildErrorSummary}
+	workerStatus={subVal(client.guild.worker.statusSub, {
+		init: data.guildWorkerStatus
+	})}
+	workerRun={client.guild.worker.run}
+	headerName="Unified Guild"
+/>
 
 <div class="w-full flex flex-col xl:grid xl:grid-cols-3 justify-center p-2">
 	<div class="p-2 w-full xl:w-auto flex flex-col items-center min-w-96">
@@ -84,6 +92,7 @@
 		</div>
 	</div>
 
+	<!-- Disable for now
 	<div class="p-2 w-full xl:w-auto flex flex-col items-center min-w-96">
 		<div class="w-full card p-4 max-w-xl">
 			<Button class="mb-2 btn variant-filled-primary" action={client.guild.desc.worker.run}
@@ -96,17 +105,5 @@
 			/>
 		</div>
 	</div>
-
-	<div class="p-2 w-full xl:w-auto flex flex-col items-center min-w-96">
-		<div class="w-full card p-4 max-w-xl">
-			<Button class="mb-2 btn variant-filled-primary" action={client.guild.worker.run}
-				>Update Unified Guild</Button
-			>
-			<WorkerStatus
-				status={subVal(client.guild.worker.statusSub, {
-					init: data.guildWorkerStatus
-				})}
-			/>
-		</div>
-	</div>
+	-->
 </div>

@@ -55,7 +55,6 @@
 		summary['create'] ?? 0,
 		summary['delete'] ?? 0
 	]);
-	let totalChanges = $derived(chartValues.reduce((sum, value) => sum + value, 0));
 
 	const changesetColors = {
 		nop: 'bg-secondary-100',
