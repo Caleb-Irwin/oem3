@@ -5,7 +5,7 @@ import type { jwtFields } from '../routers/user';
 
 export const eventSubscription = () => {
 	const ee = new EventEmitter();
-	ee.setMaxListeners(100);
+	ee.setMaxListeners(10000);
 	const update = (updateTopic = 'default') => {
 		ee.emit(updateTopic);
 	};
@@ -27,7 +27,6 @@ export const eventSubscription = () => {
 					}
 				}
 				for await (const _ of on(ee, opts.input.updateTopic, {
-					// Passing the AbortSignal from the request automatically cancels the event emitter when the subscription is aborted
 					signal: opts.signal
 				})) {
 					const result = await func({ ctx: opts.ctx, input: opts.input.input });

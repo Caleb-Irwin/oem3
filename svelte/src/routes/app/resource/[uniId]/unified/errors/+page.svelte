@@ -35,11 +35,23 @@
 </script>
 
 <div class="sticky top-0 z-10 p-2 md:px-4">
-	<div class="w-full p-1 card variant-ghost-error backdrop-blur-md relative">
-		<div class="flex items-center justify-between p-1 px-2 pt-2 pb-0">
+	<div
+		class="w-full p-1 card {allErrors.length === 0
+			? 'variant-ghost-primary'
+			: 'variant-ghost-error'} backdrop-blur-md relative"
+	>
+		<div
+			class="flex items-center justify-between p-1 px-2 pt-2 pb-0 {visibleErrors.length === 0
+				? 'pb-1.5'
+				: ''}"
+		>
 			<div class="flex items-center space-x-2">
 				<h3 class="h3 font-bold">Errors</h3>
-				<span class="chip variant-glass-error text-sm">
+				<span
+					class="chip text-sm {allErrors.length === 0
+						? 'variant-glass-primary'
+						: 'variant-glass-error'}"
+				>
 					{allErrors.length} Issue{allErrors.length !== 1 ? 's' : ''}
 				</span>
 			</div>

@@ -36,7 +36,7 @@ type GuildRowType = Awaited<ReturnType<typeof getRow>>;
 export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
 	table: unifiedGuild,
 	confTable: unifiedGuildCellConfig,
-	version: 4,
+	version: 5,
 	getRow,
 	transform: (item, t) => {
 		return {
@@ -90,14 +90,7 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
 			),
 			comparePriceCents: t(
 				'comparePriceCents',
-				item.flyerRowContent?.flyerPriceL1Cents ? item.dataRowContent.priceL1Cents : null,
-				{
-					shouldMatch: {
-						name: 'Flyer Regular Price',
-						val: item.flyerRowContent?.flyerPriceL1Cents ?? null,
-						ignore: item.flyerRowContent === null || item.flyerRowContent?.deleted
-					}
-				}
+				item.flyerRowContent?.flyerPriceL1Cents ? item.dataRowContent.priceL1Cents : null
 			),
 			costCents: t(
 				'costCents',

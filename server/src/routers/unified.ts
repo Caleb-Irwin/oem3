@@ -157,7 +157,7 @@ export const unifiedRouter = router({
 			);
 			const lastAccessedIndex =
 				lastAccessed > -1 ? errors.findIndex((c) => c.id === lastAccessed) : null;
-			if (lastAccessedIndex !== null) {
+			if (lastAccessedIndex !== null && lastAccessedIndex >= 0) {
 				refId = lastAccessed;
 				refIndex = lastAccessedIndex;
 			} else {
