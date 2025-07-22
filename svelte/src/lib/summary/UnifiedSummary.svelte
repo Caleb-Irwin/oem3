@@ -43,7 +43,7 @@
 </script>
 
 <div class="card mx-4 p-0">
-	<div class="h-2">
+	<div class="h-2 p-[1px]">
 		{#if workerData?.running && workerData?.progress >= 0}
 			<ProgressBar
 				meter="bg-primary-600"
@@ -54,7 +54,7 @@
 		{/if}
 	</div>
 
-	<div class="p-4 pt-2 flex items-center gap-x-2">
+	<div class="p-4 pt-1.5 flex items-center gap-x-2">
 		<h4 class=" h3 font-semibold">{headerName}</h4>
 
 		{#if workerData?.error}

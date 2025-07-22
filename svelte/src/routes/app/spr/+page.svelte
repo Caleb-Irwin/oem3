@@ -3,6 +3,7 @@
 	import ChangesetStatus from '$lib/ChangesetStatus.svelte';
 	import { client, subVal } from '$lib/client';
 	import Files from '$lib/Files.svelte';
+	import ModalSearchBar from '$lib/search/ModalSearchBar.svelte';
 	import WorkerStatus from '$lib/WorkerStatus.svelte';
 	import type { PageProps } from './$types';
 
@@ -10,6 +11,9 @@
 </script>
 
 <h1 class="text-center h2 p-2 pt-4">SPR</h1>
+
+<ModalSearchBar queryType="sprFlatFile" placeholder="Search SPR Flat File" class="max-w-xl pb-2" />
+
 <div class="w-full flex flex-col xl:grid xl:grid-cols-3 justify-center p-2">
 	<div class="w-full flex flex-col items-center p-2">
 		<div class="w-full max-w-xl mb-2">

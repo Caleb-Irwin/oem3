@@ -42,11 +42,11 @@ function transformGuildInventory(item: GuildInventoryRaw): typeof guildInventory
 	return {
 		gid: item['Product#'].trim(),
 		onHand: removeNaN(parseInt(item['Qty On Hand'])),
-		sku: item.SKU,
-		upc: item['UPC#'] == '0' ? null : item['UPC#'],
-		spr: item['SPR#'],
-		basics: item['Basics#'],
-		cis: item['CIS#'],
+		sku: item.SKU?.trim() ?? null,
+		upc: item['UPC#'] == '0' ? null : (item['UPC#'].trim() ?? null),
+		spr: item['SPR#']?.trim() ?? null,
+		basics: item['Basics#']?.trim() ?? null,
+		cis: item['CIS#']?.trim() ?? null,
 		um: enforceEnum(item['Unit of Measure'].toLowerCase(), guildUmEnum.enumValues),
 		qtyPerUm: removeNaN(parseInt(item['Qty/UoM'])),
 		lastUpdated: 0

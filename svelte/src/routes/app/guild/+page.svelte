@@ -6,11 +6,14 @@
 	// import Button from '$lib/Button.svelte';
 	import type { PageProps } from './$types';
 	import UnifiedSummary from '$lib/summary/UnifiedSummary.svelte';
+	import ModalSearchBar from '$lib/search/ModalSearchBar.svelte';
 
 	let { data }: PageProps = $props();
 </script>
 
 <h1 class="text-center h2 p-2 pt-4">Guild</h1>
+
+<ModalSearchBar queryType="unifiedGuild" placeholder="Search Unified Guild" class="max-w-xl pb-2" />
 
 <UnifiedSummary
 	tableName="unifiedGuild"

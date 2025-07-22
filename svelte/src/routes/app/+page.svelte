@@ -12,10 +12,6 @@
 <div class="container h-full mx-auto flex flex-col justify-center items-center">
 	<div>
 		<h1 class="h1 text-center mb-2">Home</h1>
-		<p class="text-center">
-			Welcome <span class="font-semibold">{data.user.username}</span>. Your permission level is
-			<span class="font-semibold">{data.user.permissionLevel}</span>.
-		</p>
 	</div>
 	<div class="w-full flex">
 		<SearchBar />

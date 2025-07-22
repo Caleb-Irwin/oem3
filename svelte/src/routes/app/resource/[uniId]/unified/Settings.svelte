@@ -128,8 +128,6 @@
 
 {#if cell.setting !== null || openSettings[cell.compoundId]?.[cell.col] || cell.activeErrors?.length > 0}
 	<div class="flex flex-col {extraClass ?? ''}">
-		<Error {cell} />
-
 		<div>
 			{#if cell.setting !== null}
 				<div class="card bg-surface-200 dark:bg-surface-700 p-2 m-0.5 text-sm">
@@ -163,9 +161,9 @@
 					<p class="font-semibold text-center text-lg">
 						<span class="code text-lg">{cell.col}</span> Cell Setting
 					</p>
-					<div class="flex w-full items-center my-1 p-1 variant-filled rounded-full">
+					<div class="flex w-full items-center my-1 p-1 variant-glass-secondary rounded-full">
 						<button
-							class="m-0.5 btn flex-1 {!newSetting ? 'variant-filled-primary' : 'variant-filled'}"
+							class="m-0.5 btn flex-1 {!newSetting ? 'variant-glass-primary' : 'variant-glass'}"
 							onclick={(e) => {
 								newSetting = null;
 								e.preventDefault();
@@ -176,8 +174,8 @@
 						{#if cell.type === 'number' && cell.connectionRow === undefined}
 							<button
 								class="m-0.5 btn flex-1 {newSetting === 'setting:approve'
-									? 'variant-filled-primary'
-									: 'variant-filled'}"
+									? 'variant-glass-primary'
+									: 'variant-glass'}"
 								onclick={(e) => {
 									newSetting = 'setting:approve';
 									e.preventDefault();
@@ -189,8 +187,8 @@
 						<button
 							class="m-0.5 btn flex-1 {newSetting === 'setting:custom' ||
 							newSetting === 'setting:approveCustom'
-								? 'variant-filled-primary'
-								: 'variant-filled'}"
+								? 'variant-glass-primary'
+								: 'variant-glass'}"
 							onclick={(e) => {
 								newSetting = 'setting:custom';
 								e.preventDefault();
@@ -256,5 +254,7 @@
 				</div>
 			</Form>
 		{/if}
+
+		<Error {cell} />
 	</div>
 {/if}

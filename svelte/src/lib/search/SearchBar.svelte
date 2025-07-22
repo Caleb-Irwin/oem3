@@ -8,8 +8,8 @@
 	interface Props {
 		query?: string;
 		queryType?: QueryType;
-		qbMode?: boolean;
-		searchInResults?: boolean;
+		// qbMode?: boolean;
+		// searchInResults?: boolean;
 	}
 
 	let props: Props = $props();
@@ -17,12 +17,13 @@
 	let query = $state(props.query ?? ''),
 		focus: boolean = $state(false),
 		queryType: string | undefined = $state(props.queryType),
-		qbMode: boolean = $state(props.qbMode ?? false),
-		searchInResults: boolean = $state(props.searchInResults ?? false),
+		// qbMode: boolean = $state(props.qbMode ?? false),
+		// searchInResults: boolean = $state(props.searchInResults ?? false),
 		searchSettingsOpen: boolean = $state(
-			(props.queryType !== 'all' && props.queryType !== undefined) ||
-				props.qbMode === true ||
-				props.searchInResults === true
+			props.queryType !== 'all' && props.queryType !== undefined
+			//  ||
+			// props.qbMode === true ||
+			// props.searchInResults === true
 		),
 		loading = $state(false);
 
@@ -84,8 +85,8 @@
 				<option value="sprFlatFile">SPR Info</option>
 			</select>
 		</label>
-		<div class="w-4"></div>
-		<label for="qbMode" class="flex flex-col items-center hidden">
+		<!-- <div class="w-4"></div>
+		<label for="qbMode" class="flex flex-col items-center">
 			"QuickBooks" Mode
 			<br />
 			<SlideToggle
@@ -97,7 +98,7 @@
 			/>
 		</label>
 		<div class="w-4"></div>
-		<label for="searchInResults" class="mx-0.5 flex flex-col items-center hidden">
+		<label for="searchInResults" class="mx-0.5 flex flex-col items-center">
 			Search In Results
 			<br />
 			<SlideToggle
@@ -107,6 +108,6 @@
 				size="lg"
 				bind:checked={searchInResults}
 			/>
-		</label>
+		</label> -->
 	</div>
 {/snippet}

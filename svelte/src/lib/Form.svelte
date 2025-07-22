@@ -9,7 +9,7 @@
 		invalidateAll?: boolean;
 		reloadPage?: boolean;
 		action: { mutate: (input: I) => Promise<T> } | { query: (input: any) => Promise<T> };
-		queryMode: boolean;
+		queryMode?: boolean;
 		res?: (output: T) => Promise<void> | void;
 		successMessage?: string | null;
 		noReset?: boolean;

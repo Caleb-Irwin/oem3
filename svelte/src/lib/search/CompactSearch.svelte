@@ -9,11 +9,11 @@
 	import type { SelectFunc } from '$lib/ItemRow.svelte';
 
 	interface Props {
-		select: SelectFunc;
+		select?: SelectFunc;
 		queryType: QueryType;
 	}
 
-	let { select, queryType = $bindable() }: Props = $props();
+	let { select = undefined, queryType = $bindable() }: Props = $props();
 
 	let query = $state(''),
 		searchRes: any = $state(),
