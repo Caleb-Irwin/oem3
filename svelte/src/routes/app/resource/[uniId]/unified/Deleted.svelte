@@ -17,11 +17,17 @@
 >
 	<div class="w-full flex flex-row md:flex-col flex-grow items-center">
 		<div class="md:flex-grow"></div>
-		<p class="text-xl font-bold p-2 text-center {cell.value ? 'text-error-600' : ''}">
-			{cell.value ? 'Item Deleted' : 'Item Active'}
+		<p class="text-xl p-2 text-center">
+			{@render valueRenderer(cell.value)}
 		</p>
 		<div class="flex-grow"></div>
 		<SettingButton {cell} />
 	</div>
-	<Settings {cell} extraClass="text-normal" />
+	<Settings {cell} extraClass="text-normal" {valueRenderer} />
 </div>
+
+{#snippet valueRenderer(value: string | number | boolean | null)}
+	<span class="font-bold {value ? 'text-error-600' : ''}">
+		{value ? 'Item Deleted' : 'Item Active'}
+	</span>
+{/snippet}

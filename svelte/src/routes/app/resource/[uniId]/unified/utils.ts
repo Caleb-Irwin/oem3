@@ -77,3 +77,17 @@ export function objectsEqual<T extends object, U extends object>(
 
 	return true;
 }
+
+export function coerceString(rawValue: string, dataType: 'string' | 'number' | 'boolean') {
+	let value: string | number | boolean | null = rawValue;
+	if (typeof rawValue === 'string') {
+		if (rawValue.toLowerCase() === 'null') {
+			value = null;
+		} else if (dataType === 'number' && rawValue && !isNaN(parseFloat(rawValue))) {
+			value = parseFloat(rawValue);
+		} else if (dataType === 'boolean') {
+			value = rawValue.toLowerCase() === 'true';
+		}
+	}
+	return value;
+}

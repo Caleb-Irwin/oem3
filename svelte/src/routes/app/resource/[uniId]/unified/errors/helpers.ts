@@ -11,7 +11,7 @@ export function getErrorTitle(confType: CellConfigType) {
 
 type ErrorActions = 'markAsResolved' | 'ignore' | 'approve' | 'reject' | 'keepCustom';
 
-interface ErrorConfType {
+export interface ErrorConfType {
 	confType: CellError;
 	title: string;
 	instructions: string;

@@ -42,6 +42,11 @@ export const unifiedRouter = router({
 			return await getUnified(uniId);
 		}
 	),
+	getResourceByCol: viewerProcedure
+		.input(z.object({ col: z.string(), value: z.number() }))
+		.query(async ({ input: { col, value } }) => {
+			return await getResourceByCol(col, value);
+		}),
 	updateSetting: generalProcedure
 		.input(
 			z.object({

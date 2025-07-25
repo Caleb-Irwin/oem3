@@ -16,16 +16,18 @@
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { ColToTableName, type Cell, type CellConfigRowInsert } from './types';
 	import type { CellSetting } from '../../../../../../../server/src/db.schema';
-	import { objectsEqual, validateCustomValue } from './utils';
+	import { coerceString, objectsEqual, validateCustomValue } from './utils';
 	import Form from '$lib/Form.svelte';
 	import { client } from '$lib/client';
 	import Error from './Error.svelte';
+	import type { Snippet } from 'svelte';
 
 	interface Props {
 		cell: Cell;
+		valueRenderer: Snippet<[string | number | boolean | null]>;
 		extraClass?: string;
 	}
-	let { cell, extraClass }: Props = $props();
+	let { cell, extraClass, valueRenderer }: Props = $props();
 
 	let newSetting = $derived(cell.setting);
 
@@ -240,6 +242,13 @@
 								<p class="font-bold text-error-600 pt-1">{customValueError}</p>
 							{/if}
 
+							<div class="py-2">
+								<p class="label-text font-bold">Preview</p>
+								<div class="w-full text-left variant-glass-secondary rounded-md p-2">
+									{@render valueRenderer(coerceString(customValue ?? 'Null', cell.type))}
+								</div>
+							</div>
+
 							<label class="flex justify-center items-center p-2 w-full">
 								<input class="checkbox" type="checkbox" bind:checked={approveCustomValue} />
 								<p class="pl-2">Approve custom value on underlying value change</p>
@@ -255,6 +264,6 @@
 			</Form>
 		{/if}
 
-		<Error {cell} />
+		<Error {cell} {valueRenderer} />
 	</div>
 {/if}

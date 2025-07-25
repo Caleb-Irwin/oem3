@@ -3,7 +3,7 @@ export function imageRedirect(src: string, thumbnail = false) {
 		return thumbnail ? src : src;
 	}
 	if (src.startsWith('https://cdn.shopify.com/')) {
-		return !thumbnail ? src : src.includes('?') ? src + '&width=256' : src + '?width=256';
+		return !thumbnail ? src : src.includes('?') ? src + '&width=512' : src + '?width=512';
 	}
 	if (
 		src.startsWith('https://shopofficeonline.com/ProductImages/') ||

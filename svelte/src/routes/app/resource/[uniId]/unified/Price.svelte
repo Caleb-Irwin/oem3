@@ -18,36 +18,40 @@
 		<div class="flex flex-row items-center justify-between">
 			<div>
 				<p class="text-lg font-bold flex-grow">Price</p>
-				<h2 class="h2 font-semibold">
-					<NullableText text={price.value ? formatCurrency((price.value as number) / 100) : null} />
-				</h2>
+				{@render priceValueRenderer(price.value)}
 			</div>
 			<div>
 				<SettingButton cell={price} />
 			</div>
 		</div>
-		<Settings cell={price} />
+		<Settings cell={price} valueRenderer={priceValueRenderer} />
 	</div>
 	{#if comparePrice}
 		<div class="card p-2">
 			<div class="flex flex-row items-center justify-between">
 				<div>
 					<p class="text-lg font-bold flex-grow">Compare Price</p>
-					<h2 class="h2 font-semibold">
-						<span class="pl-1 {comparePrice.value === null ? '' : 'line-through'}">
-							<NullableText
-								text={comparePrice.value
-									? formatCurrency((comparePrice.value as number) / 100)
-									: null}
-							/>
-						</span>
-					</h2>
+					{@render comparePriceValueRenderer(comparePrice.value)}
 				</div>
 				<div>
 					<SettingButton cell={comparePrice} />
 				</div>
 			</div>
-			<Settings cell={comparePrice} />
+			<Settings cell={comparePrice} valueRenderer={comparePriceValueRenderer} />
 		</div>
 	{/if}
 </div>
+
+{#snippet priceValueRenderer(value: string | number | boolean | null)}
+	<p class="text-lg font-semibold">
+		<NullableText text={value ? formatCurrency((value as number) / 100) : null} />
+	</p>
+{/snippet}
+
+{#snippet comparePriceValueRenderer(value: string | number | boolean | null)}
+	<p class="text-lg font-semibold">
+		<span class="pl-1 {value === null ? '' : 'line-through'}">
+			<NullableText text={value ? formatCurrency((value as number) / 100) : null} />
+		</span>
+	</p>
+{/snippet}
