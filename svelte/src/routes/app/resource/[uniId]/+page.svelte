@@ -18,7 +18,7 @@
 
 	const _res = subVal(client.resources.getSub, {
 		init: data.res,
-		input: { uniId: data.res.uniId as number },
+		input: { uniId: data.res.uniId as number, includeHistory: true },
 		updateTopic: data.res.resourceType
 	});
 
