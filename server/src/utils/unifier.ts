@@ -171,7 +171,7 @@ export function createUnifier<
 			...connections.otherTables
 		];
 		for (const connectionTable of connectionsList) {
-			const otherConnections = await connectionTable.findConnections(updatedRow, db as typeof DB);
+			const otherConnections = await connectionTable.findConnections(updatedRow, db);
 			const connectionRowKey = connectionTable.refCol as keyof TableType['$inferInsert'];
 
 			// Un-match the connection if it is deleted and not primary
@@ -182,21 +182,9 @@ export function createUnifier<
 			) {
 				updatedRow[connectionRowKey] = null as any;
 			}
-			if (updatedRow[connectionRowKey] === null && otherConnections.length > 0) {
-				updatedRow[connectionRowKey] = otherConnections[0] as any;
-			}
-			if (
-				otherConnections.length > 1 ||
-				(otherConnections.length === 1 && updatedRow[connectionRowKey] !== otherConnections[0])
-			) {
-				cellConfigurator.addError(connectionRowKey as any, {
-					multipleOptions: {
-						options: otherConnections.filter((v) => v !== updatedRow[connectionRowKey]),
-						value: updatedRow[connectionRowKey] as any
-					}
-				});
-			}
-			const newVal = await cellConfigurator.getConfiguredCellValue(
+
+			// Apply custom settings first before automatic connection assignment
+			const configuredVal = await cellConfigurator.getConfiguredCellValue(
 				{
 					key: connectionRowKey as any,
 					val: updatedRow[connectionRowKey] as number,
@@ -205,7 +193,30 @@ export function createUnifier<
 				originalRow[connectionRowKey] as number | null,
 				verifyCellValue
 			);
-			if (originalRow[connectionRowKey] !== updatedRow[connectionRowKey]) {
+
+			// Only auto-assign connection if no custom setting was applied
+			if (configuredVal === updatedRow[connectionRowKey] && otherConnections.length > 0) {
+				if (updatedRow[connectionRowKey] === null) {
+					updatedRow[connectionRowKey] = otherConnections[0] as any;
+				}
+
+				if (
+					otherConnections.length > 1 ||
+					(otherConnections.length === 1 && updatedRow[connectionRowKey] !== otherConnections[0])
+				) {
+					cellConfigurator.addError(connectionRowKey as any, {
+						multipleOptions: {
+							options: otherConnections.filter((v) => v !== updatedRow[connectionRowKey]),
+							value: updatedRow[connectionRowKey] as any
+						}
+					});
+				}
+			} else {
+				updatedRow[connectionRowKey] = configuredVal as any;
+			}
+
+			const newVal = updatedRow[connectionRowKey] as number | null;
+			if (originalRow[connectionRowKey] !== newVal) {
 				const existing = await db
 					.select({ col: table[connectionRowKey as keyof TableType] as any })
 					.from(table as any)
@@ -475,7 +486,7 @@ interface TableConnection<
 > {
 	table: T;
 	refCol: keyof UnifiedTable;
-	findConnections: (row: RowType, db: typeof DB) => Promise<number[]>; // Should not return deleted items
+	findConnections: (row: RowType, db: typeof DB | Tx) => Promise<number[]>; // Should not return deleted items
 	isDeleted: (row: RowType) => boolean;
 }
 

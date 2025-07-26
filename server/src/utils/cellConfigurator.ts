@@ -153,11 +153,16 @@ export async function createCellConfigurator(
 			});
 		}
 
+		const bothAreStrings =
+			typeof newVal === 'string' && typeof options?.shouldMatch?.val === 'string';
+
 		if (
 			options?.shouldMatch &&
 			!options.shouldMatch.ignore &&
-			newVal !== options.shouldMatch.val &&
-			options.shouldMatch.val !== null
+			options.shouldMatch.val !== null &&
+			!(bothAreStrings && newVal !== null
+				? (newVal as string).trim() === (options.shouldMatch.val as string).trim()
+				: newVal === options.shouldMatch.val)
 		) {
 			addError(key as any, {
 				contradictorySources: {
