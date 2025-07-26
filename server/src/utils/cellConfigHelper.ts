@@ -65,55 +65,58 @@ export async function getCellConfigHelper(compoundId: string, col: string, db: t
 	}
 
 	async function updateSetting(settingData: CellConfigRowInsert | null) {
-		const existing = await getSetting();
-		if (existing === null && settingData === null) {
-		} else if (settingData === null) {
-			await db.delete(table).where(eq(table.id, existing!.id));
-			await insertHistory({
-				db,
-				uniref: uniId,
-				resourceType: tablePrefix,
-				entryType: 'delete' as const,
-				confCell: col,
-				confType: 'setting' as const,
-				data: { message: 'Setting deleted (set to default: Auto)' },
-				created: Date.now()
-			});
-		} else if (existing?.id) {
-			if (settingData.id) throw new Error('Setting data should not contain an id when updating');
-			await db
-				.update(table)
-				.set({
-					...settingData
-				})
-				.where(eq(table.id, existing.id));
-			await insertHistory({
-				db,
-				uniref: uniId,
-				resourceType: tablePrefix,
-				entryType: 'update' as const,
-				confCell: col,
-				confType: 'setting' as const,
-				data: settingData,
-				prev: existing,
-				created: Date.now(),
-				exclude: ['created', 'refId']
-			});
-		} else {
-			await db.insert(table).values(settingData);
-			await insertHistory({
-				db,
-				uniref: uniId,
-				resourceType: tablePrefix,
-				entryType: 'create' as const,
-				confCell: col,
-				confType: 'setting' as const,
-				data: settingData,
-				created: Date.now(),
-				exclude: ['created', 'refId']
-			});
-		}
-		await unifier._updateRow({ id: refId, db: db, onUpdateCallback: () => null });
+		await db.transaction(async (db) => {
+			const existing = await getSetting();
+			if (existing === null && settingData === null) {
+			} else if (settingData === null) {
+				await db.delete(table).where(eq(table.id, existing!.id));
+				await insertHistory({
+					db,
+					uniref: uniId,
+					resourceType: tablePrefix,
+					entryType: 'delete' as const,
+					confCell: col,
+					confType: 'setting' as const,
+					data: { message: 'Setting deleted (set to default: Auto)' },
+					created: Date.now()
+				});
+			} else if (existing?.id) {
+				if (settingData.id) throw new Error('Setting data should not contain an id when updating');
+				await db
+					.update(table)
+					.set({
+						...settingData
+					})
+					.where(eq(table.id, existing.id));
+				await insertHistory({
+					db,
+					uniref: uniId,
+					resourceType: tablePrefix,
+					entryType: 'update' as const,
+					confCell: col,
+					confType: 'setting' as const,
+					data: settingData,
+					prev: existing,
+					created: Date.now(),
+					exclude: ['created', 'refId']
+				});
+			} else {
+				await db.insert(table).values(settingData);
+				await insertHistory({
+					db,
+					uniref: uniId,
+					resourceType: tablePrefix,
+					entryType: 'create' as const,
+					confCell: col,
+					confType: 'setting' as const,
+					data: settingData,
+					created: Date.now(),
+					exclude: ['created', 'refId']
+				});
+			}
+			await unifier._updateRow({ id: refId, db: db, onUpdateCallback: () => null });
+		});
+
 		if (triggerMap[tablePrefix]) {
 			triggerMap[tablePrefix]();
 		} else {

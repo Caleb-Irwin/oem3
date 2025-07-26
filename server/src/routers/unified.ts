@@ -59,19 +59,9 @@ export const unifiedRouter = router({
 			})
 		)
 		.mutation(async ({ input }) => {
-			const uniId = await db.transaction(
-				async (tx) => {
-					const { updateSetting, meta } = await getCellConfigHelper(
-						input.compoundId,
-						input.col,
-						tx
-					);
-					await updateSetting(input.settingData);
-					return meta.uniId;
-				},
-				{ isolationLevel: 'serializable' }
-			);
-			updateUnifiedTopicByUniId(uniId.toString());
+			const { updateSetting, meta } = await getCellConfigHelper(input.compoundId, input.col, db);
+			await updateSetting(input.settingData);
+			updateUnifiedTopicByUniId(meta.uniId.toString());
 		}),
 	getErrorUrl: viewerProcedure
 		.input(

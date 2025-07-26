@@ -15,16 +15,18 @@
 
 	const unifiedData = getContext('unifiedData') as any;
 	const data = $derived($unifiedData) as typeof props.data;
-
 	const allErrors = $derived(data.allActiveErrors || []);
+
+	let deletedMode = $state(false);
 
 	$effect(() => {
 		const json = page.url.hash.split('#')[1];
 		if (json) {
-			const { prefetchURLs } = JSON.parse(decodeURIComponent(json));
+			const { prefetchURLs, deleted } = JSON.parse(decodeURIComponent(json));
 			prefetchURLs?.forEach((url: string) => {
 				preloadData(url);
 			});
+			deletedMode = deleted;
 		}
 	});
 </script>
@@ -37,7 +39,7 @@
 	>
 		<div class="flex items-center justify-between p-1 {allErrors.length === 0 ? 'pb-1.5' : ''}">
 			<div class="flex items-center space-x-2">
-				<h3 class="h3 font-bold">Errors</h3>
+				<h3 class="h3 font-bold">Errors {deletedMode ? 'in Deleted Items' : ''}</h3>
 				<span
 					class="chip text-sm {allErrors.length === 0
 						? 'variant-glass-primary'

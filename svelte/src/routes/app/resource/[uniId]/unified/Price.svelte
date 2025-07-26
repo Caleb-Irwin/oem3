@@ -43,15 +43,15 @@
 </div>
 
 {#snippet priceValueRenderer(value: string | number | boolean | null)}
-	<p class="text-lg font-semibold">
+	<h2 class="h2 font-semibold">
 		<NullableText text={value ? formatCurrency((value as number) / 100) : null} />
-	</p>
+	</h2>
 {/snippet}
 
 {#snippet comparePriceValueRenderer(value: string | number | boolean | null)}
-	<p class="text-lg font-semibold">
+	<h2 class="h2 font-semibold">
 		<span class="pl-1 {value === null ? '' : 'line-through'}">
 			<NullableText text={value ? formatCurrency((value as number) / 100) : null} />
 		</span>
-	</p>
+	</h2>
 {/snippet}
