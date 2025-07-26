@@ -42,7 +42,7 @@
 						class="p-2 w-full flex flex-col justify-center md:block md:min-w-96 md:max-w-96 lg:min-w-[512px] lg:max-w-[512px]"
 					>
 						<a
-							class="p-2 w-full flex justify-center aspect-square"
+							class="w-full flex justify-center aspect-square"
 							href={imageRedirect(product.imageUrl)}
 							target="_blank"
 							rel="noopener noreferrer"

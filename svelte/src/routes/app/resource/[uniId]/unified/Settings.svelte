@@ -220,22 +220,22 @@
 										{ string: 'text', number: 'a number', boolean: 'true or false' }[cell.type]
 									}${cell.nullable ? ' or Null' : ''}`})</span
 								>
-								<div class="flex items-center">
-									<textarea
-										class="textarea {customValueError ? 'variant-ghost-error' : ''} w-full"
-										rows={cell.value && cell.value.toString().length > 100 ? 4 : 1}
-										placeholder="Value"
-										bind:value={customValue}
-									></textarea>
+								<div class="flex flex-col items-center gap-y-1">
 									{#if isConnection}
 										<button
-											class="ml-1 btn variant-filled-primary"
+											class="w-full btn variant-glass-secondary"
 											onclick={(e) => {
 												e.preventDefault();
 												openSearchModal();
 											}}>Find Item <Search class="ml-1" /></button
 										>
 									{/if}
+									<textarea
+										class="textarea {customValueError ? 'variant-ghost-error' : ''} w-full"
+										rows={cell.value && cell.value.toString().length > 100 ? 4 : 1}
+										placeholder="Value"
+										bind:value={customValue}
+									></textarea>
 								</div>
 							</label>
 							{#if customValueError}
