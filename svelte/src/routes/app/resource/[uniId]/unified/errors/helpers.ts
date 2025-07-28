@@ -9,13 +9,23 @@ export function getErrorTitle(confType: CellConfigType) {
 	}
 }
 
-type ErrorActions = 'markAsResolved' | 'ignore' | 'approve' | 'reject' | 'keepCustom';
+export type ErrorDisplay =
+	| 'none'
+	| 'valueOnly'
+	| 'multipleOptions'
+	| 'approval'
+	| 'customApproval'
+	| 'matchWouldCauseDuplicate'
+	| 'contradictorySources';
+
+export type ErrorActions = 'markAsResolved' | 'ignore' | 'approve' | 'reject' | 'keepCustom';
 
 export interface ErrorConfType {
 	confType: CellError;
 	title: string;
 	instructions: string;
-	actions: [ErrorActions, ...ErrorActions[]];
+	display: ErrorDisplay;
+	actions: ErrorActions[];
 }
 
 export const ERRORS_CONF: Record<CellError, ErrorConfType> = {
@@ -23,7 +33,8 @@ export const ERRORS_CONF: Record<CellError, ErrorConfType> = {
 	'error:needsApproval': {
 		confType: 'error:needsApproval',
 		title: 'Needs Approval',
-		instructions: 'This value needs approval before it can be set.', //TODO
+		instructions: 'This value needs approval before it can be set.',
+		display: 'approval',
 		actions: ['approve', 'reject']
 	},
 	'error:needsApprovalCustom': {
@@ -31,6 +42,7 @@ export const ERRORS_CONF: Record<CellError, ErrorConfType> = {
 		title: 'Custom Value Needs Approval',
 		instructions:
 			'This custom value needs approval before it can be set. Keep the custom value or set cell setting to auto.',
+		display: 'customApproval',
 		actions: ['keepCustom']
 	},
 	// Value Errors
@@ -39,12 +51,14 @@ export const ERRORS_CONF: Record<CellError, ErrorConfType> = {
 		title: 'Missing Value',
 		instructions:
 			'This value is missing and needs to be set. You can set a custom value setting or ignore the error.',
+		display: 'valueOnly',
 		actions: ['ignore']
 	},
 	'error:shouldNotBeNull': {
 		confType: 'error:shouldNotBeNull',
 		title: 'Should Not Be Null',
 		instructions: 'This value should not be null. Add a custom value setting or ignore the error.',
+		display: 'none',
 		actions: ['ignore']
 	},
 	'error:canNotBeSetToNull': {
@@ -52,6 +66,7 @@ export const ERRORS_CONF: Record<CellError, ErrorConfType> = {
 		title: 'Cannot Be Set To Null',
 		instructions:
 			'This value cannot be set to null. Add a custom value setting or ignore the error.',
+		display: 'none',
 		actions: ['ignore']
 	},
 	'error:canNotBeSetToWrongType': {
@@ -59,6 +74,7 @@ export const ERRORS_CONF: Record<CellError, ErrorConfType> = {
 		title: 'Cannot Be Set To Wrong Type',
 		instructions:
 			'This value cannot be set to the wrong type. Add/modify a custom value setting. You should generally NOT ignore this error.',
+		display: 'valueOnly',
 		actions: ['ignore']
 	},
 	'error:invalidDataType': {
@@ -66,6 +82,7 @@ export const ERRORS_CONF: Record<CellError, ErrorConfType> = {
 		title: 'Invalid Data Type',
 		instructions:
 			'This value is of an invalid data type. Add/modify a custom value setting. You should generally NOT ignore this error.',
+		display: 'valueOnly',
 		actions: ['ignore']
 	},
 	// Matching Errors
@@ -74,6 +91,7 @@ export const ERRORS_CONF: Record<CellError, ErrorConfType> = {
 		title: 'Match Would Cause Duplicate',
 		instructions:
 			'This value would cause a duplicate match. You can set a custom value setting or ignore the error.', //TODO
+		display: 'matchWouldCauseDuplicate',
 		actions: ['markAsResolved']
 	},
 	'error:multipleOptions': {
@@ -81,13 +99,15 @@ export const ERRORS_CONF: Record<CellError, ErrorConfType> = {
 		title: 'Multiple Options',
 		instructions:
 			'This value has multiple options. You can set a custom value setting or ignore the error.', //TODO
+		display: 'multipleOptions',
 		actions: ['markAsResolved']
 	},
 	'error:contradictorySources': {
 		confType: 'error:contradictorySources',
 		title: 'Contradictory Sources',
 		instructions:
-			'This value has contradictory sources. If the current value is what you want, you can mark it as resolved. Otherwise, set a custom value setting or ignore the error.',
+			'This value has contradictory sources. If the current value is what you want, you can mark it as resolved. Otherwise, set a custom value setting.',
+		display: 'contradictorySources',
 		actions: ['markAsResolved']
 	}
 };

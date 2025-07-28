@@ -275,7 +275,7 @@ export function createUnifier<
 			}
 		}
 
-		const newErrors = await cellConfigurator.commitErrors();
+		const { errorsToAdd, errorsToRemove } = await cellConfigurator.commitErrors();
 		const hasChanges = Object.keys(changes).length > 0;
 
 		// 4. Update Row
@@ -299,13 +299,13 @@ export function createUnifier<
 				...history
 			});
 
-		if (hasChanges) {
+		if (hasChanges || errorsToRemove.length > 0 || errorsToAdd.length > 0) {
 			onUpdateCallback(originalRow.uniref.uniId);
 		}
 
 		return {
 			history,
-			newErrors
+			newErrors: errorsToAdd
 		};
 	}
 

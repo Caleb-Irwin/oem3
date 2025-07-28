@@ -157,11 +157,14 @@ export async function createCellConfigurator(
 			typeof newVal === 'string' && typeof options?.shouldMatch?.val === 'string';
 
 		if (
+			setting.setting !== 'setting:custom' &&
+			setting.setting !== 'setting:approveCustom' &&
 			options?.shouldMatch &&
 			!options.shouldMatch.ignore &&
 			options.shouldMatch.val !== null &&
 			!(bothAreStrings && newVal !== null
-				? (newVal as string).trim() === (options.shouldMatch.val as string).trim()
+				? (newVal as string).trim() === (options.shouldMatch.val as string).trim() ||
+					(options.shouldMatch.val as string).trim() === ''
 				: newVal === options.shouldMatch.val)
 		) {
 			addError(key as any, {
@@ -237,7 +240,7 @@ export async function createCellConfigurator(
 			});
 		}
 
-		return errorsToAdd;
+		return { errorsToAdd, errorsToRemove: Array.from(errorsToRemove) };
 	}
 
 	return {
