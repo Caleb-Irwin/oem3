@@ -36,7 +36,7 @@ type GuildRowType = Awaited<ReturnType<typeof getRow>>;
 export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
 	table: unifiedGuild,
 	confTable: unifiedGuildCellConfig,
-	version: 7,
+	version: 11,
 	getRow,
 	transform: (item, t) => {
 		return {
@@ -50,28 +50,32 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
 
 			upc: t('upc', item.dataRowContent.upc, {
 				shouldMatch: {
-					name: 'Guild Inventory UPC',
+					primary: 'Guild Data UPC',
+					secondary: 'Guild Inventory UPC',
 					val: item.inventoryRowContent?.upc ?? null,
 					ignore: item.inventoryRowContent === null
 				}
 			}),
 			spr: t('spr', item.dataRowContent.spr, {
 				shouldMatch: {
-					name: 'Guild Inventory SPR Product ID',
+					primary: 'Guild Data SPR Product ID',
+					secondary: 'Guild Inventory SPR Product ID',
 					val: item.inventoryRowContent?.spr ?? null,
 					ignore: item.inventoryRowContent === null
 				}
 			}),
 			basics: t('basics', item.dataRowContent.basics, {
 				shouldMatch: {
-					name: 'Guild Inventory Basics Product ID',
+					primary: 'Guild Data Basics Product ID',
+					secondary: 'Guild Inventory Basics Product ID',
 					val: item.inventoryRowContent?.basics ?? null,
 					ignore: item.inventoryRowContent === null
 				}
 			}),
 			cis: t('cis', item.dataRowContent.cis, {
 				shouldMatch: {
-					name: 'Guild Inventory CIS Product ID',
+					primary: 'Guild Data CIS Product ID',
+					secondary: 'Guild Inventory CIS Product ID',
 					val: item.inventoryRowContent?.cis ?? null,
 					ignore: item.inventoryRowContent === null
 				}
@@ -103,7 +107,8 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
 			),
 			um: t('um', item.dataRowContent.um, {
 				shouldMatch: {
-					name: 'Guild Inventory UM',
+					primary: 'Guild Data UM',
+					secondary: 'Guild Inventory UM',
 					val: item.inventoryRowContent?.um ?? null,
 					ignore: item.inventoryRowContent === null
 				}

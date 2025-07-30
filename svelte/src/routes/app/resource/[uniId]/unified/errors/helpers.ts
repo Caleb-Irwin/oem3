@@ -15,10 +15,16 @@ export type ErrorDisplay =
 	| 'multipleOptions'
 	| 'approval'
 	| 'customApproval'
-	| 'matchWouldCauseDuplicate'
 	| 'contradictorySources';
 
-export type ErrorActions = 'markAsResolved' | 'ignore' | 'approve' | 'reject' | 'keepCustom';
+export type ErrorActions =
+	| 'markAsResolved'
+	| 'ignore'
+	| 'approve'
+	| 'reject'
+	| 'keepCustom'
+	| 'setAuto'
+	| 'keepValue';
 
 export interface ErrorConfType {
 	confType: CellError;
@@ -41,9 +47,9 @@ export const ERRORS_CONF: Record<CellError, ErrorConfType> = {
 		confType: 'error:needsApprovalCustom',
 		title: 'Custom Value Needs Approval',
 		instructions:
-			'This custom value needs approval before it can be set. Keep the custom value or set cell setting to auto.',
+			'The underlying (auto) value has changed. You can keep the custom value, or set it to the new auto (underlying) value by removing the custom value setting.',
 		display: 'customApproval',
-		actions: ['keepCustom']
+		actions: ['setAuto', 'keepCustom']
 	},
 	// Value Errors
 	'error:missingValue': {
@@ -90,24 +96,24 @@ export const ERRORS_CONF: Record<CellError, ErrorConfType> = {
 		confType: 'error:matchWouldCauseDuplicate',
 		title: 'Match Would Cause Duplicate',
 		instructions:
-			'This value would cause a duplicate match. You can set a custom value setting or ignore the error.', //TODO
-		display: 'matchWouldCauseDuplicate',
-		actions: ['markAsResolved']
+			'This item is already matched. If used here, it would cause a duplicate match. You can ignore this issue or unmatch the below item from its current unified item.',
+		display: 'valueOnly', // TODO Add a quick link to the current match
+		actions: ['ignore']
 	},
 	'error:multipleOptions': {
 		confType: 'error:multipleOptions',
 		title: 'Multiple Options',
 		instructions:
-			'This value has multiple options. You can set a custom value setting or ignore the error.', //TODO
+			'This value has multiple options. You can keep the current value, or select a custom value.',
 		display: 'multipleOptions',
-		actions: ['markAsResolved']
+		actions: []
 	},
 	'error:contradictorySources': {
 		confType: 'error:contradictorySources',
 		title: 'Contradictory Sources',
 		instructions:
-			'This value has contradictory sources. If the current value is what you want, you can mark it as resolved. Otherwise, set a custom value setting.',
+			'This value has contradictory sources. Either keep the current value, or set a custom value.',
 		display: 'contradictorySources',
-		actions: ['markAsResolved']
+		actions: []
 	}
 };

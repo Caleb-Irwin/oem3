@@ -138,8 +138,10 @@
 						<span>
 							{#if cell.setting === 'setting:approve'}
 								Manual approval required for changes exceeding threshold
-							{:else if cell.setting === 'setting:custom' || cell.setting === 'setting:approveCustom'}
+							{:else if cell.setting === 'setting:custom'}
 								Custom value override is active
+							{:else if cell.setting === 'setting:approveCustom'}
+								Custom value override is active with approval on underlying value change
 							{/if}
 						</span>
 					</div>

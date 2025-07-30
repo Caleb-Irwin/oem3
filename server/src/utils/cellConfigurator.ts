@@ -47,6 +47,10 @@ export async function createCellConfigurator(
 			message: errorData.message ?? null,
 			value:
 				errorData.value !== undefined && errorData.value !== null ? String(errorData.value) : null,
+			lastValue:
+				errorData.lastValue !== undefined && errorData.lastValue !== null
+					? String(errorData.lastValue)
+					: null,
 			options: errorData.options ? JSON.stringify(errorData.options) : null,
 			resolved: false,
 			notes,
@@ -85,15 +89,12 @@ export async function createCellConfigurator(
 						: Math.abs((currentValue - lastApprovedValue) / lastApprovedValue) * 100;
 
 				if (percentChange > thresholdPercent) {
-					addError(
-						key as any,
-						{
-							needsApproval: {
-								value: val
-							}
-						},
-						`Value changed by ${percentChange.toFixed(2)}% which exceeds threshold of ${thresholdPercent}%`
-					);
+					addError(key as any, {
+						needsApproval: {
+							value: val,
+							message: `Value changed by ${percentChange.toFixed(2)}% which exceeds threshold of ${thresholdPercent}%`
+						}
+					});
 					newVal = oldVal;
 				} else {
 					await db
@@ -122,15 +123,12 @@ export async function createCellConfigurator(
 				const lastTrackedValue = setting.conf?.lastValue ?? null;
 				const currentValue = val?.toString() ?? null;
 				if (lastTrackedValue !== currentValue) {
-					addError(
-						key as any,
-						{
-							needsApprovalCustom: {
-								value: val?.toString() ?? 'Null'
-							}
-						},
-						`Underlying value changed from "${lastTrackedValue}" to "${currentValue}"`
-					);
+					addError(key as any, {
+						needsApprovalCustom: {
+							value: val?.toString() ?? 'Null',
+							lastValue: lastTrackedValue?.toString() ?? 'Null'
+						}
+					});
 				}
 			}
 		}
@@ -170,7 +168,7 @@ export async function createCellConfigurator(
 			addError(key as any, {
 				contradictorySources: {
 					value: options.shouldMatch.val,
-					message: `Value "${newVal}" does not match "${options.shouldMatch.val}", which is found in secondary source "${options.shouldMatch.name}"`
+					message: `Value "${newVal}" found in primary source "${options.shouldMatch.primary}", does not match "${options.shouldMatch.val}", found in secondary source "${options.shouldMatch.secondary}"`
 				}
 			});
 		}
@@ -263,7 +261,7 @@ export const cellTransformer = <T extends UnifiedTables, K extends keyof T['$inf
 };
 
 type CellTransformerOptions<T> = {
-	shouldMatch?: { name: string; val: T; ignore?: boolean };
+	shouldMatch?: { primary: string; secondary: string; val: T; ignore?: boolean };
 	shouldNotBeNull?: boolean;
 	defaultSettingOfApprove?: boolean;
 };
@@ -310,9 +308,11 @@ export interface NewError {
 	};
 	needsApproval?: {
 		value: ValType;
+		message: string;
 	};
 	needsApprovalCustom?: {
 		value: ValType;
+		lastValue: ValType;
 	};
 	matchWouldCauseDuplicate?: {
 		value: ValType;
@@ -337,6 +337,7 @@ export interface NewError {
 
 type NewErrorMerged = {
 	value?: ValType;
+	lastValue?: ValType;
 	message?: string;
 	options?: ValType[];
 };
