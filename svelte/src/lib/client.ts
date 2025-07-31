@@ -68,10 +68,8 @@ export const query = <I, O>(
 	return { subscribe };
 };
 
-export const subVal = <SI extends object | void, SO>(
-	{
-		subscribe: sub
-	}: {
+type SubVal = <SI extends object | void, SO>(
+	sub: {
 		subscribe: (
 			param: SI,
 			opts: {
@@ -82,17 +80,48 @@ export const subVal = <SI extends object | void, SO>(
 		) => unknown;
 	},
 	args: SI extends void ? { init?: SO | undefined } : SI & { init?: SO | undefined }
-): Readable<SO | undefined> => {
-	const { subscribe, set } = writable<SO | undefined>(args.init ?? undefined);
+) => Readable<SO | undefined>;
+
+export const subVal: SubVal = ({ subscribe: sub }, args) => {
+	const { subscribe, set } = writable(args.init ?? undefined);
 
 	if (browser) {
 		const input = args;
 		delete input.init;
-		sub(input as SI, {
+		// @ts-expect-error Types through SubVal
+		sub(input, {
 			onData(val) {
+				// @ts-expect-error Types through SubVal
 				set(val);
 			},
 			onError: handleTRPCError
+		});
+	}
+
+	return { subscribe };
+};
+
+export const subValReturnError: SubVal = ({ subscribe: sub }, args) => {
+	const { subscribe, set } = writable(args.init ?? undefined);
+
+	if (browser) {
+		const input = args;
+		delete input.init;
+		// @ts-expect-error Types through SubVal
+		sub(input, {
+			onData(val) {
+				// @ts-expect-error Types through SubVal
+				set(val);
+			},
+			onError: (e: unknown) => {
+				const message = isTRPCClientError(e)
+					? e.message[0] === '['
+						? JSON.parse(e.message)[0].message
+						: e.message
+					: 'Error Occured';
+				// @ts-expect-error Custom thing
+				set({ error: message });
+			}
 		});
 	}
 

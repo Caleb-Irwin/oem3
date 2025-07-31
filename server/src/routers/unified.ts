@@ -10,11 +10,11 @@ import {
 	type UnifiedTables
 } from '../utils/unifier';
 import type { CellConfigRowInsert, CellConfigRowSelect } from '../utils/cellConfigurator';
-import { getResource } from './resources';
-import { ColToTableName, createUnifiedSub, updateUnifiedTopicByUniId } from './unified.helpers';
+import { createUnifiedSub, updateUnifiedTopicByUniId } from './unified.helpers';
 import { getCellConfigHelper } from '../utils/cellConfigHelper';
 import { UnifierMap } from '../utils/unifier.map';
 import { KV } from '../utils/kv';
+import { getResourceByCol } from './resources';
 
 const kv = new KV('unifiedErrors');
 
@@ -42,11 +42,6 @@ export const unifiedRouter = router({
 			return await getUnified(uniId);
 		}
 	),
-	getResourceByCol: viewerProcedure
-		.input(z.object({ col: z.string(), value: z.number() }))
-		.query(async ({ input: { col, value } }) => {
-			return await getResourceByCol(col, value);
-		}),
 	updateSetting: generalProcedure
 		.input(
 			z.object({
@@ -266,15 +261,6 @@ function errorQueryBuilder(tableName: UnifiedTableNames, deletedMode: boolean) {
 		.groupBy(UnifierMap[tableName].table.id)
 		.orderBy(desc(max(UnifierMap[tableName].confTable.created)))
 		.$dynamic();
-}
-
-async function getResourceByCol(col: string, value: string | number | boolean | null) {
-	if (!Object.hasOwn(ColToTableName, col)) return undefined;
-	if (value === null) return null;
-	const tableName = ColToTableName[col as keyof typeof ColToTableName];
-	return await getResource({
-		input: { uniId: -1, type: tableName, id: value as number, includeHistory: false }
-	});
 }
 
 export interface UnifiedRow<T extends UnifiedTables = UnifiedTables> {

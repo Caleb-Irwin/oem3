@@ -15,13 +15,24 @@ import {
 import { TRPCError } from '@trpc/server';
 import { addOrSmartUpdateImage, getAccessURLBySourceURL } from '../utils/images';
 import { eventSubscription } from '../utils/eventSubscription';
+import { ColToTableName } from './unified.helpers';
+
+const unifiedGuildDataWith = {
+	with: {
+		unifiedGuildData: {
+			with: {
+				uniref: true as true
+			}
+		}
+	}
+};
 
 export const resourceWith = {
 	changesetData: true as true,
 	qbData: true as true,
-	guildData: true as true,
-	guildInventoryData: true as true,
-	guildFlyerData: true as true,
+	guildData: unifiedGuildDataWith,
+	guildInventoryData: unifiedGuildDataWith,
+	guildFlyerData: unifiedGuildDataWith,
 	shopifyData: true as true,
 	sprPriceFileData: true as true,
 	sprFlatFileData: true as true,
@@ -117,6 +128,17 @@ export const resourcesRouter = router({
 				where: eq(uniref[type], id)
 			});
 		}),
+	getResourceByCol: viewerProcedure
+		.input(z.object({ col: z.string(), value: z.number() }))
+		.query(async ({ input: { col, value } }) => {
+			return await getResourceByCol(col, value);
+		}),
+	getResourceByColSub: createSub<
+		{ col: string; value: number },
+		Awaited<ReturnType<typeof getResourceByCol>>
+	>(async ({ input: { col, value } }) => {
+		return await getResourceByCol(col, value);
+	}),
 	sprEnhancedContent: viewerProcedure
 		.input(
 			z.object({
@@ -185,3 +207,12 @@ export const resourcesRouter = router({
 			});
 		})
 });
+
+export async function getResourceByCol(col: string, value: string | number | boolean | null) {
+	if (!Object.hasOwn(ColToTableName, col)) return undefined;
+	if (value === null) return null;
+	const tableName = ColToTableName[col as keyof typeof ColToTableName];
+	return await getResource({
+		input: { uniId: -1, type: tableName, id: value as number, includeHistory: false }
+	});
+}

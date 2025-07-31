@@ -6,11 +6,11 @@ import {
 	shopify,
 	sprFlatFile,
 	sprPriceFile,
-	unifiedGuild
+	unifiedGuild,
+	guildInventory,
+	guildFlyer
 } from '../db.schema';
 import { relations } from 'drizzle-orm';
-import { guildInventory } from '../routers/guild/inventory/table';
-import { guildFlyer } from '../routers/guild/flyer/table';
 
 export const resourceTypeEnum = pgEnum('resource_type', [
 	'changeset',

@@ -81,7 +81,7 @@ export const guildRelations = relations(guildData, ({ one }) => ({
 		fields: [guildData.gid],
 		references: [guildDescriptions.gid]
 	}),
-	unifiedGuild: one(unifiedGuild, {
+	unifiedGuildData: one(unifiedGuild, {
 		fields: [guildData.id],
 		references: [unifiedGuild.dataRow]
 	})

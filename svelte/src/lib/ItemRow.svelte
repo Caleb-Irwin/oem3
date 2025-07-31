@@ -6,6 +6,8 @@
 	import CopyableText from './helpers/CopyableText.svelte';
 	import Image from './Image.svelte';
 	import { productDetails, type RawProduct } from './productDetails';
+	import Link from 'lucide-svelte/icons/link';
+	import Unlink from 'lucide-svelte/icons/unlink';
 
 	interface Props {
 		rawProduct: { uniId: number } & RawProduct;
@@ -13,6 +15,7 @@
 		all?: boolean;
 		select?: SelectFunc;
 		extraClass?: string;
+		replaceClass?: string | undefined;
 		newTab?: boolean;
 	}
 
@@ -22,6 +25,7 @@
 		all = false,
 		select = undefined,
 		extraClass = '',
+		replaceClass = undefined,
 		newTab = false
 	}: Props = $props();
 
@@ -30,9 +34,11 @@
 
 {#if product}
 	<div
-		class="card max-w-none w-full h-full p-2 flex justify-center items-center {grid
-			? 'flex-col'
-			: 'flex-row flex-wrap'} {extraClass}"
+		class={replaceClass
+			? replaceClass
+			: `card max-w-none w-full h-full p-2 flex justify-center items-center ${
+					grid ? 'flex-col' : 'flex-row flex-wrap'
+				} ${extraClass}`}
 	>
 		{#if product.imageUrl}
 			<a
@@ -55,36 +61,48 @@
 				class="font-semibold hover:underline block w-full {product.name ? '' : 'italic'}"
 				target={newTab ? '_blank' : '_self'}>{product.name || 'Unnamed Item'}</a
 			>
-			<p class="my-1">
-				<span class="text-lg {product.comparePrice ? 'text-primary-600' : ''}">
-					{product.price}
-				</span>
-				{#if product.comparePrice}
-					<span class="pl-1 text-lg line-through">
-						{product.comparePrice}
-					</span>
+			<div class="py-1 flex flex-wrap gap-1">
+				{#if product.price}
+					<p class="text-lg {product.comparePrice ? 'text-primary-600' : ''}">
+						{product.price}
+					</p>
 				{/if}
-				<span class="chip variant-soft-tertiary m-0.5">
+
+				{#if product.comparePrice}
+					<p class="text-lg line-through">
+						{product.comparePrice}
+					</p>
+				{/if}
+				<p class="chip variant-soft-tertiary">
 					<CopyableText text={product.sku} />
-				</span>
+				</p>
 				{#if product.stock !== null}
-					<span
-						class="cursor-default chip m-0.5 {(product?.stock ?? 0) > 0
+					<p
+						class="cursor-default chip {(product?.stock ?? 0) > 0
 							? 'variant-filled-secondary'
 							: 'variant-filled-warning'}"
 					>
 						{product.stock} in stock
-					</span>
+					</p>
+				{/if}
+				{#if product.unifiedGuildData !== undefined}
+					{@render displayConnection(
+						'Unified Guild',
+						product.unifiedGuildData !== null,
+						product.unifiedGuildData?.id
+							? `/app/resource/${product.unifiedGuildData.uniref.uniId}/unified`
+							: '/app/guild'
+					)}
 				{/if}
 				{#if product.deleted}
-					<span class="cursor-default chip m-0.5 variant-filled-error"> Deleted </span>
+					<p class="cursor-default chip variant-filled-error">Deleted</p>
 				{/if}
 				{#if all}
-					<span class="cursor-default chip m-0.5 variant-filled-surface">
+					<p class="cursor-default chip variant-filled-surface">
 						{product.idText.split('#')[0]}
-					</span>
+					</p>
 				{/if}
-			</p>
+			</div>
 		</div>
 
 		{#if select}
@@ -99,3 +117,22 @@
 		{/if}
 	</div>
 {/if}
+
+{#snippet displayConnection(name: string, connected: boolean, link: string)}
+	<a
+		href={link}
+		class="cursor-default chip {connected
+			? 'variant-filled-primary cursor-pointer hover:underline'
+			: 'variant-filled-error'}"
+		target={newTab ? '_blank' : '_self'}
+	>
+		<span>
+			{#if connected}
+				<Link size="16" />
+			{:else}
+				<Unlink size="16" />
+			{/if}
+		</span>
+		<span> {name} </span>
+	</a>
+{/snippet}

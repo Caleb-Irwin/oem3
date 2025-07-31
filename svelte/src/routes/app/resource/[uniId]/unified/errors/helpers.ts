@@ -96,8 +96,8 @@ export const ERRORS_CONF: Record<CellError, ErrorConfType> = {
 		confType: 'error:matchWouldCauseDuplicate',
 		title: 'Match Would Cause Duplicate',
 		instructions:
-			'This item is already matched. If used here, it would cause a duplicate match. You can ignore this issue or unmatch the below item from its current unified item.',
-		display: 'valueOnly', // TODO Add a quick link to the current match
+			'This item is already matched. If used here, it would cause a duplicate match. You can ignore this issue or unmatch the below item from its current unified item. To see its current match, click on the green unified guild/spr/item link below.',
+		display: 'valueOnly',
 		actions: ['ignore']
 	},
 	'error:multipleOptions': {

@@ -1,5 +1,5 @@
 import { bigint, boolean, index, integer, pgTable, serial, varchar } from 'drizzle-orm/pg-core';
-import { uniref } from '../../../db.schema';
+import { unifiedGuild, uniref } from '../../../db.schema';
 import { guildUmEnum } from '../data/table';
 import { relations } from 'drizzle-orm';
 
@@ -29,5 +29,9 @@ export const guildInventoryRelations = relations(guildInventory, ({ one }) => ({
 	uniref: one(uniref, {
 		fields: [guildInventory.id],
 		references: [uniref.guildInventory]
+	}),
+	unifiedGuildData: one(unifiedGuild, {
+		fields: [guildInventory.id],
+		references: [unifiedGuild.inventoryRow]
 	})
 }));

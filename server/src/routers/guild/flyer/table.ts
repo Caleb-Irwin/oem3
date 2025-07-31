@@ -1,5 +1,5 @@
 import { bigint, boolean, index, integer, pgTable, serial, varchar } from 'drizzle-orm/pg-core';
-import { uniref } from '../../../db.schema';
+import { unifiedGuild, uniref } from '../../../db.schema';
 import { relations } from 'drizzle-orm';
 
 export const guildFlyer = pgTable(
@@ -30,5 +30,9 @@ export const guildFlyerRelations = relations(guildFlyer, ({ one }) => ({
 	uniref: one(uniref, {
 		fields: [guildFlyer.id],
 		references: [uniref.guildFlyer]
+	}),
+	unifiedGuildData: one(unifiedGuild, {
+		fields: [guildFlyer.id],
+		references: [unifiedGuild.flyerRow]
 	})
 }));

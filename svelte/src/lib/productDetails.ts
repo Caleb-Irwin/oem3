@@ -19,6 +19,9 @@ export interface Product {
 	otherImageUrls?: string[] | undefined;
 	lastUpdated: number;
 	other: { [key: string]: string | null };
+	unifiedGuildData?: (RawProduct['unifiedGuildData'] & { uniref: { uniId: number } }) | null;
+	// unifiedSprData?: RawProduct['unifiedSprData'] | null;
+	// unifiedItemData?: RawProduct['unifiedItemData'] | null;
 }
 
 export const { format: formatCurrency } = new Intl.NumberFormat('en-CA', {
@@ -65,6 +68,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			description: guild.longDesc,
 			imageUrl: guild.imageURL ?? undefined,
 			lastUpdated: guild.lastUpdated,
+			unifiedGuildData: guild.unifiedGuildData ?? null,
 			other: {
 				'Basics Number': guild.basics,
 				'SPR Number': guild.spr,
@@ -104,6 +108,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			lastUpdated: inventory.lastUpdated,
 			description: undefined,
 			imageUrl: undefined,
+			unifiedGuildData: inventory.unifiedGuildData ?? null,
 			other: {
 				'UPC#': inventory.upc,
 				'SPR#': inventory.spr,
@@ -128,6 +133,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			lastUpdated: flyer.lastUpdated,
 			description: undefined,
 			imageUrl: undefined,
+			unifiedGuildData: flyer.unifiedGuildData ?? null,
 			other: {
 				'Start Date': new Date(flyer.startDate as number).toLocaleDateString('en-CA'),
 				'End Date': new Date(flyer.endDate as number).toLocaleDateString('en-CA'),
