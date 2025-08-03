@@ -32,13 +32,18 @@ export const unifiedGuild = pgTable(
 
 		dataRow: integer('dataRow')
 			.notNull()
+			.unique()
 			.references(() => guildData.id, { onDelete: 'cascade' }),
-		inventoryRow: integer('inventoryRow').references(() => guildInventory.id, {
-			onDelete: 'set null'
-		}),
-		flyerRow: integer('flyerRow').references(() => guildFlyer.id, {
-			onDelete: 'set null'
-		}),
+		inventoryRow: integer('inventoryRow')
+			.unique()
+			.references(() => guildInventory.id, {
+				onDelete: 'set null'
+			}),
+		flyerRow: integer('flyerRow')
+			.unique()
+			.references(() => guildFlyer.id, {
+				onDelete: 'set null'
+			}),
 
 		upc: varchar('upc', { length: 256 }),
 		spr: varchar('spr', { length: 256 }),

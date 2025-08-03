@@ -13,7 +13,7 @@ import { chunk } from './chunk';
 import { insertHistory, insertMultipleHistoryRows, type InsertHistoryRowOptions } from './history';
 import { KV } from './kv';
 import { cellTransformer, createCellConfigurator, type NewError } from './cellConfigurator';
-import { runSerializable } from './runSerializable';
+import { retryableTransaction } from './retryableTransaction';
 import PromisePool from '@supercharge/promise-pool';
 
 export function createUnifier<
@@ -217,27 +217,28 @@ export function createUnifier<
 
 			const newVal = updatedRow[connectionRowKey] as number | null;
 			if (originalRow[connectionRowKey] !== newVal) {
-				const existing = await db
-					.select({ col: table[connectionRowKey as keyof TableType] as any })
-					.from(table as any)
-					.where(eq(table[connectionRowKey as keyof TableType] as any, newVal))
-					.execute();
-				if (existing.length > 0) {
-					updatedRow[connectionRowKey] = originalRow[connectionRowKey];
-					cellConfigurator.addError(connectionRowKey as any, {
-						matchWouldCauseDuplicate: {
-							value: newVal
-						}
+				try {
+					await db.transaction(async (tx) => {
+						await _modifyRow(
+							id,
+							{
+								[connectionRowKey]: newVal
+							} as any,
+							tx
+						);
+						updatedRow = await getRow(id, tx);
 					});
-				} else {
-					await _modifyRow(
-						id,
-						{
-							[connectionRowKey]: newVal
-						} as any,
-						db
-					);
-					updatedRow = await getRow(id, db);
+				} catch (error: any) {
+					if (error?.code === '23505') {
+						updatedRow[connectionRowKey] = originalRow[connectionRowKey];
+						cellConfigurator.addError(connectionRowKey as any, {
+							matchWouldCauseDuplicate: {
+								value: newVal
+							}
+						});
+					} else {
+						throw error;
+					}
 				}
 			}
 		}
@@ -310,7 +311,7 @@ export function createUnifier<
 	}
 
 	async function updateRow(id: number, onUpdateCallback: OnUpdateCallback) {
-		return await runSerializable(async (tx) => {
+		return await retryableTransaction(async (tx) => {
 			return await _updateRow({ id, db: tx, onUpdateCallback });
 		});
 	}
@@ -388,7 +389,6 @@ export function createUnifier<
 				});
 			}
 		});
-		const addedPrimaryRows = rowsToUpdate.size;
 
 		// 2. Determine which rows need to be updated
 		if (updateAll) {
@@ -427,7 +427,7 @@ export function createUnifier<
 		// 3. Update Rows
 		if (progress) progress(0);
 		let done = 0;
-		await PromisePool.withConcurrency(addedPrimaryRows > 1000 ? 1 : 3)
+		await PromisePool.withConcurrency(25)
 			.for(Array.from(rowsToUpdate))
 			.handleError(async (error) => {
 				console.error('Error updating row:', error);

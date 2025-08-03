@@ -33,7 +33,9 @@
 
 	let customValue = $derived(
 			cell.setting === 'setting:custom' || cell.setting === 'setting:approveCustom'
-				? cell.cellSettingConf?.value
+				? cell.cellSettingConf?.value === null
+					? 'Null'
+					: cell.cellSettingConf?.value
 				: cell.value?.toString()
 		),
 		customValueError: string | null = $state(null),

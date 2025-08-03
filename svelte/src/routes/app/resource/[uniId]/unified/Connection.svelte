@@ -31,7 +31,9 @@
 
 {#snippet valueRenderer(value: string | number | boolean | null)}
 	<div class="flex-grow flex items-center card min-h-[75px]">
-		{#if isNaN(parseInt(value as any))}
+		{#if value?.toString().toLocaleLowerCase() === 'null' || value === null}
+			<p class="text-lg font-semibold p-2 w-full text-center">No Connection</p>
+		{:else if isNaN(parseInt(value as any))}
 			<p class="text-lg font-semibold p-2 w-full text-center">Invalid Number</p>
 		{:else}
 			{#key value}

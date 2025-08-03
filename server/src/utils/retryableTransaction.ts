@@ -1,13 +1,13 @@
 import type { PgTransaction } from 'drizzle-orm/pg-core';
 import { db } from '../db';
 
-export async function runSerializable<T>(
+export async function retryableTransaction<T>(
 	fn: (tx: PgTransaction<any, any, any>) => Promise<T>,
 	maxAttempts = 10
 ): Promise<T> {
 	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
 		try {
-			return await db.transaction(fn, { isolationLevel: 'serializable' });
+			return await db.transaction(fn, { isolationLevel: 'read committed' });
 		} catch (err: any) {
 			// Abort-and-retry only on serialization failure
 			if (err?.code === '40001' && attempt < maxAttempts) {
@@ -15,6 +15,7 @@ export async function runSerializable<T>(
 				await sleep(backoff + Math.floor(Math.random() * 40)); // add jitter
 				continue; // 🔁  restart from the top of for‑loop
 			}
+			console.log(`Transaction failed on attempt ${attempt}:`, err);
 			throw err; // propagate other errors or give up
 		}
 	}

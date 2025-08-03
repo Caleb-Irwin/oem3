@@ -82,7 +82,7 @@
 		</Button>
 	</div>
 
-	<div class="px-4">
+	<div class="px-4 pb-2">
 		{#if workerData?.error}
 			<WorkerStatus status={workerStatus} />
 		{/if}
