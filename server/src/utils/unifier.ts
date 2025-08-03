@@ -150,11 +150,15 @@ export function createUnifier<
 	async function _updateRow({
 		id,
 		db,
-		onUpdateCallback
+		onUpdateCallback,
+		nestedMode = false,
+		removeAutoMatch = false
 	}: {
 		id: number;
 		db: Tx | typeof DB;
 		onUpdateCallback: OnUpdateCallback;
+		nestedMode?: boolean;
+		removeAutoMatch?: boolean;
 	}) {
 		const originalRow = await getRow(id, db);
 		let updatedRow = structuredClone(originalRow);
@@ -178,7 +182,7 @@ export function createUnifier<
 			if (
 				!(connectionTable as PrimaryTableConnection<any, any, any>).newRowTransform &&
 				updatedRow[connectionRowKey] !== null &&
-				connectionTable.isDeleted(updatedRow)
+				(connectionTable.isDeleted(updatedRow) || removeAutoMatch)
 			) {
 				updatedRow[connectionRowKey] = null as any;
 			}
@@ -195,7 +199,11 @@ export function createUnifier<
 			);
 
 			// Only auto-assign connection if no custom setting was applied
-			if (configuredVal === updatedRow[connectionRowKey] && otherConnections.length > 0) {
+			if (
+				configuredVal === updatedRow[connectionRowKey] &&
+				otherConnections.length > 0 &&
+				!removeAutoMatch
+			) {
 				if (updatedRow[connectionRowKey] === null) {
 					updatedRow[connectionRowKey] = otherConnections[0] as any;
 				}
@@ -217,27 +225,69 @@ export function createUnifier<
 
 			const newVal = updatedRow[connectionRowKey] as number | null;
 			if (originalRow[connectionRowKey] !== newVal) {
-				try {
-					await db.transaction(async (tx) => {
-						await _modifyRow(
-							id,
-							{
-								[connectionRowKey]: newVal
-							} as any,
-							tx
-						);
-						updatedRow = await getRow(id, tx);
-					});
-				} catch (error: any) {
-					if (error?.code === '23505') {
-						updatedRow[connectionRowKey] = originalRow[connectionRowKey];
-						cellConfigurator.addError(connectionRowKey as any, {
-							matchWouldCauseDuplicate: {
-								value: newVal
-							}
+				let i = 0;
+				while (i < 3) {
+					i++;
+					try {
+						await db.transaction(async (tx) => {
+							await _modifyRow(
+								id,
+								{
+									[connectionRowKey]: newVal
+								} as any,
+								tx
+							);
+							updatedRow = await getRow(id, tx);
 						});
-					} else {
-						throw error;
+						break;
+					} catch (error: any) {
+						if (error?.code === '23505') {
+							if (!nestedMode) {
+								const existing = await db
+									.select({ id: table.id, col: table[connectionRowKey as keyof TableType] as any })
+									.from(table as any)
+									.where(eq(table[connectionRowKey as keyof TableType] as any, newVal))
+									.execute();
+								if (!existing || existing.length === 0) {
+									throw new Error(
+										`No existing row found with the same connection value (${connectionRowKey.toString()}=${newVal})`
+									);
+								} else {
+									const id = existing[0].id;
+									const matchRemoved = await db.transaction(async (tx) => {
+										await _updateRow({ id, db: tx, onUpdateCallback, nestedMode: true });
+										const deleted = await tx
+											.select({ deleted: table.deleted })
+											.from(table as any)
+											.where(eq(table.id, id))
+											.execute();
+										console.log(deleted, id);
+										if (deleted[0].deleted) {
+											await _updateRow({
+												id,
+												db: tx,
+												onUpdateCallback,
+												nestedMode: true,
+												removeAutoMatch: true
+											});
+											return true;
+										}
+										return false;
+									});
+
+									if (matchRemoved) continue;
+								}
+							}
+							updatedRow[connectionRowKey] = originalRow[connectionRowKey];
+							cellConfigurator.addError(connectionRowKey as any, {
+								matchWouldCauseDuplicate: {
+									value: newVal
+								}
+							});
+							break;
+						} else {
+							throw error;
+						}
 					}
 				}
 			}
