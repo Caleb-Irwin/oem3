@@ -3,13 +3,14 @@ import { CellErrorArray, history, unifiedGuild, uniref, type CellSetting } from 
 import { generalProcedure, router, viewerProcedure } from '../trpc';
 import { db } from '../db';
 import { and, desc, eq, inArray, max } from 'drizzle-orm';
+import { getColConfig } from '../unified/unifier';
 import {
-	getColConfig,
-	UnifiedTableNamesArray,
 	type UnifiedTableNames,
-	type UnifiedTables
-} from '../unified/unifier';
-import type { CellConfigRowInsert, CellConfigRowSelect } from '../unified/cellConfigurator';
+	type UnifiedTables,
+	UnifiedTableNamesArray,
+	type CellConfigRowInsert,
+	type CellConfigRowSelect
+} from '../unified/types';
 import { createUnifiedSub, updateUnifiedTopicByUniId } from './unified.helpers';
 import { getCellConfigHelper } from '../unified/cellConfigHelper';
 import { UnifierMap } from '../unified/unifier.map';

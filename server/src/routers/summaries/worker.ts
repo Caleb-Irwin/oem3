@@ -1,6 +1,6 @@
 import { and, eq, inArray, countDistinct, isNull, or, count } from 'drizzle-orm';
 import { db } from '../../db';
-import type { UnifiedTableNames } from '../../unified/unifier';
+import type { UnifiedTableNames } from '../../unified/types';
 import { UnifierMap } from '../../unified/unifier.map';
 import { work } from '../../utils/workerBase';
 import { CellErrorArray, type CellError, summaries } from '../../db.schema';

@@ -12,7 +12,7 @@ import {
 	type AnyPgTable,
 	type PgEnum
 } from 'drizzle-orm/pg-core';
-import type { UnifiedTableNames } from './unifier';
+import type { UnifiedTableNames } from './types';
 
 export const CellSettingArray = [
 	'setting:custom',

@@ -1,11 +1,4 @@
-import {
-	guildData,
-	guildFlyer,
-	guildInventory,
-	unifiedGuild,
-	unifiedGuildCellConfig,
-	uniref
-} from '../db.schema';
+import { uniref } from '../db.schema';
 import { db, db as DB, type Tx } from '../db';
 import { eq, isNull, type SQLWrapper, gt, or } from 'drizzle-orm';
 import { getTableConfig } from 'drizzle-orm/pg-core';
@@ -16,9 +9,16 @@ import {
 	type InsertHistoryRowOptions
 } from '../utils/history';
 import { KV } from '../utils/kv';
-import { cellTransformer, createCellConfigurator, type NewError } from './cellConfigurator';
+import { cellTransformer, createCellConfigurator } from './cellConfigurator';
+import type { NewError } from './errorManager';
 import { retryableTransaction } from './retryableTransaction';
 import PromisePool from '@supercharge/promise-pool';
+import type {
+	CellConfigTable,
+	OtherSourceTables,
+	PrimarySourceTables,
+	UnifiedTables
+} from './types';
 
 export function createUnifier<
 	RowType extends TableType['$inferSelect'] & {
@@ -523,16 +523,6 @@ export function getColConfig<TableType extends UnifiedTables>(table: TableType) 
 	});
 	return colTypes;
 }
-
-export type UnifiedTables = typeof unifiedGuild;
-export const UnifiedTableNamesArray = ['unifiedGuild'] as const;
-export type UnifiedTableNames = (typeof UnifiedTableNamesArray)[number];
-export type PrimarySourceTables = typeof unifiedGuild | typeof guildData;
-// export type SecondarySourceTables = typeof unifiedSPR
-export type OtherSourceTables = typeof guildInventory | typeof guildFlyer;
-
-export type CellConfigTable = typeof unifiedGuildCellConfig;
-
 interface TableConnection<
 	RowType,
 	UnifiedTable extends UnifiedTables,

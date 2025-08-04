@@ -1,12 +1,10 @@
-import { eq, inArray } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { db as DB, type Tx } from '../db';
 import { type CellSetting } from '../db.schema';
-import type { UnifiedTables, VerifyCellValue, CellConfigTable } from './unifier';
-import {
-	insertHistory,
-	insertMultipleHistoryRows,
-	type InsertHistoryRowOptions
-} from '../utils/history';
+import type { UnifiedTables, CellConfigTable } from './types';
+import type { VerifyCellValue } from './unifier';
+import { insertHistory } from '../utils/history';
+import { ErrorManager } from './errorManager';
 
 export async function createCellConfigurator(
 	table: CellConfigTable,
@@ -16,6 +14,8 @@ export async function createCellConfigurator(
 ) {
 	const cellConfigs = await db.select().from(table).where(eq(table.refId, id));
 	type CellConfig = (typeof cellConfigs)[number];
+
+	const errorManager = new ErrorManager(db, table, id, uniId, cellConfigs);
 
 	const groupedConfigs = cellConfigs.reduce(
 		(acc, config) => {
@@ -29,8 +29,6 @@ export async function createCellConfigurator(
 		{} as Record<string, typeof cellConfigs>
 	);
 
-	const newErrors: CellConfigRowInsert[] = [];
-
 	function getCellSettings(col: string): {
 		setting: CellSetting | null;
 		conf: CellConfig | null;
@@ -41,27 +39,6 @@ export async function createCellConfigurator(
 		return { setting: setting.confType as CellSetting, conf: setting };
 	}
 
-	function addError(col: (typeof table)['$inferSelect']['col'], error: NewError, notes?: string) {
-		const errorType = Object.keys(error)[0] as keyof NewError;
-		const errorData = error[errorType] as NewErrorMerged;
-		newErrors.push({
-			refId: id,
-			confType: `error:${errorType}` as any,
-			col,
-			message: errorData.message ?? null,
-			value:
-				errorData.value !== undefined && errorData.value !== null ? String(errorData.value) : null,
-			lastValue:
-				errorData.lastValue !== undefined && errorData.lastValue !== null
-					? String(errorData.lastValue)
-					: null,
-			options: errorData.options ? JSON.stringify(errorData.options) : null,
-			resolved: false,
-			notes,
-			created: Date.now()
-		});
-	}
-
 	async function getConfiguredCellValue<T extends typeof cellTransformer>(
 		{ key, val, options }: ReturnType<T>,
 		oldVal: ReturnType<T>['val'],
@@ -70,6 +47,7 @@ export async function createCellConfigurator(
 		let setting = getCellSettings(key);
 		let newVal = val;
 
+		// TODO - Handle default setting of approve
 		if (setting === null && options?.defaultSettingOfApprove) {
 			setting = {
 				setting: 'setting:approve',
@@ -77,6 +55,7 @@ export async function createCellConfigurator(
 			};
 		}
 
+		// Handle Cell Setting Logic
 		if (setting !== null) {
 			if (setting.setting === 'setting:custom') {
 				newVal = setting.conf?.value ?? null;
@@ -93,7 +72,7 @@ export async function createCellConfigurator(
 						: Math.abs((currentValue - lastApprovedValue) / lastApprovedValue) * 100;
 
 				if (percentChange > thresholdPercent) {
-					addError(key as any, {
+					errorManager.addError(key as any, {
 						needsApproval: {
 							value: val,
 							message: `Value changed by ${percentChange.toFixed(2)}% which exceeds threshold of ${thresholdPercent}%`
@@ -127,7 +106,7 @@ export async function createCellConfigurator(
 				const lastTrackedValue = setting.conf?.lastValue ?? null;
 				const currentValue = val?.toString() ?? null;
 				if (lastTrackedValue !== currentValue) {
-					addError(key as any, {
+					errorManager.addError(key as any, {
 						needsApprovalCustom: {
 							value: val?.toString() ?? 'Null',
 							lastValue: lastTrackedValue?.toString() ?? 'Null'
@@ -137,27 +116,29 @@ export async function createCellConfigurator(
 			}
 		}
 
+		// Verify Cell Value Logic
 		const { err, coercedValue } = await verifyCellValue({
 			value: newVal,
 			col: key,
 			db
 		});
 		if (err) {
-			addError(key as any, err);
+			errorManager.addError(key as any, err);
 			newVal = oldVal;
 		} else {
 			newVal = coercedValue ?? null;
 		}
 
+		// Should Not Be Null Logic
 		if (options?.shouldNotBeNull && newVal === null) {
-			addError(key as any, {
+			errorManager.addError(key as any, {
 				shouldNotBeNull: {}
 			});
 		}
 
+		// Should Match Logic
 		const bothAreStrings =
 			typeof newVal === 'string' && typeof options?.shouldMatch?.val === 'string';
-
 		if (
 			setting.setting !== 'setting:custom' &&
 			setting.setting !== 'setting:approveCustom' &&
@@ -169,7 +150,7 @@ export async function createCellConfigurator(
 					(options.shouldMatch.val as string).trim() === ''
 				: newVal === options.shouldMatch.val)
 		) {
-			addError(key as any, {
+			errorManager.addError(key as any, {
 				contradictorySources: {
 					value: options.shouldMatch.val,
 					message: `Value "${newVal}" found in primary source "${options.shouldMatch.primary}", does not match "${options.shouldMatch.val}", found in secondary source "${options.shouldMatch.secondary}"`
@@ -180,75 +161,10 @@ export async function createCellConfigurator(
 		return newVal;
 	}
 
-	async function commitErrors() {
-		const existingErrors = cellConfigs.filter((c) => c.confType.startsWith('error:'));
-		const errorsToRemove = new Set<number>(
-			existingErrors.filter((c) => c.resolved === false).map((c) => c.id)
-		);
-		const errorsToAdd = newErrors.filter((newError) => {
-			const existingError = findMatchingError(existingErrors, newError);
-			if (existingError?.id) {
-				errorsToRemove.delete(existingError.id);
-				return false;
-			}
-			return true;
-		});
-
-		const historyRows: InsertHistoryRowOptions<{}>[] = [];
-		const time = Date.now();
-
-		if (errorsToRemove.size > 0) {
-			const removedErrorObjects = existingErrors.filter((e) => errorsToRemove.has(e.id));
-			historyRows.push(
-				...removedErrorObjects.map((err) => ({
-					uniref: uniId,
-					entryType: 'delete' as const,
-					confType: 'error' as const,
-					confCell: err.col,
-					data: {
-						confType: err.confType
-					},
-					created: time
-				}))
-			);
-			await db.delete(table).where(inArray(table.id, Array.from(errorsToRemove)));
-		}
-		if (errorsToAdd.length > 0) {
-			historyRows.push(
-				...errorsToAdd.map((err) => ({
-					uniref: uniId,
-					entryType: 'create' as const,
-					confType: 'error' as const,
-					confCell: err.col,
-					data: {
-						confType: err.confType,
-						value: err.value,
-						message: err.message,
-						options: err.options,
-						lastValue: err.lastValue,
-						resolved: err.resolved
-					},
-					created: time
-				}))
-			);
-			await db.insert(table).values(errorsToAdd);
-		}
-
-		if (historyRows.length > 0) {
-			await insertMultipleHistoryRows({
-				db,
-				resourceType: 'unifiedGuild',
-				rows: historyRows
-			});
-		}
-
-		return { errorsToAdd, errorsToRemove: Array.from(errorsToRemove) };
-	}
-
 	return {
 		getConfiguredCellValue,
-		addError,
-		commitErrors
+		addError: errorManager.addError.bind(errorManager),
+		commitErrors: errorManager.commitErrors.bind(errorManager)
 	};
 }
 
@@ -268,80 +184,4 @@ type CellTransformerOptions<T> = {
 	shouldMatch?: { primary: string; secondary: string; val: T; ignore?: boolean };
 	shouldNotBeNull?: boolean;
 	defaultSettingOfApprove?: boolean;
-};
-
-function doErrorsMatch(
-	error: CellConfigRowSelect | CellConfigRowInsert,
-	newError: CellConfigRowInsert | CellConfigRowSelect
-): boolean {
-	for (const k of new Set([...Object.keys(error), ...Object.keys(newError)])) {
-		const key = k as keyof typeof error;
-		if (key === 'id' || key === 'created' || key === 'refId') continue;
-		if ((error[key] ?? null) !== (newError[key] ?? null)) {
-			return false;
-		}
-	}
-	return true;
-}
-
-function findMatchingError(
-	errors: (CellConfigRowSelect | CellConfigRowInsert)[],
-	matchError: CellConfigRowInsert | CellConfigRowSelect
-): (CellConfigRowSelect | CellConfigRowInsert) | null {
-	for (const error of errors) {
-		if (doErrorsMatch(error, matchError)) {
-			return error;
-		}
-	}
-	return null;
-}
-
-// Generic types that work with any unified table's config table
-export type CellConfigRowInsert = CellConfigTable['$inferInsert'];
-export type CellConfigRowSelect = CellConfigTable['$inferSelect'];
-
-type ValType = string | number | boolean | null;
-
-export interface NewError {
-	multipleOptions?: {
-		options: ValType[];
-		value: ValType;
-	};
-	missingValue?: {
-		value: ValType;
-	};
-	needsApproval?: {
-		value: ValType;
-		message: string;
-	};
-	needsApprovalCustom?: {
-		value: ValType;
-		lastValue: ValType;
-	};
-	matchWouldCauseDuplicate?: {
-		value: ValType;
-	};
-	shouldNotBeNull?: {};
-	invalidDataType?: {
-		value: ValType;
-		message: string;
-	};
-	contradictorySources?: {
-		value: ValType;
-		message: string;
-	};
-	canNotBeSetToNull?: {
-		message: string;
-	};
-	canNotBeSetToWrongType?: {
-		value: ValType;
-		message: string;
-	};
-}
-
-type NewErrorMerged = {
-	value?: ValType;
-	lastValue?: ValType;
-	message?: string;
-	options?: ValType[];
 };

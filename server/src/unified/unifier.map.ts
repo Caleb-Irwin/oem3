@@ -1,6 +1,7 @@
 import { unifiedGuild, unifiedGuildCellConfig } from '../db.schema';
 import { guildUnifier } from '../routers/guild/guildUnifier';
-import type { CellConfigTable, createUnifier, UnifiedTableNames, UnifiedTables } from './unifier';
+import type { createUnifier } from './unifier';
+import type { UnifiedTableNames, UnifiedTables, CellConfigTable } from './types';
 
 export const UnifierMap: {
 	[key in UnifiedTableNames]: {
