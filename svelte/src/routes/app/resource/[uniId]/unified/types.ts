@@ -12,7 +12,7 @@ export interface NamedCell {
 export type {
 	CellConfigRowInsert,
 	CellConfigRowSelect
-} from '../../../../../../../server/src/utils/cellConfigurator';
+} from '../../../../../../../server/src/unified/cellConfigurator';
 
 import type { ColToTableName as ColToTableNameType } from '../../../../../../../server/src/routers/unified.helpers';
 

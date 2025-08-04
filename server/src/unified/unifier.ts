@@ -9,9 +9,13 @@ import {
 import { db, db as DB, type Tx } from '../db';
 import { eq, isNull, type SQLWrapper, gt, or } from 'drizzle-orm';
 import { getTableConfig } from 'drizzle-orm/pg-core';
-import { chunk } from './chunk';
-import { insertHistory, insertMultipleHistoryRows, type InsertHistoryRowOptions } from './history';
-import { KV } from './kv';
+import { chunk } from '../utils/chunk';
+import {
+	insertHistory,
+	insertMultipleHistoryRows,
+	type InsertHistoryRowOptions
+} from '../utils/history';
+import { KV } from '../utils/kv';
 import { cellTransformer, createCellConfigurator, type NewError } from './cellConfigurator';
 import { retryableTransaction } from './retryableTransaction';
 import PromisePool from '@supercharge/promise-pool';

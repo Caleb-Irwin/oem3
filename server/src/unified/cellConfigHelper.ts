@@ -5,7 +5,7 @@ import type { CellConfigRowInsert } from './cellConfigurator';
 import { eq, and } from 'drizzle-orm';
 import { uniref } from '../db.schema';
 import { guildTriggerHooks } from '../routers/guild';
-import { insertHistory } from './history';
+import { insertHistory } from '../utils/history';
 
 const triggerMap: { [key in keyof typeof UnifierMap]: () => void } = {
 	unifiedGuild: guildTriggerHooks

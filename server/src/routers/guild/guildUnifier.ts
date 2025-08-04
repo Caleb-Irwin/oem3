@@ -1,6 +1,6 @@
 import { and, eq, not, or } from 'drizzle-orm';
 import { db as DB, type Tx } from '../../db';
-import { createUnifier } from '../../utils/unifier';
+import { createUnifier } from '../../unified/unifier';
 import {
 	unifiedGuild,
 	guildData,

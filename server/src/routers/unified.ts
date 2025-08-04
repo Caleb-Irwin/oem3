@@ -8,11 +8,11 @@ import {
 	UnifiedTableNamesArray,
 	type UnifiedTableNames,
 	type UnifiedTables
-} from '../utils/unifier';
-import type { CellConfigRowInsert, CellConfigRowSelect } from '../utils/cellConfigurator';
+} from '../unified/unifier';
+import type { CellConfigRowInsert, CellConfigRowSelect } from '../unified/cellConfigurator';
 import { createUnifiedSub, updateUnifiedTopicByUniId } from './unified.helpers';
-import { getCellConfigHelper } from '../utils/cellConfigHelper';
-import { UnifierMap } from '../utils/unifier.map';
+import { getCellConfigHelper } from '../unified/cellConfigHelper';
+import { UnifierMap } from '../unified/unifier.map';
 import { KV } from '../utils/kv';
 import { getResourceByCol } from './resources';
 

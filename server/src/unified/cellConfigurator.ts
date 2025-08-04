@@ -2,7 +2,11 @@ import { eq, inArray } from 'drizzle-orm';
 import { db as DB, type Tx } from '../db';
 import { type CellSetting } from '../db.schema';
 import type { UnifiedTables, VerifyCellValue, CellConfigTable } from './unifier';
-import { insertHistory, insertMultipleHistoryRows, type InsertHistoryRowOptions } from './history';
+import {
+	insertHistory,
+	insertMultipleHistoryRows,
+	type InsertHistoryRowOptions
+} from '../utils/history';
 
 export async function createCellConfigurator(
 	table: CellConfigTable,
