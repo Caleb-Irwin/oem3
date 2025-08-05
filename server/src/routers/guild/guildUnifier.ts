@@ -36,7 +36,7 @@ type GuildRowType = Awaited<ReturnType<typeof getRow>>;
 export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
 	table: unifiedGuild,
 	confTable: unifiedGuildCellConfig,
-	version: 15,
+	version: 17,
 	getRow,
 	transform: (item, t) => {
 		return {

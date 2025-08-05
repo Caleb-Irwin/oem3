@@ -168,6 +168,8 @@ export async function createCellConfigurator(
 	};
 }
 
+export type CellConfigurator = Awaited<ReturnType<typeof createCellConfigurator>>;
+
 export const cellTransformer = <T extends UnifiedTables, K extends keyof T['$inferSelect']>(
 	key: K,
 	val: T['$inferSelect'][K],
