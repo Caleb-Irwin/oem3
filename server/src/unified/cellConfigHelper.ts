@@ -31,9 +31,10 @@ export async function getCellConfigHelper(compoundId: string, col: string, db: t
 
 	const tablePrefix = tablePrefixRaw as UnifiedTableNames;
 
-	const table: CellConfigTable = UnifierMap[tablePrefix].confTable;
+	const table: CellConfigTable = UnifierMap[tablePrefix].confTable,
+		unifiedTable = UnifierMap[tablePrefix].table;
 
-	const uniId = await getUniId({ db, table, refId });
+	const uniId = await getUniId({ db, unifiedTable, refId });
 
 	const unifier = UnifierMap[tablePrefix].unifier;
 
@@ -51,7 +52,15 @@ export async function getCellConfigHelper(compoundId: string, col: string, db: t
 
 	async function updateSetting(settingData: CellConfigRowInsert | null) {
 		await db.transaction(async (db) => {
-			await modifySetting({ db, table, refId, col, settingData, uniIdHint: uniId });
+			await modifySetting({
+				db,
+				table,
+				refId,
+				col,
+				settingData,
+				uniIdHint: uniId,
+				unifiedTable
+			});
 			await unifier._updateRow({ id: refId, db: db, onUpdateCallback: () => null });
 		});
 

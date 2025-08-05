@@ -1,6 +1,6 @@
 import { db as DB, type Tx } from '../db';
 import { insertHistory } from '../utils/history';
-import type { CellConfigTable, CellConfigRowInsert } from './types';
+import type { CellConfigTable, CellConfigRowInsert, UnifiedTables } from './types';
 import { and, eq } from 'drizzle-orm';
 import { getTableConfig } from 'drizzle-orm/pg-core';
 import { uniref } from '../db.schema';
@@ -8,6 +8,7 @@ import { uniref } from '../db.schema';
 interface CellSettingInput {
 	db: typeof DB | Tx;
 	table: CellConfigTable;
+	unifiedTable: UnifiedTables;
 	refId: number;
 	col: string;
 }
@@ -26,14 +27,14 @@ export async function getSetting(input: CellSettingInput) {
 
 export async function getUniId({
 	db,
-	table,
+	unifiedTable,
 	refId
 }: {
 	db: typeof DB | Tx;
-	table: CellConfigTable;
+	unifiedTable: UnifiedTables;
 	refId: number;
 }) {
-	const tableName = getTableConfig(table).name;
+	const tableName = getTableConfig(unifiedTable).name;
 
 	const unirefColumn = (uniref as any)[tableName];
 	if (!unirefColumn) {
@@ -54,6 +55,7 @@ export async function getUniId({
 export async function modifySetting({
 	db,
 	table,
+	unifiedTable,
 	refId,
 	col,
 	settingData,
@@ -62,12 +64,12 @@ export async function modifySetting({
 	settingData: CellConfigRowInsert | null;
 	uniIdHint: number | null;
 } & CellSettingInput): Promise<void> {
-	const tableName = getTableConfig(table).name;
+	const tableName = getTableConfig(unifiedTable).name;
 
-	const uniId = uniIdHint ?? (await getUniId({ db, table, refId }));
+	const uniId = uniIdHint ?? (await getUniId({ db, unifiedTable, refId }));
 
 	await db.transaction(async (db) => {
-		const existing = await getSetting({ db, table, refId, col });
+		const existing = await getSetting({ db, table, unifiedTable, refId, col });
 		if (existing === null && settingData === null) {
 			return;
 		} else if (settingData === null) {
