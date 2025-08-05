@@ -4,18 +4,19 @@ import { type CellSetting } from '../db.schema';
 import type { UnifiedTables, CellConfigTable } from './types';
 import type { VerifyCellValue } from './unifier';
 import { insertHistory } from '../utils/history';
-import { ErrorManager } from './errorManager';
+import { createErrorManager } from './errorManager';
 
 export async function createCellConfigurator(
 	table: CellConfigTable,
 	id: number,
 	uniId: number,
-	db: typeof DB | Tx
+	db: typeof DB | Tx,
+	verifyCellValue: VerifyCellValue
 ) {
 	const cellConfigs = await db.select().from(table).where(eq(table.refId, id));
 	type CellConfig = (typeof cellConfigs)[number];
 
-	const errorManager = new ErrorManager(db, table, id, uniId, cellConfigs);
+	const errorManager = createErrorManager(db, table, id, uniId, cellConfigs);
 
 	const groupedConfigs = cellConfigs.reduce(
 		(acc, config) => {
@@ -41,8 +42,7 @@ export async function createCellConfigurator(
 
 	async function getConfiguredCellValue<T extends typeof cellTransformer>(
 		{ key, val, options }: ReturnType<T>,
-		oldVal: ReturnType<T>['val'],
-		verifyCellValue: VerifyCellValue
+		oldVal: ReturnType<T>['val']
 	): Promise<ReturnType<T>['val']> {
 		let setting = getCellSettings(key);
 		let newVal = val;
@@ -163,8 +163,8 @@ export async function createCellConfigurator(
 
 	return {
 		getConfiguredCellValue,
-		addError: errorManager.addError.bind(errorManager),
-		commitErrors: errorManager.commitErrors.bind(errorManager)
+		addError: errorManager.addError,
+		commitErrors: errorManager.commitErrors
 	};
 }
 

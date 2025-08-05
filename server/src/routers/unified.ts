@@ -3,7 +3,7 @@ import { CellErrorArray, history, unifiedGuild, uniref, type CellSetting } from 
 import { generalProcedure, router, viewerProcedure } from '../trpc';
 import { db } from '../db';
 import { and, desc, eq, inArray, max } from 'drizzle-orm';
-import { getColConfig } from '../unified/unifier';
+import { getColConfig } from '../unified/cellVerification';
 import {
 	type UnifiedTableNames,
 	type UnifiedTables,

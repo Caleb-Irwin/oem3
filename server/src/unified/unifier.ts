@@ -19,39 +19,16 @@ import type {
 	PrimarySourceTables,
 	UnifiedTables
 } from './types';
+import { VerifyCellValue } from './cellVerification';
 
 export function createUnifier<
-	RowType extends TableType['$inferSelect'] & {
-		uniref: { uniId: number };
-		id: number;
-		deleted: boolean;
-	},
+	RowType extends RowTypeBase<TableType>,
 	TableType extends UnifiedTables
->({
-	table,
-	confTable,
-	getRow,
-	transform,
-	connections,
-	additionalColValidators,
-	version
-}: {
-	table: TableType;
-	confTable: CellConfigTable;
-	getRow: (id: number, db: Tx | typeof DB) => Promise<RowType>;
-	transform: (
-		item: RowType,
-		t: typeof cellTransformer
-	) => {
-		[K in keyof TableType['$inferSelect']]: ReturnType<typeof cellTransformer>;
-	};
-	connections: Connections<RowType, TableType>;
-	additionalColValidators: AdditionalColValidator<TableType>;
-	version: number;
-}) {
+>(conf: CreateUnifierConf<RowType, TableType>) {
+	const { table, confTable, getRow, transform, connections, version } = conf;
+
 	const tableConf = getTableConfig(table),
-		unifiedTableName = tableConf.name,
-		colTypes = getColConfig(table);
+		unifiedTableName = tableConf.name;
 
 	async function _modifyRow(
 		id: number,
@@ -65,91 +42,7 @@ export function createUnifier<
 			.execute();
 	}
 
-	async function verifyCellValue<K extends keyof TableType['$inferSelect']>({
-		value: rawValue,
-		col,
-		db,
-		verifyConnections = false
-	}: {
-		value: TableType['$inferSelect'][K] | string;
-		col: K;
-		db: typeof DB | Tx;
-		verifyConnections?: boolean;
-	}): Promise<
-		| {
-				err: NewError;
-				coercedValue?: null;
-		  }
-		| {
-				err: null;
-				coercedValue: TableType['$inferSelect'][K];
-		  }
-	> {
-		const dataType = colTypes[col].dataType,
-			notNull = colTypes[col].notNull;
-
-		let value: TableType['$inferSelect'][K] | null = rawValue as
-			| TableType['$inferSelect'][K]
-			| null;
-		if (typeof rawValue === 'string') {
-			if (rawValue.toLowerCase() === 'null') {
-				value = null;
-			} else if (dataType === 'number' && rawValue && !isNaN(parseFloat(rawValue))) {
-				value = parseFloat(rawValue) as TableType['$inferSelect'][K];
-			} else if (dataType === 'boolean') {
-				value = (rawValue.toLowerCase() === 'true') as TableType['$inferSelect'][K];
-			}
-		}
-
-		if (value === null && notNull) {
-			return {
-				err: {
-					canNotBeSetToNull: {
-						message: `Value "${value}" is null but must not be null; This is not allowed. It should be set to a "${dataType}" value.`
-					}
-				}
-			};
-		} else if (value !== null && typeof value !== dataType) {
-			return {
-				err: {
-					canNotBeSetToWrongType: {
-						value: value as 'string' | 'number' | 'boolean',
-						message: `Value "${value}" is of type "${typeof value}" but must be of type "${dataType}"; This is not allowed.`
-					}
-				}
-			};
-		} else if (value !== null) {
-			const additionalValidator = additionalColValidators[col];
-			if (additionalValidator) {
-				const error = await additionalValidator(value, db);
-				if (error) {
-					return { err: error };
-				}
-			}
-			if (verifyConnections) {
-				const connectionTable = [connections.primaryTable, ...connections.otherTables].find(
-					(c) => c.refCol === col
-				);
-				if (connectionTable) {
-					const exists = await db
-						.select({ id: table.id })
-						.from(connectionTable.table)
-						.where(eq(connectionTable.table.id, value as number));
-					if (exists.length === 0) {
-						return {
-							err: {
-								invalidDataType: {
-									value: value as number,
-									message: `Value "${value}" is not a valid ID in the connected table. Hint: Use the search function to select connection.`
-								}
-							}
-						};
-					}
-				}
-			}
-		}
-		return { err: null, coercedValue: value as TableType['$inferSelect'][K] };
-	}
+	const verifyCellValue = VerifyCellValue<RowType, TableType>(conf);
 
 	async function _updateRow({
 		id,
@@ -170,7 +63,8 @@ export function createUnifier<
 			confTable,
 			id,
 			originalRow.uniref.uniId,
-			db
+			db,
+			verifyCellValue
 		);
 		// 1. Check + make connections
 		const connectionsList = [
@@ -198,8 +92,7 @@ export function createUnifier<
 					val: updatedRow[connectionRowKey] as number,
 					options: {}
 				},
-				originalRow[connectionRowKey] as number | null,
-				verifyCellValue
+				originalRow[connectionRowKey] as number | null
 			);
 
 			// Only auto-assign connection if no custom setting was applied
@@ -303,8 +196,7 @@ export function createUnifier<
 					val: true,
 					options: {}
 				},
-				originalRow.deleted,
-				verifyCellValue
+				originalRow.deleted
 			)) as boolean;
 			if (newVal !== updatedRow.deleted) {
 				updatedRow.deleted = newVal;
@@ -322,8 +214,7 @@ export function createUnifier<
 			const key = k as keyof (typeof table)['$inferInsert'];
 			const newVal = (await cellConfigurator.getConfiguredCellValue(
 				transformed[k as keyof typeof transformed],
-				originalRow[key] as any,
-				verifyCellValue
+				originalRow[key] as any
 			)) as any;
 			if (originalRow[key] !== newVal) {
 				changes[key] = newVal;
@@ -509,20 +400,30 @@ export function createUnifier<
 	};
 }
 
-export function getColConfig<TableType extends UnifiedTables>(table: TableType) {
-	const tableConf = getTableConfig(table),
-		colTypes = {} as Record<
-			keyof TableType['$inferSelect'],
-			{ dataType: 'string' | 'number' | 'boolean'; notNull: boolean }
-		>;
-	tableConf.columns.forEach(({ name, dataType, notNull }) => {
-		colTypes[name as keyof TableType['$inferSelect']] = {
-			dataType: dataType as 'string' | 'number' | 'boolean',
-			notNull
-		};
-	});
-	return colTypes;
+export interface CreateUnifierConf<
+	RowType extends RowTypeBase<TableType>,
+	TableType extends UnifiedTables
+> {
+	table: TableType;
+	confTable: CellConfigTable;
+	getRow: (id: number, db: Tx | typeof DB) => Promise<RowType>;
+	transform: (
+		item: RowType,
+		t: typeof cellTransformer
+	) => {
+		[K in keyof TableType['$inferSelect']]: ReturnType<typeof cellTransformer>;
+	};
+	connections: Connections<RowType, TableType>;
+	additionalColValidators: AdditionalColValidator<TableType>;
+	version: number;
 }
+
+export type RowTypeBase<TableType extends UnifiedTables> = TableType['$inferSelect'] & {
+	uniref: { uniId: number };
+	id: number;
+	deleted: boolean;
+};
+
 interface TableConnection<
 	RowType,
 	UnifiedTable extends UnifiedTables,

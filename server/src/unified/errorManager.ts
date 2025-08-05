@@ -3,22 +3,20 @@ import { db as DB, type Tx } from '../db';
 import { insertMultipleHistoryRows, type InsertHistoryRowOptions } from '../utils/history';
 import type { CellConfigTable, CellConfigRowInsert, CellConfigRowSelect } from './types';
 
-export class ErrorManager {
-	private newErrors: CellConfigRowInsert[] = [];
+export function createErrorManager(
+	db: typeof DB | Tx,
+	table: CellConfigTable,
+	id: number,
+	uniId: number,
+	cellConfigs: CellConfigRowSelect[]
+) {
+	const newErrors: CellConfigRowInsert[] = [];
 
-	constructor(
-		private db: typeof DB | Tx,
-		private table: CellConfigTable,
-		private id: number,
-		private uniId: number,
-		private cellConfigs: CellConfigRowSelect[]
-	) {}
-
-	addError(col: (typeof this.table)['$inferSelect']['col'], error: NewError, notes?: string) {
+	function addError(col: (typeof table)['$inferSelect']['col'], error: NewError, notes?: string) {
 		const errorType = Object.keys(error)[0] as keyof NewError;
 		const errorData = error[errorType] as NewErrorMerged;
-		this.newErrors.push({
-			refId: this.id,
+		newErrors.push({
+			refId: id,
 			confType: `error:${errorType}` as any,
 			col,
 			message: errorData.message ?? null,
@@ -35,12 +33,12 @@ export class ErrorManager {
 		});
 	}
 
-	async commitErrors() {
-		const existingErrors = this.cellConfigs.filter((c) => c.confType.startsWith('error:'));
+	async function commitErrors() {
+		const existingErrors = cellConfigs.filter((c) => c.confType.startsWith('error:'));
 		const errorsToRemove = new Set<number>(
 			existingErrors.filter((c) => c.resolved === false).map((c) => c.id)
 		);
-		const errorsToAdd = this.newErrors.filter((newError) => {
+		const errorsToAdd = newErrors.filter((newError) => {
 			const existingError = findMatchingError(existingErrors, newError);
 			if (existingError?.id) {
 				errorsToRemove.delete(existingError.id);
@@ -56,7 +54,7 @@ export class ErrorManager {
 			const removedErrorObjects = existingErrors.filter((e) => errorsToRemove.has(e.id));
 			historyRows.push(
 				...removedErrorObjects.map((err) => ({
-					uniref: this.uniId,
+					uniref: uniId,
 					entryType: 'delete' as const,
 					confType: 'error' as const,
 					confCell: err.col,
@@ -66,12 +64,12 @@ export class ErrorManager {
 					created: time
 				}))
 			);
-			await this.db.delete(this.table).where(inArray(this.table.id, Array.from(errorsToRemove)));
+			await db.delete(table).where(inArray(table.id, Array.from(errorsToRemove)));
 		}
 		if (errorsToAdd.length > 0) {
 			historyRows.push(
 				...errorsToAdd.map((err) => ({
-					uniref: this.uniId,
+					uniref: uniId,
 					entryType: 'create' as const,
 					confType: 'error' as const,
 					confCell: err.col,
@@ -86,12 +84,12 @@ export class ErrorManager {
 					created: time
 				}))
 			);
-			await this.db.insert(this.table).values(errorsToAdd);
+			await db.insert(table).values(errorsToAdd);
 		}
 
 		if (historyRows.length > 0) {
 			await insertMultipleHistoryRows({
-				db: this.db,
+				db,
 				resourceType: 'unifiedGuild',
 				rows: historyRows
 			});
@@ -99,6 +97,11 @@ export class ErrorManager {
 
 		return { errorsToAdd, errorsToRemove: Array.from(errorsToRemove) };
 	}
+
+	return {
+		addError,
+		commitErrors
+	};
 }
 
 function doErrorsMatch(

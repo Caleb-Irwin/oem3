@@ -9,14 +9,13 @@ export async function retryableTransaction<T>(
 		try {
 			return await db.transaction(fn, { isolationLevel: 'read committed' });
 		} catch (err: any) {
-			// Abort-and-retry only on serialization failure
 			if (err?.code === '40001' && attempt < maxAttempts) {
-				const backoff = Math.min(2 ** attempt * 50, 1000); // 50 ms, 100 ms, 200 ms …
-				await sleep(backoff + Math.floor(Math.random() * 40)); // add jitter
-				continue; // 🔁  restart from the top of for‑loop
+				const backoff = Math.min(2 ** attempt * 50, 200);
+				await sleep(backoff + Math.floor(Math.random() * 30));
+				continue;
 			}
 			console.log(`Transaction failed on attempt ${attempt}:`, err);
-			throw err; // propagate other errors or give up
+			throw err;
 		}
 	}
 	// We only reach here if every retry failed
