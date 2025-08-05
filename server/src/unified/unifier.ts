@@ -87,6 +87,15 @@ export function createUnifier<
 			originalRow[connectionRowKey] as number | null
 		);
 
+		async function findExistingConnection(db: Tx | typeof DB, value: number) {
+			const existing = await db
+				.select({ id: table.id, col: table[connectionRowKey as keyof TableType] as any })
+				.from(table as any)
+				.where(eq(table[connectionRowKey as keyof TableType] as any, value))
+				.execute();
+			return existing.length > 0 ? existing[0].id : null;
+		}
+
 		// Only auto-assign connection if no custom setting was applied
 		if (
 			configuredVal === updatedRow[connectionRowKey] &&
@@ -101,6 +110,13 @@ export function createUnifier<
 				otherConnections.length > 1 ||
 				(otherConnections.length === 1 && updatedRow[connectionRowKey] !== otherConnections[0])
 			) {
+				for (const connectionId of otherConnections) {
+					const existing = await findExistingConnection(db, connectionId);
+					if (!existing) {
+						updatedRow[connectionRowKey] = connectionId as any;
+						break;
+					}
+				}
 				cellConfigurator.addError(connectionRowKey as any, {
 					multipleOptions: {
 						options: otherConnections.filter((v) => v !== updatedRow[connectionRowKey]),
@@ -137,28 +153,23 @@ export function createUnifier<
 			}
 		}
 
-		async function tryToRemoveConnection() {
-			const existing = await db
-				.select({ id: table.id, col: table[connectionRowKey as keyof TableType] as any })
-				.from(table as any)
-				.where(eq(table[connectionRowKey as keyof TableType] as any, newVal))
-				.execute();
-			if (!existing || existing.length === 0) {
+		async function tryToRemoveConnection(newVal: number) {
+			const existingId = await findExistingConnection(db, newVal);
+			if (!existingId) {
 				throw new Error(
 					`No existing row found with the same connection value (${connectionRowKey.toString()}=${newVal})`
 				);
 			} else {
-				const id = existing[0].id;
 				return await db.transaction(async (tx) => {
-					await _updateRow({ id, db: tx, onUpdateCallback, nestedMode: true });
+					await _updateRow({ id: existingId, db: tx, onUpdateCallback, nestedMode: true });
 					const deleted = await tx
 						.select({ deleted: table.deleted })
 						.from(table as any)
-						.where(eq(table.id, id))
+						.where(eq(table.id, existingId))
 						.execute();
 					if (deleted[0].deleted) {
 						await _updateRow({
-							id,
+							id: existingId,
 							db: tx,
 							onUpdateCallback,
 							nestedMode: true,
@@ -173,7 +184,7 @@ export function createUnifier<
 
 		if (originalRow[connectionRowKey] !== newVal) {
 			await tryToUpdateRow(newVal, async () => {
-				const removed = nestedMode ? false : await tryToRemoveConnection();
+				const removed = nestedMode ? false : await tryToRemoveConnection(newVal!);
 				if (removed) {
 					const success = await tryToUpdateRow(newVal, async () => {
 						updatedRow[connectionRowKey] = originalRow[connectionRowKey];
@@ -183,7 +194,7 @@ export function createUnifier<
 							}
 						});
 					});
-					if (!success) {
+					if (success) {
 						await _updateRow({ id, db, onUpdateCallback, nestedMode: true });
 					}
 				} else {

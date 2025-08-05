@@ -11,8 +11,6 @@
 
 	const props: Props = $props();
 
-	console.log('ConnectionValRenderer', JSON.parse(JSON.stringify(props)));
-
 	const valSub = subValReturnError(client.resources.getResourceByColSub, {
 		input: { col: props.col as any, value: props.value },
 		sendInit: true,
