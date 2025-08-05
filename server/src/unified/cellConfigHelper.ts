@@ -1,15 +1,11 @@
-import type { db as DB, Tx } from '../db';
+import type { db as DB } from '../db';
 import { UnifierMap } from './unifier.map';
 import type { CellConfigTable, UnifiedTableNames, CellConfigRowInsert } from './types';
 import { eq, and } from 'drizzle-orm';
-import { guildTriggerHooks } from '../routers/guild';
 import { getUniId, modifySetting } from './cellSettings';
+import { retryableTransaction } from './retryableTransaction';
 
-const triggerMap: { [key in keyof typeof UnifierMap]: () => void } = {
-	unifiedGuild: guildTriggerHooks
-};
-
-export async function getCellConfigHelper(compoundId: string, col: string, db: typeof DB | Tx) {
+export async function getCellConfigHelper(compoundId: string, col: string, db: typeof DB) {
 	const parts = compoundId.split(':');
 	if (parts.length !== 2) {
 		throw new Error(`Invalid compoundId format: ${compoundId}. Expected format: "table:refId"`);
@@ -37,6 +33,11 @@ export async function getCellConfigHelper(compoundId: string, col: string, db: t
 	const uniId = await getUniId({ db, unifiedTable, refId });
 
 	const unifier = UnifierMap[tablePrefix].unifier;
+	const refCols = new Set(
+		[unifier.conf.connections.primaryTable, ...unifier.conf.connections.otherTables].map(
+			({ refCol }) => refCol.toString()
+		)
+	);
 
 	async function getConfigs() {
 		return await db
@@ -51,24 +52,29 @@ export async function getCellConfigHelper(compoundId: string, col: string, db: t
 	}
 
 	async function updateSetting(settingData: CellConfigRowInsert | null) {
-		await db.transaction(async (db) => {
-			await modifySetting({
-				db,
-				table,
-				refId,
-				col,
-				settingData,
-				uniIdHint: uniId,
-				unifiedTable
-			});
-			await unifier._updateRow({ id: refId, db: db, onUpdateCallback: () => null });
-		});
+		await retryableTransaction(
+			async (db) => {
+				await modifySetting({
+					db,
+					table,
+					refId,
+					col,
+					settingData,
+					uniIdHint: uniId,
+					unifiedTable
+				});
+				await unifier._updateRow({ id: refId, db: db, onUpdateCallback: () => null });
+			},
+			10,
+			'serializable'
+		);
 
-		if (triggerMap[tablePrefix]) {
-			triggerMap[tablePrefix]();
-		} else {
-			throw new Error(`No trigger found for table prefix: ${tablePrefix}`);
+		if (refCols.has(col)) {
+			await unifier.recordMatchesInvalidatedByRefCol(col);
 		}
+		setTimeout(() => {
+			UnifierMap[tablePrefix].runUnifierWorker({});
+		});
 	}
 
 	return {

@@ -3,11 +3,12 @@ import { db } from '../db';
 
 export async function retryableTransaction<T>(
 	fn: (tx: PgTransaction<any, any, any>) => Promise<T>,
-	maxAttempts = 10
+	maxAttempts = 10,
+	isolationLevel: 'read committed' | 'repeatable read' | 'serializable' = 'read committed'
 ): Promise<T> {
 	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
 		try {
-			return await db.transaction(fn, { isolationLevel: 'read committed' });
+			return await db.transaction(fn, { isolationLevel });
 		} catch (err: any) {
 			if (err?.code === '40001' && attempt < maxAttempts) {
 				const backoff = Math.min(2 ** attempt * 50, 200);

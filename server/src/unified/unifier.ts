@@ -50,7 +50,7 @@ export function createUnifier<
 		connectionTable,
 		cellConfigurator,
 		onUpdateCallback,
-		updatedRow,
+		updatedRow: updatedRowIn,
 		originalRow,
 		nestedMode,
 		removeAutoMatch
@@ -65,6 +65,7 @@ export function createUnifier<
 		nestedMode: boolean;
 		removeAutoMatch: boolean;
 	}) {
+		const updatedRow = structuredClone(updatedRowIn);
 		const otherConnections = await connectionTable.findConnections(updatedRow, db);
 		const connectionRowKey = connectionTable.refCol as keyof TableType['$inferInsert'];
 
@@ -140,7 +141,6 @@ export function createUnifier<
 						} as any,
 						tx
 					);
-					updatedRow = await getRow(id, tx);
 				});
 				return true;
 			} catch (error: any) {
@@ -207,6 +207,8 @@ export function createUnifier<
 				}
 			});
 		}
+
+		return { needsRowRefresh: updatedRow[connectionRowKey] !== originalRow[connectionRowKey] };
 	}
 
 	async function _updateRow({
@@ -238,7 +240,7 @@ export function createUnifier<
 			...connections.otherTables
 		];
 		for (const connectionTable of connectionsList) {
-			await _updateConnection({
+			const { needsRowRefresh } = await _updateConnection({
 				db,
 				id,
 				connectionTable,
@@ -249,6 +251,9 @@ export function createUnifier<
 				nestedMode,
 				removeAutoMatch
 			});
+			if (needsRowRefresh) {
+				updatedRow = await getRow(id, db);
+			}
 		}
 		// 1.a Deleted item based on primary connection
 		if (connections.primaryTable.isDeleted(updatedRow) && !updatedRow.deleted) {
@@ -323,6 +328,8 @@ export function createUnifier<
 		});
 	}
 
+	const kv = new KV('unifier/' + unifiedTableName, DB);
+
 	async function updateUnifiedTable({
 		updateAll = false,
 		progress,
@@ -333,8 +340,7 @@ export function createUnifier<
 		onUpdateCallback: OnUpdateCallback;
 	}) {
 		if (progress) progress(-1);
-		const kv = new KV('unifier/' + unifiedTableName, DB),
-			newLastUpdated = Date.now(),
+		const newLastUpdated = Date.now(),
 			lastUpdatedBySource: { [key: string]: number } = JSON.parse(
 				(await kv.get('lastUpdatedBySource')) ?? '{}'
 			),
@@ -454,13 +460,26 @@ export function createUnifier<
 		await kv.set('version', version.toString());
 	}
 
+	async function recordMatchesInvalidatedByRefCol(refCol: string) {
+		const lastUpdatedBySource = JSON.parse((await kv.get('lastUpdatedBySource')) ?? '{}');
+		lastUpdatedBySource[refCol] = 0;
+		await kv.set('lastUpdatedBySource', JSON.stringify(lastUpdatedBySource));
+	}
+
 	return {
 		updateUnifiedTable,
 		updateRow,
 		_updateRow,
-		verifyCellValue
+		verifyCellValue,
+		recordMatchesInvalidatedByRefCol,
+		conf
 	};
 }
+
+export type Unifier<
+	RowType extends RowTypeBase<TableType>,
+	TableType extends UnifiedTables
+> = ReturnType<typeof createUnifier<RowType, TableType>>;
 
 export interface CreateUnifierConf<
 	RowType extends RowTypeBase<TableType>,

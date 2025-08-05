@@ -18,6 +18,13 @@ export class KV<T extends string> {
 		});
 		res.forEach(({ key, value }) => this.map.set(key as T, value));
 	}
+
+	async refresh() {
+		this.map.clear();
+		this.inited = false;
+		await this.init();
+	}
+
 	async get(key: T) {
 		if (!this.inited) await this.init();
 		return this.map.get(key);
