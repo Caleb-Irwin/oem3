@@ -4,6 +4,7 @@ import type { CellConfigTable, UnifiedTableNames, CellConfigRowInsert } from './
 import { eq, and } from 'drizzle-orm';
 import { getUniId, modifySetting } from './cellSettings';
 import { retryableTransaction } from './retryableTransaction';
+import { modifyError, type ErrorAction } from './cellErrors';
 
 export async function getCellConfigHelper(compoundId: string, col: string, db: typeof DB) {
 	const parts = compoundId.split(':');
@@ -74,7 +75,33 @@ export async function getCellConfigHelper(compoundId: string, col: string, db: t
 		}
 		setTimeout(() => {
 			UnifierMap[tablePrefix].runUnifierWorker({});
-		});
+		}, 100);
+	}
+
+	async function updateError(errorAction: ErrorAction) {
+		await retryableTransaction(
+			async (db) => {
+				await modifyError({
+					db,
+					table,
+					refId,
+					col,
+					errorAction,
+					unifiedTable,
+					uniIdHint: uniId
+				});
+				await unifier._updateRow({ id: refId, db: db, onUpdateCallback: () => null });
+			},
+			10,
+			'serializable'
+		);
+
+		if (refCols.has(col)) {
+			await unifier.recordMatchesInvalidatedByRefCol(col);
+		}
+		setTimeout(() => {
+			UnifierMap[tablePrefix].runUnifierWorker({});
+		}, 100);
 	}
 
 	return {
@@ -88,6 +115,7 @@ export async function getCellConfigHelper(compoundId: string, col: string, db: t
 		},
 		getConfigs,
 		getSetting,
-		updateSetting
+		updateSetting,
+		updateError
 	};
 }

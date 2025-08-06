@@ -16,6 +16,7 @@ import { getCellConfigHelper } from '../unified/cellConfigHelper';
 import { UnifierMap } from '../unified/unifier.map';
 import { KV } from '../utils/kv';
 import { getResourceByCol } from './resources';
+import { ErrorActionValues } from '../unified/cellErrors';
 
 const kv = new KV('unifiedErrors');
 
@@ -57,6 +58,19 @@ export const unifiedRouter = router({
 		.mutation(async ({ input }) => {
 			const { updateSetting, meta } = await getCellConfigHelper(input.compoundId, input.col, db);
 			await updateSetting(input.settingData);
+			updateUnifiedTopicByUniId(meta.uniId.toString());
+		}),
+	updateError: generalProcedure
+		.input(
+			z.object({
+				compoundId: z.string(),
+				col: z.string(),
+				errorAction: z.enum(ErrorActionValues)
+			})
+		)
+		.mutation(async ({ input }) => {
+			const { updateError, meta } = await getCellConfigHelper(input.compoundId, input.col, db);
+			await updateError(input.errorAction);
 			updateUnifiedTopicByUniId(meta.uniId.toString());
 		}),
 	getErrorUrl: viewerProcedure

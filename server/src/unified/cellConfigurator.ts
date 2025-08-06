@@ -162,6 +162,7 @@ export async function createCellConfigurator(
 	}
 
 	return {
+		getCellSettings,
 		getConfiguredCellValue,
 		addError: errorManager.addError,
 		commitErrors: errorManager.commitErrors

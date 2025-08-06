@@ -1,5 +1,6 @@
 import type { CellConfigType, CellError } from '../../../../../../../../server/src/db.schema';
 export type { CellConfigType, CellError } from '../../../../../../../../server/src/db.schema';
+import type { ErrorAction } from '../../../../../../../../server/src/unified/cellErrors';
 
 export function getErrorTitle(confType: CellConfigType) {
 	if (confType in ERRORS_CONF) {
@@ -17,14 +18,7 @@ export type ErrorDisplay =
 	| 'customApproval'
 	| 'contradictorySources';
 
-export type ErrorActions =
-	| 'markAsResolved'
-	| 'ignore'
-	| 'approve'
-	| 'reject'
-	| 'keepCustom'
-	| 'setAuto'
-	| 'keepValue';
+export type ErrorActions = ErrorAction;
 
 export interface ErrorConfType {
 	confType: CellError;

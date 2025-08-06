@@ -13,6 +13,7 @@
 		input?: Partial<I>;
 		disabled?: boolean;
 		children?: import('svelte').Snippet;
+		flexible?: boolean;
 	}
 
 	let {
@@ -26,20 +27,24 @@
 		confirm = false,
 		input = {},
 		disabled = false,
-		children
+		children,
+		flexible = false
 	}: Props = $props();
 </script>
 
 <Form
 	{action}
 	{res}
-	class="grid place-content-center"
+	class={flexible
+		? 'flex flex-grow place-content-center items-stretch '
+		: 'grid place-content-center'}
 	invalidateAll={invalidateAllFlag}
 	{reloadPage}
 	{successMessage}
 	{confirm}
 	{input}
 	{queryMode}
+	center={flexible}
 >
 	<button class={btnClass} {disabled}>{@render children?.()}</button>
 </Form>

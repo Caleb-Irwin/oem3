@@ -14,6 +14,8 @@
 	import X from 'lucide-svelte/icons/x';
 	import ArrowRight from 'lucide-svelte/icons/arrow-right';
 	import type { Snippet } from 'svelte';
+	import Button from '$lib/Button.svelte';
+	import { client } from '$lib/client';
 
 	interface Props {
 		cell: Cell;
@@ -52,7 +54,9 @@
 
 				<div class="gap-1 flex flex-wrap flex-grow">
 					{#each conf.actions as action}
-						{@render displayButton(action)}
+						<div class="flex-1 w-full">
+							{@render displayButton(action)}
+						</div>
 					{/each}
 				</div>
 			</div>
@@ -85,7 +89,7 @@
 			<p class="text-sm font-semibold">Other Value</p>
 			{@render renderDiff(error.value?.toString() ?? '', cell.value?.toString() ?? '')}
 			<div class="flex w-full">
-				{@render setCustomValue(error.value, 'w-full variant-soft')}
+				{@render setCustomValue(error.value, 'w-full variant-soft flex-grow')}
 			</div>
 		</div>
 	{:else if displayType === 'multipleOptions'}
@@ -114,7 +118,9 @@
 							<span class=" font-semibold flex-grow">
 								Raw Value: <span class="font-normal">{item}</span>
 							</span>
-							{@render setCustomValue(item)}
+							<div>
+								{@render setCustomValue(item)}
+							</div>
 						</div>
 					</li>
 				{/each}
@@ -167,56 +173,30 @@
 {/snippet}
 
 {#snippet displayButton(action: ErrorActions)}
-	{#if action === 'markAsResolved'}
-		<button class="btn variant-soft flex-1">
-			<span>
-				<Check />
-			</span>
-			<span> Mark As Resolved</span>
-		</button>
-	{:else if action === 'ignore'}
-		<button class="btn variant-soft flex-1">
-			<span>
-				<X />
-			</span>
-			<span> Ignore </span>
-		</button>
-	{:else if action === 'approve'}
-		<button class="btn variant-glass-primary flex-1">
-			<span>
-				<Check />
-			</span>
-			<span> Approve </span>
-		</button>
-	{:else if action === 'reject'}
-		<button class="btn variant-glass-error flex-1">
-			<span>
-				<X />
-			</span>
-			<span> Reject </span>
-		</button>
-	{:else if action === 'keepCustom'}
-		<button class="btn variant-glass-primary flex-1">
-			<span>
-				<Check />
-			</span>
-			<span> Keep Custom Value </span>
-		</button>
-	{:else if action === 'keepValue'}
-		<button class="btn variant-glass-primary flex-1">
-			<span>
-				<Check />
-			</span>
-			<span> Keep Value </span>
-		</button>
-	{:else if action === 'setAuto'}
-		<button class="btn variant-soft flex-1">
-			<span>
-				<X />
-			</span>
-			<span> Remove Custom Value </span>
-		</button>
-	{/if}
+	{@const conf = {
+		markAsResolved: { label: 'Mark As Resolved', icon: Check, variant: 'variant-soft' },
+		ignore: { label: 'Ignore', icon: X, variant: 'variant-soft' },
+		approve: { label: 'Approve', icon: Check, variant: 'variant-glass-primary' },
+		reject: { label: 'Reject', icon: X, variant: 'variant-glass-error' },
+		keepCustom: { label: 'Keep Custom Value', icon: Check, variant: 'variant-glass-primary' },
+		keepValue: { label: 'Keep Value', icon: Check, variant: 'variant-glass-primary' },
+		setAuto: { label: 'Remove Custom Value', icon: X, variant: 'variant-soft' }
+	}[action]}
+	<Button
+		class="btn {conf.variant} flex-1"
+		action={client.unified.updateError}
+		input={{
+			compoundId: cell.compoundId,
+			col: cell.col,
+			errorAction: action
+		}}
+		flexible
+	>
+		<span>
+			<conf.icon />
+		</span>
+		<span>{conf.label}</span>
+	</Button>
 {/snippet}
 
 {#snippet renderDiff(val: string, otherVal: string)}
@@ -241,10 +221,25 @@
 	value: string | number | boolean | null,
 	className: string = 'btn-sm variant-glass-primary'
 )}
-	<button class="btn {className}">
+	<Button
+		class="btn {className}"
+		action={client.unified.updateSetting}
+		input={{
+			compoundId: cell.compoundId,
+			col: cell.col,
+			settingData: {
+				col: cell.col,
+				confType: 'setting:custom',
+				refId: Number(cell.compoundId.split(':')[1]),
+				value,
+				created: Date.now()
+			}
+		}}
+		flexible
+	>
 		<span>
 			<Check />
 		</span>
 		<span> Set As Custom Value </span>
-	</button>
+	</Button>
 {/snippet}

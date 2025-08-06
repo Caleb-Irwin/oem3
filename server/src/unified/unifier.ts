@@ -28,7 +28,10 @@ export function createUnifier<
 	const { table, confTable, getRow, transform, connections, version } = conf;
 
 	const tableConf = getTableConfig(table),
-		unifiedTableName = tableConf.name;
+		unifiedTableName = tableConf.name,
+		connectionColumns = new Set(
+			[connections.primaryTable, ...connections.otherTables].map((c) => c.refCol.toString())
+		);
 
 	async function _modifyRow(
 		id: number,
@@ -68,25 +71,26 @@ export function createUnifier<
 		const updatedRow = structuredClone(updatedRowIn);
 		const otherConnections = await connectionTable.findConnections(updatedRow, db);
 		const connectionRowKey = connectionTable.refCol as keyof TableType['$inferInsert'];
+		const isPrimary = !!(connectionTable as PrimaryTableConnection<any, any, any>)
+			.newRowTransform as boolean;
 
 		// Un-match the connection if it is deleted and not primary
 		if (
-			!(connectionTable as PrimaryTableConnection<any, any, any>).newRowTransform &&
+			!isPrimary &&
 			updatedRow[connectionRowKey] !== null &&
 			(connectionTable.isDeleted(updatedRow) || removeAutoMatch)
 		) {
 			updatedRow[connectionRowKey] = null as any;
 		}
 
-		// Apply custom settings first before automatic connection assignment
-		const configuredVal = await cellConfigurator.getConfiguredCellValue(
+		updatedRow[connectionRowKey] = (await cellConfigurator.getConfiguredCellValue(
 			{
 				key: connectionRowKey as any,
 				val: updatedRow[connectionRowKey] as number,
 				options: {}
 			},
 			originalRow[connectionRowKey] as number | null
-		);
+		)) as any;
 
 		async function findExistingConnection(db: Tx | typeof DB, value: number) {
 			const existing = await db
@@ -97,9 +101,8 @@ export function createUnifier<
 			return existing.length > 0 ? existing[0].id : null;
 		}
 
-		// Only auto-assign connection if no custom setting was applied
 		if (
-			configuredVal === updatedRow[connectionRowKey] &&
+			cellConfigurator.getCellSettings(connectionRowKey as any).setting === null &&
 			otherConnections.length > 0 &&
 			!removeAutoMatch
 		) {
@@ -125,8 +128,6 @@ export function createUnifier<
 					}
 				});
 			}
-		} else {
-			updatedRow[connectionRowKey] = configuredVal as any;
 		}
 
 		const newVal = updatedRow[connectionRowKey] as number | null;
@@ -182,28 +183,32 @@ export function createUnifier<
 			}
 		}
 
+		async function fallBackToNull() {
+			if (!isPrimary && originalRow[connectionRowKey] !== null) {
+				updatedRow[connectionRowKey] = null as any;
+				await tryToUpdateRow(null, async () => {
+					throw new Error('Failed to set null');
+				});
+			} else {
+				updatedRow[connectionRowKey] = originalRow[connectionRowKey];
+			}
+			cellConfigurator.addError(connectionRowKey as any, {
+				matchWouldCauseDuplicate: {
+					value: newVal
+				}
+			});
+		}
+
 		if (originalRow[connectionRowKey] !== newVal) {
 			await tryToUpdateRow(newVal, async () => {
 				const removed = nestedMode ? false : await tryToRemoveConnection(newVal!);
 				if (removed) {
-					const success = await tryToUpdateRow(newVal, async () => {
-						updatedRow[connectionRowKey] = originalRow[connectionRowKey];
-						cellConfigurator.addError(connectionRowKey as any, {
-							matchWouldCauseDuplicate: {
-								value: newVal
-							}
-						});
-					});
+					const success = await tryToUpdateRow(newVal, fallBackToNull);
 					if (success) {
 						await _updateRow({ id, db, onUpdateCallback, nestedMode: true });
 					}
 				} else {
-					updatedRow[connectionRowKey] = originalRow[connectionRowKey];
-					cellConfigurator.addError(connectionRowKey as any, {
-						matchWouldCauseDuplicate: {
-							value: newVal
-						}
-					});
+					await fallBackToNull();
 				}
 			});
 		}
@@ -276,6 +281,7 @@ export function createUnifier<
 
 		// 3. Apply Overrides + Find Errors
 		const changes: Partial<(typeof table)['$inferSelect']> = {};
+		const changesToCommit: Partial<(typeof table)['$inferSelect']> = {};
 		for (const k of Object.keys(transformed)) {
 			if (k === 'id' || k === 'lastUpdated') continue;
 			const key = k as keyof (typeof table)['$inferInsert'];
@@ -284,6 +290,9 @@ export function createUnifier<
 				originalRow[key] as any
 			)) as any;
 			if (originalRow[key] !== newVal) {
+				if (!connectionColumns.has(key.toString())) {
+					changesToCommit[key] = newVal;
+				}
 				changes[key] = newVal;
 			}
 		}
@@ -293,7 +302,7 @@ export function createUnifier<
 
 		// 4. Update Row
 		const time = Date.now();
-		if (hasChanges) await _modifyRow(id, { lastUpdated: time, ...changes }, db);
+		if (hasChanges) await _modifyRow(id, { lastUpdated: time, ...changesToCommit }, db);
 
 		// 5. Update History
 		const history: InsertHistoryRowOptions<TableType['$inferSelect']> | null = hasChanges
