@@ -110,7 +110,7 @@ function doErrorsMatch(
 ): boolean {
 	for (const k of new Set([...Object.keys(error), ...Object.keys(newError)])) {
 		const key = k as keyof typeof error;
-		if (key === 'id' || key === 'created' || key === 'refId') continue;
+		if (key === 'id' || key === 'created' || key === 'refId' || key === 'resolved') continue;
 		if ((error[key] ?? null) !== (newError[key] ?? null)) {
 			return false;
 		}

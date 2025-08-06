@@ -3,7 +3,6 @@
 	import WorkerStatus from '$lib/WorkerStatus.svelte';
 	import { ProgressBar } from '@skeletonlabs/skeleton';
 	import type { SummaryType } from '../../../../server/src/routers/summaries';
-	import type { UnifiedTableNames } from '../../../../server/src/utils/unifier';
 	import UnifiedErrorSummary from './UnifiedErrorSummary.svelte';
 	import RotateCw from 'lucide-svelte/icons/rotate-cw';
 	import CircleAlert from 'lucide-svelte/icons/circle-alert';
@@ -11,6 +10,7 @@
 	import CircleCheck from 'lucide-svelte/icons/circle-check';
 	import type { Resolver } from '@trpc/client';
 	import type { Readable } from 'svelte/store';
+	import type { UnifiedTableNames } from '../../../../server/src/unified/types';
 
 	interface Props {
 		headerName: string;
@@ -81,12 +81,12 @@
 			<RotateCw />
 		</Button>
 	</div>
-
-	<div class="px-4 pb-2">
-		{#if workerData?.error}
+	{#if workerData?.error}
+		<div class="px-4 pb-2">
 			<WorkerStatus status={workerStatus} />
-		{/if}
-	</div>
+		</div>
+	{/if}
+
 	<div class="p-4 pt-0">
 		<UnifiedErrorSummary {tableName} initialData={initialErrorData} />
 	</div>

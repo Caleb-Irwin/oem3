@@ -5,7 +5,7 @@ import { and, eq } from 'drizzle-orm';
 import { getTableConfig } from 'drizzle-orm/pg-core';
 import { uniref } from '../db.schema';
 
-interface CellSettingInput {
+export interface CellSettingInput {
 	db: typeof DB | Tx;
 	table: CellConfigTable;
 	unifiedTable: UnifiedTables;

@@ -55,7 +55,7 @@
 				<div class="gap-1 flex flex-wrap flex-grow">
 					{#each conf.actions as action}
 						<div class="flex-1 w-full">
-							{@render displayButton(action)}
+							{@render displayButton(action, error.id)}
 						</div>
 					{/each}
 				</div>
@@ -84,7 +84,7 @@
 			<p class="text-sm font-semibold">Current Value</p>
 			{@render renderDiff(cell.value?.toString() ?? '', error.value?.toString() ?? '')}
 			<div class="flex w-full pb-2">
-				{@render displayButton('keepValue')}
+				{@render displayButton('keepValue', error.id)}
 			</div>
 			<p class="text-sm font-semibold">Other Value</p>
 			{@render renderDiff(error.value?.toString() ?? '', cell.value?.toString() ?? '')}
@@ -105,7 +105,7 @@
 				</div>
 
 				<div class="flex w-full pt-2">
-					{@render displayButton('keepValue')}
+					{@render displayButton('keepValue', error.id)}
 				</div>
 			</div>
 
@@ -132,12 +132,14 @@
 		<div class="p-2 variant-glass">
 			<div class="pt-2 flex">
 				<div class="flex-1 text-center opacity-60">
+					<p class="text-sm pb-0.5">Last Approved</p>
 					{@render valueRenderer(coerceString(cell.value?.toString() ?? 'Null', cell.type))}
 				</div>
 				<div class="grid place-content-center p-2 opacity-60">
 					<ArrowRight size="28" />
 				</div>
 				<div class="flex-1 text-center">
+					<p class="text-sm pb-0.5">New Value</p>
 					{@render valueRenderer(coerceString(error.value ?? 'Null', cell.type))}
 				</div>
 			</div>
@@ -162,8 +164,21 @@
 				</div>
 				<div class="flex-1 text-center">
 					<p class="text-sm pb-0.5">New Underlying Value</p>
-
 					{@render valueRenderer(coerceString(error.value ?? 'Null', cell.type))}
+				</div>
+			</div>
+		</div>
+
+		<div class="p-2 variant-glass text-center">
+			<div class="pt-2 flex">
+				<div class="flex-1 text-center">
+					<p class="text-sm pb-0.5">Custom Value</p>
+					{@render valueRenderer(cell.value)}
+					<div class="flex items-center px-1 pt-0.5 pb-0">
+						<span class=" font-semibold flex-grow"
+							>Raw Value: <span class="font-normal">{error.value}</span></span
+						>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -172,7 +187,7 @@
 	{/if}
 {/snippet}
 
-{#snippet displayButton(action: ErrorActions)}
+{#snippet displayButton(action: ErrorActions, errorId: number)}
 	{@const conf = {
 		markAsResolved: { label: 'Mark As Resolved', icon: Check, variant: 'variant-soft' },
 		ignore: { label: 'Ignore', icon: X, variant: 'variant-soft' },
@@ -188,7 +203,8 @@
 		input={{
 			compoundId: cell.compoundId,
 			col: cell.col,
-			errorAction: action
+			errorAction: action,
+			errorId
 		}}
 		flexible
 	>

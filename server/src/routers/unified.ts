@@ -65,12 +65,13 @@ export const unifiedRouter = router({
 			z.object({
 				compoundId: z.string(),
 				col: z.string(),
-				errorAction: z.enum(ErrorActionValues)
+				errorAction: z.enum(ErrorActionValues),
+				errorId: z.number()
 			})
 		)
 		.mutation(async ({ input }) => {
 			const { updateError, meta } = await getCellConfigHelper(input.compoundId, input.col, db);
-			await updateError(input.errorAction);
+			await updateError(input.errorAction, input.errorId);
 			updateUnifiedTopicByUniId(meta.uniId.toString());
 		}),
 	getErrorUrl: viewerProcedure

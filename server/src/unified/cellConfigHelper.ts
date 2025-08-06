@@ -78,7 +78,7 @@ export async function getCellConfigHelper(compoundId: string, col: string, db: t
 		}, 100);
 	}
 
-	async function updateError(errorAction: ErrorAction) {
+	async function updateError(errorAction: ErrorAction, errorId: number) {
 		await retryableTransaction(
 			async (db) => {
 				await modifyError({
@@ -87,6 +87,7 @@ export async function getCellConfigHelper(compoundId: string, col: string, db: t
 					refId,
 					col,
 					errorAction,
+					errorId,
 					unifiedTable,
 					uniIdHint: uniId
 				});

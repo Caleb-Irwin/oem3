@@ -231,13 +231,14 @@ export function createUnifier<
 	}) {
 		const originalRow = await getRow(id, db);
 		let updatedRow = structuredClone(originalRow);
-		const cellConfigurator = await createCellConfigurator(
-			confTable,
+		const cellConfigurator = await createCellConfigurator({
+			table: confTable,
+			unifiedTable: table,
 			id,
-			originalRow.uniref.uniId,
+			uniId: originalRow.uniref.uniId,
 			db,
 			verifyCellValue
-		);
+		});
 		// 1. Check + make connections
 		const connectionsList = [
 			connections.primaryTable,

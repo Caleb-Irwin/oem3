@@ -35,7 +35,7 @@ export const ERRORS_CONF: Record<CellError, ErrorConfType> = {
 		title: 'Needs Approval',
 		instructions: 'This value needs approval before it can be set.',
 		display: 'approval',
-		actions: ['approve', 'reject']
+		actions: ['reject', 'approve']
 	},
 	'error:needsApprovalCustom': {
 		confType: 'error:needsApprovalCustom',
@@ -43,7 +43,7 @@ export const ERRORS_CONF: Record<CellError, ErrorConfType> = {
 		instructions:
 			'The underlying (auto) value has changed. You can keep the custom value, or set it to the new auto (underlying) value by removing the custom value setting.',
 		display: 'customApproval',
-		actions: ['setAuto', 'keepCustom']
+		actions: ['keepCustom', 'setAuto']
 	},
 	// Value Errors
 	'error:missingValue': {

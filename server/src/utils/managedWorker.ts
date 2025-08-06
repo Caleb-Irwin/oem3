@@ -16,7 +16,8 @@ export const managedWorker = (
 	workerUrl: string,
 	name: (typeof changesetType.enumValues)[number] | string,
 	runAfter: PostRunHook[] = [],
-	customMessageCallback?: (msg: WorkerMessage) => void
+	customMessageCallback?: (msg: WorkerMessage) => void,
+	maxQueueSize = 1
 ) => {
 	const changeset = changesetType.enumValues.includes(name as any)
 			? (name as (typeof changesetType.enumValues)[number])
@@ -34,7 +35,9 @@ export const managedWorker = (
 
 	const runWorker: RunWorker = async (data, time = Date.now()) => {
 		if (status.running) {
-			runQueue.push(data);
+			if (runQueue.length < maxQueueSize) {
+				runQueue.push(data);
+			}
 			return;
 		}
 		status.running = true;

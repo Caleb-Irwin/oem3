@@ -3,16 +3,24 @@ import { db as DB, type Tx } from '../db';
 import { type CellSetting } from '../db.schema';
 import type { UnifiedTables, CellConfigTable } from './types';
 import type { VerifyCellValue } from './unifier';
-import { insertHistory } from '../utils/history';
 import { createErrorManager } from './errorManager';
+import { modifySetting } from './cellSettings';
 
-export async function createCellConfigurator(
-	table: CellConfigTable,
-	id: number,
-	uniId: number,
-	db: typeof DB | Tx,
-	verifyCellValue: VerifyCellValue
-) {
+export async function createCellConfigurator({
+	table,
+	unifiedTable,
+	id,
+	uniId,
+	db,
+	verifyCellValue
+}: {
+	table: CellConfigTable;
+	unifiedTable: UnifiedTables;
+	id: number;
+	uniId: number;
+	db: typeof DB | Tx;
+	verifyCellValue: VerifyCellValue;
+}) {
 	const cellConfigs = await db.select().from(table).where(eq(table.refId, id));
 	type CellConfig = (typeof cellConfigs)[number];
 
@@ -80,24 +88,21 @@ export async function createCellConfigurator(
 					});
 					newVal = oldVal;
 				} else {
-					await db
-						.update(table)
-						.set({ lastValue: currentValue.toString() })
-						.where(eq(table.id, setting.conf!.id));
-					await insertHistory({
+					await modifySetting({
 						db,
-						uniref: uniId,
-						resourceType: 'unifiedGuild',
-						entryType: 'update',
-						data: {
-							cellConfigChange: {
-								type: 'settingUpdated',
-								col: key,
-								confType: setting.setting,
-								change: { lastValue: currentValue.toString() }
-							}
+						table: table,
+						unifiedTable: unifiedTable,
+						refId: id,
+						col: key,
+						settingData: {
+							confType: 'setting:approve',
+							value: setting.conf?.value,
+							lastValue: currentValue.toString(),
+							col: key as any,
+							refId: id,
+							created: Date.now()
 						},
-						created: Date.now()
+						uniIdHint: uniId
 					});
 				}
 			} else if (setting.setting === 'setting:approveCustom') {
