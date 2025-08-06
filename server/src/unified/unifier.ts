@@ -337,8 +337,6 @@ export function createUnifier<
 		});
 	}
 
-	const kv = new KV('unifier/' + unifiedTableName, DB);
-
 	async function updateUnifiedTable({
 		updateAll = false,
 		progress,
@@ -349,12 +347,14 @@ export function createUnifier<
 		onUpdateCallback: OnUpdateCallback;
 	}) {
 		if (progress) progress(-1);
+		const initKV = new KV('unifier/' + unifiedTableName, DB);
 		const newLastUpdated = Date.now(),
-			lastUpdatedBySource: { [key: string]: number } = JSON.parse(
-				(await kv.get('lastUpdatedBySource')) ?? '{}'
+			originalLastUpdatedBySource: { [key: string]: number } = JSON.parse(
+				(await initKV.get('lastUpdatedBySource')) ?? '{}'
 			),
+			lastUpdatedBySource: { [key: string]: number } = { ...originalLastUpdatedBySource },
 			rowsToUpdate = new Set<number>();
-		if (parseInt((await kv.get('version')) ?? '-1') < version) {
+		if (parseInt((await initKV.get('version')) ?? '-1') < version) {
 			updateAll = true;
 		}
 
@@ -465,14 +465,37 @@ export function createUnifier<
 		if (progress) progress(1);
 
 		// 4. Finish
-		await kv.set('lastUpdatedBySource', JSON.stringify(lastUpdatedBySource));
-		await kv.set('version', version.toString());
+		await retryableTransaction(
+			async (db) => {
+				const kv = new KV('unifier/' + unifiedTableName, db);
+				const lastUpdatedNew = JSON.parse((await kv.get('lastUpdatedBySource')) ?? '{}');
+				const newLastUpdated: { [key: string]: number } = {};
+				for (const k of Object.keys(lastUpdatedBySource)) {
+					newLastUpdated[k] =
+						lastUpdatedNew[k] && lastUpdatedNew[k] < (originalLastUpdatedBySource[k] ?? 2)
+							? lastUpdatedNew[k]
+							: lastUpdatedBySource[k];
+				}
+				await kv.set('lastUpdatedBySource', JSON.stringify(newLastUpdated));
+				await kv.set('version', version.toString());
+			},
+			10,
+			'serializable'
+		);
 	}
 
 	async function recordMatchesInvalidatedByRefCol(refCol: string) {
-		const lastUpdatedBySource = JSON.parse((await kv.get('lastUpdatedBySource')) ?? '{}');
-		lastUpdatedBySource[refCol] = 0;
-		await kv.set('lastUpdatedBySource', JSON.stringify(lastUpdatedBySource));
+		await retryableTransaction(
+			async (db) => {
+				const kv = new KV('unifier/' + unifiedTableName, db);
+				const lastUpdatedBySource = JSON.parse((await kv.get('lastUpdatedBySource')) ?? '{}');
+				const prevRun = lastUpdatedBySource[refCol] ?? 0;
+				lastUpdatedBySource[refCol] = prevRun <= 0 ? prevRun - 1 : 0;
+				await kv.set('lastUpdatedBySource', JSON.stringify(lastUpdatedBySource));
+			},
+			10,
+			'serializable'
+		);
 	}
 
 	return {

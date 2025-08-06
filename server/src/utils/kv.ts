@@ -1,14 +1,14 @@
 import { eq } from 'drizzle-orm';
-import { db as DB } from '../db';
+import { db as DB, type Tx } from '../db';
 import { kv } from './kv.table';
 
 export class KV<T extends string> {
 	private map = new Map<T, string | null>();
 	private namespace: string;
 	private inited = false;
-	private db: typeof DB;
+	private db: typeof DB | Tx;
 
-	constructor(namespace: string, db: typeof DB = DB) {
+	constructor(namespace: string, db: typeof DB | Tx = DB) {
 		this.namespace = namespace;
 		this.db = db;
 	}
