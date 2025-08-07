@@ -95,7 +95,7 @@
 			<li
 				class="py-0.5 px-2 flex items-center {i % 2 === 0
 					? 'bg-surface-200 dark:bg-surface-600'
-					: 'bg-surface-100 dark:bg-surface-800'}"
+					: 'bg-surface-200/50 dark:bg-surface-600/50'}"
 			>
 				<Button
 					action={applyMutation}

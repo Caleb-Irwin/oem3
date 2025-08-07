@@ -16,7 +16,7 @@
 
 <div class="w-full flex flex-col xl:grid xl:grid-cols-3 justify-center p-2">
 	<div class="w-full flex flex-col items-center p-2">
-		<div class="w-full max-w-xl mb-2">
+		<div class="w-full mb-2">
 			<ChangesetStatus
 				name="SPR Price File"
 				status={subVal(client.spr.priceFile.worker.statusSub, {
@@ -27,7 +27,7 @@
 				})}
 			/>
 		</div>
-		<div class="w-full max-w-xl">
+		<div class="w-full">
 			<Files
 				filesRouter={client.spr.priceFile.files}
 				title="SPR Price File"
@@ -38,7 +38,7 @@
 		</div>
 	</div>
 	<div class="w-full flex flex-col items-center p-2">
-		<div class="w-full max-w-xl mb-2">
+		<div class="w-full mb-2">
 			<ChangesetStatus
 				name="SPR Flat File"
 				status={subVal(client.spr.flatFile.worker.statusSub, {
@@ -49,7 +49,7 @@
 				})}
 			/>
 		</div>
-		<div class="w-full max-w-xl">
+		<div class="w-full">
 			<Files
 				filesRouter={client.spr.flatFile.files}
 				title="SPR Flat File"
@@ -61,7 +61,7 @@
 		</div>
 	</div>
 	<div class="w-full flex flex-col items-center p-2">
-		<div class="w-full card p-4 max-w-xl">
+		<div class="w-full card p-4">
 			<Button class="mb-2 btn variant-filled-primary" action={client.spr.enhancedContent.worker.run}
 				>Update Enhanced Content</Button
 			>

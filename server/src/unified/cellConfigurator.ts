@@ -87,7 +87,7 @@ export async function createCellConfigurator({
 						}
 					});
 					newVal = oldVal;
-				} else {
+				} else if (currentValue.toString() !== setting.conf?.lastValue) {
 					await modifySetting({
 						db,
 						table: table,

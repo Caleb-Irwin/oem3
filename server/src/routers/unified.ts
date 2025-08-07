@@ -152,7 +152,9 @@ export const unifiedRouter = router({
 			const query = errorQueryBuilder(tableName, deletedMode);
 			const errors = await query;
 			if (errors.length === 0) {
-				throw new Error('No errors found for this table');
+				throw new Error(
+					'No errors found for this table (summary may be out of data; please wait for it to update)'
+				);
 			}
 
 			let refId: number | undefined, refIndex: number | undefined;

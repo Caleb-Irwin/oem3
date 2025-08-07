@@ -27,7 +27,7 @@
 
 <div class="w-full flex flex-col xl:grid xl:grid-cols-3 justify-center p-2">
 	<div class="p-2 w-full xl:w-auto flex flex-col items-center min-w-96">
-		<div class="w-full max-w-xl mb-2">
+		<div class="w-full mb-2">
 			<ChangesetStatus
 				name="Guild Data"
 				status={subVal(client.guild.data.worker.statusSub, {
@@ -38,7 +38,7 @@
 				})}
 			/>
 		</div>
-		<div class="w-full max-w-xl">
+		<div class="w-full">
 			<Files
 				filesRouter={client.guild.data.files}
 				title="Guild Items"
@@ -49,7 +49,7 @@
 		</div>
 	</div>
 	<div class="p-2 w-full xl:w-auto flex flex-col items-center min-w-96">
-		<div class="w-full max-w-xl mb-2">
+		<div class="w-full mb-2">
 			<ChangesetStatus
 				name="Guild Inventory"
 				status={subVal(client.guild.inventory.worker.statusSub, {
@@ -60,7 +60,7 @@
 				})}
 			/>
 		</div>
-		<div class="w-full max-w-xl">
+		<div class="w-full">
 			<Files
 				filesRouter={client.guild.inventory.files}
 				title="Guild Inventory"
@@ -72,7 +72,7 @@
 		</div>
 	</div>
 	<div class="p-2 w-full xl:w-auto flex flex-col items-center min-w-96">
-		<div class="w-full max-w-xl mb-2">
+		<div class="w-full mb-2">
 			<ChangesetStatus
 				name="Guild Flyer"
 				status={subVal(client.guild.flyer.worker.statusSub, {
@@ -83,7 +83,7 @@
 				})}
 			/>
 		</div>
-		<div class="w-full max-w-xl">
+		<div class="w-full">
 			<Files
 				filesRouter={client.guild.flyer.files}
 				title="Guild Flyer"
@@ -97,7 +97,7 @@
 
 	<!-- Disable for now
 	<div class="p-2 w-full xl:w-auto flex flex-col items-center min-w-96">
-		<div class="w-full card p-4 max-w-xl">
+		<div class="w-full card p-4">
 			<Button class="mb-2 btn variant-filled-primary" action={client.guild.desc.worker.run}
 				>Update Enhanced Descriptions</Button
 			>
