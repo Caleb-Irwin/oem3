@@ -178,6 +178,7 @@
 								'Matched Deleted': 'bg-primary-400',
 								'Unmatched Deleted': 'bg-primary-200'
 							}}
+							showZeroCounts={true}
 							showTotal={true}
 							totalLabel="Total Item"
 							maxColumns={2}

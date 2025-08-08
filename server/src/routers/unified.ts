@@ -15,6 +15,7 @@ import { createUnifiedSub, updateUnifiedTopicByUniId } from './unified.helpers';
 import { getCellConfigHelper } from '../unified/cellConfigHelper';
 import { UnifierMap } from '../unified/unifier.map';
 import { KV } from '../utils/kv';
+import { paginateCircular, pickInitialIndex } from '../utils/pagination';
 import { getResourceByCol } from './resources';
 import { ErrorActionValues } from '../unified/cellErrors';
 
@@ -102,37 +103,11 @@ export const unifiedRouter = router({
 				};
 			}
 
-			let newRefId: number | undefined;
-
-			if (
-				likelyPrev &&
-				mode === 'prev' &&
-				allItemsWithErrors.findIndex((c) => c.id === likelyPrev) >= 0
-			) {
-				newRefId = likelyPrev;
-			} else if (
-				likelyNext &&
-				mode === 'next' &&
-				allItemsWithErrors.findIndex((c) => c.id === likelyNext) >= 0
-			) {
-				newRefId = likelyNext;
-			}
-
-			if (!newRefId) {
-				const currentIndex = allItemsWithErrors.findIndex((c) => c.id === refId);
-				if (currentIndex >= 0) {
-					newRefId = allItemsWithErrors[currentIndex + (mode === 'next' ? 1 : -1)]?.id;
-				}
-
-				if (!newRefId) {
-					newRefId =
-						mode === 'prev'
-							? allItemsWithErrors[allItemsWithErrors.length - 1].id
-							: allItemsWithErrors[0].id;
-				}
-			}
-
-			const newIndex = allItemsWithErrors.findIndex((c) => c.id === newRefId);
+			const ids = allItemsWithErrors.map((c) => c.id);
+			const { id: newRefId, index: newIndex } = paginateCircular(ids, refId, mode, {
+				prev: likelyPrev,
+				next: likelyNext
+			});
 
 			await kv.set(
 				`lastError-${tableName}-${user.username}${deletedMode ? '-deleteMode' : ''}`,
@@ -157,21 +132,14 @@ export const unifiedRouter = router({
 				);
 			}
 
-			let refId: number | undefined, refIndex: number | undefined;
+			const ids = errors.map((c) => c.id);
 			const lastAccessed = parseInt(
 				(await kv.get(
 					`lastError-${tableName}-${user.username}${deletedMode ? '-deleteMode' : ''}`
 				)) || '-1'
 			);
-			const lastAccessedIndex =
-				lastAccessed > -1 ? errors.findIndex((c) => c.id === lastAccessed) : null;
-			if (lastAccessedIndex !== null && lastAccessedIndex >= 0) {
-				refId = lastAccessed;
-				refIndex = lastAccessedIndex;
-			} else {
-				refId = errors[0].id;
-				refIndex = 0;
-			}
+			const refIndex = pickInitialIndex(ids, isNaN(lastAccessed) ? null : lastAccessed);
+			const refId = ids[refIndex];
 
 			return await getErrorReturn(errors, tableName, deletedMode, refId, refIndex);
 		})
