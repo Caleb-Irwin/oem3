@@ -4,6 +4,8 @@ import type { UnifiedTableNames } from '../../unified/types';
 import { UnifierMap } from '../../unified/unifier.map';
 import { work } from '../../utils/workerBase';
 import { CellErrorArray, type CellError, summaries } from '../../db.schema';
+import type { TableConnection } from '../../unified/unifier';
+import { getTableConfig } from 'drizzle-orm/pg-core';
 
 work({
 	process: async ({}) => {
@@ -123,7 +125,8 @@ async function updateUnifiedSummary(tableName: UnifiedTableNames) {
 					return acc;
 				},
 				{} as Record<string, number>
-			)
+			),
+			connectionSummaries: await getAllConnectionSummaries(tableName)
 		};
 
 		await db
@@ -143,6 +146,72 @@ async function updateUnifiedSummary(tableName: UnifiedTableNames) {
 	});
 }
 
+async function getAllConnectionSummaries(
+	unifiedTableName: UnifiedTableNames
+): Promise<ConnectionSummary[]> {
+	const allConnections = [
+		UnifierMap[unifiedTableName].unifier.conf.connections.primaryTable,
+		...UnifierMap[unifiedTableName].unifier.conf.connections.otherTables
+	];
+
+	return Promise.all(
+		allConnections.map((connection) => connectionSummary(unifiedTableName, connection))
+	);
+}
+
+async function connectionSummary(
+	unifiedTableName: UnifiedTableNames,
+	connection: TableConnection<any, any, any>
+): Promise<ConnectionSummary> {
+	const unifiedTable = UnifierMap[unifiedTableName].table as any;
+	const refCol = (unifiedTable as any)[connection.refCol];
+
+	const [totalRes, matchedActiveRes, unmatchedActiveRes, matchedDeletedRes, unmatchedDeletedRes] =
+		await Promise.all([
+			db.select({ count: count() }).from(connection.table),
+			db
+				.select({ count: count() })
+				.from(connection.table)
+				.innerJoin(unifiedTable, eq(refCol, connection.table.id))
+				.where(eq(connection.table.deleted, false)),
+			db
+				.select({ count: count() })
+				.from(connection.table)
+				.leftJoin(unifiedTable, eq(refCol, connection.table.id))
+				.where(and(eq(connection.table.deleted, false), isNull(unifiedTable.id))),
+			db
+				.select({ count: count() })
+				.from(connection.table)
+				.innerJoin(unifiedTable, eq(refCol, connection.table.id))
+				.where(eq(connection.table.deleted, true)),
+			db
+				.select({ count: count() })
+				.from(connection.table)
+				.leftJoin(unifiedTable, eq(refCol, connection.table.id))
+				.where(and(eq(connection.table.deleted, true), isNull(unifiedTable.id)))
+		]);
+
+	return {
+		tableName: getTableConfig(connection.table).name,
+		refCol: connection.refCol.toString(),
+		total: totalRes[0]?.count ?? 0,
+		matchedActive: matchedActiveRes[0]?.count ?? 0,
+		unmatchedActive: unmatchedActiveRes[0]?.count ?? 0,
+		matchedDeleted: matchedDeletedRes[0]?.count ?? 0,
+		unmatchedDeleted: unmatchedDeletedRes[0]?.count ?? 0
+	};
+}
+
+export interface ConnectionSummary {
+	tableName: string;
+	refCol: string;
+	total: number;
+	matchedActive: number;
+	unmatchedActive: number;
+	matchedDeleted: number;
+	unmatchedDeleted: number;
+}
+
 export interface UnifiedErrorSummary {
 	itemCounts: {
 		nonDeletedWithErrors: number;
@@ -159,4 +228,5 @@ export interface UnifiedErrorSummary {
 		deleted: Record<CellError, number>;
 	};
 	totalConfigurationsByType: Record<CellError, number>;
+	connectionSummaries: ConnectionSummary[];
 }

@@ -6,12 +6,13 @@
 	import AlertTriangle from 'lucide-svelte/icons/triangle-alert';
 	import Trash2 from 'lucide-svelte/icons/trash-2';
 	import CheckCircle from 'lucide-svelte/icons/circle-check';
-	import type { UnifiedTableNames } from '../../../../server/src/utils/unifier';
 	import type { SummaryType } from '../../../../server/src/routers/summaries';
 	import type { UnifiedErrorSummary } from '../../../../server/src/routers/summaries/worker';
 	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
 	import BarChart from './BarChart.svelte';
 	import { getErrorTitle } from '../../routes/app/resource/[uniId]/unified/errors/helpers';
+	import type { UnifiedTableNames } from '../../../../server/src/unified/types';
+	import { UnifiedTableNamesReadable } from './tableNames';
 
 	interface Props {
 		tableName: UnifiedTableNames;
@@ -140,6 +141,50 @@
 					</AccordionItem>
 				</Accordion>
 			{/if}
+			<div class="flex w-full flex-wrap gap-2">
+				{#each summary.connectionSummaries as item}
+					<div class="flex-1 p-4 card min-w-80">
+						<div class="flex items-center pb-2">
+							<h4 class="h4 font-semibold flex-grow">
+								{UnifiedTableNamesReadable[
+									item.tableName as keyof typeof UnifiedTableNamesReadable
+								]}
+							</h4>
+							{#if item.unmatchedActive}
+								<button class="btn btn-sm variant-filled-error">
+									<span> Add Missing Matches </span>
+									<ChevronRight />
+								</button>
+							{:else}
+								<p
+									class="variant-soft-primary p-1.5 px-4 rounded-full text-sm flex items-center gap-2"
+								>
+									<span> All Matched </span>
+									<CheckCircle />
+								</p>
+							{/if}
+						</div>
+						<BarChart
+							data={{
+								'Matched Active': item.matchedActive,
+								'Unmatched Active': item.unmatchedActive,
+								'Matched Deleted': item.matchedDeleted,
+								'Unmatched Deleted': item.unmatchedDeleted
+							}}
+							variant="secondary"
+							customColors={{
+								'Matched Active': 'bg-primary-500',
+								'Unmatched Active': 'bg-error-500',
+								'Matched Deleted': 'bg-primary-400',
+								'Unmatched Deleted': 'bg-primary-200'
+							}}
+							showTotal={true}
+							totalLabel="Total Item"
+							maxColumns={2}
+						/>
+					</div>
+				{/each}
+			</div>
 		</div>
 	{:else}
 		<div class="text-center py-8">

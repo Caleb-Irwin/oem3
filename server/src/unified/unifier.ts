@@ -542,7 +542,7 @@ type ConnectionTable<RowType, TableType extends UnifiedTables> =
 	| PrimaryTableConnection<RowType, TableType, PrimarySourceTables>
 	| TableConnection<RowType, TableType, OtherSourceTables>;
 
-interface TableConnection<
+export interface TableConnection<
 	RowType,
 	UnifiedTable extends UnifiedTables,
 	T extends PrimarySourceTables | OtherSourceTables
