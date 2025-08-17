@@ -10,13 +10,13 @@
 
 	const _data = $derived(
 		subVal(client.unified.getSub, {
-			init: props.data,
+			init: props.data.unifiedRes,
 			input: { uniId: props.data.uniId },
 			updateTopic: props.data.uniId.toString()
 		})
 	);
 
-	const data = $derived($_data) as typeof props.data;
+	const data = $derived($_data) as typeof props.data.unifiedRes;
 
 	const unifiedDataStore = toStore(() => data);
 
@@ -29,7 +29,7 @@
 	<GuildItem row={data} />
 {/if}
 
-<div class="p-2 lg:p-4 pt-0 lg:pt-0">
+<div class="p-2 pt-0 lg:pt-0">
 	{#if data.history}
 		<History history={data.history} />
 	{/if}

@@ -49,7 +49,7 @@
 	}: Props = $props();
 </script>
 
-<div class="w-full p-1 lg:p-3 pb-0 lg:pb-0 grid lg:grid-cols-6 grid-cols-1">
+<div class="w-full p-1 pb-0 grid lg:grid-cols-6 grid-cols-1">
 	<div
 		class="lg:pr-1 flex flex-col {secondaryConnection || otherConnections.length === 1
 			? 'lg:col-span-3'
@@ -102,7 +102,7 @@
 	</div>
 </div>
 
-<div class="lg:p-2 grid grid-cols-1 md:grid-cols-3 w-full">
+<div class="pt-2 grid grid-cols-1 md:grid-cols-3 w-full">
 	<div class="col-span-1">
 		<Images
 			primary={primaryImage}

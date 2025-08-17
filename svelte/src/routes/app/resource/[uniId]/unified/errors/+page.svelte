@@ -14,7 +14,7 @@
 	let props: PageProps = $props();
 
 	const unifiedData = getContext('unifiedData') as any;
-	const data = $derived($unifiedData) as typeof props.data;
+	const data = $derived($unifiedData) as typeof props.data.unifiedRes;
 	const allErrors = $derived(data.allActiveErrors || []);
 
 	let deletedMode = $state(false);
@@ -31,7 +31,7 @@
 	});
 </script>
 
-<div class="sticky top-0 z-10 p-2 md:px-4">
+<div class="sticky top-0 z-10 p-2">
 	<div
 		class="w-full p-2 card {allErrors.length === 0
 			? 'variant-ghost-primary'

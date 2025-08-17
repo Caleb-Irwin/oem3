@@ -19,7 +19,7 @@ export type AllSourceTables = PrimarySourceTables | OtherSourceTables;
 export const AllSourceTableNamesArray = [
 	...PrimarySourceTableNamesArray,
 	...OtherSourceTableNamesArray
-];
+] as const;
 export type AllSourceTableNames = (typeof AllSourceTableNamesArray)[number];
 
 export type CellConfigTable = typeof unifiedGuildCellConfig;

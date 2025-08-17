@@ -2,16 +2,14 @@
 	import type { PageData } from './$types';
 	import type { history as historyType } from '../../../../../../server/src/db.schema';
 	import History from '$lib/History.svelte';
-	import { productDetails } from '$lib/productDetails';
+	import type { Product } from '$lib/productDetails';
 	import CopyableText from '$lib/helpers/CopyableText.svelte';
 	import DOMPurify from 'isomorphic-dompurify';
 	import EnhancedImages from './EnhancedContent.svelte';
 	import Image from '$lib/Image.svelte';
-	import { client, subVal } from '$lib/client';
 	import { imageRedirect } from '$lib/imageRedirector';
-	import ItemRow from '$lib/ItemRow.svelte';
-	import Link from 'lucide-svelte/icons/link';
-	import Unlink from 'lucide-svelte/icons/unlink';
+	import { getContext } from 'svelte';
+	import type { Readable } from 'svelte/store';
 
 	interface Props {
 		data: PageData;
@@ -19,63 +17,23 @@
 
 	let { data }: Props = $props();
 
-	const _res = subVal(client.resources.getSub, {
-		init: data.res,
-		input: { uniId: data.res.uniId as number, includeHistory: true },
-		updateTopic: data.res.resourceType
-	});
+	const store = getContext('resProduct') as Readable<{
+		res: typeof data.res;
+		product: Product | undefined;
+	}>;
 
-	const res = $derived($_res) as typeof data.res;
+	const res = $derived($store.res),
+		product = $derived($store.product);
 
 	let history: (typeof historyType.$inferSelect)[] = $derived(
 		res ? (res as any)['history'] : undefined
 	);
-
-	let product = $derived(res ? productDetails(res) : undefined),
-		hasGuildConnection = $derived(product ? product.unifiedGuildData !== undefined : false);
 </script>
 
 {#if data.res === null}
 	<p class="text-center text-xl">Resource not found</p>
 {:else}
 	{#if product}
-		{#if hasGuildConnection}
-			<div class="card variant-soft p-1 m-2 flex flex-row items-center flex-wrap">
-				<div class="flex-grow"></div>
-				<h3 class="h3 pl-3 pr-4 p-1 flex items-center gap-x-2">
-					<span>
-						{#if product.unifiedGuildData === null}
-							<Unlink />
-						{:else}
-							<Link />
-						{/if}
-					</span>
-					<span> Unified Guild Connection </span>
-				</h3>
-				<div class="flex-grow"></div>
-				{#if product.unifiedGuildData}
-					<div class="px-4">
-						<ItemRow
-							newTab={true}
-							replaceClass="flex justify-center items-center"
-							rawProduct={{
-								uniId: product.unifiedGuildData.uniref.uniId,
-								unifiedGuildData: product.unifiedGuildData
-							}}
-						/>
-					</div>
-				{:else}
-					<div class="flex flex-col items-center p-2">
-						<p class="text-lg">No Connection</p>
-						<p class="text-sm">
-							Add a custom value setting in a unified guild item to add a connection
-						</p>
-					</div>
-				{/if}
-				<div class="flex-grow"></div>
-			</div>
-		{/if}
-
 		<div class="card m-2 p-4">
 			<div class="flex flex-col md:flex-row">
 				{#if product.imageUrl}

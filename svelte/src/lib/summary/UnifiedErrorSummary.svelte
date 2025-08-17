@@ -151,10 +151,18 @@
 								]}
 							</h4>
 							{#if item.unmatchedActive}
-								<button class="btn btn-sm variant-filled-error">
+								<Button
+									action={client.unified.getFirstUnmatchedUrl}
+									input={{
+										sourceTableName: item.tableName
+									}}
+									class="btn btn-sm variant-filled-error"
+									queryMode
+									res={async (output) => goto(output.url)}
+								>
 									<span> Add Missing Matches </span>
 									<ChevronRight />
-								</button>
+								</Button>
 							{:else}
 								<p
 									class="variant-soft-primary p-1.5 px-4 rounded-full text-sm flex items-center gap-2"
