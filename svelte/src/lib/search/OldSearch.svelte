@@ -9,10 +9,11 @@
 
 	interface Props {
 		select?: undefined | ((selection: { uniref: number }) => any);
-		microQB?: boolean;
+		quickAdd?: boolean;
+		quickAddQueryType?: QueryType;
 	}
 
-	let { select = undefined, microQB = false }: Props = $props();
+	let { select = undefined, quickAdd = false, quickAddQueryType = 'all' }: Props = $props();
 
 	const modalStore = getModalStore();
 	let query: string | undefined = $state(),
@@ -53,23 +54,23 @@
 	class="w-full"
 	center
 >
-	<div class="{microQB ? 'h-14' : 'h-20 my-3 p-1'} max-w-2xl form w-full flex">
+	<div class="{quickAdd ? 'h-14' : 'h-20 my-3 p-1'} max-w-2xl form w-full flex">
 		<div
-			class="input-group input-group-divider grid-cols-[1fr_auto_auto] {microQB
-				? '!variant-ghost-primary placeholder-primary-500 '
+			class="input-group input-group-divider grid-cols-[1fr_auto_auto] {quickAdd
+				? '!variant-ghost-primary placeholder-primary-500 border-primary-500 '
 				: ''}"
 			use:focusTrap={focus}
 		>
 			<input
 				type="text"
-				placeholder={microQB ? 'Quick Add' : 'Search Query'}
+				placeholder={quickAdd ? 'Quick Add' : 'Search Query'}
 				name="query"
-				class={microQB ? 'placeholder-primary-700' : ''}
+				class={quickAdd ? 'placeholder-primary-700' : ''}
 				bind:value={query}
 			/>
-			{#if microQB}
+			{#if quickAdd}
 				<select name="type" class="hidden" bind:value={queryType}>
-					<option value="qb">QB</option>
+					<option value={quickAddQueryType}>QUERY TYPE</option>
 				</select>
 			{:else}
 				<select name="type" bind:value={queryType}>

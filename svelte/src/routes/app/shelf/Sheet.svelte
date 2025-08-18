@@ -46,7 +46,8 @@
 
 	<div class="my-4 flex flex-wrap md:flex-nowrap justify-center">
 		<Search
-			microQB
+			quickAdd
+			quickAddQueryType="qb"
 			select={async (selection) => {
 				const res = await client.resources.get.query({ uniId: selection.uniref });
 				if (res?.qbData) {

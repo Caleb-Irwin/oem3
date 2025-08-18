@@ -4,11 +4,14 @@
 	import Button from '$lib/Button.svelte';
 	import { client } from '$lib/client';
 	import ItemRow from '$lib/ItemRow.svelte';
-	import type { Product } from '$lib/productDetails';
+	import type { Product, RawProduct } from '$lib/productDetails';
+	import OldSearch from '$lib/search/OldSearch.svelte';
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
 	import ChevronRight from 'lucide-svelte/icons/chevron-right';
 	import Link from 'lucide-svelte/icons/link';
 	import Unlink from 'lucide-svelte/icons/unlink';
+	import type { QueryType } from '../../../../../../server/src/routers/search';
+	import Check from 'lucide-svelte/icons/check';
 
 	interface Props {
 		unmatchedMode: boolean;
@@ -17,9 +20,32 @@
 	}
 	let { unmatchedMode, product, uniId }: Props = $props();
 
-	let isUnmatched = $state(
-		product?.unifiedGuildData !== undefined && product?.unifiedGuildData === null
-	);
+	const unifiedItem:
+		| {
+				title: string;
+				name: string;
+				item: Product['unifiedGuildData'];
+				rawItem: ({ uniId: number } & RawProduct) | null;
+				queryType: QueryType;
+		  }
+		| undefined = $derived.by(() => {
+		if (product?.unifiedGuildData !== undefined)
+			return {
+				title: 'Unified Guild',
+				name: 'unified guild',
+				item: product.unifiedGuildData,
+				rawItem: product.unifiedGuildData
+					? {
+							uniId: product.unifiedGuildData.uniref.uniId,
+							unifiedGuildData: product.unifiedGuildData
+						}
+					: null,
+				queryType: 'unifiedGuild'
+			};
+		return undefined;
+	});
+
+	const isUnmatched = $derived(unifiedItem && unifiedItem.item === null);
 </script>
 
 {#if unmatchedMode}
@@ -69,37 +95,51 @@
 	</div>
 {/if}
 
-{#if product?.unifiedGuildData !== undefined}
+{#if unifiedItem}
 	<div class="card variant-soft p-1 m-2 flex flex-row items-center flex-wrap">
 		<div class="flex-grow"></div>
 		<h3 class="h3 pl-3 pr-4 p-1 flex items-center gap-x-2">
 			<span>
-				{#if product.unifiedGuildData === null}
+				{#if isUnmatched}
 					<Unlink />
 				{:else}
 					<Link />
 				{/if}
 			</span>
-			<span> Unified Guild Connection </span>
+			<span> {unifiedItem.title} Connection </span>
 		</h3>
 		<div class="flex-grow"></div>
-		{#if product.unifiedGuildData}
+		{#if unifiedItem?.rawItem}
 			<div class="px-4">
 				<ItemRow
 					newTab={true}
 					replaceClass="flex justify-center items-center"
-					rawProduct={{
-						uniId: product.unifiedGuildData.uniref.uniId,
-						unifiedGuildData: product.unifiedGuildData
-					}}
+					rawProduct={unifiedItem.rawItem}
 				/>
 			</div>
 		{:else}
 			<div class="flex flex-col items-center p-2">
-				<p class="text-lg">No Connection</p>
-				<p class="text-sm">
-					Add a custom value setting in a unified guild item to add a connection
+				<p class="text-lg font-semibold">No Connection</p>
+				<p class="text-sm pb-2 text-center">
+					Add a custom value setting in a {unifiedItem.name} item to add a connection or quick add
 				</p>
+				<div class="flex flex-row items-center justify-center w-full gap-2 flex-wrap">
+					<div class="flex-grow">
+						<OldSearch
+							quickAdd
+							quickAddQueryType={unifiedItem.queryType}
+							select={async (selection) => {
+								const res = await client.resources.get.query({ uniId: selection.uniref });
+								console.log(res);
+								alert('Selected ' + res.uniId);
+							}}
+						/>
+					</div>
+					<button class="btn btn-lg variant-filled-warning">
+						<span> <Check /> </span>
+						<span> Allow Unmatched </span>
+					</button>
+				</div>
 			</div>
 		{/if}
 		<div class="flex-grow"></div>
