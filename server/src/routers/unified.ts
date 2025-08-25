@@ -8,7 +8,8 @@ import {
 	type UnifiedTableNames,
 	type UnifiedTables,
 	type CellConfigRowInsert,
-	type CellConfigRowSelect
+	type CellConfigRowSelect,
+	UnifiedTableNamesArray
 } from '../unified/types';
 import { createUnifiedSub, updateUnifiedTopicByUniId } from './unified.helpers';
 import { getCellConfigHelper } from '../unified/cellConfigHelper';
@@ -17,6 +18,9 @@ import { getResourceByCol } from './resources';
 import { ErrorActionValues } from '../unified/cellErrors';
 import { getErrorUrl, getFirstErrorUrl } from '../unified/unified.cellErrors';
 import { getFirstUnmatchedUrl, getUnmatchedUrl } from '../unified/unmatchedErrors';
+import type { OnUpdateCallback } from '../unified/unifier';
+
+const onUpdateCallback: OnUpdateCallback = (uniId) => updateUnifiedTopicByUniId(uniId.toString());
 
 async function getUnified(uniId: number) {
 	return {
@@ -42,6 +46,21 @@ export const unifiedRouter = router({
 			return await getUnified(uniId);
 		}
 	),
+	refresh: generalProcedure
+		.input(
+			z.object({
+				table: z.enum(UnifiedTableNamesArray),
+				refId: z.number()
+			})
+		)
+		.mutation(async ({ input: { refId, table } }) => {
+			const unifier = UnifierMap[table].unifier;
+			await unifier._updateRow({
+				id: refId,
+				db: db,
+				onUpdateCallback
+			});
+		}),
 	updateSetting: generalProcedure
 		.input(
 			z.object({
@@ -54,9 +73,13 @@ export const unifiedRouter = router({
 			})
 		)
 		.mutation(async ({ input }) => {
-			const { updateSetting, meta } = await getCellConfigHelper(input.compoundId, input.col, db);
+			const { updateSetting } = await getCellConfigHelper(
+				input.compoundId,
+				input.col,
+				db,
+				onUpdateCallback
+			);
 			await updateSetting(input.settingData);
-			updateUnifiedTopicByUniId(meta.uniId.toString());
 		}),
 	updateError: generalProcedure
 		.input(
@@ -68,9 +91,13 @@ export const unifiedRouter = router({
 			})
 		)
 		.mutation(async ({ input }) => {
-			const { updateError, meta } = await getCellConfigHelper(input.compoundId, input.col, db);
+			const { updateError } = await getCellConfigHelper(
+				input.compoundId,
+				input.col,
+				db,
+				onUpdateCallback
+			);
 			await updateError(input.errorAction, input.errorId);
-			updateUnifiedTopicByUniId(meta.uniId.toString());
 		}),
 	getErrorUrl,
 	getFirstErrorUrl,

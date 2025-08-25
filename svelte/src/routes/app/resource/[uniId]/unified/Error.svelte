@@ -16,6 +16,7 @@
 	import type { Snippet } from 'svelte';
 	import Button from '$lib/Button.svelte';
 	import { client } from '$lib/client';
+	import RotateCw from 'lucide-svelte/icons/rotate-cw';
 
 	interface Props {
 		cell: Cell;
@@ -29,11 +30,26 @@
 		{#each cell.activeErrors as error}
 			{@const conf = ERRORS_CONF[error.confType as CellError]}
 			<div class="card variant-ghost-error p-2 m-0.5 text-sm flex flex-col gap-y-2">
-				<div class="flex items-center">
-					<span class="pr-2"><TriangleAlert /></span>
-					<span class="font-semibold text-lg">
-						{getErrorTitle(error.confType)}
-					</span>
+				<div class="flex items-center justify-center flex-wrap gap-2">
+					<div class="flex gap-x-2 items-center justify-center flex-grow">
+						<span class=""><TriangleAlert /></span>
+						<span class="font-semibold text-lg text-center">
+							{getErrorTitle(error.confType)}
+						</span>
+						<div class="flex-grow"></div>
+					</div>
+
+					<Button
+						class="btn btn-sm variant-glass"
+						action={client.unified.refresh}
+						input={{
+							table: cell.compoundId.split(':')[0],
+							refId: parseInt(cell.compoundId.split(':')[1])
+						}}
+						successMessage="Refreshed"
+					>
+						<RotateCw size="16" /> <span> Refresh</span>
+					</Button>
 				</div>
 
 				<div class="card p-2 flex gap-x-2 items-center variant-glass">

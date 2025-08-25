@@ -5,8 +5,14 @@ import { eq, and } from 'drizzle-orm';
 import { getUniId, modifySetting } from './cellSettings';
 import { retryableTransaction } from './retryableTransaction';
 import { modifyError, type ErrorAction } from './cellErrors';
+import type { OnUpdateCallback } from './unifier';
 
-export async function getCellConfigHelper(compoundId: string, col: string, db: typeof DB) {
+export async function getCellConfigHelper(
+	compoundId: string,
+	col: string,
+	db: typeof DB,
+	onUpdateCallback: OnUpdateCallback
+) {
 	const parts = compoundId.split(':');
 	if (parts.length !== 2) {
 		throw new Error(`Invalid compoundId format: ${compoundId}. Expected format: "table:refId"`);
@@ -19,12 +25,7 @@ export async function getCellConfigHelper(compoundId: string, col: string, db: t
 		throw new Error(`Invalid refId in compoundId: ${refIdStr}. Must be a positive number`);
 	}
 
-	if (!(tablePrefixRaw in UnifierMap)) {
-		const supportedTables = Object.keys(UnifierMap).join(', ');
-		throw new Error(
-			`Unsupported table prefix: ${tablePrefixRaw}. Supported tables: ${supportedTables}`
-		);
-	}
+	validateTableName(tablePrefixRaw);
 
 	const tablePrefix = tablePrefixRaw as UnifiedTableNames;
 
@@ -64,7 +65,7 @@ export async function getCellConfigHelper(compoundId: string, col: string, db: t
 					uniIdHint: uniId,
 					unifiedTable
 				});
-				await unifier._updateRow({ id: refId, db: db, onUpdateCallback: () => null });
+				await unifier._updateRow({ id: refId, db: db, onUpdateCallback });
 			},
 			10,
 			'serializable'
@@ -91,7 +92,7 @@ export async function getCellConfigHelper(compoundId: string, col: string, db: t
 					unifiedTable,
 					uniIdHint: uniId
 				});
-				await unifier._updateRow({ id: refId, db: db, onUpdateCallback: () => null });
+				await unifier._updateRow({ id: refId, db: db, onUpdateCallback });
 			},
 			10,
 			'serializable'
@@ -119,4 +120,13 @@ export async function getCellConfigHelper(compoundId: string, col: string, db: t
 		updateSetting,
 		updateError
 	};
+}
+
+function validateTableName(tablePrefixRaw: UnifiedTableNames | string) {
+	if (!(tablePrefixRaw in UnifierMap)) {
+		const supportedTables = Object.keys(UnifierMap).join(', ');
+		throw new Error(
+			`Unsupported table prefix: ${tablePrefixRaw}. Supported tables: ${supportedTables}`
+		);
+	}
 }

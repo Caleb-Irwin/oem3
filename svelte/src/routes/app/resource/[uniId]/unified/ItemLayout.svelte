@@ -8,6 +8,9 @@
 	import Text from './Text.svelte';
 	import Deleted from './Deleted.svelte';
 	import type { Snippet } from 'svelte';
+	import Button from '$lib/Button.svelte';
+	import RotateCw from 'lucide-svelte/icons/rotate-cw';
+	import { client } from '$lib/client';
 
 	interface Props {
 		tableName: string;
@@ -123,10 +126,24 @@
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-1 mx-[-4px]">
 			{@render children?.()}
 		</div>
-		<p class="card mt-1 text-center p-1 italic">
-			{tableName}#{id.value} was last updated {new Date(
-				lastUpdated.value as number
-			).toLocaleString()}
+		<p class="card mt-1 text-center p-1 italic flex items-center justify-center gap-2">
+			<span>
+				{tableName}#{id.value} was last updated {new Date(
+					lastUpdated.value as number
+				).toLocaleString()}
+			</span>
+
+			<Button
+				class="btn btn-sm variant-glass"
+				action={client.unified.refresh}
+				input={{
+					table: id.compoundId.split(':')[0],
+					refId: parseInt(id.compoundId.split(':')[1])
+				}}
+				successMessage="Refreshed"
+			>
+				<RotateCw size="16" /> <span> Refresh</span>
+			</Button>
 		</p>
 	</div>
 </div>
