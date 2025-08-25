@@ -11,16 +11,12 @@ import {
 	type CellConfigRowSelect,
 	UnifiedTableNamesArray
 } from '../unified/types';
-import { createUnifiedSub, updateUnifiedTopicByUniId } from './unified.helpers';
+import { createUnifiedSub, unifiedOnUpdateCallback } from './unified.helpers';
 import { getCellConfigHelper } from '../unified/cellConfigHelper';
 import { UnifierMap } from '../unified/unifier.map';
 import { getResourceByCol } from './resources';
-import { ErrorActionValues } from '../unified/cellErrors';
-import { getErrorUrl, getFirstErrorUrl } from '../unified/unified.cellErrors';
+import { getErrorUrl, getFirstErrorUrl, updateError } from '../unified/unifiedCellErrors';
 import { getFirstUnmatchedUrl, getUnmatchedUrl } from '../unified/unmatchedErrors';
-import type { OnUpdateCallback } from '../unified/unifier';
-
-const onUpdateCallback: OnUpdateCallback = (uniId) => updateUnifiedTopicByUniId(uniId.toString());
 
 async function getUnified(uniId: number) {
 	return {
@@ -58,7 +54,7 @@ export const unifiedRouter = router({
 			await unifier._updateRow({
 				id: refId,
 				db: db,
-				onUpdateCallback
+				onUpdateCallback: unifiedOnUpdateCallback
 			});
 		}),
 	updateSetting: generalProcedure
@@ -77,28 +73,11 @@ export const unifiedRouter = router({
 				input.compoundId,
 				input.col,
 				db,
-				onUpdateCallback
+				unifiedOnUpdateCallback
 			);
 			await updateSetting(input.settingData);
 		}),
-	updateError: generalProcedure
-		.input(
-			z.object({
-				compoundId: z.string(),
-				col: z.string(),
-				errorAction: z.enum(ErrorActionValues),
-				errorId: z.number()
-			})
-		)
-		.mutation(async ({ input }) => {
-			const { updateError } = await getCellConfigHelper(
-				input.compoundId,
-				input.col,
-				db,
-				onUpdateCallback
-			);
-			await updateError(input.errorAction, input.errorId);
-		}),
+	updateError,
 	getErrorUrl,
 	getFirstErrorUrl,
 	getUnmatchedUrl,

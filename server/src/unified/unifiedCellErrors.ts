@@ -1,15 +1,37 @@
 import { z } from 'zod';
 import { and, desc, eq, inArray, max } from 'drizzle-orm';
 import { db } from '../db';
-import { viewerProcedure } from '../trpc';
+import { generalProcedure, viewerProcedure } from '../trpc';
 import { KV } from '../utils/kv';
 import { paginateCircular, pickInitialIndex } from '../utils/pagination';
 import { UnifierMap } from './unifier.map';
 import type { UnifiedTableNames } from './types';
 import { UnifiedTableNamesArray } from './types';
 import { CellErrorArray, uniref } from '../db.schema';
+import { ErrorActionValues } from './cellErrors';
+import { getCellConfigHelper } from './cellConfigHelper';
+import { unifiedOnUpdateCallback } from '../routers/unified.helpers';
 
 const kv = new KV('unifiedErrors');
+
+export const updateError = generalProcedure
+	.input(
+		z.object({
+			compoundId: z.string(),
+			col: z.string(),
+			errorAction: z.enum(ErrorActionValues),
+			errorId: z.number()
+		})
+	)
+	.mutation(async ({ input }) => {
+		const { updateError } = await getCellConfigHelper(
+			input.compoundId,
+			input.col,
+			db,
+			unifiedOnUpdateCallback
+		);
+		await updateError(input.errorAction, input.errorId);
+	});
 
 export const getErrorUrl = viewerProcedure
 	.input(
