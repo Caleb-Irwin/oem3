@@ -75,11 +75,7 @@ export function createUnifier<
 			.newRowTransform as boolean;
 
 		// Un-match the connection if it is deleted and not primary
-		if (
-			!isPrimary &&
-			updatedRow[connectionRowKey] !== null &&
-			(connectionTable.isDeleted(updatedRow) || removeAutoMatch)
-		) {
+		if (!isPrimary && (connectionTable.isDeleted(updatedRow) || removeAutoMatch)) {
 			updatedRow[connectionRowKey] = null as any;
 		}
 
@@ -103,11 +99,12 @@ export function createUnifier<
 
 		if (
 			cellConfigurator.getCellSettings(connectionRowKey as any).setting === null &&
-			otherConnections.length > 0 &&
 			!removeAutoMatch
 		) {
-			if (updatedRow[connectionRowKey] === null) {
+			if (otherConnections.length > 0 && updatedRow[connectionRowKey] === null) {
 				updatedRow[connectionRowKey] = otherConnections[0] as any;
+			} else if (otherConnections.length === 0 && !isPrimary) {
+				updatedRow[connectionRowKey] = null as any;
 			}
 
 			if (
@@ -576,4 +573,4 @@ type AdditionalColValidator<TableType extends UnifiedTables> = {
 
 export type VerifyCellValue = ReturnType<typeof createUnifier>['verifyCellValue'];
 
-type OnUpdateCallback = (uniId: number) => void;
+export type OnUpdateCallback = (uniId: number) => void;
