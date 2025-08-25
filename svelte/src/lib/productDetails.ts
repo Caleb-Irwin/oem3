@@ -1,9 +1,18 @@
+import type { ResourceType } from '../../../server/src/db.schema';
 import type { client } from './client';
 
 export type RawProduct = Omit<
 	Exclude<Awaited<ReturnType<typeof client.resources.get.query>>, null>,
 	'history'
 >;
+
+export interface Connection {
+	tableName: ResourceType;
+	name: string;
+	connected: boolean;
+	link: string;
+	unmatchedVariant?: string;
+}
 
 export interface Product {
 	idText: string;
@@ -19,6 +28,7 @@ export interface Product {
 	otherImageUrls?: string[] | undefined;
 	lastUpdated: number;
 	other: { [key: string]: string | null };
+	connections?: Connection[];
 	unifiedGuildData?: (RawProduct['unifiedGuildData'] & { uniref: { uniId: number } }) | null;
 	// unifiedSprData?: RawProduct['unifiedSprData'] | null;
 	// unifiedItemData?: RawProduct['unifiedItemData'] | null;
@@ -68,6 +78,16 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			description: guild.longDesc,
 			imageUrl: guild.imageURL ?? undefined,
 			lastUpdated: guild.lastUpdated,
+			connections: [
+				{
+					tableName: 'unifiedGuild',
+					name: 'Unified Guild',
+					connected: guild.unifiedGuildData !== null,
+					link: guild.unifiedGuildData?.id
+						? `/app/resource/${guild.unifiedGuildData.uniref.uniId}/unified`
+						: '/app/guild'
+				}
+			],
 			unifiedGuildData: guild.unifiedGuildData ?? null,
 			other: {
 				'Basics Number': guild.basics,
@@ -108,6 +128,16 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			lastUpdated: inventory.lastUpdated,
 			description: undefined,
 			imageUrl: undefined,
+			connections: [
+				{
+					tableName: 'unifiedGuild',
+					name: 'Unified Guild',
+					connected: inventory.unifiedGuildData !== null,
+					link: inventory.unifiedGuildData?.id
+						? `/app/resource/${inventory.unifiedGuildData.uniref.uniId}/unified`
+						: '/app/guild'
+				}
+			],
 			unifiedGuildData: inventory.unifiedGuildData ?? null,
 			other: {
 				'UPC#': inventory.upc,
@@ -133,6 +163,16 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			lastUpdated: flyer.lastUpdated,
 			description: undefined,
 			imageUrl: undefined,
+			connections: [
+				{
+					tableName: 'unifiedGuild',
+					name: 'Unified Guild',
+					connected: flyer.unifiedGuildData !== null,
+					link: flyer.unifiedGuildData?.id
+						? `/app/resource/${flyer.unifiedGuildData.uniref.uniId}/unified`
+						: '/app/guild'
+				}
+			],
 			unifiedGuildData: flyer.unifiedGuildData ?? null,
 			other: {
 				'Start Date': new Date(flyer.startDate as number).toLocaleDateString('en-CA'),
@@ -191,110 +231,136 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 		};
 	}
 	if (raw.sprPriceFileData) {
+		const sprPriceFileData = raw.sprPriceFileData;
 		return {
-			idText: 'SPRPriceFile#' + raw.sprPriceFileData.id,
-			id: raw.sprPriceFileData.id,
-			name: raw.sprPriceFileData.description ?? '',
-			price: formatCurrency(raw.sprPriceFileData.netPriceCents / 100),
-			sku: raw.sprPriceFileData.sprcSku,
+			idText: 'SPRPriceFile#' + sprPriceFileData.id,
+			id: sprPriceFileData.id,
+			name: sprPriceFileData.description ?? '',
+			price: formatCurrency(sprPriceFileData.netPriceCents / 100),
+			sku: sprPriceFileData.sprcSku,
 			stock: null,
-			deleted: raw.sprPriceFileData.deleted,
-			lastUpdated: raw.sprPriceFileData.lastUpdated,
+			deleted: sprPriceFileData.deleted,
+			lastUpdated: sprPriceFileData.lastUpdated,
 			description: undefined,
 			imageUrl: undefined,
 			other: {
-				'Dealer Net Price': formatCurrency(raw.sprPriceFileData.dealerNetPriceCents / 100),
-				'Net Price': formatCurrency(raw.sprPriceFileData.netPriceCents / 100),
-				'List Price': formatCurrency(raw.sprPriceFileData.listPriceCents / 100),
-				'Unit of Measure': raw.sprPriceFileData.um,
-				UPC: raw.sprPriceFileData.upc,
-				'Cat. Page': raw.sprPriceFileData.catPage?.toString() ?? null
+				'Dealer Net Price': formatCurrency(sprPriceFileData.dealerNetPriceCents / 100),
+				'Net Price': formatCurrency(sprPriceFileData.netPriceCents / 100),
+				'List Price': formatCurrency(sprPriceFileData.listPriceCents / 100),
+				'Unit of Measure': sprPriceFileData.um,
+				UPC: sprPriceFileData.upc,
+				'Cat. Page': sprPriceFileData.catPage?.toString() ?? null
 			}
 		};
 	}
 	if (raw.sprFlatFileData) {
+		const sprFlatFileData = raw.sprFlatFileData;
 		return {
-			idText: 'SPRFlatFile#' + raw.sprFlatFileData.sprcSku,
-			id: raw.sprFlatFileData.id,
-			name: raw.sprFlatFileData.mainTitle ?? '',
+			idText: 'SPRFlatFile#' + sprFlatFileData.sprcSku,
+			id: sprFlatFileData.id,
+			name: sprFlatFileData.mainTitle ?? '',
 			price: '',
-			sku: raw.sprFlatFileData.sprcSku,
+			sku: sprFlatFileData.sprcSku,
 			stock: null,
-			deleted: raw.sprFlatFileData.deleted,
-			lastUpdated: raw.sprFlatFileData.lastUpdated,
+			deleted: sprFlatFileData.deleted,
+			lastUpdated: sprFlatFileData.lastUpdated,
 			description:
-				raw.sprFlatFileData.marketingText +
+				sprFlatFileData.marketingText +
 				'<br><br>' +
-				raw.sprFlatFileData.fullDescription +
+				sprFlatFileData.fullDescription +
 				'<br><br>' +
-				raw.sprFlatFileData.productSpecs,
-			imageUrl: raw.sprFlatFileData.image255 ?? raw.sprFlatFileData.image75 ?? undefined,
+				sprFlatFileData.productSpecs,
+			imageUrl: sprFlatFileData.image255 ?? sprFlatFileData.image75 ?? undefined,
 			other: {
-				'Etilize ID': raw.sprFlatFileData.etilizeId,
-				'Brand Name': raw.sprFlatFileData.brandName,
-				'Product Type': raw.sprFlatFileData.productType,
-				'Product Line': raw.sprFlatFileData.productLine,
-				'Product Series': raw.sprFlatFileData.productSeries,
-				'Sub Class Number': raw.sprFlatFileData.subClassNumber?.toString() ?? null,
-				'Sub Class Name': raw.sprFlatFileData.subClassName,
-				'Class Number': raw.sprFlatFileData.classNumber?.toString() ?? null,
-				'Class Name': raw.sprFlatFileData.className,
-				'Department Number': raw.sprFlatFileData.departmentNumber?.toString() ?? null,
-				'Department Name': raw.sprFlatFileData.departmentName,
-				'Master Department Number': raw.sprFlatFileData.masterDepartmentNumber?.toString() ?? null,
-				'Master Department Name': raw.sprFlatFileData.masterDepartmentName,
-				UNSPSC: raw.sprFlatFileData.unspsc?.toString() ?? null,
-				'Manufacturer ID': raw.sprFlatFileData.manufacturerId?.toString() ?? null,
-				'Manufacturer Name': raw.sprFlatFileData.manufacturerName,
-				'Country Of Origin': raw.sprFlatFileData.countyOfOrigin,
-				'Assembly Required': raw.sprFlatFileData.assemblyRequired ? 'Yes' : 'No',
-				'Image Type 225': raw.sprFlatFileData.image255,
-				'Image Type 75': raw.sprFlatFileData.image75,
-				Keywords: raw.sprFlatFileData.keywords
+				'Etilize ID': sprFlatFileData.etilizeId,
+				'Brand Name': sprFlatFileData.brandName,
+				'Product Type': sprFlatFileData.productType,
+				'Product Line': sprFlatFileData.productLine,
+				'Product Series': sprFlatFileData.productSeries,
+				'Sub Class Number': sprFlatFileData.subClassNumber?.toString() ?? null,
+				'Sub Class Name': sprFlatFileData.subClassName,
+				'Class Number': sprFlatFileData.classNumber?.toString() ?? null,
+				'Class Name': sprFlatFileData.className,
+				'Department Number': sprFlatFileData.departmentNumber?.toString() ?? null,
+				'Department Name': sprFlatFileData.departmentName,
+				'Master Department Number': sprFlatFileData.masterDepartmentNumber?.toString() ?? null,
+				'Master Department Name': sprFlatFileData.masterDepartmentName,
+				UNSPSC: sprFlatFileData.unspsc?.toString() ?? null,
+				'Manufacturer ID': sprFlatFileData.manufacturerId?.toString() ?? null,
+				'Manufacturer Name': sprFlatFileData.manufacturerName,
+				'Country Of Origin': sprFlatFileData.countyOfOrigin,
+				'Assembly Required': sprFlatFileData.assemblyRequired ? 'Yes' : 'No',
+				'Image Type 225': sprFlatFileData.image255,
+				'Image Type 75': sprFlatFileData.image75,
+				Keywords: sprFlatFileData.keywords
 			}
 		};
 	}
 	if (raw.unifiedGuildData) {
+		const unifiedGuild = raw.unifiedGuildData;
 		return {
-			idText: 'UnifiedGuild#' + raw.unifiedGuildData.id,
-			id: raw.unifiedGuildData.id,
-			name: raw.unifiedGuildData.title ?? 'No Title',
-			price: raw.unifiedGuildData.priceCents
-				? formatCurrency(raw.unifiedGuildData.priceCents / 100)
-				: 'No Price',
-			comparePrice: raw.unifiedGuildData.comparePriceCents
-				? formatCurrency(raw.unifiedGuildData.comparePriceCents / 100)
+			idText: 'UnifiedGuild#' + unifiedGuild.id,
+			id: unifiedGuild.id,
+			name: unifiedGuild.title ?? 'No Title',
+			price: unifiedGuild.priceCents ? formatCurrency(unifiedGuild.priceCents / 100) : 'No Price',
+			comparePrice: unifiedGuild.comparePriceCents
+				? formatCurrency(unifiedGuild.comparePriceCents / 100)
 				: null,
-			sku: raw.unifiedGuildData.gid,
-			stock: raw.unifiedGuildData.inventory,
-			deleted: raw.unifiedGuildData.deleted,
-			lastUpdated: raw.unifiedGuildData.lastUpdated,
-			description: raw.unifiedGuildData.description ?? undefined,
-			imageUrl: raw.unifiedGuildData.imageUrl ?? undefined,
+			sku: unifiedGuild.gid,
+			stock: unifiedGuild.inventory,
+			deleted: unifiedGuild.deleted,
+			lastUpdated: unifiedGuild.lastUpdated,
+			description: unifiedGuild.description ?? undefined,
+			imageUrl: unifiedGuild.imageUrl ?? undefined,
 			otherImageUrls: (
-				JSON.parse(raw.unifiedGuildData.otherImageListJSON ?? '[]') as {
+				JSON.parse(unifiedGuild.otherImageListJSON ?? '[]') as {
 					url: string;
 					description: string;
 				}[]
 			).map(({ url }) => url),
+			connections: [
+				{
+					tableName: 'guildData',
+					name: 'Data',
+					connected: unifiedGuild.dataRow !== null,
+					link: unifiedGuild.dataRow
+						? `/app/resource/redirect/guildData-${unifiedGuild.dataRow}`
+						: '/app/guild'
+				},
+				{
+					tableName: 'guildInventory',
+					name: 'Inventory',
+					connected: unifiedGuild.inventoryRow !== null,
+					link: unifiedGuild.inventoryRow
+						? `/app/resource/redirect/guildInventory-${unifiedGuild.inventoryRow}`
+						: '/app/guild'
+				},
+				{
+					tableName: 'guildFlyer',
+					name: 'Flyer',
+					connected: unifiedGuild.flyerRow !== null,
+					link: unifiedGuild.flyerRow
+						? `/app/resource/redirect/guildFlyer-${unifiedGuild.flyerRow}`
+						: '/app/guild',
+					unmatchedVariant: 'variant-soft'
+				}
+			],
 			other: {
-				'SPR Number': raw.unifiedGuildData.spr,
-				'CIS Number': raw.unifiedGuildData.cis,
-				'Basics Number': raw.unifiedGuildData.basics,
-				UPC: raw.unifiedGuildData.upc,
-				'Unit of Measure': raw.unifiedGuildData.um,
-				'Quantity per Unit': raw.unifiedGuildData.qtyPerUm?.toString() ?? null,
-				'Master Pack Quantity': raw.unifiedGuildData.masterPackQty?.toString() ?? null,
-				Cost: raw.unifiedGuildData.costCents
-					? formatCurrency(raw.unifiedGuildData.costCents / 100)
+				'SPR Number': unifiedGuild.spr,
+				'CIS Number': unifiedGuild.cis,
+				'Basics Number': unifiedGuild.basics,
+				UPC: unifiedGuild.upc,
+				'Unit of Measure': unifiedGuild.um,
+				'Quantity per Unit': unifiedGuild.qtyPerUm?.toString() ?? null,
+				'Master Pack Quantity': unifiedGuild.masterPackQty?.toString() ?? null,
+				Cost: unifiedGuild.costCents ? formatCurrency(unifiedGuild.costCents / 100) : null,
+				Vendor: unifiedGuild.vendor,
+				Weight: unifiedGuild.weightGrams + ' grams',
+				'Freight Flag': unifiedGuild.freightFlag ? 'Yes' : 'No',
+				'Heavy Goods Charge (SK)': unifiedGuild.heavyGoodsChargeSkCents
+					? formatCurrency(unifiedGuild.heavyGoodsChargeSkCents / 100)
 					: null,
-				Vendor: raw.unifiedGuildData.vendor,
-				Weight: raw.unifiedGuildData.weightGrams + ' grams',
-				'Freight Flag': raw.unifiedGuildData.freightFlag ? 'Yes' : 'No',
-				'Heavy Goods Charge (SK)': raw.unifiedGuildData.heavyGoodsChargeSkCents
-					? formatCurrency(raw.unifiedGuildData.heavyGoodsChargeSkCents / 100)
-					: null,
-				Category: raw.unifiedGuildData.category
+				Category: unifiedGuild.category
 			}
 		};
 	}

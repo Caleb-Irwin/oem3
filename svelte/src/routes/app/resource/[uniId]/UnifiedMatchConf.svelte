@@ -12,13 +12,18 @@
 	import Unlink from 'lucide-svelte/icons/unlink';
 	import type { QueryType } from '../../../../../../server/src/routers/search';
 	import Check from 'lucide-svelte/icons/check';
+	import { UnifiedTableNamesReadable } from '$lib/summary/tableNames';
+	import { getModalStore } from '@skeletonlabs/skeleton';
+	import QuickAddModal from './QuickAddModal.svelte';
 
 	interface Props {
 		unmatchedMode: boolean;
 		product: Product | undefined;
 		uniId: number;
+		tableName: string;
+		resourceType: string;
 	}
-	let { unmatchedMode, product, uniId }: Props = $props();
+	let { unmatchedMode, product, uniId, tableName, resourceType }: Props = $props();
 
 	const unifiedItem:
 		| {
@@ -27,6 +32,7 @@
 				item: Product['unifiedGuildData'];
 				rawItem: ({ uniId: number } & RawProduct) | null;
 				queryType: QueryType;
+				unifiedColumn: string;
 		  }
 		| undefined = $derived.by(() => {
 		if (product?.unifiedGuildData !== undefined)
@@ -40,12 +46,19 @@
 							unifiedGuildData: product.unifiedGuildData
 						}
 					: null,
-				queryType: 'unifiedGuild'
+				queryType: 'unifiedGuild',
+				unifiedColumn: {
+					guildData: 'dataRow',
+					guildInventory: 'inventoryRow',
+					guildFlyer: 'flyerRow'
+				}[tableName]!
 			};
 		return undefined;
 	});
 
 	const isUnmatched = $derived(unifiedItem && unifiedItem.item === null);
+
+	const modalStore = getModalStore();
 </script>
 
 {#if unmatchedMode}
@@ -57,7 +70,11 @@
 		>
 			<div class="flex items-center justify-between p-1 {!isUnmatched ? 'pb-1.5' : ''}">
 				<div class="flex items-center space-x-2">
-					<h3 class="h3 font-bold">Unmatched Items</h3>
+					<h3 class="h3 font-bold">
+						Unmatched {UnifiedTableNamesReadable[
+							tableName as keyof typeof UnifiedTableNamesReadable
+						] ?? 'TODO'} Items
+					</h3>
 				</div>
 
 				<div class="flex flex-wrap items-center gap-x-2 gap-y-2 justify-end">
@@ -96,9 +113,8 @@
 {/if}
 
 {#if unifiedItem}
-	<div class="card variant-soft p-1 m-2 flex flex-row items-center flex-wrap">
-		<div class="flex-grow"></div>
-		<h3 class="h3 pl-3 pr-4 p-1 flex items-center gap-x-2">
+	<div class="card variant-soft p-1 m-2 flex flex-row items-center justify-around flex-wrap">
+		<h3 class="h3 pl-3 pr-4 p-1 flex items-center gap-x-2 text-center justify-center">
 			<span>
 				{#if isUnmatched}
 					<Unlink />
@@ -108,7 +124,6 @@
 			</span>
 			<span> {unifiedItem.title} Connection </span>
 		</h3>
-		<div class="flex-grow"></div>
 		{#if unifiedItem?.rawItem}
 			<div class="px-4">
 				<ItemRow
@@ -129,9 +144,23 @@
 							quickAdd
 							quickAddQueryType={unifiedItem.queryType}
 							select={async (selection) => {
-								const res = await client.resources.get.query({ uniId: selection.uniref });
-								console.log(res);
-								alert('Selected ' + res.uniId);
+								if (selection.uniref) {
+									modalStore.trigger({
+										type: 'component',
+										component: {
+											ref: QuickAddModal,
+											props: {
+												uniId: selection.uniref,
+												unifiedResourceType: unifiedItem.queryType,
+												resourceType,
+												unifiedTitle: unifiedItem.title,
+												unifiedItemId: selection.id,
+												resourceId: product!.id,
+												unifiedColumn: unifiedItem.unifiedColumn
+											}
+										}
+									});
+								}
 							}}
 						/>
 					</div>
@@ -142,6 +171,5 @@
 				</div>
 			</div>
 		{/if}
-		<div class="flex-grow"></div>
 	</div>
 {/if}

@@ -5,7 +5,7 @@
 <script lang="ts">
 	import CopyableText from './helpers/CopyableText.svelte';
 	import Image from './Image.svelte';
-	import { productDetails, type RawProduct } from './productDetails';
+	import { productDetails, type Connection, type RawProduct } from './productDetails';
 	import Link from 'lucide-svelte/icons/link';
 	import Unlink from 'lucide-svelte/icons/unlink';
 
@@ -85,15 +85,11 @@
 						{product.stock} in stock
 					</p>
 				{/if}
-				{#if product.unifiedGuildData !== undefined}
-					{@render displayConnection(
-						'Unified Guild',
-						product.unifiedGuildData !== null,
-						product.unifiedGuildData?.id
-							? `/app/resource/${product.unifiedGuildData.uniref.uniId}/unified`
-							: '/app/guild'
-					)}
-				{/if}
+
+				{#each product.connections ?? [] as connection}
+					{@render displayConnection(connection)}
+				{/each}
+
 				{#if product.deleted}
 					<p class="cursor-default chip variant-filled-error">Deleted</p>
 				{/if}
@@ -118,12 +114,12 @@
 	</div>
 {/if}
 
-{#snippet displayConnection(name: string, connected: boolean, link: string)}
+{#snippet displayConnection({ name, connected, link, unmatchedVariant }: Connection)}
 	<a
 		href={link}
 		class="cursor-default chip {connected
 			? 'variant-filled-primary cursor-pointer hover:underline'
-			: 'variant-filled-error'}"
+			: (unmatchedVariant ?? 'variant-filled-error')}"
 		target={newTab ? '_blank' : '_self'}
 	>
 		<span>

@@ -107,6 +107,7 @@ export function createUnifier<
 				updatedRow[connectionRowKey] = null as any;
 			}
 
+			// TODO Eliminate all stickiness (after thinking about it more)
 			if (
 				otherConnections.length > 1 ||
 				(otherConnections.length === 1 && updatedRow[connectionRowKey] !== otherConnections[0])

@@ -11,7 +11,8 @@
 		subVal(client.resources.getSub, {
 			init: data.res,
 			input: { uniId: data.res.uniId as number, includeHistory: true },
-			updateTopic: data.res.resourceType
+			updateTopic: data.res.resourceType,
+			sendInit: true
 		})
 	);
 
@@ -25,7 +26,13 @@
 </script>
 
 <div class="md:p-2">
-	<UnifiedMatchConf {product} uniId={data.uniId} unmatchedMode={data.unmatchedMode} />
+	<UnifiedMatchConf
+		{product}
+		uniId={data.uniId}
+		unmatchedMode={data.unmatchedMode}
+		tableName={data.res.resourceType ?? ''}
+		resourceType={data.res.resourceType ?? ''}
+	/>
 
 	{@render children()}
 </div>

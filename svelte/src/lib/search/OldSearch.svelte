@@ -6,9 +6,10 @@
 	import SearchRes from './SearchRes.svelte';
 	import { tick } from 'svelte';
 	import type { QueryType } from '../../../../server/src/routers/search';
+	import type { SelectFunc } from '$lib/ItemRow.svelte';
 
 	interface Props {
-		select?: undefined | ((selection: { uniref: number }) => any);
+		select?: undefined | SelectFunc;
 		quickAdd?: boolean;
 		quickAddQueryType?: QueryType;
 	}
@@ -40,7 +41,20 @@
 			response,
 			component: {
 				ref: SearchRes,
-				props: { searchPages: [res], select }
+				props: {
+					searchPages: [res],
+					select,
+					editSearchQuery: async (q: { query: string; queryType: QueryType }) => {
+						modalStore.close();
+						query = '';
+						//@ts-ignore
+						queryType = '';
+						focus = false;
+						await tick();
+						query = q.query;
+						focus = true;
+					}
+				}
 			}
 		});
 		tick().then(async () => {
@@ -69,7 +83,7 @@
 				bind:value={query}
 			/>
 			{#if quickAdd}
-				<select name="type" class="hidden" bind:value={queryType}>
+				<select name="type" class="hidden" bind:value={quickAddQueryType}>
 					<option value={quickAddQueryType}>QUERY TYPE</option>
 				</select>
 			{:else}
