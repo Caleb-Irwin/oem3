@@ -1,11 +1,12 @@
 import type { db as DB } from '../db';
 import { UnifierMap } from './unifier.map';
 import type { CellConfigTable, UnifiedTableNames, CellConfigRowInsert } from './types';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, getTableName } from 'drizzle-orm';
 import { getUniId, modifySetting } from './cellSettings';
 import { retryableTransaction } from './retryableTransaction';
 import { modifyError, type ErrorAction } from './cellErrors';
 import type { OnUpdateCallback } from './unifier';
+import { updateByChangesetType } from '../routers/resources';
 
 export async function getCellConfigHelper(
 	compoundId: string,
@@ -40,6 +41,13 @@ export async function getCellConfigHelper(
 			({ refCol }) => refCol.toString()
 		)
 	);
+	const refColToTableName = {
+		...Object.fromEntries(
+			[unifier.conf.connections.primaryTable, ...unifier.conf.connections.otherTables].map(
+				({ refCol, table }) => [refCol.toString(), getTableName(table)]
+			)
+		)
+	};
 
 	async function getConfigs() {
 		return await db
@@ -73,10 +81,13 @@ export async function getCellConfigHelper(
 
 		if (refCols.has(col)) {
 			await unifier.recordMatchesInvalidatedByRefCol(col);
+			updateByChangesetType(refColToTableName[col]);
 		}
 		setTimeout(() => {
 			UnifierMap[tablePrefix].runUnifierWorker({});
 		}, 100);
+
+		onUpdateCallback(uniId);
 	}
 
 	async function updateError(errorAction: ErrorAction, errorId: number) {
@@ -100,10 +111,13 @@ export async function getCellConfigHelper(
 
 		if (refCols.has(col)) {
 			await unifier.recordMatchesInvalidatedByRefCol(col);
+			updateByChangesetType(refColToTableName[col]);
 		}
 		setTimeout(() => {
 			UnifierMap[tablePrefix].runUnifierWorker({});
 		}, 100);
+
+		onUpdateCallback(uniId);
 	}
 
 	return {

@@ -3,7 +3,7 @@ import type { client } from './client';
 
 export type RawProduct = Omit<
 	Exclude<Awaited<ReturnType<typeof client.resources.get.query>>, null>,
-	'history'
+	'history' | 'allowUnmatched'
 >;
 
 export interface Connection {

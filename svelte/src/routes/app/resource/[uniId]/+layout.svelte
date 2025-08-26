@@ -10,7 +10,7 @@
 	const _res = $derived(
 		subVal(client.resources.getSub, {
 			init: data.res,
-			input: { uniId: data.res.uniId as number, includeHistory: true },
+			input: { uniId: data.res.uniId as number, includeHistory: true, includeAllowUnmatched: true },
 			updateTopic: data.res.resourceType,
 			sendInit: true
 		})
@@ -30,6 +30,7 @@
 		{product}
 		uniId={data.uniId}
 		unmatchedMode={data.unmatchedMode}
+		allowUnmatched={res.allowUnmatched ?? false}
 		tableName={data.res.resourceType ?? ''}
 		resourceType={data.res.resourceType ?? ''}
 	/>

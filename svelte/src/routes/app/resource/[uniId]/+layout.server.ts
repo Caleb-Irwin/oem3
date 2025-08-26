@@ -6,7 +6,8 @@ export const load: LayoutServerLoad = async ({ url, params, locals: { client } }
 
 	const res = await client.resources.get.query({
 		uniId: parseInt(params.uniId),
-		includeHistory: true
+		includeHistory: true,
+		includeAllowUnmatched: true
 	});
 
 	return {

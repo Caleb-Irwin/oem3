@@ -7,9 +7,37 @@ import { UnifierMap } from './unifier.map';
 import { uniref } from '../utils/uniref.table';
 import { unmatchedErrors } from './unmatchedErrors.table';
 import { z } from 'zod';
-import { viewerProcedure } from '../trpc';
+import { generalProcedure, viewerProcedure } from '../trpc';
 import { KV } from '../utils/kv';
 import { paginateCircular, pickInitialIndex } from '../utils/pagination';
+import { updateByChangesetType } from '../routers/resources';
+import { unifiedOnUpdateCallback } from '../routers/unified.helpers';
+import { runSummariesWorker } from '../routers/summaries';
+
+export const updateUnmatched = generalProcedure
+	.input(
+		z.object({
+			uniId: z.number(),
+			tableName: z.string(),
+			allowUnmatched: z.boolean()
+		})
+	)
+	.mutation(async ({ input }) => {
+		const { uniId, allowUnmatched, tableName } = input;
+
+		await db
+			.insert(unmatchedErrors)
+			.values({ uniId, allowUnmatched, created: Date.now() })
+			.onConflictDoUpdate({
+				target: unmatchedErrors.uniId,
+				set: { allowUnmatched, created: Date.now() }
+			})
+			.execute();
+
+		updateByChangesetType(tableName);
+		unifiedOnUpdateCallback(uniId);
+		runSummariesWorker({});
+	});
 
 function getConnection(unifiedTableName: UnifiedTableNames, connectionTable: AllSourceTables) {
 	const conf = UnifierMap[unifiedTableName].unifier.conf.connections;

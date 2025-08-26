@@ -15,15 +15,17 @@
 	import { UnifiedTableNamesReadable } from '$lib/summary/tableNames';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import QuickAddModal from './QuickAddModal.svelte';
+	import X from 'lucide-svelte/icons/x';
 
 	interface Props {
 		unmatchedMode: boolean;
+		allowUnmatched: boolean;
 		product: Product | undefined;
 		uniId: number;
 		tableName: string;
 		resourceType: string;
 	}
-	let { unmatchedMode, product, uniId, tableName, resourceType }: Props = $props();
+	let { unmatchedMode, allowUnmatched, product, uniId, tableName, resourceType }: Props = $props();
 
 	const unifiedItem:
 		| {
@@ -57,6 +59,7 @@
 	});
 
 	const isUnmatched = $derived(unifiedItem && unifiedItem.item === null);
+	const isComplete = $derived(!isUnmatched || allowUnmatched);
 
 	const modalStore = getModalStore();
 </script>
@@ -64,11 +67,11 @@
 {#if unmatchedMode}
 	<div class="sticky top-0 z-10 p-2 pb-0">
 		<div
-			class="w-full p-2 card {!isUnmatched
+			class="w-full p-2 card {isComplete
 				? 'variant-ghost-primary'
 				: 'variant-ghost-error'} backdrop-blur-md relative"
 		>
-			<div class="flex items-center justify-between p-1 {!isUnmatched ? 'pb-1.5' : ''}">
+			<div class="flex items-center justify-between p-1">
 				<div class="flex items-center space-x-2">
 					<h3 class="h3 font-bold">
 						Unmatched {UnifiedTableNamesReadable[
@@ -93,7 +96,7 @@
 						<span class="flex-grow">Previous</span>
 					</Button>
 					<Button
-						class="btn w-36 {!isUnmatched ? 'variant-filled-primary' : 'variant-soft-surface'}"
+						class="btn w-36 {isComplete ? 'variant-filled-primary' : 'variant-soft-surface'}"
 						action={client.unified.getUnmatchedUrl}
 						queryMode
 						input={{
@@ -103,7 +106,7 @@
 						}}
 						res={async (output) => goto(output.url)}
 					>
-						<span class="flex-grow">{!isUnmatched ? 'Continue' : 'Skip'}</span>
+						<span class="flex-grow">{isComplete ? 'Continue' : 'Skip'}</span>
 						<ChevronRight />
 					</Button>
 				</div>
@@ -164,10 +167,25 @@
 							}}
 						/>
 					</div>
-					<button class="btn btn-lg variant-filled-warning">
-						<span> <Check /> </span>
-						<span> Allow Unmatched </span>
-					</button>
+					<Button
+						class="btn btn-lg text-base h-[54px] {allowUnmatched
+							? 'variant-filled-secondary'
+							: 'variant-filled-warning'} "
+						action={client.unified.updateUnmatched}
+						input={{
+							uniId,
+							allowUnmatched: !allowUnmatched,
+							tableName
+						}}
+					>
+						{#if allowUnmatched}
+							<span> <X /> </span>
+							<span> Disapprove Unmatched </span>
+						{:else}
+							<span> <Check /> </span>
+							<span> Approve Unmatched </span>
+						{/if}
+					</Button>
 				</div>
 			</div>
 		{/if}

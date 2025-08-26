@@ -7,14 +7,16 @@ import { db } from '../../db';
 import { summaries, type SummaryTypeEnum } from './table';
 import { eq } from 'drizzle-orm';
 
-const { worker, hook } = managedWorker(new URL('worker.ts', import.meta.url).href, 'summaries', [
-	guildHook
-]);
+const { worker, hook, runWorker } = managedWorker(
+	new URL('worker.ts', import.meta.url).href,
+	'summaries',
+	[guildHook]
+);
+export const runSummariesWorker = runWorker;
 
 const { createSub, update } = eventSubscription();
 
 export const summariesHook = hook;
-
 summariesHook(() => update());
 
 async function getSummaryByType(type: 'all' | 'unifiedGuild') {

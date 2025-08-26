@@ -10,6 +10,7 @@ import {
 	resourceTypeEnum,
 	sprEnhancedContent,
 	uniref,
+	unmatchedErrors,
 	type ResourceType
 } from '../db.schema';
 import { TRPCError } from '@trpc/server';
@@ -40,9 +41,15 @@ export const resourceWith = {
 };
 
 export const getResource = async ({
-	input: { uniId, type, id, includeHistory }
+	input: { uniId, type, id, includeHistory, includeAllowUnmatched }
 }: {
-	input: { uniId: number; type?: string; id?: number; includeHistory: boolean };
+	input: {
+		uniId: number;
+		type?: string;
+		id?: number;
+		includeHistory: boolean;
+		includeAllowUnmatched: boolean;
+	};
 }) => {
 	if (uniId === -1 && type && id) {
 		const maybeUniId = (
@@ -59,19 +66,38 @@ export const getResource = async ({
 		uniId = maybeUniId;
 	}
 
-	const res =
+	const getRes = async () =>
 		(await db.query.uniref.findFirst({
 			where: eq(uniref.uniId, uniId),
 			with: resourceWith
 		})) ?? null;
-	if (res && includeHistory) {
-		const historyRes = await db.query.history.findMany({
-			where: eq(history.uniref, res.uniId),
-			orderBy: desc(history.id)
-		});
-		return { history: historyRes, ...res };
-	}
-	return { history: null, ...res };
+	const getHistory = async () => {
+		if (includeHistory) {
+			return await db.query.history.findMany({
+				where: eq(history.uniref, uniId),
+				orderBy: desc(history.id)
+			});
+		}
+		return null;
+	};
+	const getAllowUnmatched = async () => {
+		if (includeAllowUnmatched) {
+			const unmatched = await db.query.unmatchedErrors.findFirst({
+				where: eq(unmatchedErrors.uniId, uniId),
+				orderBy: desc(unmatchedErrors.id)
+			});
+			return unmatched ? unmatched.allowUnmatched : false;
+		}
+		return null;
+	};
+
+	const [res, historyRes, allowUnmatchedRes] = await Promise.all([
+		getRes(),
+		getHistory(),
+		getAllowUnmatched()
+	]);
+
+	return { history: historyRes, allowUnmatched: allowUnmatchedRes, ...res };
 };
 
 const { update, createSub } = eventSubscription();
@@ -84,12 +110,19 @@ export const resourcesRouter = router({
 				uniId: z.number().int(),
 				type: z.enum(resourceTypeEnum.enumValues).optional(),
 				id: z.number().int().optional(),
-				includeHistory: z.boolean().default(false)
+				includeHistory: z.boolean().default(false),
+				includeAllowUnmatched: z.boolean().default(false)
 			})
 		)
 		.query(getResource),
 	getSub: createSub<
-		{ uniId: number; type?: string; id?: number; includeHistory: boolean },
+		{
+			uniId: number;
+			type?: string;
+			id?: number;
+			includeHistory: boolean;
+			includeAllowUnmatched: boolean;
+		},
 		Awaited<ReturnType<typeof getResource>>
 	>(async ({ input }) => {
 		return await getResource({ input });
@@ -213,6 +246,12 @@ export async function getResourceByCol(col: string, value: string | number | boo
 	if (value === null) return null;
 	const tableName = ColToTableName[col as keyof typeof ColToTableName];
 	return await getResource({
-		input: { uniId: -1, type: tableName, id: value as number, includeHistory: false }
+		input: {
+			uniId: -1,
+			type: tableName,
+			id: value as number,
+			includeHistory: false,
+			includeAllowUnmatched: false
+		}
 	});
 }

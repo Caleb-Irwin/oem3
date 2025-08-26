@@ -176,6 +176,7 @@
 							data={{
 								'Matched Active': item.matchedActive,
 								'Unmatched Active': item.unmatchedActive,
+								'Approved Unmatched Active': item.approvedUnmatchedActive,
 								'Matched Deleted': item.matchedDeleted,
 								'Unmatched Deleted': item.unmatchedDeleted
 							}}

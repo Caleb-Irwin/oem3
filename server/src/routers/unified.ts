@@ -16,7 +16,7 @@ import { getCellConfigHelper } from '../unified/cellConfigHelper';
 import { UnifierMap } from '../unified/unifier.map';
 import { getResourceByCol } from './resources';
 import { getErrorUrl, getFirstErrorUrl, updateError } from '../unified/unifiedCellErrors';
-import { getFirstUnmatchedUrl, getUnmatchedUrl } from '../unified/unmatchedErrors';
+import { getFirstUnmatchedUrl, getUnmatchedUrl, updateUnmatched } from '../unified/unmatchedErrors';
 
 async function getUnified(uniId: number) {
 	return {
@@ -80,6 +80,7 @@ export const unifiedRouter = router({
 	updateError,
 	getErrorUrl,
 	getFirstErrorUrl,
+	updateUnmatched,
 	getUnmatchedUrl,
 	getFirstUnmatchedUrl
 });
