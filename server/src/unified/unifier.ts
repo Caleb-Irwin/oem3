@@ -101,17 +101,24 @@ export function createUnifier<
 			cellConfigurator.getCellSettings(connectionRowKey as any).setting === null &&
 			!removeAutoMatch
 		) {
+			// Ensure previous event is a valid auto match and if not remove it
+			if (
+				updatedRow[connectionRowKey] !== null &&
+				!otherConnections.includes(updatedRow[connectionRowKey] as number) &&
+				!isPrimary
+			) {
+				updatedRow[connectionRowKey] = null as any;
+			}
+
+			// Auto match if possible or remove if not
 			if (otherConnections.length > 0 && updatedRow[connectionRowKey] === null) {
 				updatedRow[connectionRowKey] = otherConnections[0] as any;
 			} else if (otherConnections.length === 0 && !isPrimary) {
 				updatedRow[connectionRowKey] = null as any;
 			}
 
-			// TODO Eliminate all stickiness (after thinking about it more)
-			if (
-				otherConnections.length > 1 ||
-				(otherConnections.length === 1 && updatedRow[connectionRowKey] !== otherConnections[0])
-			) {
+			// Deal with multiple auto connection options
+			if (otherConnections.length > 1) {
 				for (const connectionId of otherConnections) {
 					const existing = await findExistingConnection(db, connectionId);
 					if (!existing) {
