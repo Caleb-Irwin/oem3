@@ -54,7 +54,7 @@
 		"jimp": "^0.22.12",
 		"jsbarcode": "^3.11.6",
 		"jsonwebtoken": "^9.0.2",
-		"jspdf": "^2.5.2",
+		"jspdf": "^3.0.2",
 		"sharp": "^0.33.5",
 		"svelte-intersection-observer": "^1.0.0"
 	}
