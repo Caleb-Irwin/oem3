@@ -1,4 +1,4 @@
-import { index, integer, pgEnum, pgTable, serial } from 'drizzle-orm/pg-core';
+import { integer, pgEnum, pgTable, serial, uniqueIndex } from 'drizzle-orm/pg-core';
 import {
 	changesets,
 	guildData,
@@ -8,7 +8,8 @@ import {
 	sprPriceFile,
 	unifiedGuild,
 	guildInventory,
-	guildFlyer
+	guildFlyer,
+	unifiedSpr
 } from '../db.schema';
 import { relations } from 'drizzle-orm';
 
@@ -21,7 +22,8 @@ export const resourceTypeEnum = pgEnum('resource_type', [
 	'shopify',
 	'sprPriceFile',
 	'sprFlatFile',
-	'unifiedGuild'
+	'unifiedGuild',
+	'unifiedSpr'
 ]);
 export type ResourceType = (typeof resourceTypeEnum.enumValues)[number];
 
@@ -66,21 +68,29 @@ export const uniref = pgTable(
 				onDelete: 'cascade'
 			})
 			.unique(),
-		unifiedGuild: integer('unifiedGuild').references(() => unifiedGuild.id, {
-			onDelete: 'cascade'
-		})
+		unifiedGuild: integer('unifiedGuild')
+			.references(() => unifiedGuild.id, {
+				onDelete: 'cascade'
+			})
+			.unique(),
+		unifiedSpr: integer('unifiedSpr')
+			.references(() => unifiedSpr.id, {
+				onDelete: 'cascade'
+			})
+			.unique()
 	},
 	(uniref) => [
-		index('resource_type_idx').on(uniref.uniId),
-		index('uniref_changesets_idx').on(uniref.changeset),
-		index('uniref_qb_idx').on(uniref.qb),
-		index('uniref_guild_idx').on(uniref.guildData),
-		index('uniref_guildInventory_idx').on(uniref.guildInventory),
-		index('uniref_guildFlyer_idx').on(uniref.guildFlyer),
-		index('uniref_shopify_idx').on(uniref.shopify),
-		index('spr_price_file_idx').on(uniref.sprPriceFile),
-		index('spr_flat_file_idx').on(uniref.sprFlatFile),
-		index('uniref_unifiedGuild_idx').on(uniref.unifiedGuild)
+		uniqueIndex('resource_type_idx').on(uniref.uniId),
+		uniqueIndex('uniref_changesets_idx').on(uniref.changeset),
+		uniqueIndex('uniref_qb_idx').on(uniref.qb),
+		uniqueIndex('uniref_guild_idx').on(uniref.guildData),
+		uniqueIndex('uniref_guildInventory_idx').on(uniref.guildInventory),
+		uniqueIndex('uniref_guildFlyer_idx').on(uniref.guildFlyer),
+		uniqueIndex('uniref_shopify_idx').on(uniref.shopify),
+		uniqueIndex('uniref_spr_price_file_idx').on(uniref.sprPriceFile),
+		uniqueIndex('uniref_spr_flat_file_idx').on(uniref.sprFlatFile),
+		uniqueIndex('uniref_unifiedGuild_idx').on(uniref.unifiedGuild),
+		uniqueIndex('uniref_unifiedSpr_idx').on(uniref.unifiedSpr)
 	]
 );
 
@@ -117,5 +127,9 @@ export const unirefRelations = relations(uniref, ({ one }) => ({
 	unifiedGuildData: one(unifiedGuild, {
 		fields: [uniref.unifiedGuild],
 		references: [unifiedGuild.id]
+	}),
+	unifiedSprData: one(unifiedSpr, {
+		fields: [uniref.unifiedSpr],
+		references: [unifiedSpr.id]
 	})
 }));
