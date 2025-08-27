@@ -16,6 +16,7 @@ import { getTableConfig } from 'drizzle-orm/pg-core';
 work({
 	process: async ({}) => {
 		await updateUnifiedSummary('unifiedGuild');
+		await updateUnifiedSummary('unifiedSpr');
 	}
 });
 

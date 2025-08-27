@@ -23,8 +23,11 @@ import { VerifyCellValue } from './cellVerification';
 
 export function createUnifier<
 	RowType extends RowTypeBase<TableType>,
-	TableType extends UnifiedTables
->(conf: CreateUnifierConf<RowType, TableType>) {
+	TableType extends UnifiedTables,
+	CellConfTable extends CellConfigTable,
+	Primary extends PrimarySourceTables,
+	Other extends OtherSourceTables
+>(conf: CreateUnifierConf<RowType, TableType, CellConfTable, Primary, Other>) {
 	const { table, confTable, getRow, transform, connections, version } = conf;
 
 	const tableConf = getTableConfig(table),
@@ -45,7 +48,7 @@ export function createUnifier<
 			.execute();
 	}
 
-	const verifyCellValue = VerifyCellValue<RowType, TableType>(conf);
+	const verifyCellValue = VerifyCellValue<RowType, TableType, CellConfTable>(conf);
 
 	async function _updateConnection({
 		db,
@@ -60,7 +63,7 @@ export function createUnifier<
 	}: {
 		db: Tx | typeof DB;
 		id: number;
-		connectionTable: ConnectionTable<RowType, TableType>;
+		connectionTable: ConnectionTable<RowType, TableType, Primary, Other>;
 		cellConfigurator: CellConfigurator;
 		onUpdateCallback: OnUpdateCallback;
 		updatedRow: RowType;
@@ -128,7 +131,9 @@ export function createUnifier<
 				}
 				cellConfigurator.addError(connectionRowKey as any, {
 					multipleOptions: {
-						options: otherConnections.filter((v) => v !== updatedRow[connectionRowKey]),
+						options: otherConnections.filter(
+							(v: number) => v !== (updatedRow[connectionRowKey] as unknown as number | null)
+						),
 						value: updatedRow[connectionRowKey] as any
 					}
 				});
@@ -292,7 +297,7 @@ export function createUnifier<
 			if (k === 'id' || k === 'lastUpdated') continue;
 			const key = k as keyof (typeof table)['$inferInsert'];
 			const newVal = (await cellConfigurator.getConfiguredCellValue(
-				transformed[k as keyof typeof transformed],
+				transformed[k as keyof typeof transformed] as any,
 				originalRow[key] as any
 			)) as any;
 			if (originalRow[key] !== newVal) {
@@ -368,7 +373,7 @@ export function createUnifier<
 		await DB.transaction(async (db) => {
 			const missingPrimaryRows = await db
 				.select()
-				.from(connections.primaryTable.table)
+				.from(connections.primaryTable.table as any)
 				.leftJoin(
 					table as UnifiedTables,
 					eq(
@@ -411,7 +416,7 @@ export function createUnifier<
 					rows: chunkedRows.map((v, i) => ({
 						uniref: uniRows[i].uniId,
 						entryType: 'create',
-						data: v,
+						data: v as any,
 						created: newLastUpdated
 					}))
 				});
@@ -433,7 +438,7 @@ export function createUnifier<
 					.select({ id: table.id, lastUpdated: sourceTable.table.lastUpdated })
 					.from(table as UnifiedTables)
 					.leftJoin(
-						sourceTable.table,
+						sourceTable.table as any,
 						eq(table[sourceTable.refCol] as SQLWrapper, sourceTable.table.id)
 					)
 					.where(
@@ -448,7 +453,7 @@ export function createUnifier<
 				);
 				if (lastUpdatedBySource[sourceTable.refCol as string] > lastUpdated)
 					// If no rows are updated, there will also be no new connections
-					rows.forEach((r) => rowsToUpdate.add(r.id));
+					rows.forEach((r) => rowsToUpdate.add(r.id!));
 			}
 		}
 
@@ -516,23 +521,31 @@ export function createUnifier<
 
 export type Unifier<
 	RowType extends RowTypeBase<TableType>,
-	TableType extends UnifiedTables
-> = ReturnType<typeof createUnifier<RowType, TableType>>;
+	TableType extends UnifiedTables,
+	CellConfTable extends CellConfigTable,
+	Primary extends PrimarySourceTables = PrimarySourceTables,
+	Other extends OtherSourceTables = OtherSourceTables
+> = ReturnType<typeof createUnifier<RowType, TableType, CellConfTable, Primary, Other>>;
 
 export interface CreateUnifierConf<
 	RowType extends RowTypeBase<TableType>,
-	TableType extends UnifiedTables
+	TableType extends UnifiedTables,
+	CellConfTable extends CellConfigTable,
+	Primary extends PrimarySourceTables,
+	Other extends OtherSourceTables
 > {
 	table: TableType;
-	confTable: CellConfigTable;
+	confTable: CellConfTable;
 	getRow: (id: number, db: Tx | typeof DB) => Promise<RowType>;
 	transform: (
 		item: RowType,
-		t: typeof cellTransformer
+		t: typeof cellTransformer<TableType, keyof TableType['$inferSelect']>
 	) => {
-		[K in keyof TableType['$inferSelect']]: ReturnType<typeof cellTransformer>;
+		[K in keyof TableType['$inferSelect']]: ReturnType<
+			typeof cellTransformer<TableType, keyof TableType['$inferSelect']>
+		>;
 	};
-	connections: Connections<RowType, TableType>;
+	connections: Connections<RowType, TableType, Primary, Other>;
 	additionalColValidators: AdditionalColValidator<TableType>;
 	version: number;
 }
@@ -543,9 +556,14 @@ export type RowTypeBase<TableType extends UnifiedTables> = TableType['$inferSele
 	deleted: boolean;
 };
 
-type ConnectionTable<RowType, TableType extends UnifiedTables> =
-	| PrimaryTableConnection<RowType, TableType, PrimarySourceTables>
-	| TableConnection<RowType, TableType, OtherSourceTables>;
+type ConnectionTable<
+	RowType,
+	TableType extends UnifiedTables,
+	Primary extends PrimarySourceTables = PrimarySourceTables,
+	Other extends OtherSourceTables = OtherSourceTables
+> =
+	| PrimaryTableConnection<RowType, TableType, Primary>
+	| TableConnection<RowType, TableType, Other>;
 
 export interface TableConnection<
 	RowType,
@@ -566,10 +584,15 @@ interface PrimaryTableConnection<
 	newRowTransform: (row: T['$inferSelect'], lastUpdated: number) => UnifiedTable['$inferInsert'];
 }
 
-interface Connections<RowType, UnifiedTable extends UnifiedTables> {
-	primaryTable: PrimaryTableConnection<RowType, UnifiedTable, PrimarySourceTables>;
+interface Connections<
+	RowType,
+	UnifiedTable extends UnifiedTables,
+	Primary extends PrimarySourceTables = PrimarySourceTables,
+	Other extends OtherSourceTables = OtherSourceTables
+> {
+	primaryTable: PrimaryTableConnection<RowType, UnifiedTable, Primary>;
 	// secondaryTable?: TableConnections<RowType, SecondarySourceTables>;
-	otherTables: TableConnection<RowType, UnifiedTable, OtherSourceTables>[];
+	otherTables: TableConnection<RowType, UnifiedTable, Other>[];
 }
 
 type AdditionalColValidator<TableType extends UnifiedTables> = {
@@ -578,7 +601,5 @@ type AdditionalColValidator<TableType extends UnifiedTables> = {
 		db: typeof DB | Tx
 	) => NewError | undefined | void | Promise<NewError | undefined | void>;
 };
-
-export type VerifyCellValue = ReturnType<typeof createUnifier>['verifyCellValue'];
 
 export type OnUpdateCallback = (uniId: number) => void;

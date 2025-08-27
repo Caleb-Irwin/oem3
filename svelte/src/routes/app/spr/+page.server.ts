@@ -14,6 +14,12 @@ export const load: PageServerLoad = async ({ locals: { client } }) => {
 		sprFlatFileFiles: client.spr.flatFile.files.get.query(),
 
 		// SPR Enhanced Content Worker
-		sprEnhancedContentStatus: client.spr.enhancedContent.worker.status.query()
+		sprEnhancedContentStatus: client.spr.enhancedContent.worker.status.query(),
+
+		// SPR Worker
+		sprWorkerStatus: client.spr.worker.status.query(),
+
+		// SPR Error Summary
+		sprErrorSummary: client.summaries.get.query({ type: 'unifiedSpr' })
 	});
 };

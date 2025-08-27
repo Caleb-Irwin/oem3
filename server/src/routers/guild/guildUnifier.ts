@@ -33,7 +33,13 @@ const getRow = async (id: number, db: typeof DB | Tx) => {
 
 type GuildRowType = Awaited<ReturnType<typeof getRow>>;
 
-export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
+export const guildUnifier = createUnifier<
+	GuildRowType,
+	typeof unifiedGuild,
+	typeof unifiedGuildCellConfig,
+	typeof guildData,
+	typeof guildInventory | typeof guildFlyer
+>({
 	table: unifiedGuild,
 	confTable: unifiedGuildCellConfig,
 	version: 25,
@@ -46,7 +52,7 @@ export const guildUnifier = createUnifier<GuildRowType, typeof unifiedGuild>({
 
 			dataRow: t('dataRow', item.dataRow),
 			inventoryRow: t('inventoryRow', item.inventoryRow),
-			flyerRow: t('flyerRow', item.flyerRow ?? null),
+			flyerRow: t('flyerRow', item.flyerRow),
 
 			upc: t('upc', item.dataRowContent.upc, {
 				shouldMatch: {

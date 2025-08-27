@@ -1,19 +1,200 @@
-// Skeleton for SPR unifier configuration (no implementation)
-// Key imports to uncomment during implementation (mirrors guild/guildUnifier.ts):
-// import { and, eq, not, or } from 'drizzle-orm';
-// import { db as DB, type Tx } from '../../db';
-// import { createUnifier } from '../../unified/unifier';
-// import { unifiedSpr, unifiedSprCellConfig } from '../../db.schema';
-// import { sprData, sprInventory, sprFlyer, sprUmEnum, sprCategoryEnum } from './table';
+import { and, eq, not, or } from 'drizzle-orm';
+import { db as DB, type Tx } from '../../db';
+import { createUnifier } from '../../unified/unifier';
+import { unifiedSpr, unifiedSprCellConfig } from '../../db.schema';
+import { sprCategoryEnum } from './table';
+import { sprPriceFile, sprPriceStatusEnum, sprPriceUmEnum } from './priceFile/table';
+import { sprFlatFile } from './flatFile/table';
 
-// TODO list:
-// - Implement getRow(id, db): query unifiedSpr with joined source content and uniref
-// - Define RowType based on getRow return type
-// - createUnifier<RowType, typeof unifiedSpr>({ table, confTable, version, getRow, transform, connections, additionalColValidators })
-// - Implement transform mapping with shouldMatch/shouldNotBeNull as needed
-// - Implement connections: primaryTable + otherTables with findConnections and isDeleted
-// - Add any additional validators (enums, ranges, etc.)
-// - Export sprUnifier
+const getRow = async (id: number, db: typeof DB | Tx) => {
+	const res = await db.query.unifiedSpr
+		.findFirst({
+			where: eq(unifiedSpr.id, id),
+			with: {
+				sprPriceFileRowContent: true,
+				sprFlatFileRowContent: {
+					with: {
+						enhancedContent: true
+					}
+				},
+				uniref: true
+			}
+		})
+		.execute();
+	if (res === undefined) throw new Error(`UnifiedSPR#${id} not found`);
+	return res;
+};
 
-// Placeholder export for consumers to import before implementation exists
-export const sprUnifier = {} as any;
+type SprRowType = Awaited<ReturnType<typeof getRow>>;
+
+export const sprUnifier = createUnifier<
+	SprRowType,
+	typeof unifiedSpr,
+	typeof unifiedSprCellConfig,
+	typeof sprPriceFile,
+	typeof sprFlatFile
+>({
+	table: unifiedSpr,
+	confTable: unifiedSprCellConfig,
+	version: 2,
+	getRow,
+	transform: (item, t) => {
+		const price = item.sprPriceFileRowContent;
+		const flat = item.sprFlatFileRowContent;
+		const enh = flat?.enhancedContent ?? null;
+
+		const etilizePrimary = price?.etilizeId ?? null;
+		const etilizeSecondary = flat?.etilizeId ?? null;
+		const upcPrimary = price?.upc ?? null;
+		const upcSecondary = enh?.upc ?? null;
+
+		return {
+			id: t('id', item.id),
+			sprc: t('sprc', item.sprc),
+
+			sprPriceFileRow: t('sprPriceFileRow', item.sprPriceFileRow),
+			sprFlatFileRow: t('sprFlatFileRow', item.sprFlatFileRow, {
+				shouldNotBeNull: true
+			}),
+
+			etilizeId: t('etilizeId', etilizePrimary ?? etilizeSecondary, {
+				shouldMatch: {
+					primary: 'Price File Etilize ID',
+					secondary: 'Flat File Etilize ID',
+					val: etilizeSecondary,
+					ignore: etilizePrimary === null || etilizeSecondary === null
+				}
+			}),
+			cws: t('cws', enh?.cws ?? null),
+			gtin: t('gtin', enh?.gtin ?? null),
+			upc: t('upc', upcPrimary ?? upcSecondary ?? null, {
+				shouldMatch: {
+					primary: 'Price File UPC',
+					secondary: 'Enhanced UPC',
+					val: upcSecondary,
+					ignore: upcPrimary === null || upcSecondary === null
+				}
+			}),
+
+			shortTitle: t('shortTitle', price.description ?? null),
+			title: t('title', flat?.mainTitle ?? price.description ?? null),
+			description: t(
+				'description',
+				flat
+					? flat.marketingText + '<br><br>' + flat.fullDescription + '<br><br>' + flat.productSpecs
+					: null
+			),
+			category: t('category', null),
+
+			dealerNetPriceCents: t('dealerNetPriceCents', price.dealerNetPriceCents ?? null, {
+				shouldNotBeNull: true
+			}),
+			netPriceCents: t('netPriceCents', price.netPriceCents ?? null, {
+				shouldNotBeNull: true
+			}),
+			listPriceCents: t('listPriceCents', price.listPriceCents ?? null, {
+				shouldNotBeNull: true
+			}),
+			status: t('status', price.status ?? null),
+			um: t('um', price.um ?? null),
+
+			primaryImage: t('primaryImage', enh?.primaryImage ?? flat?.image255 ?? flat?.image75 ?? null),
+			otherImagesJsonArr: t('otherImagesJsonArr', enh?.otherImagesJsonArr ?? null),
+			allSizesJsonArr: t('allSizesJsonArr', enh?.allSizesJsonArr ?? null),
+
+			keywords: t('keywords', flat?.keywords ?? null),
+			brandName: t('brandName', flat?.brandName ?? null),
+			manufacturerName: t('manufacturerName', flat?.manufacturerName ?? null),
+
+			deleted: t('deleted', price.deleted),
+			lastUpdated: t('lastUpdated', item.lastUpdated)
+		};
+	},
+	connections: {
+		primaryTable: {
+			table: sprPriceFile,
+			refCol: 'sprPriceFileRow',
+			findConnections: async (row, db) => {
+				const sku = row.sprc;
+				if (!sku || sku === '') return [];
+				const res = await db.query.sprPriceFile.findMany({
+					where: and(eq(sprPriceFile.sprcSku, sku), not(sprPriceFile.deleted)),
+					columns: { id: true }
+				});
+				return res.map((r) => r.id);
+			},
+			newRowTransform: (row, lastUpdated) => {
+				return {
+					sprc: row.sprcSku,
+					sprPriceFileRow: row.id,
+					sprFlatFileRow: null,
+					lastUpdated,
+					deleted: row.deleted
+				};
+			},
+			isDeleted: (row) => {
+				return row.sprPriceFileRowContent.deleted;
+			}
+		},
+		otherTables: [
+			{
+				table: sprFlatFile,
+				refCol: 'sprFlatFileRow',
+				findConnections: async (row, db) => {
+					const sku = row.sprc;
+					const etilize = row.sprPriceFileRowContent?.etilizeId ?? null;
+					if ((!sku || sku === '') && !etilize) return [];
+					const rows = await db.query.sprFlatFile
+						.findMany({
+							where: or(
+								sku && sku !== ''
+									? and(eq(sprFlatFile.sprcSku, sku), not(sprFlatFile.deleted))
+									: undefined,
+								etilize
+									? and(eq(sprFlatFile.etilizeId, etilize), not(sprFlatFile.deleted))
+									: undefined
+							),
+							columns: { id: true }
+						})
+						.execute();
+					return rows.map((r) => r.id);
+				},
+				isDeleted: (row) => {
+					return row.sprFlatFileRowContent?.deleted ?? true;
+				}
+			}
+		]
+	},
+	additionalColValidators: {
+		status: (value) => {
+			if (value !== null && !sprPriceStatusEnum.enumValues.includes(value as any)) {
+				return {
+					invalidDataType: {
+						value: value as string,
+						message: `Value "${value}" is not a valid status; Valid statuses are: ${sprPriceStatusEnum.enumValues.join(', ')}`
+					}
+				};
+			}
+		},
+		um: (value) => {
+			if (value !== null && !sprPriceUmEnum.enumValues.includes(value as any)) {
+				return {
+					invalidDataType: {
+						value: value as string,
+						message: `Value "${value}" is not a valid unit of measure; Valid units are: ${sprPriceUmEnum.enumValues.join(', ')}`
+					}
+				};
+			}
+		},
+		category: (value) => {
+			if (value !== null && !sprCategoryEnum.enumValues.includes(value as any)) {
+				return {
+					invalidDataType: {
+						value: value as string,
+						message: `Value "${value}" is not a valid category; Valid categories are: ${sprCategoryEnum.enumValues.join(', ')}`
+					}
+				};
+			}
+		}
+	}
+});

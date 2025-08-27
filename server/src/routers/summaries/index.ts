@@ -6,11 +6,13 @@ import { guildHook } from '../guild';
 import { db } from '../../db';
 import { summaries, type SummaryTypeEnum } from './table';
 import { eq } from 'drizzle-orm';
+import { sprHook } from '../spr';
+import type { UnifiedTableNames } from '../../unified/types';
 
 const { worker, hook, runWorker } = managedWorker(
 	new URL('worker.ts', import.meta.url).href,
 	'summaries',
-	[guildHook]
+	[guildHook, sprHook]
 );
 export const runSummariesWorker = runWorker;
 
@@ -19,7 +21,7 @@ const { createSub, update } = eventSubscription();
 export const summariesHook = hook;
 summariesHook(() => update());
 
-async function getSummaryByType(type: 'all' | 'unifiedGuild') {
+async function getSummaryByType(type: 'all' | UnifiedTableNames) {
 	const summary = await db.query.summaries.findFirst({
 		where: eq(summaries.type, type)
 	});
@@ -46,15 +48,15 @@ export const summariesRouter = router({
 	get: viewerProcedure
 		.input(
 			z.object({
-				type: z.enum(['all', 'unifiedGuild'])
+				type: z.enum(['all', 'unifiedGuild', 'unifiedSpr'])
 			})
 		)
 		.query(async ({ input: { type } }) => {
 			return await getSummaryByType(type);
 		}),
 	getSub: createSub<
-		{ type: 'all' | 'unifiedGuild' },
-		{ id: number; type: 'all' | 'unifiedGuild'; data: any } | null
+		{ type: 'all' | 'unifiedGuild' | 'unifiedSpr' },
+		{ id: number; type: 'all' | 'unifiedGuild' | 'unifiedSpr'; data: any } | null
 	>(async ({ input: { type } }) => {
 		return await getSummaryByType(type);
 	})

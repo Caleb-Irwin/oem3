@@ -2,18 +2,31 @@ import type {
 	guildData,
 	guildFlyer,
 	guildInventory,
+	sprFlatFile,
+	sprPriceFile,
 	unifiedGuild,
-	unifiedGuildCellConfig
+	unifiedGuildCellConfig,
+	unifiedSpr,
+	unifiedSprCellConfig
 } from '../db.schema';
 
-export type UnifiedTables = typeof unifiedGuild;
-export const UnifiedTableNamesArray = ['unifiedGuild'] as const;
+export type UnifiedTables = typeof unifiedGuild | typeof unifiedSpr;
+export const UnifiedTableNamesArray = ['unifiedGuild', 'unifiedSpr'] as const;
 export type UnifiedTableNames = (typeof UnifiedTableNamesArray)[number];
-export const PrimarySourceTableNamesArray = ['unifiedGuild', 'guildData'] as const;
-export type PrimarySourceTables = typeof unifiedGuild | typeof guildData;
+export const PrimarySourceTableNamesArray = ['unifiedGuild', 'guildData', 'sprPriceFile'] as const;
+export type PrimarySourceTables = typeof unifiedGuild | typeof guildData | typeof sprPriceFile;
 // export type SecondarySourceTables = typeof unifiedSPR
-export const OtherSourceTableNamesArray = ['guildInventory', 'guildFlyer'] as const;
-export type OtherSourceTables = typeof guildInventory | typeof guildFlyer;
+export const OtherSourceTableNamesArray = [
+	'guildInventory',
+	'guildFlyer',
+	'sprFlatFile',
+	'unifiedSpr'
+] as const;
+export type OtherSourceTables =
+	| typeof guildInventory
+	| typeof guildFlyer
+	| typeof sprFlatFile
+	| typeof unifiedSpr;
 
 export type AllSourceTables = PrimarySourceTables | OtherSourceTables;
 export const AllSourceTableNamesArray = [
@@ -22,7 +35,7 @@ export const AllSourceTableNamesArray = [
 ] as const;
 export type AllSourceTableNames = (typeof AllSourceTableNamesArray)[number];
 
-export type CellConfigTable = typeof unifiedGuildCellConfig;
+export type CellConfigTable = typeof unifiedGuildCellConfig | typeof unifiedSprCellConfig;
 
 // Generic types that work with any unified table's config table
 export type CellConfigRowInsert = CellConfigTable['$inferInsert'];

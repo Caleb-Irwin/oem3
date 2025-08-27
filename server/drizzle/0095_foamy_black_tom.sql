@@ -1,0 +1,1 @@
+ALTER TABLE "unifiedSpr" DROP COLUMN "sprc";

@@ -47,11 +47,11 @@ export const sprFlatFile = pgTable(
 		lastUpdated: bigint('lastUpdated', { mode: 'number' }).notNull()
 	},
 	(spr) => {
-		return {
-			sprcSkuIndex: index('sprFlatFile_sprcSku_idx').on(spr.sprcSku),
-			etilizeIdIndex: index('sprFlatFile_etilizeId_idx').on(spr.etilizeId),
-			lastUpdatedIndex: index('sprFlatFile_last_updated_idx').on(spr.lastUpdated)
-		};
+		return [
+			index('sprFlatFile_sprcSku_idx').on(spr.sprcSku),
+			index('sprFlatFile_etilizeId_idx').on(spr.etilizeId),
+			index('sprFlatFile_last_updated_idx').on(spr.lastUpdated)
+		];
 	}
 );
 

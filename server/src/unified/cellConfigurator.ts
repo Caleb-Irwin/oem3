@@ -2,11 +2,11 @@ import { eq } from 'drizzle-orm';
 import { db as DB, type Tx } from '../db';
 import { type CellSetting } from '../db.schema';
 import type { UnifiedTables, CellConfigTable } from './types';
-import type { VerifyCellValue } from './unifier';
 import { createErrorManager } from './errorManager';
 import { modifySetting } from './cellSettings';
+import type { VerifyCellValue } from './cellVerification';
 
-export async function createCellConfigurator({
+export async function createCellConfigurator<CellConfTable extends CellConfigTable>({
 	table,
 	unifiedTable,
 	id,
@@ -14,14 +14,17 @@ export async function createCellConfigurator({
 	db,
 	verifyCellValue
 }: {
-	table: CellConfigTable;
+	table: CellConfTable;
 	unifiedTable: UnifiedTables;
 	id: number;
 	uniId: number;
 	db: typeof DB | Tx;
-	verifyCellValue: VerifyCellValue;
+	verifyCellValue: ReturnType<typeof VerifyCellValue>;
 }) {
-	const cellConfigs = await db.select().from(table).where(eq(table.refId, id));
+	const cellConfigs = await db
+		.select()
+		.from(table as CellConfigTable)
+		.where(eq(table.refId, id));
 	type CellConfig = (typeof cellConfigs)[number];
 
 	const errorManager = createErrorManager(db, table, id, uniId, cellConfigs);

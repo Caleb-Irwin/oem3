@@ -27,7 +27,7 @@ export const unifiedSpr = pgTable(
 	'unifiedSpr',
 	{
 		id: serial('id').primaryKey(),
-		sprcSku: varchar('sprcSku', { length: 256 }).notNull().unique(),
+		sprc: varchar('sprc', { length: 256 }).notNull().unique(),
 
 		sprPriceFileRow: integer('sprPriceFileRow')
 			.notNull()
@@ -38,7 +38,6 @@ export const unifiedSpr = pgTable(
 			.references(() => sprFlatFile.id, { onDelete: 'set null' }),
 
 		etilizeId: varchar('etilizeId', { length: 32 }),
-		sprc: varchar('sprc', { length: 64 }),
 		cws: varchar('cws', { length: 64 }),
 		gtin: varchar('gtin', { length: 64 }),
 		upc: varchar('upc', { length: 32 }),
@@ -68,7 +67,7 @@ export const unifiedSpr = pgTable(
 	(unified) => [
 		uniqueIndex('unifiedSpr_spr_price_row_idx').on(unified.sprPriceFileRow),
 		uniqueIndex('unifiedSpr_spr_flat_row_idx').on(unified.sprFlatFileRow),
-		uniqueIndex('unifiedSpr_spr_sprcSku_idx').on(unified.sprcSku),
+		index('unifiedSpr_spr_sprc_idx').on(unified.sprc),
 		index('unifiedSpr_spr_etilizeId_idx').on(unified.etilizeId),
 		index('unifiedSpr_spr_upc_idx').on(unified.upc),
 		index('unifiedSpr_spr_lastUpdated_idx').on(unified.lastUpdated)
@@ -92,12 +91,11 @@ export const unifiedSprRelations = relations(unifiedSpr, ({ one }) => ({
 
 export const unifiedSprColumnEnum = pgEnum('unifiedSprColumn', [
 	// Source refs
-	'sprcSku',
+	'sprc',
 	'sprPriceFileRow',
 	'sprFlatFileRow',
 	// Identifiers
 	'etilizeId',
-	'sprc',
 	'cws',
 	'gtin',
 	'upc',

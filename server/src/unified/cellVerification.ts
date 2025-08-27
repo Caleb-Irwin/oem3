@@ -1,14 +1,19 @@
 import { eq } from 'drizzle-orm';
 import type { NewError } from './errorManager';
 import { db as DB, type Tx } from '../db';
-import type { UnifiedTables } from './types';
+import type { CellConfigTable, UnifiedTables } from './types';
 import { getTableConfig } from 'drizzle-orm/pg-core';
 import type { CreateUnifierConf, RowTypeBase } from './unifier';
 
 export function VerifyCellValue<
 	RowType extends RowTypeBase<TableType>,
-	TableType extends UnifiedTables
->({ table, additionalColValidators, connections }: CreateUnifierConf<RowType, TableType>) {
+	TableType extends UnifiedTables,
+	CellConfTable extends CellConfigTable
+>({
+	table,
+	additionalColValidators,
+	connections
+}: CreateUnifierConf<RowType, TableType, CellConfTable, any, any>) {
 	const colTypes = getColConfig(table);
 
 	async function verifyCellValue<K extends keyof TableType['$inferSelect']>({

@@ -652,6 +652,34 @@
       "when": 1756322593319,
       "tag": "0092_plain_whizzer",
       "breakpoints": true
+    },
+    {
+      "idx": 93,
+      "version": "7",
+      "when": 1756336138614,
+      "tag": "0093_light_silvermane",
+      "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1756336512858,
+      "tag": "0094_bored_maria_hill",
+      "breakpoints": true
+    },
+    {
+      "idx": 95,
+      "version": "7",
+      "when": 1756336592788,
+      "tag": "0095_foamy_black_tom",
+      "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "7",
+      "when": 1756336626642,
+      "tag": "0096_swift_multiple_man",
+      "breakpoints": true
     }
   ]
 }

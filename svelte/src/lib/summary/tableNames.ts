@@ -4,7 +4,10 @@ export const UnifiedTableNamesReadable: {
 	[key in AllSourceTableNames]: string;
 } = {
 	unifiedGuild: 'Unified Guild',
+	unifiedSpr: 'Unified SPR',
 	guildData: 'Guild Data',
 	guildInventory: 'Guild Inventory',
-	guildFlyer: 'Guild Flyer'
+	guildFlyer: 'Guild Flyer',
+	sprPriceFile: 'SPR Price File',
+	sprFlatFile: 'SPR Flat File'
 };

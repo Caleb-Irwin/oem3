@@ -4,6 +4,7 @@
 	import { client, subVal } from '$lib/client';
 	import Files from '$lib/Files.svelte';
 	import ModalSearchBar from '$lib/search/ModalSearchBar.svelte';
+	import UnifiedSummary from '$lib/summary/UnifiedSummary.svelte';
 	import WorkerStatus from '$lib/WorkerStatus.svelte';
 	import type { PageProps } from './$types';
 
@@ -13,6 +14,16 @@
 <h1 class="text-center h2 p-2 pt-4">SPR</h1>
 
 <ModalSearchBar queryType="sprFlatFile" placeholder="Search SPR Flat File" class="max-w-xl pb-2" />
+
+<UnifiedSummary
+	tableName="unifiedSpr"
+	initialErrorData={data.sprErrorSummary}
+	workerStatus={subVal(client.spr.worker.statusSub, {
+		init: data.sprWorkerStatus
+	})}
+	workerRun={client.spr.worker.run}
+	headerName="Unified SPR"
+/>
 
 <div class="w-full flex flex-col xl:grid xl:grid-cols-3 justify-center p-2">
 	<div class="w-full flex flex-col items-center p-2">
