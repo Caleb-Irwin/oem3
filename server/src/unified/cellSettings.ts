@@ -113,7 +113,7 @@ export async function modifySetting({
 				entryType: 'create' as const,
 				confCell: col,
 				confType: 'setting' as const,
-				data: settingData,
+				data: settingData as any,
 				created: Date.now(),
 				exclude: ['created', 'refId']
 			});

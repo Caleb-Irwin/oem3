@@ -13,7 +13,7 @@
 	let { price, comparePrice }: Props = $props();
 </script>
 
-<div class="w-full grid lg:grid-cols-2 lg:space-x-2 lg:space-y-0 space-y-2">
+<div class="w-full grid {comparePrice ? 'lg:grid-cols-2' : ''}  lg:gap-x-2 lg:gap-y-0 gap-y-2">
 	<div class="card p-2">
 		<div class="flex flex-row items-center justify-between">
 			<div>

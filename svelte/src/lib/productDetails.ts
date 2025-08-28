@@ -30,7 +30,7 @@ export interface Product {
 	other: { [key: string]: string | null };
 	connections?: Connection[];
 	unifiedGuildData?: (RawProduct['unifiedGuildData'] & { uniref: { uniId: number } }) | null;
-	unifiedSprData?: RawProduct['unifiedSprData'] | null;
+	unifiedSprData?: (RawProduct['unifiedSprData'] & { uniref: { uniId: number } }) | null;
 	// unifiedItemData?: RawProduct['unifiedItemData'] | null;
 }
 
@@ -243,6 +243,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			lastUpdated: sprPriceFileData.lastUpdated,
 			description: undefined,
 			imageUrl: undefined,
+			unifiedSprData: sprPriceFileData.unifiedSprData,
 			connections: [
 				{
 					tableName: 'unifiedSpr',
@@ -281,6 +282,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				'<br><br>' +
 				sprFlatFileData.productSpecs,
 			imageUrl: sprFlatFileData.image255 ?? sprFlatFileData.image75 ?? undefined,
+			unifiedSprData: sprFlatFileData.unifiedSprData,
 			connections: [
 				{
 					tableName: 'unifiedSpr',
@@ -392,8 +394,8 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			id: unifiedSpr.id,
 			name: unifiedSpr.title ?? unifiedSpr.shortTitle ?? 'No Title',
 			price:
-				unifiedSpr.listPriceCents != null
-					? formatCurrency(unifiedSpr.listPriceCents / 100)
+				unifiedSpr.netPriceCents != null
+					? formatCurrency(unifiedSpr.netPriceCents / 100)
 					: 'No Price',
 			sku: unifiedSpr.sprc,
 			stock: null,

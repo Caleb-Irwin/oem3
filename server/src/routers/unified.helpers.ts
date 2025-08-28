@@ -4,7 +4,9 @@ import type { OnUpdateCallback } from '../unified/unifier';
 export const ColToTableName = {
 	dataRow: 'guildData',
 	inventoryRow: 'guildInventory',
-	flyerRow: 'guildFlyer'
+	flyerRow: 'guildFlyer',
+	sprPriceFileRow: 'sprPriceFile',
+	sprFlatFileRow: 'sprFlatFile'
 } as const;
 
 const { update, createSub } = eventSubscription();

@@ -31,7 +31,7 @@
 		| {
 				title: string;
 				name: string;
-				item: Product['unifiedGuildData'];
+				item: Product['unifiedGuildData'] | Product['unifiedSprData'];
 				rawItem: ({ uniId: number } & RawProduct) | null;
 				queryType: QueryType;
 				unifiedColumn: string;
@@ -53,6 +53,23 @@
 					guildData: 'dataRow',
 					guildInventory: 'inventoryRow',
 					guildFlyer: 'flyerRow'
+				}[tableName]!
+			};
+		if (product?.unifiedSprData !== undefined)
+			return {
+				title: 'Unified SPR',
+				name: 'unified spr',
+				item: product.unifiedSprData,
+				rawItem: product.unifiedSprData
+					? {
+							uniId: product.unifiedSprData.uniref.uniId,
+							unifiedSprData: product.unifiedSprData
+						}
+					: null,
+				queryType: 'unifiedSpr',
+				unifiedColumn: {
+					sprPriceFile: 'sprPriceFileRow',
+					sprFlatFile: 'sprFlatFileRow'
 				}[tableName]!
 			};
 		return undefined;

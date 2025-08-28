@@ -32,6 +32,8 @@
 			<BreakableText text={toReadable(prev)} />
 			<span class="font-bold text-primary-500 pr-2">-></span>
 		{/if}
-		<BreakableText text={toReadable(value)} />
+		<span>
+			<BreakableText text={toReadable(value)} />
+		</span>
 	</span>
 </div>

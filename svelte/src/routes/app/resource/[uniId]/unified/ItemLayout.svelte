@@ -126,7 +126,7 @@
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-1 mx-[-4px]">
 			{@render children?.()}
 		</div>
-		<p class="card mt-1 text-center p-1 italic flex items-center justify-center gap-2">
+		<div class="card mt-1 text-center p-1 italic flex items-center justify-center gap-2">
 			<span>
 				{tableName}#{id.value} was last updated {new Date(
 					lastUpdated.value as number
@@ -144,6 +144,6 @@
 			>
 				<RotateCw size="16" /> <span> Refresh</span>
 			</Button>
-		</p>
+		</div>
 	</div>
 </div>

@@ -75,7 +75,7 @@
 	let newCellSettingData: CellConfigRowInsert | undefined | null = $state(undefined);
 	$effect(() => {
 		const partialSetting = {
-			col: cell.col as CellConfigRowInsert['col'],
+			col: cell.col as CellConfigRowInsert['col'] as any,
 			confType: newSetting as CellSetting,
 			refId: Number(cell.compoundId.split(':')[1]),
 			created: Date.now()

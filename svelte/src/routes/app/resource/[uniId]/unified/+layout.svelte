@@ -5,6 +5,7 @@
 	import type { LayoutProps } from './$types';
 	import GuildItem from './GuildItem.svelte';
 	import { toStore } from 'svelte/store';
+	import SprItem from './SprItem.svelte';
 
 	let props: LayoutProps = $props();
 
@@ -26,7 +27,11 @@
 {@render props.children?.()}
 
 {#if data.type === 'unifiedGuild'}
-	<GuildItem row={data} />
+	<GuildItem row={data as any} />
+{:else if data.type === 'unifiedSpr'}
+	<SprItem row={data as any} />
+{:else}
+	<p class="p-2">Unknown unified type: {data.type}</p>
 {/if}
 
 <div class="p-2 pt-0 lg:pt-0">

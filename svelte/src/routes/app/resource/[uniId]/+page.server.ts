@@ -3,6 +3,7 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, parent }) => {
 	const { res } = await parent();
-	if (res.unifiedGuildData) throw redirect(308, `/app/resource/${params.uniId}/unified`);
+	if (res.unifiedGuildData || res.unifiedSprData)
+		throw redirect(308, `/app/resource/${params.uniId}/unified`);
 	return {};
 };

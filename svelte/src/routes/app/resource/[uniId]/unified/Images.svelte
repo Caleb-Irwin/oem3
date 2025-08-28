@@ -25,6 +25,7 @@
 	</div>
 
 	<div class="mt-2 card">
+		{@render otherImageRenderer(other.value)}
 		<div class="flex p-2 items-center border-t-2 border-surface-200 dark:border-surface-500">
 			<p class="text-lg font-bold flex-grow pl-1">Other Images</p>
 			<SettingButton cell={other} />

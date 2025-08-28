@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { history, unifiedGuild, uniref, type CellSetting } from '../db.schema';
+import { history, unifiedGuild, unifiedSpr, uniref, type CellSetting } from '../db.schema';
 import { generalProcedure, router, viewerProcedure } from '../trpc';
 import { db } from '../db';
 import { desc, eq } from 'drizzle-orm';
@@ -85,7 +85,7 @@ export const unifiedRouter = router({
 	getFirstUnmatchedUrl
 });
 
-async function getUnifiedRow(uniId: number): Promise<UnifiedRow<UnifiedTables>> {
+async function getUnifiedRow(uniId: number): Promise<UnifiedRow> {
 	const uniRow = await db.query.uniref.findFirst({ where: eq(uniref.uniId, uniId) });
 	if (!uniRow) {
 		throw new Error('No row found');
@@ -137,11 +137,12 @@ export interface UnifiedRow<T extends UnifiedTables = UnifiedTables> {
 	uniId: number;
 	id: number;
 	type: UnifiedTableNames;
-	row: UnifiedRowTypes;
+	row: T['$inferSelect'];
 	allActiveErrors: CellConfigRowSelect[];
 	cells: Record<keyof T['$inferSelect'], UnifiedCell>;
 }
 export type UnifiedGuildRow = UnifiedRow<typeof unifiedGuild>;
+export type UnifiedSprRow = UnifiedRow<typeof unifiedSpr>;
 
 export interface UnifiedCell {
 	compoundId: string;
@@ -155,5 +156,3 @@ export interface UnifiedCell {
 	allCellConfigs: CellConfigRowSelect[];
 	connectionRow?: Awaited<ReturnType<typeof getResourceByCol>>;
 }
-
-export type UnifiedRowTypes = (typeof unifiedGuild)['$inferSelect'];
