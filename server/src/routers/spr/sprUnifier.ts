@@ -5,6 +5,7 @@ import { unifiedSpr, unifiedSprCellConfig } from '../../db.schema';
 import { sprCategoryEnum, type SprCategoryEnum } from './table';
 import { sprPriceFile, sprPriceStatusEnum, sprPriceUmEnum } from './priceFile/table';
 import { sprFlatFile } from './flatFile/table';
+import { decode } from 'he';
 
 const getRow = async (id: number, db: typeof DB | Tx) => {
 	const res = await db.query.unifiedSpr
@@ -36,7 +37,7 @@ export const sprUnifier = createUnifier<
 >({
 	table: unifiedSpr,
 	confTable: unifiedSprCellConfig,
-	version: 6,
+	version: 11,
 	getRow,
 	transform: (item, t) => {
 		const price = item.sprPriceFileRowContent;
@@ -53,9 +54,7 @@ export const sprUnifier = createUnifier<
 			sprc: t('sprc', item.sprc),
 
 			sprPriceFileRow: t('sprPriceFileRow', item.sprPriceFileRow),
-			sprFlatFileRow: t('sprFlatFileRow', item.sprFlatFileRow, {
-				shouldNotBeNull: true
-			}),
+			sprFlatFileRow: t('sprFlatFileRow', item.sprFlatFileRow, { shouldNotBeNull: true }),
 
 			etilizeId: t('etilizeId', etilizePrimary ?? etilizeSecondary, {
 				shouldMatch: {
@@ -68,16 +67,21 @@ export const sprUnifier = createUnifier<
 			cws: t('cws', enh?.cws ?? null),
 			gtin: t('gtin', enh?.gtin ?? null),
 			upc: t('upc', upcPrimary ?? upcSecondary ?? null, {
-				shouldMatch: {
-					primary: 'Price File UPC',
-					secondary: 'Enhanced UPC',
-					val: upcSecondary,
-					ignore: upcPrimary === null || upcSecondary === null
-				}
+				// shouldMatch: {
+				// 	primary: 'Price File UPC',
+				// 	secondary: 'Enhanced UPC',
+				// 	val: upcSecondary,
+				// 	ignore: upcPrimary === null || upcSecondary === null
+				// }
 			}),
 
 			shortTitle: t('shortTitle', price.description ?? null),
-			title: t('title', flat?.mainTitle?.replaceAll('&reg;', '®') ?? price.description ?? null),
+			title: t(
+				'title',
+				(flat?.mainTitle ?? price.description)
+					? decode((flat?.mainTitle ?? price.description) as string)
+					: null
+			),
 			description: t(
 				'description',
 				flat
@@ -117,7 +121,7 @@ export const sprUnifier = createUnifier<
 					? JSON.stringify(
 							JSON.parse(enh.otherImagesJsonArr).map((img: string) => ({
 								url: `https://content.etilize.com/${img}/${enh.etilizeId}.jpg`,
-								description: `${img.replaceAll('-', ' ')} of ${price.sprcSku}`
+								description: `${img.replaceAll('-', ' ')}`
 							}))
 						)
 					: null
@@ -171,7 +175,6 @@ export const sprUnifier = createUnifier<
 				findConnections: async (row, db) => {
 					const sku = row.sprc;
 					const etilize = row.sprPriceFileRowContent?.etilizeId ?? null;
-					if ((!sku || sku === '') && !etilize) return [];
 					const rows = await db.query.sprFlatFile
 						.findMany({
 							where: or(
@@ -185,6 +188,19 @@ export const sprUnifier = createUnifier<
 							columns: { id: true }
 						})
 						.execute();
+					// Too many false positives
+					// const upc = row.sprPriceFileRowContent?.upc ?? null;
+					// const upcRows = upc
+					// 	? await db
+					// 			.select({ id: sprFlatFile.id })
+					// 			.from(sprFlatFile)
+					// 			.leftJoin(
+					// 				sprEnhancedContent,
+					// 				eq(sprFlatFile.etilizeId, sprEnhancedContent.etilizeId)
+					// 			)
+					// 			.where(and(eq(sprEnhancedContent.upc, upc), not(sprFlatFile.deleted)))
+					// 			.execute()
+					// 	: [];
 					return rows.map((r) => r.id);
 				},
 				isDeleted: (row) => {
