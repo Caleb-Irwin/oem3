@@ -50,6 +50,12 @@
 		description,
 		children
 	}: Props = $props();
+
+	const keyIds = $derived.by(() => {
+		return [...primaryIds, ...otherIds]
+			.map((id) => (id.cell.value ? id.cell.value.toString() : ''))
+			.join(' ');
+	});
 </script>
 
 <div class="w-full p-1 pb-0 grid lg:grid-cols-6 grid-cols-1">
@@ -63,11 +69,11 @@
 		</h3>
 		<div class="flex-grow grid {secondaryConnection ? 'md:grid-cols-2' : ''}">
 			<div class="p-1 flex">
-				<Connection namedCell={primaryConnection} />
+				<Connection namedCell={primaryConnection} {keyIds} />
 			</div>
 			{#if secondaryConnection}
 				<div class="p-1 flex">
-					<Connection namedCell={secondaryConnection} />
+					<Connection namedCell={secondaryConnection} {keyIds} />
 				</div>
 			{/if}
 		</div>
@@ -91,7 +97,7 @@
 		<div class="flex-grow grid {otherConnections.length > 1 ? 'md:grid-cols-2' : ''}">
 			{#each otherConnections as namedCell}
 				<div class="p-1 flex">
-					<Connection {namedCell} />
+					<Connection {namedCell} {keyIds} />
 				</div>
 			{/each}
 		</div>

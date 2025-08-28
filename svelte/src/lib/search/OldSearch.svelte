@@ -4,7 +4,7 @@
 	import Form from '../Form.svelte';
 	import { focusTrap, getModalStore } from '@skeletonlabs/skeleton';
 	import SearchRes from './SearchRes.svelte';
-	import { tick } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import type { QueryType } from '../../../../server/src/routers/search';
 	import type { SelectFunc } from '$lib/ItemRow.svelte';
 
@@ -12,14 +12,23 @@
 		select?: undefined | SelectFunc;
 		quickAdd?: boolean;
 		quickAddQueryType?: QueryType;
+		initQuery?: string;
+		altRes?: (res: Awaited<ReturnType<typeof client.search.search.query>>) => void;
 	}
 
-	let { select = undefined, quickAdd = false, quickAddQueryType = 'all' }: Props = $props();
+	let {
+		select = undefined,
+		quickAdd = false,
+		quickAddQueryType = 'all',
+		initQuery,
+		altRes
+	}: Props = $props();
 
 	const modalStore = getModalStore();
-	let query: string | undefined = $state(),
-		queryType: QueryType | undefined = $state(),
+	let query: string | undefined = $state(initQuery),
+		queryType: QueryType | undefined = $state(quickAdd ? quickAddQueryType : undefined),
 		focus: boolean = $state(false);
+	let formRef: any = undefined;
 	const response = async (prev: { query: string; queryType: typeof queryType }) => {
 		if (prev === undefined) return;
 		query = '';
@@ -31,11 +40,21 @@
 		await tick();
 		focus = false;
 	};
+
+	onMount(async () => {
+		if (initQuery && initQuery.trim().length > 0) {
+			await tick();
+			if (quickAdd) queryType = quickAddQueryType;
+			formRef?.submit?.();
+		}
+	});
 </script>
 
 <Form
-	action={{ mutate: client.search.search.query }}
+	bind:this={formRef}
+	action={{ mutate: (input: object) => client.search.search.query(input as any) }}
 	res={(res) => {
+		if (altRes) return altRes(res);
 		modalStore.trigger({
 			type: 'component',
 			response,

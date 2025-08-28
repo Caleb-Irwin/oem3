@@ -1,13 +1,14 @@
 <script lang="ts">
 	import Search from 'lucide-svelte/icons/search';
 	import Settings from 'lucide-svelte/icons/settings';
-	import { Accordion, AccordionItem, focusTrap, SlideToggle } from '@skeletonlabs/skeleton';
+	import { Accordion, AccordionItem, focusTrap } from '@skeletonlabs/skeleton';
 	import type { QueryType } from '../../../../server/src/routers/search';
 	import { afterNavigate } from '$app/navigation';
 
 	interface Props {
 		query?: string;
 		queryType?: QueryType;
+		small?: boolean;
 		// qbMode?: boolean;
 		// searchInResults?: boolean;
 	}
@@ -32,7 +33,7 @@
 
 <form class="w-full" action="/app/search" onsubmit={() => (loading = true)}>
 	<div class="w-full flex flex-col justify-center content-center items-center pb-1">
-		<div class="h-20 p-1 form w-full flex max-w-2xl">
+		<div class="{props.small ? 'h-12' : 'h-20'} p-1 form w-full flex max-w-2xl">
 			<div class="input-group input-group-divider grid-cols-[1fr_auto]" use:focusTrap={focus}>
 				<input
 					type="text"
@@ -49,7 +50,7 @@
 			</div>
 		</div>
 
-		<Accordion class="max-w-2xl px-1">
+		<Accordion class="max-w-2xl px-1 {props.small ? 'hidden' : ''}">
 			<AccordionItem
 				open={searchSettingsOpen}
 				on:toggle={() => (searchSettingsOpen = !searchSettingsOpen)}

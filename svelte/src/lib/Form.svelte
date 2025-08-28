@@ -39,6 +39,10 @@
 	let disabled = $state(false),
 		formEl: HTMLFormElement;
 
+	export function submit() {
+		formEl?.requestSubmit();
+	}
+
 	const toastStore = getToastStore(),
 		modalStore = getModalStore();
 

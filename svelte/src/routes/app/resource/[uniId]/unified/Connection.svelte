@@ -2,24 +2,37 @@
 	import ItemRow from '$lib/ItemRow.svelte';
 	import SettingButton from './SettingButton.svelte';
 	import Settings from './Settings.svelte';
-	import type { NamedCell } from './types';
+	import { ColToTableName, type NamedCell } from './types';
 	import ConnectionValRenderer from './ConnectionValRenderer.svelte';
+	import SmartAddConnection from './SmartAddConnection.svelte';
 
 	interface Props {
 		namedCell: NamedCell;
+		keyIds: string;
 	}
 
-	let { namedCell }: Props = $props();
+	let { namedCell, keyIds }: Props = $props();
 	let cell = $derived(namedCell.cell),
 		name = $derived(namedCell.name);
 </script>
 
 <div class="card w-full flex flex-col min-w-72">
-	<div class="flex-grow flex items-center {cell.connectionRow ? '' : 'card'}">
+	<div class="flex-grow flex flex-col items-center {cell.connectionRow ? '' : 'card'}">
 		{#if cell.connectionRow}
 			<ItemRow rawProduct={cell.connectionRow as any} newTab />
 		{:else}
 			<p class="text-lg font-semibold p-2 w-full text-center">No Connection</p>
+			{#key keyIds}
+				<SmartAddConnection
+					baseSearch={keyIds}
+					tableName={ColToTableName[cell.col as keyof typeof ColToTableName]}
+					expanded={cell.activeErrors.some(
+						(error: (typeof cell.activeErrors)[number]) =>
+							error.confType === 'error:shouldNotBeNull'
+					)}
+					cell={namedCell.cell}
+				/>
+			{/key}
 		{/if}
 	</div>
 	<div class="flex p-2 items-center border-t-2 border-surface-200 dark:border-surface-500">
