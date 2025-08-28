@@ -242,7 +242,9 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			deleted: sprPriceFileData.deleted,
 			lastUpdated: sprPriceFileData.lastUpdated,
 			description: undefined,
-			imageUrl: undefined,
+			imageUrl: sprPriceFileData.etilizeId
+				? `https://content.etilize.com/225/${sprPriceFileData.etilizeId}.jpg`
+				: undefined,
 			unifiedSprData: sprPriceFileData.unifiedSprData,
 			connections: [
 				{
@@ -255,6 +257,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				}
 			],
 			other: {
+				'Etilize Id': sprPriceFileData.etilizeId ?? 'Null',
 				'Dealer Net Price': formatCurrency(sprPriceFileData.dealerNetPriceCents / 100),
 				'Net Price': formatCurrency(sprPriceFileData.netPriceCents / 100),
 				'List Price': formatCurrency(sprPriceFileData.listPriceCents / 100),

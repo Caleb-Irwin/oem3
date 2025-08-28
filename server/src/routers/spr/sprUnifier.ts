@@ -37,7 +37,7 @@ export const sprUnifier = createUnifier<
 >({
 	table: unifiedSpr,
 	confTable: unifiedSprCellConfig,
-	version: 11,
+	version: 14,
 	getRow,
 	transform: (item, t) => {
 		const price = item.sprPriceFileRowContent;
@@ -112,7 +112,7 @@ export const sprUnifier = createUnifier<
 					: null) ??
 					flat?.image255 ??
 					flat?.image75 ??
-					null
+					(price.etilizeId ? `https://content.etilize.com/${225}/${price.etilizeId}.jpg` : null)
 			),
 			primaryImageDescription: t('primaryImageDescription', `Image of ${price.sprcSku}`),
 			otherImagesJsonArr: t(

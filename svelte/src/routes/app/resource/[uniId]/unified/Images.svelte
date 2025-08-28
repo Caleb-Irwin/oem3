@@ -59,7 +59,7 @@
 				>
 					<Image
 						src={img.url}
-						thumbnail
+						thumbnail={primary.compoundId.split(':')[0] === 'unifiedGuild'}
 						alt={img.description}
 						class="rounded bg-white w-full p-0.5"
 					/>

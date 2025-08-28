@@ -219,9 +219,13 @@ work({
 						otherImages.includes('Finish') ? 'Finish' : null,
 						otherImages.includes('Frame') ? 'Frame' : null,
 						otherImages.includes('Shell') ? 'Shell' : null,
-						...otherImages
-							.filter((v) => v.startsWith('Alternate-Image'))
-							.sort((a, b) => parseInt(a.slice(15)) - parseInt(b.slice(15))),
+						...Array.from(new Set(otherImages.filter((v) => /^Alternate-Image\d+$/.test(v)))).sort(
+							(a, b) => {
+								const na = parseInt(a.slice(15), 10);
+								const nb = parseInt(b.slice(15), 10);
+								return na - nb;
+							}
+						),
 						otherImages.includes('Jack-Pack') ? 'Jack-Pack' : null,
 						otherImages.includes('Screenshot1') ? 'Screenshot1' : null,
 						otherImages.includes('Screenshot2') ? 'Screenshot2' : null,

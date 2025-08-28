@@ -85,7 +85,7 @@
 						>
 							<Image
 								src={$res.spr ? `https://content.etilize.com/${image}/${etilizeId}.jpg` : image}
-								thumbnail
+								thumbnail={!$res.spr}
 								alt=""
 								class="rounded bg-white w-full"
 							/>

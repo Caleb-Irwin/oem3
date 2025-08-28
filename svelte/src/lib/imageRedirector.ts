@@ -1,6 +1,8 @@
 export function imageRedirect(src: string, thumbnail = false) {
 	if (src.startsWith('https://content.etilize.com/')) {
-		return thumbnail ? src : src;
+		if (thumbnail && !isNaN(parseInt(src.split('/')[3])))
+			return `https://content.etilize.com/225/${src.split('/').pop()}`;
+		return src;
 	}
 	if (src.startsWith('https://cdn.shopify.com/')) {
 		return !thumbnail ? src : src.includes('?') ? src + '&width=512' : src + '?width=512';
