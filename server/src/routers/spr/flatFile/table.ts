@@ -16,6 +16,7 @@ export const sprFlatFile = pgTable(
 	{
 		id: serial('id').primaryKey(),
 		sprcSku: varchar('sprcSku', { length: 256 }).notNull(),
+		sprcSkuNoDash: varchar('sprcSkuNoDash', { length: 256 }),
 		etilizeId: varchar('etilizeId', { length: 32 }).notNull(),
 		sprCatalogSku: varchar('sprCatalogSku', { length: 256 }),
 		brandName: varchar('brandName', { length: 256 }),
@@ -49,6 +50,7 @@ export const sprFlatFile = pgTable(
 	(spr) => {
 		return [
 			index('sprFlatFile_sprcSku_idx').on(spr.sprcSku),
+			index('sprFlatFile_sprcSkuNoDash_idx').on(spr.sprcSkuNoDash),
 			index('sprFlatFile_etilizeId_idx').on(spr.etilizeId),
 			index('sprFlatFile_last_updated_idx').on(spr.lastUpdated)
 		];

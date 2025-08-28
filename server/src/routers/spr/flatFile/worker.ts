@@ -32,6 +32,7 @@ work({
 					[],
 					[
 						'sprcSku',
+						'sprcSkuNoDash',
 						'etilizeId',
 						'sprCatalogSku',
 						'brandName',
@@ -71,6 +72,7 @@ work({
 function transformSprFlatFile(item: FlatFileRaw): typeof sprFlatFile.$inferInsert {
 	return {
 		sprcSku: item.SKU,
+		sprcSkuNoDash: item.SKU.replace(/-/g, ''),
 		etilizeId: item['ProductId'],
 		sprCatalogSku: item['Catalog Sku'],
 		brandName: item['Brand Name'],

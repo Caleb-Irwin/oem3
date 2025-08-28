@@ -17,7 +17,7 @@ export const managedWorker = (
 	name: (typeof changesetType.enumValues)[number] | string,
 	runAfter: PostRunHook[] = [],
 	customMessageCallback?: (msg: WorkerMessage) => void,
-	maxQueueSize = 1
+	maxQueueSize = 100
 ) => {
 	const changeset = changesetType.enumValues.includes(name as any)
 			? (name as (typeof changesetType.enumValues)[number])

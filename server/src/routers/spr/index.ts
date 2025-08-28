@@ -11,7 +11,8 @@ const { worker, hook, runWorker } = managedWorker(
 	new URL('worker.ts', import.meta.url).href,
 	'unifiedSpr',
 	[sprPriceFileHook, sprFlatFileHook, enhancedContentHook],
-	({ msg }) => (msg ? updateUnifiedTopicByUniId(msg) : null)
+	({ msg }) => (msg ? updateUnifiedTopicByUniId(msg) : null),
+	1
 );
 
 export const runSprWorker = runWorker;

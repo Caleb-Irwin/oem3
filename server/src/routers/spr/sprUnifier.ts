@@ -37,7 +37,7 @@ export const sprUnifier = createUnifier<
 >({
 	table: unifiedSpr,
 	confTable: unifiedSprCellConfig,
-	version: 14,
+	version: 18,
 	getRow,
 	transform: (item, t) => {
 		const price = item.sprPriceFileRowContent;
@@ -174,12 +174,16 @@ export const sprUnifier = createUnifier<
 				refCol: 'sprFlatFileRow',
 				findConnections: async (row, db) => {
 					const sku = row.sprc;
+					const skuNoDash = sku ? sku.replace(/-/g, '') : '';
 					const etilize = row.sprPriceFileRowContent?.etilizeId ?? null;
 					const rows = await db.query.sprFlatFile
 						.findMany({
 							where: or(
 								sku && sku !== ''
 									? and(eq(sprFlatFile.sprcSku, sku), not(sprFlatFile.deleted))
+									: undefined,
+								skuNoDash && skuNoDash !== '' && sku !== skuNoDash
+									? and(eq(sprFlatFile.sprcSkuNoDash, skuNoDash), not(sprFlatFile.deleted))
 									: undefined,
 								etilize
 									? and(eq(sprFlatFile.etilizeId, etilize), not(sprFlatFile.deleted))
@@ -188,20 +192,7 @@ export const sprUnifier = createUnifier<
 							columns: { id: true }
 						})
 						.execute();
-					// Too many false positives
-					// const upc = row.sprPriceFileRowContent?.upc ?? null;
-					// const upcRows = upc
-					// 	? await db
-					// 			.select({ id: sprFlatFile.id })
-					// 			.from(sprFlatFile)
-					// 			.leftJoin(
-					// 				sprEnhancedContent,
-					// 				eq(sprFlatFile.etilizeId, sprEnhancedContent.etilizeId)
-					// 			)
-					// 			.where(and(eq(sprEnhancedContent.upc, upc), not(sprFlatFile.deleted)))
-					// 			.execute()
-					// 	: [];
-					return rows.map((r) => r.id);
+					return Array.from(new Set(rows.map((r) => r.id)));
 				},
 				isDeleted: (row) => {
 					return row.sprFlatFileRowContent?.deleted ?? true;

@@ -7,7 +7,10 @@ import { KV } from '../../utils/kv';
 
 const { worker, runWorker, hook } = managedWorker(
 	new URL('worker.ts', import.meta.url).href,
-	'shopify'
+	'shopify',
+	[],
+	undefined,
+	1
 );
 
 export const shopifyHook = hook;
