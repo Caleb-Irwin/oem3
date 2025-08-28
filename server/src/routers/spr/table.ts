@@ -21,6 +21,7 @@ export const sprCategoryEnum = pgEnum('sprCategory', [
 	'furniture',
 	'cleaningBreakRoom'
 ]);
+export type SprCategoryEnum = (typeof sprCategoryEnum.enumValues)[number];
 
 // Unified SPR table
 export const unifiedSpr = pgTable(
@@ -54,8 +55,8 @@ export const unifiedSpr = pgTable(
 		um: sprPriceUmEnum('um'),
 
 		primaryImage: varchar('primaryImage', { length: 256 }),
+		primaryImageDescription: text('primaryImageDescription'),
 		otherImagesJsonArr: text('otherImagesJsonArr'),
-		allSizesJsonArr: text('allSizesJsonArr'),
 
 		keywords: text('keywords'),
 		brandName: varchar('brandName', { length: 256 }),
@@ -112,8 +113,8 @@ export const unifiedSprColumnEnum = pgEnum('unifiedSprColumn', [
 	'um',
 	// Media (from Enhanced/Flat)
 	'primaryImage',
+	'primaryImageDescription',
 	'otherImagesJsonArr',
-	'allSizesJsonArr',
 	// Attribution
 	'keywords',
 	'brandName',

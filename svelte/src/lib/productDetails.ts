@@ -30,7 +30,7 @@ export interface Product {
 	other: { [key: string]: string | null };
 	connections?: Connection[];
 	unifiedGuildData?: (RawProduct['unifiedGuildData'] & { uniref: { uniId: number } }) | null;
-	// unifiedSprData?: RawProduct['unifiedSprData'] | null;
+	unifiedSprData?: RawProduct['unifiedSprData'] | null;
 	// unifiedItemData?: RawProduct['unifiedItemData'] | null;
 }
 
@@ -243,6 +243,16 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			lastUpdated: sprPriceFileData.lastUpdated,
 			description: undefined,
 			imageUrl: undefined,
+			connections: [
+				{
+					tableName: 'unifiedSpr',
+					name: 'Unified SPR',
+					connected: sprPriceFileData.unifiedSprData !== null,
+					link: sprPriceFileData.unifiedSprData
+						? `/app/resource/redirect/unifiedSpr-${sprPriceFileData.unifiedSprData.id}`
+						: '/app/spr'
+				}
+			],
 			other: {
 				'Dealer Net Price': formatCurrency(sprPriceFileData.dealerNetPriceCents / 100),
 				'Net Price': formatCurrency(sprPriceFileData.netPriceCents / 100),
@@ -271,6 +281,16 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				'<br><br>' +
 				sprFlatFileData.productSpecs,
 			imageUrl: sprFlatFileData.image255 ?? sprFlatFileData.image75 ?? undefined,
+			connections: [
+				{
+					tableName: 'unifiedSpr',
+					name: 'Unified SPR',
+					connected: sprFlatFileData.unifiedSprData !== null,
+					link: sprFlatFileData.unifiedSprData
+						? `/app/resource/redirect/unifiedSpr-${sprFlatFileData.unifiedSprData.id}`
+						: '/app/spr'
+				}
+			],
 			other: {
 				'Etilize ID': sprFlatFileData.etilizeId,
 				'Brand Name': sprFlatFileData.brandName,
@@ -361,6 +381,70 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 					? formatCurrency(unifiedGuild.heavyGoodsChargeSkCents / 100)
 					: null,
 				Category: unifiedGuild.category
+			}
+		};
+	}
+	if (raw.unifiedSprData) {
+		const unifiedSpr = raw.unifiedSprData;
+
+		return {
+			idText: 'UnifiedSPR#' + unifiedSpr.id,
+			id: unifiedSpr.id,
+			name: unifiedSpr.title ?? unifiedSpr.shortTitle ?? 'No Title',
+			price:
+				unifiedSpr.listPriceCents != null
+					? formatCurrency(unifiedSpr.listPriceCents / 100)
+					: 'No Price',
+			sku: unifiedSpr.sprc,
+			stock: null,
+			deleted: unifiedSpr.deleted,
+			lastUpdated: unifiedSpr.lastUpdated,
+			description: unifiedSpr.description ?? undefined,
+			imageUrl: unifiedSpr.primaryImage ?? undefined,
+			otherImageUrls: unifiedSpr.otherImagesJsonArr
+				? JSON.parse(unifiedSpr.otherImagesJsonArr).map(({ url }: { url: string }) => url)
+				: undefined,
+			connections: [
+				{
+					tableName: 'sprPriceFile',
+					name: 'Price File',
+					connected: unifiedSpr.sprPriceFileRow !== null,
+					link: unifiedSpr.sprPriceFileRow
+						? `/app/resource/redirect/sprPriceFile-${unifiedSpr.sprPriceFileRow}`
+						: '/app/spr'
+				},
+				{
+					tableName: 'sprFlatFile',
+					name: 'Flat File',
+					connected: unifiedSpr.sprFlatFileRow !== null,
+					link: unifiedSpr.sprFlatFileRow
+						? `/app/resource/redirect/sprFlatFile-${unifiedSpr.sprFlatFileRow}`
+						: '/app/spr'
+				}
+			],
+			other: {
+				Status: unifiedSpr.status ?? null,
+				'Unit of Measure': unifiedSpr.um ?? null,
+				'Dealer Net Price':
+					unifiedSpr.dealerNetPriceCents != null
+						? formatCurrency(unifiedSpr.dealerNetPriceCents / 100)
+						: null,
+				'Net Price':
+					unifiedSpr.netPriceCents != null ? formatCurrency(unifiedSpr.netPriceCents / 100) : null,
+				'List Price':
+					unifiedSpr.listPriceCents != null
+						? formatCurrency(unifiedSpr.listPriceCents / 100)
+						: null,
+				'Etilize ID': unifiedSpr.etilizeId ?? null,
+				CWS: unifiedSpr.cws ?? null,
+				GTIN: unifiedSpr.gtin ?? null,
+				UPC: unifiedSpr.upc ?? null,
+				Category: unifiedSpr.category ?? null,
+				Keywords: unifiedSpr.keywords ?? null,
+				'Brand Name': unifiedSpr.brandName ?? null,
+				'Manufacturer Name': unifiedSpr.manufacturerName ?? null,
+				'Image Description': unifiedSpr.primaryImageDescription ?? null,
+				'Other Images': unifiedSpr.otherImagesJsonArr
 			}
 		};
 	}

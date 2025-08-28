@@ -13,7 +13,7 @@
 
 <h1 class="text-center h2 p-2 pt-4">SPR</h1>
 
-<ModalSearchBar queryType="sprFlatFile" placeholder="Search SPR Flat File" class="max-w-xl pb-2" />
+<ModalSearchBar queryType="unifiedSpr" placeholder="Search Unified SPR" class="max-w-xl pb-2" />
 
 <UnifiedSummary
 	tableName="unifiedSpr"

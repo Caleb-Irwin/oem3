@@ -90,6 +90,7 @@
 				<select name="type" bind:value={queryType}>
 					<option value="all">All</option>
 					<option value="unifiedGuild">Guild</option>
+					<option value="unifiedSpr">SPR</option>
 					<option value="qb">QB</option>
 					<option value="shopify">Shopify</option>
 					<option value="guildData">Guild Data</option>

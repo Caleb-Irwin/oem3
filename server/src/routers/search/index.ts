@@ -14,6 +14,7 @@ import { shopifyHook } from '../shopify';
 import { sprPriceFileHook } from '../spr/priceFile';
 import { sprFlatFileHook } from '../spr/flatFile';
 import { guildHook } from '../guild';
+import { sprHook } from '../spr';
 
 const { worker } = managedWorker(new URL('worker.ts', import.meta.url).href, 'search', [
 	qbHook,
@@ -23,7 +24,8 @@ const { worker } = managedWorker(new URL('worker.ts', import.meta.url).href, 'se
 	shopifyHook,
 	sprPriceFileHook,
 	sprFlatFileHook,
-	guildHook
+	guildHook,
+	sprHook
 ]);
 
 const queryTypeValues = ['all', ...changesetType.enumValues] as const;

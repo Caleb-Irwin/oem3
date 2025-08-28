@@ -22,7 +22,8 @@ export const load: PageServerLoad = async ({ url, locals: { client } }) => {
 					'shopify',
 					'sprPriceFile',
 					'sprFlatFile',
-					'unifiedGuild'
+					'unifiedGuild',
+					'unifiedSpr'
 				] satisfies QueryType[]
 			).includes(url.searchParams.get('type') as QueryType)
 		) {

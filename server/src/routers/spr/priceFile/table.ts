@@ -11,7 +11,7 @@ import {
 	bigint,
 	uniqueIndex
 } from 'drizzle-orm/pg-core';
-import { uniref } from '../../../db.schema';
+import { unifiedSpr, uniref } from '../../../db.schema';
 
 export const sprPriceStatusEnum = pgEnum('spr_price_status', [
 	'Active',
@@ -49,5 +49,9 @@ export const sprPriceFileRelations = relations(sprPriceFile, ({ one }) => ({
 	uniref: one(uniref, {
 		fields: [sprPriceFile.id],
 		references: [uniref.sprPriceFile]
+	}),
+	unifiedSprData: one(unifiedSpr, {
+		fields: [sprPriceFile.id],
+		references: [unifiedSpr.sprPriceFileRow]
 	})
 }));

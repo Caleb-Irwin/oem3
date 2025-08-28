@@ -28,6 +28,16 @@ const unifiedGuildDataWith = {
 	}
 };
 
+const unifiedSprDataWith = {
+	with: {
+		unifiedSprData: {
+			with: {
+				uniref: true as true
+			}
+		}
+	}
+};
+
 export const resourceWith = {
 	changesetData: true as true,
 	qbData: true as true,
@@ -35,9 +45,10 @@ export const resourceWith = {
 	guildInventoryData: unifiedGuildDataWith,
 	guildFlyerData: unifiedGuildDataWith,
 	shopifyData: true as true,
-	sprPriceFileData: true as true,
-	sprFlatFileData: true as true,
-	unifiedGuildData: true as true
+	sprPriceFileData: unifiedSprDataWith,
+	sprFlatFileData: unifiedSprDataWith,
+	unifiedGuildData: true as true,
+	unifiedSprData: true as true
 };
 
 export const getResource = async ({

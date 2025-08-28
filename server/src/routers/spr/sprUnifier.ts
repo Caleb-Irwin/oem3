@@ -2,7 +2,7 @@ import { and, eq, not, or } from 'drizzle-orm';
 import { db as DB, type Tx } from '../../db';
 import { createUnifier } from '../../unified/unifier';
 import { unifiedSpr, unifiedSprCellConfig } from '../../db.schema';
-import { sprCategoryEnum } from './table';
+import { sprCategoryEnum, type SprCategoryEnum } from './table';
 import { sprPriceFile, sprPriceStatusEnum, sprPriceUmEnum } from './priceFile/table';
 import { sprFlatFile } from './flatFile/table';
 
@@ -36,7 +36,7 @@ export const sprUnifier = createUnifier<
 >({
 	table: unifiedSpr,
 	confTable: unifiedSprCellConfig,
-	version: 2,
+	version: 6,
 	getRow,
 	transform: (item, t) => {
 		const price = item.sprPriceFileRowContent;
@@ -77,14 +77,17 @@ export const sprUnifier = createUnifier<
 			}),
 
 			shortTitle: t('shortTitle', price.description ?? null),
-			title: t('title', flat?.mainTitle ?? price.description ?? null),
+			title: t('title', flat?.mainTitle?.replaceAll('&reg;', '®') ?? price.description ?? null),
 			description: t(
 				'description',
 				flat
 					? flat.marketingText + '<br><br>' + flat.fullDescription + '<br><br>' + flat.productSpecs
 					: null
 			),
-			category: t('category', null),
+			category: t(
+				'category',
+				flat?.masterDepartmentNumber ? (categoryMap[flat?.masterDepartmentNumber] ?? null) : null
+			),
 
 			dealerNetPriceCents: t('dealerNetPriceCents', price.dealerNetPriceCents ?? null, {
 				shouldNotBeNull: true
@@ -98,15 +101,36 @@ export const sprUnifier = createUnifier<
 			status: t('status', price.status ?? null),
 			um: t('um', price.um ?? null),
 
-			primaryImage: t('primaryImage', enh?.primaryImage ?? flat?.image255 ?? flat?.image75 ?? null),
-			otherImagesJsonArr: t('otherImagesJsonArr', enh?.otherImagesJsonArr ?? null),
-			allSizesJsonArr: t('allSizesJsonArr', enh?.allSizesJsonArr ?? null),
+			primaryImage: t(
+				'primaryImage',
+				(enh?.primaryImage
+					? `https://content.etilize.com/${enh.primaryImage}/${enh.etilizeId}.jpg`
+					: null) ??
+					flat?.image255 ??
+					flat?.image75 ??
+					null
+			),
+			primaryImageDescription: t('primaryImageDescription', `Image of ${price.sprcSku}`),
+			otherImagesJsonArr: t(
+				'otherImagesJsonArr',
+				enh?.otherImagesJsonArr
+					? JSON.stringify(
+							JSON.parse(enh.otherImagesJsonArr).map((img: string) => ({
+								url: `https://content.etilize.com/${img}/${enh.etilizeId}.jpg`,
+								description: `${img.replaceAll('-', ' ')} of ${price.sprcSku}`
+							}))
+						)
+					: null
+			),
 
 			keywords: t('keywords', flat?.keywords ?? null),
 			brandName: t('brandName', flat?.brandName ?? null),
 			manufacturerName: t('manufacturerName', flat?.manufacturerName ?? null),
 
-			deleted: t('deleted', price.deleted),
+			deleted: t(
+				'deleted',
+				price.deleted || price.status === 'Discontinued' || price.status === null
+			),
 			lastUpdated: t('lastUpdated', item.lastUpdated)
 		};
 	},
@@ -133,7 +157,11 @@ export const sprUnifier = createUnifier<
 				};
 			},
 			isDeleted: (row) => {
-				return row.sprPriceFileRowContent.deleted;
+				return (
+					row.sprPriceFileRowContent.deleted ||
+					row.sprPriceFileRowContent.status === 'Discontinued' ||
+					row.sprPriceFileRowContent.status === null
+				);
 			}
 		},
 		otherTables: [
@@ -198,3 +226,13 @@ export const sprUnifier = createUnifier<
 		}
 	}
 });
+
+const categoryMap: {
+	[key: string]: SprCategoryEnum | null;
+} = {
+	'0': null,
+	'2': 'furniture',
+	'3': 'office',
+	'4': 'technologyInk',
+	'4397': 'cleaningBreakRoom'
+};
