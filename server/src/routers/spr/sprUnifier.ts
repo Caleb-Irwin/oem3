@@ -37,7 +37,7 @@ export const sprUnifier = createUnifier<
 >({
 	table: unifiedSpr,
 	confTable: unifiedSprCellConfig,
-	version: 20,
+	version: 21,
 	getRow,
 	transform: (item, t) => {
 		const price = item.sprPriceFileRowContent;
@@ -133,7 +133,7 @@ export const sprUnifier = createUnifier<
 
 			deleted: t(
 				'deleted',
-				price.deleted || price.status === 'Discontinued' || price.status === null
+				price.deleted /* || price.status === 'Discontinued' */ || price.status === null
 			),
 			lastUpdated: t('lastUpdated', item.lastUpdated)
 		};
@@ -163,7 +163,7 @@ export const sprUnifier = createUnifier<
 			isDeleted: (row) => {
 				return (
 					row.sprPriceFileRowContent.deleted ||
-					row.sprPriceFileRowContent.status === 'Discontinued' ||
+					// row.sprPriceFileRowContent.status === 'Discontinued' ||
 					row.sprPriceFileRowContent.status === null
 				);
 			}
