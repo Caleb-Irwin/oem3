@@ -78,7 +78,10 @@ export function createUnifier<
 			.newRowTransform as boolean;
 
 		// Un-match the connection if it is deleted and not primary
-		if (!isPrimary && (connectionTable.isDeleted(updatedRow) || removeAutoMatch)) {
+		if (
+			!isPrimary &&
+			((connectionTable.isDeleted(updatedRow) && !connectionTable.allowDeleted) || removeAutoMatch)
+		) {
 			updatedRow[connectionRowKey] = null as any;
 		}
 
@@ -574,6 +577,7 @@ export interface TableConnection<
 	refCol: keyof UnifiedTable;
 	findConnections: (row: RowType, db: typeof DB | Tx) => Promise<number[]>; // Should not return deleted items
 	isDeleted: (row: RowType) => boolean;
+	allowDeleted?: boolean;
 }
 
 interface PrimaryTableConnection<

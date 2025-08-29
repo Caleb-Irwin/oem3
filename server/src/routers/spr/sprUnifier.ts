@@ -37,7 +37,7 @@ export const sprUnifier = createUnifier<
 >({
 	table: unifiedSpr,
 	confTable: unifiedSprCellConfig,
-	version: 18,
+	version: 20,
 	getRow,
 	transform: (item, t) => {
 		const price = item.sprPriceFileRowContent;
@@ -172,9 +172,10 @@ export const sprUnifier = createUnifier<
 			{
 				table: sprFlatFile,
 				refCol: 'sprFlatFileRow',
+				allowDeleted: true,
 				findConnections: async (row, db) => {
 					const sku = row.sprc;
-					const skuNoDash = sku ? sku.replace(/-/g, '') : '';
+					const skuNoDash = sku ? sku.replace(/[-\/\\]/g, '') : '';
 					const etilize = row.sprPriceFileRowContent?.etilizeId ?? null;
 					const rows = await db.query.sprFlatFile
 						.findMany({
@@ -192,7 +193,23 @@ export const sprUnifier = createUnifier<
 							columns: { id: true }
 						})
 						.execute();
-					return Array.from(new Set(rows.map((r) => r.id)));
+					const res = Array.from(new Set(rows.map((r) => r.id)));
+					if (res.length > 0) return res;
+					const deletedRows = await db.query.sprFlatFile
+						.findMany({
+							where: or(
+								sku && sku !== ''
+									? and(eq(sprFlatFile.sprcSku, sku), sprFlatFile.deleted)
+									: undefined,
+								skuNoDash && skuNoDash !== '' && sku !== skuNoDash
+									? and(eq(sprFlatFile.sprcSkuNoDash, skuNoDash), sprFlatFile.deleted)
+									: undefined,
+								etilize ? and(eq(sprFlatFile.etilizeId, etilize), sprFlatFile.deleted) : undefined
+							),
+							columns: { id: true }
+						})
+						.execute();
+					return Array.from(new Set(deletedRows.map((r) => r.id)));
 				},
 				isDeleted: (row) => {
 					return row.sprFlatFileRowContent?.deleted ?? true;
