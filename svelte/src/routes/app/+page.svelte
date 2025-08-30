@@ -20,13 +20,8 @@
 		<a href="/app/shelf" class="card card-hover p-6 m-2">
 			<h3 class="font-semibold text-2xl">Shelf</h3>
 		</a>
-		<a
-			href="/app/"
-			class="card p-6 m-2 {data.user.permissionLevel === 'admin'
-				? 'card-hover'
-				: 'cursor-not-allowed text-surface-400'}"
-		>
-			<h3 class="font-semibold text-2xl">Unified Items</h3>
+		<a href="/app/product" class="card p-6 m-2 card-hover">
+			<h3 class="font-semibold text-2xl">Unified Products</h3>
 		</a>
 		<a href="/app/qb" class="card card-hover p-6 m-2">
 			<h3 class="font-semibold text-2xl">QuickBooks</h3>

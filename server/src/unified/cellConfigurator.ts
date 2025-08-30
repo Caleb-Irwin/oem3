@@ -2,9 +2,10 @@ import { eq } from 'drizzle-orm';
 import { db as DB, type Tx } from '../db';
 import { type CellSetting } from '../db.schema';
 import type { UnifiedTables, CellConfigTable } from './types';
-import { createErrorManager } from './errorManager';
+import { createErrorManager, type ValType } from './errorManager';
 import { modifySetting } from './cellSettings';
 import type { VerifyCellValue } from './cellVerification';
+import type { RowTypeBase } from './unifier';
 
 export async function createCellConfigurator<CellConfTable extends CellConfigTable>({
 	table,
@@ -51,11 +52,11 @@ export async function createCellConfigurator<CellConfTable extends CellConfigTab
 		return { setting: setting.confType as CellSetting, conf: setting };
 	}
 
-	async function getConfiguredCellValue<T extends typeof cellTransformer>(
-		{ key, val, options }: ReturnType<T>,
-		oldVal: ReturnType<T>['val']
-	): Promise<ReturnType<T>['val']> {
-		let setting = getCellSettings(key);
+	async function getConfiguredCellValue(
+		{ key, val, options }: BasicCellTransformResults,
+		oldVal: BasicCellTransformResults['val']
+	): Promise<BasicCellTransformResults['val']> {
+		let setting = getCellSettings(key as string);
 		let newVal = val;
 
 		// TODO - Handle default setting of approve
@@ -85,7 +86,7 @@ export async function createCellConfigurator<CellConfTable extends CellConfigTab
 				if (percentChange > thresholdPercent) {
 					errorManager.addError(key as any, {
 						needsApproval: {
-							value: val,
+							value: val as ValType,
 							message: `Value changed by ${percentChange.toFixed(2)}% which exceeds threshold of ${thresholdPercent}%`
 						}
 					});
@@ -127,7 +128,7 @@ export async function createCellConfigurator<CellConfTable extends CellConfigTab
 		// Verify Cell Value Logic
 		const { err, coercedValue } = await verifyCellValue({
 			value: newVal,
-			col: key,
+			col: key as any,
 			db
 		});
 		if (err) {
@@ -169,8 +170,74 @@ export async function createCellConfigurator<CellConfTable extends CellConfigTab
 		return newVal;
 	}
 
+	async function getConfiguredRow<
+		TableType extends UnifiedTables,
+		RowType extends RowTypeBase<TableType>
+	>(
+		transformed: {
+			[K in keyof TableType['$inferSelect']]: ReturnType<
+				typeof cellTransformer<TableType, keyof TableType['$inferSelect']>
+			>;
+		},
+		originalRow: RowType,
+		connectionColumns: Set<string>
+	): Promise<{
+		changes: Partial<TableType['$inferInsert']>;
+		changesToCommit: Partial<TableType['$inferInsert']>;
+	}> {
+		const newRow = {
+				id: originalRow.id,
+				lastUpdated: originalRow.lastUpdated
+			} as Partial<TableType['$inferInsert']>,
+			resolvedKeys: Set<keyof TableType['$inferInsert']> = new Set(['id', 'lastUpdated']),
+			unresolvedKeys = Object.keys(transformed) as (keyof TableType['$inferInsert'])[],
+			changes: Partial<TableType['$inferInsert']> = {},
+			changesToCommit: Partial<TableType['$inferInsert']> = {};
+
+		let unresolvedCount = 0;
+		while (unresolvedKeys.length > 0) {
+			const key = unresolvedKeys.shift()!;
+			if (resolvedKeys.has(key)) continue;
+			const transformedEntry = transformed[key];
+			if (
+				transformedEntry.options?.dependsOn &&
+				!resolvedKeys.isSupersetOf(transformedEntry.options.dependsOn)
+			) {
+				unresolvedKeys.push(key);
+				unresolvedCount++;
+				if (unresolvedCount > 100)
+					throw new Error('Possible circular dependency detected in cell transformations');
+				continue;
+			}
+			if (typeof transformedEntry.val === 'function') {
+				const v = await (transformedEntry.val as any)(newRow);
+				console.log(v);
+				transformedEntry.val = v;
+				console.log(transformedEntry.val);
+			}
+			const newVal = (await getConfiguredCellValue(
+				transformedEntry as any,
+				originalRow[key] as any
+			)) as any;
+			if (originalRow[key] !== newVal) {
+				if (!connectionColumns.has(key.toString())) {
+					changesToCommit[key] = newVal;
+				}
+				changes[key] = newVal;
+			}
+			newRow[key] = newVal;
+			resolvedKeys.add(key);
+		}
+
+		return {
+			changes,
+			changesToCommit
+		};
+	}
+
 	return {
 		getCellSettings,
+		getConfiguredRow,
 		getConfiguredCellValue,
 		addError: errorManager.addError,
 		commitErrors: errorManager.commitErrors
@@ -179,10 +246,20 @@ export async function createCellConfigurator<CellConfTable extends CellConfigTab
 
 export type CellConfigurator = Awaited<ReturnType<typeof createCellConfigurator>>;
 
+type BasicCellTransformResults = {
+	key: string;
+	val: ValType;
+	options?: CellTransformerOptions<ValType, string>;
+};
+
 export const cellTransformer = <T extends UnifiedTables, K extends keyof T['$inferSelect']>(
 	key: K,
-	val: T['$inferSelect'][K],
-	options?: CellTransformerOptions<T['$inferSelect'][K]>
+	val:
+		| T['$inferSelect'][K]
+		| ((
+				partial: Partial<T['$inferSelect']>
+		  ) => T['$inferSelect'][K] | Promise<T['$inferSelect'][K]>),
+	options?: CellTransformerOptions<T['$inferSelect'][K], K>
 ) => {
 	return {
 		key,
@@ -191,8 +268,9 @@ export const cellTransformer = <T extends UnifiedTables, K extends keyof T['$inf
 	};
 };
 
-type CellTransformerOptions<T> = {
+type CellTransformerOptions<T, K> = {
 	shouldMatch?: { primary: string; secondary: string; val: T; ignore?: boolean };
 	shouldNotBeNull?: boolean;
 	defaultSettingOfApprove?: boolean;
+	dependsOn?: Set<K>;
 };

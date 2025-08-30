@@ -294,22 +294,10 @@ export function createUnifier<
 		const transformed = transform(updatedRow, cellTransformer);
 
 		// 3. Apply Overrides + Find Errors
-		const changes: Partial<(typeof table)['$inferSelect']> = {};
-		const changesToCommit: Partial<(typeof table)['$inferSelect']> = {};
-		for (const k of Object.keys(transformed)) {
-			if (k === 'id' || k === 'lastUpdated') continue;
-			const key = k as keyof (typeof table)['$inferInsert'];
-			const newVal = (await cellConfigurator.getConfiguredCellValue(
-				transformed[k as keyof typeof transformed] as any,
-				originalRow[key] as any
-			)) as any;
-			if (originalRow[key] !== newVal) {
-				if (!connectionColumns.has(key.toString())) {
-					changesToCommit[key] = newVal;
-				}
-				changes[key] = newVal;
-			}
-		}
+		const { changes, changesToCommit } = await cellConfigurator.getConfiguredRow<
+			TableType,
+			RowType
+		>(transformed, originalRow, connectionColumns);
 
 		const { errorsToAdd, errorsToRemove } = await cellConfigurator.commitErrors();
 		const hasChanges = Object.keys(changes).length > 0;
@@ -324,7 +312,7 @@ export function createUnifier<
 					uniref: originalRow.uniref.uniId,
 					prev: originalRow,
 					entryType: 'update',
-					data: changes,
+					data: changes as Partial<RowType>,
 					created: time
 				}
 			: null;

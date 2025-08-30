@@ -37,7 +37,7 @@ export const sprUnifier = createUnifier<
 >({
 	table: unifiedSpr,
 	confTable: unifiedSprCellConfig,
-	version: 21,
+	version: 22,
 	getRow,
 	transform: (item, t) => {
 		const price = item.sprPriceFileRowContent;

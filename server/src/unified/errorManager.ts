@@ -18,7 +18,7 @@ export function createErrorManager(
 		newErrors.push({
 			refId: id,
 			confType: `error:${errorType}` as any,
-			col,
+			col: col as any,
 			message: errorData.message ?? null,
 			value:
 				errorData.value !== undefined && errorData.value !== null ? String(errorData.value) : null,
@@ -130,7 +130,7 @@ function findMatchingError(
 	return null;
 }
 
-type ValType = string | number | boolean | null;
+export type ValType = string | number | boolean | null;
 
 export interface NewError {
 	multipleOptions?: {
