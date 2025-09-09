@@ -156,10 +156,7 @@ async function updateUnifiedSummary(tableName: UnifiedTableNames) {
 async function getAllConnectionSummaries(
 	unifiedTableName: UnifiedTableNames
 ): Promise<ConnectionSummary[]> {
-	const allConnections = [
-		UnifierMap[unifiedTableName].unifier.conf.connections.primaryTable,
-		...UnifierMap[unifiedTableName].unifier.conf.connections.otherTables
-	];
+	const { allConnections } = UnifierMap[unifiedTableName];
 
 	return Promise.all(
 		allConnections.map((connection) => connectionSummary(unifiedTableName, connection))

@@ -35,17 +35,11 @@ export async function getCellConfigHelper(
 
 	const uniId = await getUniId({ db, unifiedTable, refId });
 
-	const unifier = UnifierMap[tablePrefix].unifier;
-	const refCols = new Set(
-		[unifier.conf.connections.primaryTable, ...unifier.conf.connections.otherTables].map(
-			({ refCol }) => refCol.toString()
-		)
-	);
+	const { unifier, allConnections } = UnifierMap[tablePrefix];
+	const refCols = new Set(allConnections.map(({ refCol }) => refCol.toString()));
 	const refColToTableName = {
 		...Object.fromEntries(
-			[unifier.conf.connections.primaryTable, ...unifier.conf.connections.otherTables].map(
-				({ refCol, table }) => [refCol.toString(), getTableName(table)]
-			)
+			allConnections.map(({ refCol, table }) => [refCol.toString(), getTableName(table)])
 		)
 	};
 

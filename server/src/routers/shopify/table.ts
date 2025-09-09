@@ -20,6 +20,7 @@ export const shopify = pgTable(
 	{
 		id: serial('id').primaryKey(),
 		productId: varchar('productId', { length: 128 }).notNull(),
+		variantId: varchar('variantId', { length: 128 }).notNull().unique(),
 		handle: varchar('handle', { length: 255 }).notNull(),
 		title: text('title').notNull(),
 		htmlDescription: text('htmlDescription'),
@@ -32,7 +33,6 @@ export const shopify = pgTable(
 		publishedAt: bigint('publishedAt', { mode: 'number' }),
 		updatedAt: bigint('updatedAt', { mode: 'number' }),
 		status: statusEnum('status').notNull(),
-		variantId: varchar('variantId', { length: 128 }).notNull().unique(),
 		vPriceCents: integer('vPriceCents').notNull(),
 		vComparePriceCents: integer('vComparePriceCents'),
 		vWeightGrams: integer('vWeightGrams'),

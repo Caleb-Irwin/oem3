@@ -17,6 +17,7 @@ import type {
 	CellConfigTable,
 	OtherSourceTables,
 	PrimarySourceTables,
+	SecondarySourceTables,
 	UnifiedTables
 } from './types';
 import { VerifyCellValue } from './cellVerification';
@@ -26,15 +27,24 @@ export function createUnifier<
 	TableType extends UnifiedTables,
 	CellConfTable extends CellConfigTable,
 	Primary extends PrimarySourceTables,
-	Other extends OtherSourceTables
->(conf: CreateUnifierConf<RowType, TableType, CellConfTable, Primary, Other>) {
+	Other extends OtherSourceTables,
+	Secondary extends SecondarySourceTables | null = null
+>(conf: CreateUnifierConf<RowType, TableType, CellConfTable, Primary, Other, Secondary>) {
 	const { table, confTable, getRow, transform, connections, version } = conf;
 
 	const tableConf = getTableConfig(table),
-		unifiedTableName = tableConf.name,
-		connectionColumns = new Set(
-			[connections.primaryTable, ...connections.otherTables].map((c) => c.refCol.toString())
-		);
+		unifiedTableName = tableConf.name;
+
+	type AnyConnection =
+		| PrimarySecondaryTableConnection<RowType, TableType, Primary>
+		| TableConnection<RowType, TableType, Other>
+		| PrimarySecondaryTableConnection<RowType, TableType, SecondarySourceTables>;
+	const allConnections: AnyConnection[] = [connections.primaryTable, ...connections.otherTables];
+	if (connections.secondaryTable) {
+		allConnections.push(connections.secondaryTable);
+	}
+
+	const connectionColumns = new Set(allConnections.map((c) => c.refCol.toString()));
 
 	async function _modifyRow(
 		id: number,
@@ -63,7 +73,7 @@ export function createUnifier<
 	}: {
 		db: Tx | typeof DB;
 		id: number;
-		connectionTable: ConnectionTable<RowType, TableType, Primary, Other>;
+		connectionTable: AnyConnection;
 		cellConfigurator: CellConfigurator;
 		onUpdateCallback: OnUpdateCallback;
 		updatedRow: RowType;
@@ -74,8 +84,7 @@ export function createUnifier<
 		const updatedRow = structuredClone(updatedRowIn);
 		const otherConnections = await connectionTable.findConnections(updatedRow, db);
 		const connectionRowKey = connectionTable.refCol as keyof TableType['$inferInsert'];
-		const isPrimary = !!(connectionTable as PrimaryTableConnection<any, any, any>)
-			.newRowTransform as boolean;
+		const isPrimary = 'newRowTransform' in connectionTable;
 
 		// Un-match the connection if it is deleted and not primary
 		if (
@@ -253,12 +262,8 @@ export function createUnifier<
 			verifyCellValue
 		});
 		// 1. Check + make connections
-		const connectionsList = [
-			connections.primaryTable,
-			/* Secondary, */
-			...connections.otherTables
-		];
-		for (const connectionTable of connectionsList) {
+
+		for (const connectionTable of allConnections) {
 			const { needsRowRefresh } = await _updateConnection({
 				db,
 				id,
@@ -422,8 +427,7 @@ export function createUnifier<
 				.execute();
 			allRows.forEach((v) => rowsToUpdate.add(v.id));
 		} else {
-			const sourceTables = [connections.primaryTable, ...connections.otherTables];
-			for (const sourceTable of sourceTables) {
+			for (const sourceTable of allConnections) {
 				const lastUpdated = lastUpdatedBySource[sourceTable.refCol as string] ?? 0;
 				const rows = await db
 					.select({ id: table.id, lastUpdated: sourceTable.table.lastUpdated })
@@ -523,7 +527,8 @@ export interface CreateUnifierConf<
 	TableType extends UnifiedTables,
 	CellConfTable extends CellConfigTable,
 	Primary extends PrimarySourceTables,
-	Other extends OtherSourceTables
+	Other extends OtherSourceTables,
+	Secondary extends SecondarySourceTables | null = null
 > {
 	table: TableType;
 	confTable: CellConfTable;
@@ -536,7 +541,7 @@ export interface CreateUnifierConf<
 			typeof cellTransformer<TableType, keyof TableType['$inferSelect']>
 		>;
 	};
-	connections: Connections<RowType, TableType, Primary, Other>;
+	connections: Connections<RowType, TableType, Primary, Secondary, Other>;
 	additionalColValidators: AdditionalColValidator<TableType>;
 	version: number;
 }
@@ -547,14 +552,18 @@ export type RowTypeBase<TableType extends UnifiedTables> = TableType['$inferSele
 	deleted: boolean;
 };
 
-type ConnectionTable<
+export type ConnectionTable<
 	RowType,
 	TableType extends UnifiedTables,
 	Primary extends PrimarySourceTables = PrimarySourceTables,
-	Other extends OtherSourceTables = OtherSourceTables
+	Other extends OtherSourceTables = OtherSourceTables,
+	Secondary extends SecondarySourceTables | null = null
 > =
-	| PrimaryTableConnection<RowType, TableType, Primary>
-	| TableConnection<RowType, TableType, Other>;
+	| PrimarySecondaryTableConnection<RowType, TableType, Primary>
+	| TableConnection<RowType, TableType, Other>
+	| (Secondary extends SecondarySourceTables
+			? PrimarySecondaryTableConnection<RowType, TableType, Secondary>
+			: never);
 
 export interface TableConnection<
 	RowType,
@@ -568,10 +577,10 @@ export interface TableConnection<
 	allowDeleted?: boolean;
 }
 
-interface PrimaryTableConnection<
+interface PrimarySecondaryTableConnection<
 	RowType,
 	UnifiedTable extends UnifiedTables,
-	T extends PrimarySourceTables
+	T extends PrimarySourceTables | SecondarySourceTables
 > extends TableConnection<RowType, UnifiedTable, T> {
 	newRowTransform: (row: T['$inferSelect'], lastUpdated: number) => UnifiedTable['$inferInsert'];
 }
@@ -580,10 +589,13 @@ interface Connections<
 	RowType,
 	UnifiedTable extends UnifiedTables,
 	Primary extends PrimarySourceTables = PrimarySourceTables,
+	Secondary extends SecondarySourceTables | null = null,
 	Other extends OtherSourceTables = OtherSourceTables
 > {
-	primaryTable: PrimaryTableConnection<RowType, UnifiedTable, Primary>;
-	// secondaryTable?: TableConnections<RowType, SecondarySourceTables>;
+	primaryTable: PrimarySecondaryTableConnection<RowType, UnifiedTable, Primary>;
+	secondaryTable: Secondary extends SecondarySourceTables
+		? PrimarySecondaryTableConnection<RowType, UnifiedTable, Secondary>
+		: null;
 	otherTables: TableConnection<RowType, UnifiedTable, Other>[];
 }
 

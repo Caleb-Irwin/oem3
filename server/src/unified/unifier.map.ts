@@ -19,6 +19,10 @@ export const UnifierMap: {
 		table: UnifiedTables;
 		confTable: CellConfigTable;
 		pageUrl: string;
+		allConnections: (
+			| Unifier<any, any, any, any, any>['conf']['connections']['primaryTable']
+			| Unifier<any, any, any, any, any>['conf']['connections']['otherTables'][number]
+		)[];
 	};
 } = {
 	unifiedGuild: {
@@ -26,13 +30,21 @@ export const UnifierMap: {
 		runUnifierWorker: runGuildWorker,
 		table: unifiedGuild,
 		confTable: unifiedGuildCellConfig,
-		pageUrl: '/app/guild'
+		pageUrl: '/app/guild',
+		allConnections: [
+			guildUnifier.conf.connections.primaryTable,
+			...guildUnifier.conf.connections.otherTables
+		]
 	},
 	unifiedSpr: {
 		unifier: sprUnifier,
 		runUnifierWorker: runSprWorker,
 		table: unifiedSpr,
 		confTable: unifiedSprCellConfig,
-		pageUrl: '/app/spr'
+		pageUrl: '/app/spr',
+		allConnections: [
+			sprUnifier.conf.connections.primaryTable,
+			...sprUnifier.conf.connections.otherTables
+		]
 	}
 };

@@ -15,7 +15,8 @@ export const UnifiedTableNamesArray = ['unifiedGuild', 'unifiedSpr'] as const;
 export type UnifiedTableNames = (typeof UnifiedTableNamesArray)[number];
 export const PrimarySourceTableNamesArray = ['unifiedGuild', 'guildData', 'sprPriceFile'] as const;
 export type PrimarySourceTables = typeof unifiedGuild | typeof guildData | typeof sprPriceFile;
-// export type SecondarySourceTables = typeof unifiedSPR
+export const SecondarySourceTableNamesArray = ['unifiedSpr'] as const;
+export type SecondarySourceTables = typeof unifiedSpr;
 export const OtherSourceTableNamesArray = [
 	'guildInventory',
 	'guildFlyer',
@@ -28,9 +29,10 @@ export type OtherSourceTables =
 	| typeof sprFlatFile
 	| typeof unifiedSpr;
 
-export type AllSourceTables = PrimarySourceTables | OtherSourceTables;
+export type AllSourceTables = PrimarySourceTables | SecondarySourceTables | OtherSourceTables;
 export const AllSourceTableNamesArray = [
 	...PrimarySourceTableNamesArray,
+	...SecondarySourceTableNamesArray,
 	...OtherSourceTableNamesArray
 ] as const;
 export type AllSourceTableNames = (typeof AllSourceTableNamesArray)[number];

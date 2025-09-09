@@ -40,8 +40,7 @@ export const updateUnmatched = generalProcedure
 	});
 
 function getConnection(unifiedTableName: UnifiedTableNames, connectionTable: AllSourceTables) {
-	const conf = UnifierMap[unifiedTableName].unifier.conf.connections;
-	const all = [conf.primaryTable, ...conf.otherTables];
+	const all = UnifierMap[unifiedTableName].allConnections;
 	const found = all.find((c) => c.table === connectionTable);
 	if (!found) throw new Error(`Connection not found for table`);
 	return found;
@@ -81,8 +80,7 @@ export async function getAllUnmatchedByTableName(
 	>;
 	let resolvedConn: { unifiedName: UnifiedTableNames; table: AllSourceTables } | null = null;
 	for (const [unifiedName, v] of entries) {
-		const conf = v.unifier.conf.connections;
-		const all = [conf.primaryTable, ...conf.otherTables];
+		const all = v.allConnections;
 		for (const c of all) {
 			const name = getTableConfig(c.table).name as AllSourceTableNames;
 			if (name === connectionTableName) {
@@ -104,8 +102,7 @@ function resolveConnectionByName(connectionTableName: AllSourceTableNames) {
 		[UnifiedTableNames, (typeof UnifierMap)[UnifiedTableNames]]
 	>;
 	for (const [unifiedName, v] of entries) {
-		const conf = v.unifier.conf.connections;
-		const all = [conf.primaryTable, ...conf.otherTables];
+		const all = v.allConnections;
 		for (const c of all) {
 			const name = getTableConfig(c.table).name as AllSourceTableNames;
 			if (name === connectionTableName) {
@@ -197,11 +194,8 @@ export const getUnmatchedUrl = viewerProcedure
 
 		const items = await unmatchedQueryBuilder(sourceName);
 		if (items.length === 0) {
-			for (const { unifier, pageUrl } of Object.values(UnifierMap)) {
-				const connection = [
-					unifier.conf.connections.primaryTable,
-					...unifier.conf.connections.otherTables
-				].find((c) => getTableName(c.table) === sourceName);
+			for (const { pageUrl, allConnections } of Object.values(UnifierMap)) {
+				const connection = allConnections.find((c) => getTableName(c.table) === sourceName);
 				if (connection) {
 					return { url: pageUrl };
 				}

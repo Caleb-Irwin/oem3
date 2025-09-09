@@ -13,7 +13,7 @@ export function VerifyCellValue<
 	table,
 	additionalColValidators,
 	connections
-}: CreateUnifierConf<RowType, TableType, CellConfTable, any, any>) {
+}: CreateUnifierConf<RowType, TableType, CellConfTable, any, any, any>) {
 	const colTypes = getColConfig(table);
 
 	async function verifyCellValue<K extends keyof TableType['$inferSelect']>({
@@ -78,9 +78,11 @@ export function VerifyCellValue<
 				}
 			}
 			if (verifyConnections) {
-				const connectionTable = [connections.primaryTable, ...connections.otherTables].find(
-					(c) => c.refCol === col
-				);
+				const connectionTable = [
+					connections.primaryTable,
+					...(connections.secondaryTable ? [connections.secondaryTable] : []),
+					...connections.otherTables
+				].find((c) => c.refCol === col);
 				if (connectionTable) {
 					const exists = await db
 						.select({ id: table.id })
