@@ -344,44 +344,28 @@ export function createUnifier<
 		});
 	}
 
-	async function updateUnifiedTable({
-		updateAll = false,
-		progress,
-		onUpdateCallback
+	async function _addMissingRows({
+		newLastUpdated,
+		rowsToUpdate,
+		connection
 	}: {
-		updateAll?: boolean;
-		progress?: (progress: number) => void;
-		onUpdateCallback: OnUpdateCallback;
+		newLastUpdated: number;
+		rowsToUpdate: Set<number>;
+		connection: PrimarySecondaryTableConnection<RowType, TableType, any>;
 	}) {
-		if (progress) progress(-1);
-		const initKV = new KV('unifier/' + unifiedTableName, DB);
-		const newLastUpdated = Date.now(),
-			originalLastUpdatedBySource: { [key: string]: number } = JSON.parse(
-				(await initKV.get('lastUpdatedBySource')) ?? '{}'
-			),
-			lastUpdatedBySource: { [key: string]: number } = { ...originalLastUpdatedBySource },
-			rowsToUpdate = new Set<number>();
-		if (parseInt((await initKV.get('version')) ?? '-1') < version) {
-			updateAll = true;
-		}
-
-		// 1. Add missing primary rows
 		await DB.transaction(async (db) => {
 			const missingPrimaryRows = await db
 				.select()
-				.from(connections.primaryTable.table as any)
+				.from(connection.table as any)
 				.leftJoin(
 					table as UnifiedTables,
-					eq(
-						connections.primaryTable.table.id,
-						table[connections.primaryTable.refCol] as SQLWrapper
-					)
+					eq(connection.table.id, table[connection.refCol] as SQLWrapper)
 				)
 				.where(isNull(table.id))
 				.execute();
-			const primaryTableName = getTableConfig(connections.primaryTable.table).name;
+			const primaryTableName = getTableConfig(connection.table).name;
 			const rowsToInsert = missingPrimaryRows.map((v) =>
-				connections.primaryTable.newRowTransform(
+				connection.newRowTransform(
 					v[primaryTableName as unknown as keyof typeof v] as any,
 					newLastUpdated
 				)
@@ -418,6 +402,57 @@ export function createUnifier<
 				});
 			}
 		});
+	}
+	async function _updateRows({
+		progress,
+		onUpdateCallback,
+		rowsToUpdate
+	}: {
+		progress?: (progress: number) => void;
+		onUpdateCallback: OnUpdateCallback;
+		rowsToUpdate: Set<number>;
+	}) {
+		if (progress) progress(0);
+		let done = 0;
+		await PromisePool.withConcurrency(25)
+			.for(Array.from(rowsToUpdate))
+			.handleError(async (error) => {
+				console.error('Error updating row:', error);
+				throw error;
+			})
+			.onTaskFinished(() => {
+				done++;
+				if (progress && done % 100 === 0) progress(done / rowsToUpdate.size);
+			})
+			.process(async (id) => {
+				await updateRow(id, onUpdateCallback);
+			});
+		if (progress) progress(1);
+	}
+
+	async function updateUnifiedTable({
+		updateAll = false,
+		progress,
+		onUpdateCallback
+	}: {
+		updateAll?: boolean;
+		progress?: (progress: number) => void;
+		onUpdateCallback: OnUpdateCallback;
+	}) {
+		if (progress) progress(-1);
+		const initKV = new KV('unifier/' + unifiedTableName, DB);
+		const newLastUpdated = Date.now(),
+			originalLastUpdatedBySource: { [key: string]: number } = JSON.parse(
+				(await initKV.get('lastUpdatedBySource')) ?? '{}'
+			),
+			lastUpdatedBySource: { [key: string]: number } = { ...originalLastUpdatedBySource },
+			rowsToUpdate = new Set<number>();
+		if (parseInt((await initKV.get('version')) ?? '-1') < version) {
+			updateAll = true;
+		}
+
+		// 1. Add missing primary rows
+		await _addMissingRows({ newLastUpdated, rowsToUpdate, connection: connections.primaryTable });
 
 		// 2. Determine which rows need to be updated
 		if (updateAll) {
@@ -453,24 +488,28 @@ export function createUnifier<
 		}
 
 		// 3. Update Rows
-		if (progress) progress(0);
-		let done = 0;
-		await PromisePool.withConcurrency(25)
-			.for(Array.from(rowsToUpdate))
-			.handleError(async (error) => {
-				console.error('Error updating row:', error);
-				throw error;
-			})
-			.onTaskFinished(() => {
-				done++;
-				if (progress && done % 100 === 0) progress(done / rowsToUpdate.size);
-			})
-			.process(async (id) => {
-				await updateRow(id, onUpdateCallback);
-			});
-		if (progress) progress(1);
+		await _updateRows({
+			progress,
+			onUpdateCallback,
+			rowsToUpdate
+		});
 
-		// 4. Finish
+		// 4. Secondary Sources
+		if (connections.secondaryTable) {
+			const secondaryRowsToUpdate = new Set<number>();
+			await _addMissingRows({
+				newLastUpdated,
+				rowsToUpdate: secondaryRowsToUpdate,
+				connection: connections.secondaryTable
+			});
+			await _updateRows({
+				progress,
+				onUpdateCallback,
+				rowsToUpdate: secondaryRowsToUpdate
+			});
+		}
+
+		// 5. Finish
 		await retryableTransaction(
 			async (db) => {
 				const kv = new KV('unifier/' + unifiedTableName, db);
