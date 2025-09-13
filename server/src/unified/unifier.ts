@@ -9,18 +9,22 @@ import {
 	type InsertHistoryRowOptions
 } from '../utils/history';
 import { KV } from '../utils/kv';
-import { cellTransformer, createCellConfigurator, type CellConfigurator } from './cellConfigurator';
+import { cellTransformer, createCellConfigurator } from './cellConfigurator';
 import type { NewError } from './errorManager';
 import { retryableTransaction } from './retryableTransaction';
 import PromisePool from '@supercharge/promise-pool';
 import type {
+	AnyConnection,
 	CellConfigTable,
+	Connections,
 	OtherSourceTables,
 	PrimarySourceTables,
 	SecondarySourceTables,
 	UnifiedTables
 } from './types';
 import { VerifyCellValue } from './cellVerification';
+import type { PrimarySecondaryTableConnection } from './types';
+import { ConnectionManager } from './connections';
 
 export function createUnifier<
 	RowType extends RowTypeBase<TableType>,
@@ -35,14 +39,11 @@ export function createUnifier<
 	const tableConf = getTableConfig(table),
 		unifiedTableName = tableConf.name;
 
-	type AnyConnection =
-		| PrimarySecondaryTableConnection<RowType, TableType, Primary>
-		| TableConnection<RowType, TableType, Other>
-		| PrimarySecondaryTableConnection<RowType, TableType, SecondarySourceTables>;
-	const allConnections: AnyConnection[] = [connections.primaryTable, ...connections.otherTables];
-	if (connections.secondaryTable) {
-		allConnections.push(connections.secondaryTable);
-	}
+	const allConnections: AnyConnection[] = [
+		connections.primaryTable,
+		...(connections.secondaryTable ? [connections.secondaryTable] : []),
+		...connections.otherTables
+	];
 
 	const connectionColumns = new Set(allConnections.map((c) => c.refCol.toString()));
 
@@ -60,183 +61,10 @@ export function createUnifier<
 
 	const verifyCellValue = VerifyCellValue<RowType, TableType, CellConfTable>(conf);
 
-	async function _updateConnection({
-		db,
-		id,
-		connectionTable,
-		cellConfigurator,
-		onUpdateCallback,
-		updatedRow: updatedRowIn,
-		originalRow,
-		nestedMode,
-		removeAutoMatch
-	}: {
-		db: Tx | typeof DB;
-		id: number;
-		connectionTable: AnyConnection;
-		cellConfigurator: CellConfigurator;
-		onUpdateCallback: OnUpdateCallback;
-		updatedRow: RowType;
-		originalRow: RowType;
-		nestedMode: boolean;
-		removeAutoMatch: boolean;
-	}) {
-		const updatedRow = structuredClone(updatedRowIn);
-		const otherConnections = await connectionTable.findConnections(updatedRow, db);
-		const connectionRowKey = connectionTable.refCol as keyof TableType['$inferInsert'];
-		const isPrimary = 'newRowTransform' in connectionTable;
-
-		// Un-match the connection if it is deleted and not primary
-		if (
-			!isPrimary &&
-			((connectionTable.isDeleted(updatedRow) && !connectionTable.allowDeleted) || removeAutoMatch)
-		) {
-			updatedRow[connectionRowKey] = null as any;
-		}
-
-		updatedRow[connectionRowKey] = (await cellConfigurator.getConfiguredCellValue(
-			{
-				key: connectionRowKey as any,
-				val: updatedRow[connectionRowKey] as number,
-				options: {}
-			},
-			originalRow[connectionRowKey] as number | null
-		)) as any;
-
-		async function findExistingConnection(db: Tx | typeof DB, value: number) {
-			const existing = await db
-				.select({ id: table.id, col: table[connectionRowKey as keyof TableType] as any })
-				.from(table as any)
-				.where(eq(table[connectionRowKey as keyof TableType] as any, value))
-				.execute();
-			return existing.length > 0 ? existing[0].id : null;
-		}
-
-		if (
-			cellConfigurator.getCellSettings(connectionRowKey as any).setting === null &&
-			!removeAutoMatch
-		) {
-			// Ensure previous event is a valid auto match and if not remove it
-			if (
-				updatedRow[connectionRowKey] !== null &&
-				!otherConnections.includes(updatedRow[connectionRowKey] as number) &&
-				!isPrimary
-			) {
-				updatedRow[connectionRowKey] = null as any;
-			}
-
-			// Auto match if possible or remove if not
-			if (otherConnections.length > 0 && updatedRow[connectionRowKey] === null) {
-				updatedRow[connectionRowKey] = otherConnections[0] as any;
-			} else if (otherConnections.length === 0 && !isPrimary) {
-				updatedRow[connectionRowKey] = null as any;
-			}
-
-			// Deal with multiple auto connection options
-			if (otherConnections.length > 1) {
-				for (const connectionId of otherConnections) {
-					const existing = await findExistingConnection(db, connectionId);
-					if (!existing) {
-						updatedRow[connectionRowKey] = connectionId as any;
-						break;
-					}
-				}
-				cellConfigurator.addError(connectionRowKey as any, {
-					multipleOptions: {
-						options: otherConnections.filter(
-							(v: number) => v !== (updatedRow[connectionRowKey] as unknown as number | null)
-						),
-						value: updatedRow[connectionRowKey] as any
-					}
-				});
-			}
-		}
-
-		const newVal = updatedRow[connectionRowKey] as number | null;
-
-		async function tryToUpdateRow(newId: number | null, onConflict: () => Promise<void>) {
-			try {
-				await db.transaction(async (tx) => {
-					await _modifyRow(
-						id,
-						{
-							[connectionRowKey]: newId
-						} as any,
-						tx
-					);
-				});
-				return true;
-			} catch (error: any) {
-				if (error?.code === '23505') {
-					await onConflict();
-				} else {
-					throw error;
-				}
-				return false;
-			}
-		}
-
-		async function tryToRemoveConnection(newVal: number) {
-			const existingId = await findExistingConnection(db, newVal);
-			if (!existingId) {
-				throw new Error(
-					`No existing row found with the same connection value (${connectionRowKey.toString()}=${newVal})`
-				);
-			} else {
-				return await db.transaction(async (tx) => {
-					await _updateRow({ id: existingId, db: tx, onUpdateCallback, nestedMode: true });
-					const deleted = await tx
-						.select({ deleted: table.deleted })
-						.from(table as any)
-						.where(eq(table.id, existingId))
-						.execute();
-					if (deleted[0].deleted) {
-						await _updateRow({
-							id: existingId,
-							db: tx,
-							onUpdateCallback,
-							nestedMode: true,
-							removeAutoMatch: true
-						});
-						return true;
-					}
-					return false;
-				});
-			}
-		}
-
-		async function fallBackToNull() {
-			if (!isPrimary && originalRow[connectionRowKey] !== null) {
-				updatedRow[connectionRowKey] = null as any;
-				await tryToUpdateRow(null, async () => {
-					throw new Error('Failed to set null');
-				});
-			} else {
-				updatedRow[connectionRowKey] = originalRow[connectionRowKey];
-			}
-			cellConfigurator.addError(connectionRowKey as any, {
-				matchWouldCauseDuplicate: {
-					value: newVal
-				}
-			});
-		}
-
-		if (originalRow[connectionRowKey] !== newVal) {
-			await tryToUpdateRow(newVal, async () => {
-				const removed = nestedMode ? false : await tryToRemoveConnection(newVal!);
-				if (removed) {
-					const success = await tryToUpdateRow(newVal, fallBackToNull);
-					if (success) {
-						await _updateRow({ id, db, onUpdateCallback, nestedMode: true });
-					}
-				} else {
-					await fallBackToNull();
-				}
-			});
-		}
-
-		return { needsRowRefresh: updatedRow[connectionRowKey] !== originalRow[connectionRowKey] };
-	}
+	const connectionsManager = ConnectionManager({
+		conf,
+		_modifyRow
+	});
 
 	async function _updateRow({
 		id,
@@ -263,22 +91,17 @@ export function createUnifier<
 		});
 		// 1. Check + make connections
 
-		for (const connectionTable of allConnections) {
-			const { needsRowRefresh } = await _updateConnection({
-				db,
-				id,
-				connectionTable,
-				cellConfigurator,
-				onUpdateCallback,
-				updatedRow,
-				originalRow,
-				nestedMode,
-				removeAutoMatch
-			});
-			if (needsRowRefresh) {
-				updatedRow = await getRow(id, db);
-			}
-		}
+		updatedRow = await connectionsManager.updateConnections({
+			db,
+			id,
+			onUpdateCallback,
+			nestedMode,
+			removeAutoMatch,
+			originalRow,
+			updatedRow,
+			cellConfigurator,
+			_updateRow
+		});
 		// 1.a Deleted item based on primary connection
 		if (connections.primaryTable.isDeleted(updatedRow) && !updatedRow.deleted) {
 			const newVal = (await cellConfigurator.getConfiguredCellValue(
@@ -469,7 +292,7 @@ export function createUnifier<
 					.from(table as UnifiedTables)
 					.leftJoin(
 						sourceTable.table as any,
-						eq(table[sourceTable.refCol] as SQLWrapper, sourceTable.table.id)
+						eq(table[sourceTable.refCol as keyof UnifiedTables] as SQLWrapper, sourceTable.table.id)
 					)
 					.where(
 						or(
@@ -590,53 +413,6 @@ export type RowTypeBase<TableType extends UnifiedTables> = TableType['$inferSele
 	id: number;
 	deleted: boolean;
 };
-
-export type ConnectionTable<
-	RowType,
-	TableType extends UnifiedTables,
-	Primary extends PrimarySourceTables = PrimarySourceTables,
-	Other extends OtherSourceTables = OtherSourceTables,
-	Secondary extends SecondarySourceTables | null = null
-> =
-	| PrimarySecondaryTableConnection<RowType, TableType, Primary>
-	| TableConnection<RowType, TableType, Other>
-	| (Secondary extends SecondarySourceTables
-			? PrimarySecondaryTableConnection<RowType, TableType, Secondary>
-			: never);
-
-export interface TableConnection<
-	RowType,
-	UnifiedTable extends UnifiedTables,
-	T extends PrimarySourceTables | OtherSourceTables
-> {
-	table: T;
-	refCol: keyof UnifiedTable;
-	findConnections: (row: RowType, db: typeof DB | Tx) => Promise<number[]>; // Should not return deleted items
-	isDeleted: (row: RowType) => boolean;
-	allowDeleted?: boolean;
-}
-
-interface PrimarySecondaryTableConnection<
-	RowType,
-	UnifiedTable extends UnifiedTables,
-	T extends PrimarySourceTables | SecondarySourceTables
-> extends TableConnection<RowType, UnifiedTable, T> {
-	newRowTransform: (row: T['$inferSelect'], lastUpdated: number) => UnifiedTable['$inferInsert'];
-}
-
-interface Connections<
-	RowType,
-	UnifiedTable extends UnifiedTables,
-	Primary extends PrimarySourceTables = PrimarySourceTables,
-	Secondary extends SecondarySourceTables | null = null,
-	Other extends OtherSourceTables = OtherSourceTables
-> {
-	primaryTable: PrimarySecondaryTableConnection<RowType, UnifiedTable, Primary>;
-	secondaryTable: Secondary extends SecondarySourceTables
-		? PrimarySecondaryTableConnection<RowType, UnifiedTable, Secondary>
-		: null;
-	otherTables: TableConnection<RowType, UnifiedTable, Other>[];
-}
 
 type AdditionalColValidator<TableType extends UnifiedTables> = {
 	[K in keyof TableType['$inferSelect']]?: (

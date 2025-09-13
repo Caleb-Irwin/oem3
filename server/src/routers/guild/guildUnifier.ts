@@ -189,6 +189,7 @@ export const guildUnifier = createUnifier<
 				return row.dataRowContent.deleted;
 			}
 		},
+		secondaryTable: null,
 		otherTables: [
 			{
 				table: guildInventory,

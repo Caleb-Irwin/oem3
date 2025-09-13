@@ -51,7 +51,7 @@ work({
 			client.close();
 		} catch (err) {
 			client.close();
-			console.log(err);
+			throw err;
 		}
 
 		await unzipFile(tempFolderPath + '/basic.zip', tempFolderPath + '/basic');

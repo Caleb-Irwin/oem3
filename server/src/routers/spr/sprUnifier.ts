@@ -37,7 +37,7 @@ export const sprUnifier = createUnifier<
 >({
 	table: unifiedSpr,
 	confTable: unifiedSprCellConfig,
-	version: 22,
+	version: 24,
 	getRow,
 	transform: (item, t) => {
 		const price = item.sprPriceFileRowContent;
@@ -168,6 +168,7 @@ export const sprUnifier = createUnifier<
 				);
 			}
 		},
+		secondaryTable: null,
 		otherTables: [
 			{
 				table: sprFlatFile,
@@ -175,41 +176,58 @@ export const sprUnifier = createUnifier<
 				allowDeleted: true,
 				findConnections: async (row, db) => {
 					const sku = row.sprc;
-					const skuNoDash = sku ? sku.replace(/[-\/\\]/g, '') : '';
 					const etilize = row.sprPriceFileRowContent?.etilizeId ?? null;
-					const rows = await db.query.sprFlatFile
-						.findMany({
-							where: or(
-								sku && sku !== ''
-									? and(eq(sprFlatFile.sprcSku, sku), not(sprFlatFile.deleted))
-									: undefined,
-								skuNoDash && skuNoDash !== '' && sku !== skuNoDash
-									? and(eq(sprFlatFile.sprcSkuNoDash, skuNoDash), not(sprFlatFile.deleted))
-									: undefined,
-								etilize
-									? and(eq(sprFlatFile.etilizeId, etilize), not(sprFlatFile.deleted))
-									: undefined
-							),
-							columns: { id: true }
-						})
-						.execute();
-					const res = Array.from(new Set(rows.map((r) => r.id)));
-					if (res.length > 0) return res;
-					const deletedRows = await db.query.sprFlatFile
-						.findMany({
-							where: or(
-								sku && sku !== ''
-									? and(eq(sprFlatFile.sprcSku, sku), sprFlatFile.deleted)
-									: undefined,
-								skuNoDash && skuNoDash !== '' && sku !== skuNoDash
-									? and(eq(sprFlatFile.sprcSkuNoDash, skuNoDash), sprFlatFile.deleted)
-									: undefined,
-								etilize ? and(eq(sprFlatFile.etilizeId, etilize), sprFlatFile.deleted) : undefined
-							),
-							columns: { id: true }
-						})
-						.execute();
-					return Array.from(new Set(deletedRows.map((r) => r.id)));
+					const bestMatches = (
+						await db.query.sprFlatFile
+							.findMany({
+								where: or(
+									sku && sku !== ''
+										? and(eq(sprFlatFile.sprcSku, sku), not(sprFlatFile.deleted))
+										: undefined,
+									etilize
+										? and(eq(sprFlatFile.etilizeId, etilize), not(sprFlatFile.deleted))
+										: undefined
+								),
+								columns: { id: true }
+							})
+							.execute()
+					).map((r) => r.id);
+					if (bestMatches.length > 0) return bestMatches;
+
+					const skuNoDash = sku ? sku.replace(/[-\/\\]/g, '') : '';
+					const noDashMatches =
+						skuNoDash && skuNoDash !== '' && sku !== skuNoDash
+							? (
+									await db.query.sprFlatFile
+										.findMany({
+											where: and(
+												eq(sprFlatFile.sprcSkuNoDash, skuNoDash),
+												not(sprFlatFile.deleted)
+											),
+											columns: { id: true }
+										})
+										.execute()
+								).map((r) => r.id)
+							: [];
+					if (noDashMatches.length > 0) return noDashMatches;
+
+					const deletedMatches = (
+						await db.query.sprFlatFile
+							.findMany({
+								where: or(
+									sku && sku !== ''
+										? and(eq(sprFlatFile.sprcSku, sku), sprFlatFile.deleted)
+										: undefined,
+									skuNoDash && skuNoDash !== '' && sku !== skuNoDash
+										? and(eq(sprFlatFile.sprcSkuNoDash, skuNoDash), sprFlatFile.deleted)
+										: undefined,
+									etilize ? and(eq(sprFlatFile.etilizeId, etilize), sprFlatFile.deleted) : undefined
+								),
+								columns: { id: true }
+							})
+							.execute()
+					).map((r) => r.id);
+					return deletedMatches;
 				},
 				isDeleted: (row) => {
 					return row.sprFlatFileRowContent?.deleted ?? true;
