@@ -32,13 +32,41 @@ export function ConnectionManager<
 }) {
 	const { connections, getRow, table } = conf;
 
-	const allConnections: AnyConnection[] = [
-		connections.primaryTable,
-		...(connections.secondaryTable ? [connections.secondaryTable] : []),
-		...connections.otherTables
-	];
+	async function tryToUpdateRow({
+		id,
+		newConnectionId: newId,
+		onConflict,
+		db,
+		connectionRowKey
+	}: {
+		id: number;
+		newConnectionId: number | null;
+		connectionRowKey: string | number | symbol;
+		onConflict: () => Promise<void>;
+		db: typeof DB | Tx;
+	}) {
+		try {
+			await db.transaction(async (tx) => {
+				await _modifyRow(
+					id,
+					{
+						[connectionRowKey]: newId
+					} as any,
+					tx
+				);
+			});
+			return true;
+		} catch (error: any) {
+			if (error?.code === '23505') {
+				await onConflict();
+			} else {
+				throw error;
+			}
+			return false;
+		}
+	}
 
-	async function _updateConnection({
+	async function updateConnection({
 		db,
 		id,
 		connectionTable,
@@ -48,7 +76,8 @@ export function ConnectionManager<
 		originalRow,
 		nestedMode,
 		removeAutoMatch,
-		_updateRow
+		_updateRow,
+		conType
 	}: {
 		db: Tx | typeof DB;
 		id: number;
@@ -60,11 +89,12 @@ export function ConnectionManager<
 		nestedMode: boolean;
 		removeAutoMatch: boolean;
 		_updateRow: _UpdateRow;
+		conType: 'primary' | 'secondary' | 'other';
 	}) {
 		const updatedRow = structuredClone(updatedRowIn);
 		const otherConnections = await connectionTable.findConnections(updatedRow, db);
 		const connectionRowKey = connectionTable.refCol as keyof TableType['$inferInsert'];
-		const isPrimarySecondary = 'newRowTransform' in connectionTable;
+		const isPrimarySecondary = conType !== 'other';
 
 		// Un-match the connection if it is deleted and not primary
 		if (
@@ -134,28 +164,6 @@ export function ConnectionManager<
 
 		const newVal = updatedRow[connectionRowKey] as number | null;
 
-		async function tryToUpdateRow(newId: number | null, onConflict: () => Promise<void>) {
-			try {
-				await db.transaction(async (tx) => {
-					await _modifyRow(
-						id,
-						{
-							[connectionRowKey]: newId
-						} as any,
-						tx
-					);
-				});
-				return true;
-			} catch (error: any) {
-				if (error?.code === '23505') {
-					await onConflict();
-				} else {
-					throw error;
-				}
-				return false;
-			}
-		}
-
 		async function tryToRemoveConnection(newVal: number) {
 			const existingId = await findExistingConnection(db, newVal);
 			if (!existingId) {
@@ -188,8 +196,14 @@ export function ConnectionManager<
 		async function fallBackToNull() {
 			if (!isPrimarySecondary && originalRow[connectionRowKey] !== null) {
 				updatedRow[connectionRowKey] = null as any;
-				await tryToUpdateRow(null, async () => {
-					throw new Error('Failed to set null');
+				await tryToUpdateRow({
+					id: originalRow.id,
+					newConnectionId: null,
+					onConflict: async () => {
+						throw new Error('Failed to set null');
+					},
+					db,
+					connectionRowKey
 				});
 			} else {
 				updatedRow[connectionRowKey] = originalRow[connectionRowKey];
@@ -202,15 +216,27 @@ export function ConnectionManager<
 		}
 
 		if (originalRow[connectionRowKey] !== newVal) {
-			await tryToUpdateRow(newVal, async () => {
-				const removed = nestedMode ? false : await tryToRemoveConnection(newVal!);
-				if (removed) {
-					const success = await tryToUpdateRow(newVal, fallBackToNull);
-					if (success) {
-						await _updateRow({ id, db, onUpdateCallback, nestedMode: true });
+			await tryToUpdateRow({
+				newConnectionId: newVal,
+				id: originalRow.id,
+				connectionRowKey,
+				db,
+				onConflict: async () => {
+					const removed = nestedMode ? false : await tryToRemoveConnection(newVal!);
+					if (removed) {
+						const success = await tryToUpdateRow({
+							id: originalRow.id,
+							newConnectionId: newVal,
+							onConflict: fallBackToNull,
+							db,
+							connectionRowKey
+						});
+						if (success) {
+							await _updateRow({ id, db, onUpdateCallback, nestedMode: true });
+						}
+					} else {
+						await fallBackToNull();
 					}
-				} else {
-					await fallBackToNull();
 				}
 			});
 		}
@@ -239,18 +265,45 @@ export function ConnectionManager<
 		cellConfigurator: CellConfigurator;
 		_updateRow: _UpdateRow;
 	}) {
-		for (const connectionTable of allConnections) {
-			const { needsRowRefresh } = await _updateConnection({
-				db,
-				id,
-				connectionTable,
-				cellConfigurator,
-				onUpdateCallback,
+		const base = {
+			db,
+			id,
+			cellConfigurator,
+			onUpdateCallback,
+			originalRow,
+			nestedMode,
+			removeAutoMatch,
+			_updateRow
+		};
+
+		const { needsRowRefresh } = await updateConnection({
+			...base,
+			connectionTable: connections.primaryTable,
+			updatedRow,
+			conType: 'primary'
+		});
+		if (needsRowRefresh) {
+			updatedRow = await getRow(id, db);
+		}
+
+		if (connections.secondaryTable) {
+			const { needsRowRefresh: needsRowRefreshSecondary } = await updateConnection({
+				...base,
+				connectionTable: connections.secondaryTable,
 				updatedRow,
-				originalRow,
-				nestedMode,
-				removeAutoMatch,
-				_updateRow
+				conType: 'secondary'
+			});
+			if (needsRowRefreshSecondary) {
+				updatedRow = await getRow(id, db);
+			}
+		}
+
+		for (const connectionTable of connections.otherTables) {
+			const { needsRowRefresh } = await updateConnection({
+				...base,
+				updatedRow,
+				connectionTable,
+				conType: 'other'
 			});
 			if (needsRowRefresh) {
 				updatedRow = await getRow(id, db);
