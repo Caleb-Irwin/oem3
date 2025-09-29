@@ -150,6 +150,7 @@ export interface NewError {
 	};
 	matchWouldCauseDuplicate?: {
 		value: ValType;
+		message?: string | undefined;
 	};
 	shouldNotBeNull?: {};
 	invalidDataType?: {

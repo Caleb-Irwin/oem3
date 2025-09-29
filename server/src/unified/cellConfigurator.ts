@@ -235,12 +235,15 @@ export async function createCellConfigurator<CellConfTable extends CellConfigTab
 		};
 	}
 
+	const hasAnyCellSettings = cellConfigs.some((c) => c.confType.startsWith('setting:'));
+
 	return {
 		getCellSettings,
 		getConfiguredRow,
 		getConfiguredCellValue,
 		addError: errorManager.addError,
-		commitErrors: errorManager.commitErrors
+		commitErrors: errorManager.commitErrors,
+		hasAnyCellSettings
 	};
 }
 

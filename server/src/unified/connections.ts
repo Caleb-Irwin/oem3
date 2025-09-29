@@ -77,6 +77,7 @@ export function ConnectionManager<
 		nestedMode,
 		removeAutoMatch,
 		_updateRow,
+		allowRemoveMatch,
 		conType
 	}: {
 		db: Tx | typeof DB;
@@ -89,16 +90,16 @@ export function ConnectionManager<
 		nestedMode: boolean;
 		removeAutoMatch: boolean;
 		_updateRow: _UpdateRow;
+		allowRemoveMatch: boolean;
 		conType: 'primary' | 'secondary' | 'other';
 	}) {
 		const updatedRow = structuredClone(updatedRowIn);
 		const otherConnections = await connectionTable.findConnections(updatedRow, db);
 		const connectionRowKey = connectionTable.refCol as keyof TableType['$inferInsert'];
-		const isPrimarySecondary = conType !== 'other';
 
 		// Un-match the connection if it is deleted and not primary
 		if (
-			!isPrimarySecondary &&
+			allowRemoveMatch &&
 			((connectionTable.isDeleted(updatedRow) && !connectionTable.allowDeleted) || removeAutoMatch)
 		) {
 			updatedRow[connectionRowKey] = null as any;
@@ -126,11 +127,11 @@ export function ConnectionManager<
 			cellConfigurator.getCellSettings(connectionRowKey as any).setting === null &&
 			!removeAutoMatch
 		) {
-			// Ensure previous event is a valid auto match and if not remove it
+			// Ensure previous value is a valid auto match and if not remove it
 			if (
 				updatedRow[connectionRowKey] !== null &&
 				!otherConnections.includes(updatedRow[connectionRowKey] as number) &&
-				!isPrimarySecondary
+				allowRemoveMatch
 			) {
 				updatedRow[connectionRowKey] = null as any;
 			}
@@ -138,7 +139,7 @@ export function ConnectionManager<
 			// Auto match if possible or remove if not
 			if (otherConnections.length > 0 && updatedRow[connectionRowKey] === null) {
 				updatedRow[connectionRowKey] = otherConnections[0] as any;
-			} else if (otherConnections.length === 0 && !isPrimarySecondary) {
+			} else if (otherConnections.length === 0 && allowRemoveMatch) {
 				updatedRow[connectionRowKey] = null as any;
 			}
 
@@ -178,7 +179,7 @@ export function ConnectionManager<
 						.from(table as any)
 						.where(eq(table.id, existingId))
 						.execute();
-					if (deleted[0].deleted) {
+					if (deleted[0].deleted || conType === 'secondary') {
 						await _updateRow({
 							id: existingId,
 							db: tx,
@@ -194,7 +195,7 @@ export function ConnectionManager<
 		}
 
 		async function fallBackToNull() {
-			if (!isPrimarySecondary && originalRow[connectionRowKey] !== null) {
+			if (allowRemoveMatch && originalRow[connectionRowKey] !== null) {
 				updatedRow[connectionRowKey] = null as any;
 				await tryToUpdateRow({
 					id: originalRow.id,
@@ -210,12 +211,25 @@ export function ConnectionManager<
 			}
 			cellConfigurator.addError(connectionRowKey as any, {
 				matchWouldCauseDuplicate: {
-					value: newVal
+					value: newVal,
+					message:
+						conType === 'secondary'
+							? 'To allow this match, either unmatch this item from its current connection, or IF IT LACKS A PRIMARY CONNECTION, remove all cell settings.'
+							: undefined
 				}
 			});
 		}
 
-		if (originalRow[connectionRowKey] !== newVal) {
+		if (!allowRemoveMatch && newVal === null) {
+			cellConfigurator.addError(connectionRowKey as any, {
+				canNotBeSetToNull: {
+					message:
+						conType === 'primary'
+							? `Primary connections can never be removed.`
+							: `Secondary connections can only be removed if the item has a primary connection or if the connection is being connection to a new item with a primary connection.`
+				}
+			});
+		} else if (originalRow[connectionRowKey] !== newVal) {
 			await tryToUpdateRow({
 				newConnectionId: newVal,
 				id: originalRow.id,
@@ -280,6 +294,7 @@ export function ConnectionManager<
 			...base,
 			connectionTable: connections.primaryTable,
 			updatedRow,
+			allowRemoveMatch: false,
 			conType: 'primary'
 		});
 		if (needsRowRefresh) {
@@ -287,10 +302,17 @@ export function ConnectionManager<
 		}
 
 		if (connections.secondaryTable) {
+			const hasPrimaryConnection =
+				updatedRow[connections.primaryTable.refCol as keyof RowType] !== null;
+
+			const rowHasCellSettings = cellConfigurator.hasAnyCellSettings; // TODO exclude default approve setting
+
 			const { needsRowRefresh: needsRowRefreshSecondary } = await updateConnection({
 				...base,
 				connectionTable: connections.secondaryTable,
 				updatedRow,
+				allowRemoveMatch:
+					hasPrimaryConnection || (!hasPrimaryConnection && removeAutoMatch && !rowHasCellSettings),
 				conType: 'secondary'
 			});
 			if (needsRowRefreshSecondary) {
@@ -303,6 +325,7 @@ export function ConnectionManager<
 				...base,
 				updatedRow,
 				connectionTable,
+				allowRemoveMatch: true,
 				conType: 'other'
 			});
 			if (needsRowRefresh) {
