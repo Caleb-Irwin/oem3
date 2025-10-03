@@ -51,7 +51,12 @@ work({
 function transformPriceFile(item: PriceFileRaw): typeof sprPriceFile.$inferInsert {
 	return {
 		sprcSku: item['SPRC SKU'].trim(),
-		etilizeId: item['ProductID'] ? item['ProductID'].toString().trim() : null,
+		etilizeId:
+			item['ProductID'] &&
+			item['ProductID'].toString().trim() !== '' &&
+			item['ProductID'].toString().trim() !== '='
+				? item['ProductID'].toString().trim()
+				: null,
 		status: getStatus(item['Product Status']?.trim()),
 		description: item.Description.trim(),
 		um: getUm(item.UoM.trim()),

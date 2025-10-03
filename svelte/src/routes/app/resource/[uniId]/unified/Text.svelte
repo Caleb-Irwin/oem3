@@ -17,7 +17,7 @@
 		if (typeof value === 'boolean') {
 			return value ? 'True' : 'False';
 		} else if (typeof value === 'number') {
-			return formatPrice(value / 100);
+			return price ? formatPrice(value / 100) : String(value);
 		} else if (value === null) {
 			return 'Null';
 		}
