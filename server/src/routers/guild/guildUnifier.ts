@@ -42,7 +42,7 @@ export const guildUnifier = createUnifier<
 >({
 	table: unifiedGuild,
 	confTable: unifiedGuildCellConfig,
-	version: 25,
+	version: 29,
 	getRow,
 	transform: (item, t) => {
 		return {
@@ -54,36 +54,42 @@ export const guildUnifier = createUnifier<
 			inventoryRow: t('inventoryRow', item.inventoryRow),
 			flyerRow: t('flyerRow', item.flyerRow),
 
-			upc: t('upc', item.dataRowContent.upc, {
+			upc: t('upc', item.dataRowContent.upc || item.inventoryRowContent?.upc || null, {
 				shouldMatch: {
 					primary: 'Guild Data UPC',
 					secondary: 'Guild Inventory UPC',
 					val: item.inventoryRowContent?.upc ?? null,
-					ignore: item.inventoryRowContent === null
+					ignore:
+						!item.dataRowContent.upc || !item.inventoryRowContent || !item.inventoryRowContent.upc
 				}
 			}),
-			spr: t('spr', item.dataRowContent.spr, {
+			spr: t('spr', item.dataRowContent.spr || item.inventoryRowContent?.spr || null, {
 				shouldMatch: {
 					primary: 'Guild Data SPR Product ID',
 					secondary: 'Guild Inventory SPR Product ID',
 					val: item.inventoryRowContent?.spr ?? null,
-					ignore: item.inventoryRowContent === null
+					ignore:
+						!item.dataRowContent.spr || !item.inventoryRowContent || !item.inventoryRowContent.spr
 				}
 			}),
-			basics: t('basics', item.dataRowContent.basics, {
+			basics: t('basics', item.dataRowContent.basics || item.inventoryRowContent?.basics || null, {
 				shouldMatch: {
 					primary: 'Guild Data Basics Product ID',
 					secondary: 'Guild Inventory Basics Product ID',
 					val: item.inventoryRowContent?.basics ?? null,
-					ignore: item.inventoryRowContent === null
+					ignore:
+						!item.dataRowContent.basics ||
+						!item.inventoryRowContent ||
+						!item.inventoryRowContent.basics
 				}
 			}),
-			cis: t('cis', item.dataRowContent.cis, {
+			cis: t('cis', item.dataRowContent.cis || item.inventoryRowContent?.cis || null, {
 				shouldMatch: {
 					primary: 'Guild Data CIS Product ID',
 					secondary: 'Guild Inventory CIS Product ID',
 					val: item.inventoryRowContent?.cis ?? null,
-					ignore: item.inventoryRowContent === null
+					ignore:
+						!item.dataRowContent.cis || !item.inventoryRowContent || !item.inventoryRowContent.cis
 				}
 			}),
 			title: t('title', item.dataRowContent.shortDesc),
