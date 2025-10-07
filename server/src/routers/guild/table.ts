@@ -59,7 +59,7 @@ export const unifiedGuild = pgTable(
 		qtyPerUm: integer('qtyPerUm'),
 		masterPackQty: integer('masterPackQty'),
 		imageUrl: varchar('imageUrl', { length: 256 }),
-		primaryImageDescription: text('primaryImageDescription'),
+		imageDescription: text('imageDescription'),
 		otherImageListJSON: text('otherImageListJSON'), // {url: string, description: string}[]
 		vendor: varchar('vendor', { length: 256 }),
 		category: categoryEnum('category'),
@@ -121,7 +121,7 @@ export const unifiedGuildColumnEnum = pgEnum('unifiedGuildColumn', [
 	'qtyPerUm',
 	'masterPackQty',
 	'imageUrl',
-	'imageDescriptions',
+	'imageDescription',
 	'otherImageListJSON',
 	'vendor',
 	'category',

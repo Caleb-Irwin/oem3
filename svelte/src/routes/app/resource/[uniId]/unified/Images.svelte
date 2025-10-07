@@ -4,6 +4,7 @@
 	import Settings from './Settings.svelte';
 	import Image from '$lib/Image.svelte';
 	import { imageRedirect } from '$lib/imageRedirector';
+	import NullableText from './NullableText.svelte';
 
 	interface Props {
 		primary: Cell;
@@ -11,17 +12,35 @@
 		other: Cell;
 	}
 
-	let { primary, other }: Props = $props();
+	let { primary, primaryDescription, other }: Props = $props();
 </script>
 
 <div class="p-2 w-full flex flex-col justify-center">
 	<div class="w-full h-full card relative min-h-16">
 		{@render primaryImageRenderer(primary.value)}
-		<div class="flex border-t-2 border-surface-200 p-2 items-center dark:border-surface-500">
-			<p class="text-lg font-bold flex-grow pl-1">Primary Image</p>
-			<SettingButton cell={primary} />
+
+		<div class="flex flex-row flex-wrap">
+			<div
+				class="flex flex-1 border-t-2 border-surface-200 p-2 items-center dark:border-surface-500"
+			>
+				<p class="text-lg font-bold flex-grow pl-1">Primary Image</p>
+				<SettingButton cell={primary} />
+			</div>
+
+			<div
+				class="flex flex-1 border-t-2 border-surface-200 p-2 items-center dark:border-surface-500"
+			>
+				<p class="text-lg font-bold flex-grow pl-1">Description</p>
+				<SettingButton cell={primaryDescription} />
+			</div>
 		</div>
+
 		<Settings cell={primary} valueRenderer={primaryImageRenderer} extraClass="p-2" />
+		<Settings
+			cell={primaryDescription}
+			valueRenderer={primaryImageDescriptionRenderer}
+			extraClass="p-2"
+		/>
 	</div>
 
 	<div class="mt-2 card">
@@ -42,9 +61,19 @@
 			target="_blank"
 			rel="noopener noreferrer"
 		>
-			<Image src={value as string} alt="" class="rounded p-2 bg-white w-full" />
+			<Image
+				src={value as string}
+				alt={primaryDescription.value?.toString() ?? ''}
+				class="rounded p-2 bg-white w-full"
+			/>
 		</a>
 	{/if}
+{/snippet}
+
+{#snippet primaryImageDescriptionRenderer(value: string | number | boolean | null)}
+	<p class="text-lg">
+		<NullableText text={value === null ? 'Null' : value} />
+	</p>
 {/snippet}
 
 {#snippet otherImageRenderer(value: string | number | boolean | null)}

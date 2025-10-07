@@ -1,0 +1,5 @@
+ALTER TABLE "unifiedGuild" RENAME COLUMN "primaryImageDescription" TO "imageDescription";--> statement-breakpoint
+ALTER TABLE "unifiedGuildCellConfig" ALTER COLUMN "col" SET DATA TYPE text;--> statement-breakpoint
+DROP TYPE "public"."unifiedGuildColumn";--> statement-breakpoint
+CREATE TYPE "public"."unifiedGuildColumn" AS ENUM('gid', 'dataRow', 'inventoryRow', 'flyerRow', 'upc', 'spr', 'basics', 'cis', 'title', 'description', 'priceCents', 'comparePriceCents', 'costCents', 'um', 'qtyPerUm', 'masterPackQty', 'imageUrl', 'imageDescription', 'otherImageListJSON', 'vendor', 'category', 'weightGrams', 'heavyGoodsChargeSkCents', 'freightFlag', 'inventory', 'deleted');--> statement-breakpoint
+ALTER TABLE "unifiedGuildCellConfig" ALTER COLUMN "col" SET DATA TYPE "public"."unifiedGuildColumn" USING "col"::"public"."unifiedGuildColumn";

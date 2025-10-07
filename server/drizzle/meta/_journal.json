@@ -708,6 +708,13 @@
       "when": 1759859480230,
       "tag": "0100_supreme_chronomancer",
       "breakpoints": true
+    },
+    {
+      "idx": 101,
+      "version": "7",
+      "when": 1759881110789,
+      "tag": "0101_gorgeous_payback",
+      "breakpoints": true
     }
   ]
 }

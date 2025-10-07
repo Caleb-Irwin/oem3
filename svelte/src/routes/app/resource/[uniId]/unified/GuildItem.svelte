@@ -31,7 +31,7 @@
 	]}
 	title={row.cells.title}
 	primaryImage={row.cells.imageUrl}
-	primaryImageDescription={row.cells.primaryImageDescription}
+	primaryImageDescription={row.cells.imageDescription}
 	otherImages={row.cells.otherImageListJSON}
 	price={row.cells.priceCents}
 	comparePrice={row.cells.comparePriceCents}
