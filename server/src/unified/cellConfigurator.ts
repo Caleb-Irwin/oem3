@@ -101,6 +101,11 @@ export async function createCellConfigurator<CellConfTable extends CellConfigTab
 					});
 					setting = { setting: null, conf: null };
 				}
+
+				if (setting.setting === 'setting:approve' && setting.conf) {
+					setting.conf.lastValue =
+						options.defaultSettingOfApprove.lastValueOverride?.toString() ?? null;
+				}
 			}
 		}
 
@@ -316,6 +321,7 @@ type CellTransformerOptions<T, K> = {
 	defaultSettingOfApprove?: {
 		lastThresholdPercent: number | null;
 		currentThresholdPercent: number | null;
+		lastValueOverride: number | null;
 	};
 	dependsOn?: Set<K>;
 };
