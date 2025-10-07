@@ -69,6 +69,7 @@ export function cellConfigTable<COLS extends [string, ...string[]]>({
 			otherData: text('otherData'), // JSON
 			resolved: boolean('resolved'),
 			notes: text('notes'), // User Viewable (HTML Encoded)
+			isDefaultSetting: boolean('isDefaultSetting').notNull().default(false),
 			created: bigint('created', { mode: 'number' }).notNull()
 		},
 		(genericTable) => [

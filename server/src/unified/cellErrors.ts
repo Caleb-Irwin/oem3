@@ -62,7 +62,7 @@ export async function modifyError(
 				lastValue: error.value,
 				confType: 'setting:approveCustom',
 				created: Date.now(),
-				col: existing.col,
+				col: existing.col as any,
 				refId: existing.refId
 			}
 		});
@@ -88,12 +88,12 @@ export async function modifyError(
 				lastValue: error.value,
 				confType: 'setting:approve',
 				created: Date.now(),
-				col: existing.col,
+				col: existing.col as any,
 				refId: existing.refId
 			}
 		});
 	} else {
-		throw new Error(`TODO - Not implemented for action: ${errorAction}`);
+		throw new Error(`Error action "${errorAction}" is invalid or not implemented.`);
 	}
 }
 

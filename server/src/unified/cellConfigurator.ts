@@ -59,12 +59,49 @@ export async function createCellConfigurator<CellConfTable extends CellConfigTab
 		let setting = getCellSettings(key as string);
 		let newVal = val;
 
-		// TODO - Handle default setting of approve
-		if (setting === null && options?.defaultSettingOfApprove) {
-			setting = {
-				setting: 'setting:approve',
-				conf: null
-			};
+		if (options?.defaultSettingOfApprove) {
+			const { lastThresholdPercent, currentThresholdPercent } = options.defaultSettingOfApprove;
+			if (
+				(lastThresholdPercent === null && setting === null) ||
+				(setting.setting === 'setting:approve' &&
+					setting.conf?.value === lastThresholdPercent?.toString())
+			) {
+				if (currentThresholdPercent !== null) {
+					const settingData = {
+						confType: 'setting:approve',
+						value: currentThresholdPercent?.toString() ?? '0',
+						lastValue: oldVal?.toString() ?? '0',
+						col: key as any,
+						refId: id,
+						created: Date.now(),
+						isDefaultSetting: true
+					} as const;
+					await modifySetting({
+						db,
+						table: table,
+						unifiedTable: unifiedTable,
+						refId: id,
+						col: key,
+						settingData,
+						uniIdHint: uniId
+					});
+					setting = {
+						setting: 'setting:approve',
+						conf: { ...settingData } as any
+					};
+				} else {
+					await modifySetting({
+						db,
+						table: table,
+						unifiedTable: unifiedTable,
+						refId: id,
+						col: key,
+						settingData: null,
+						uniIdHint: uniId
+					});
+					setting = { setting: null, conf: null };
+				}
+			}
 		}
 
 		// Handle Cell Setting Logic
@@ -235,7 +272,9 @@ export async function createCellConfigurator<CellConfTable extends CellConfigTab
 		};
 	}
 
-	const hasAnyCellSettings = cellConfigs.some((c) => c.confType.startsWith('setting:'));
+	const hasAnyNonDefaultCellSettings = cellConfigs.some(
+		(c) => c.confType.startsWith('setting:') && !c.isDefaultSetting
+	);
 
 	return {
 		getCellSettings,
@@ -243,7 +282,7 @@ export async function createCellConfigurator<CellConfTable extends CellConfigTab
 		getConfiguredCellValue,
 		addError: errorManager.addError,
 		commitErrors: errorManager.commitErrors,
-		hasAnyCellSettings
+		hasAnyNonDefaultCellSettings
 	};
 }
 
@@ -274,6 +313,9 @@ export const cellTransformer = <T extends UnifiedTables, K extends keyof T['$inf
 type CellTransformerOptions<T, K> = {
 	shouldMatch?: { primary: string; secondary: string; val: T; ignore?: boolean };
 	shouldNotBeNull?: boolean;
-	defaultSettingOfApprove?: boolean;
+	defaultSettingOfApprove?: {
+		lastThresholdPercent: number | null;
+		currentThresholdPercent: number | null;
+	};
 	dependsOn?: Set<K>;
 };

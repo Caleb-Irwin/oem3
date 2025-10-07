@@ -1,0 +1,2 @@
+ALTER TABLE "unifiedGuildCellConfig" ADD COLUMN "isDefaultSetting" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "unifiedSprCellConfig" ADD COLUMN "isDefaultSetting" boolean DEFAULT false NOT NULL;

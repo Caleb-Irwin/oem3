@@ -701,6 +701,13 @@
       "when": 1756418076834,
       "tag": "0099_cold_sandman",
       "breakpoints": true
+    },
+    {
+      "idx": 100,
+      "version": "7",
+      "when": 1759859480230,
+      "tag": "0100_supreme_chronomancer",
+      "breakpoints": true
     }
   ]
 }

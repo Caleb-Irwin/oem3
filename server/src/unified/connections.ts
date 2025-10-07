@@ -305,7 +305,7 @@ export function ConnectionManager<
 			const hasPrimaryConnection =
 				updatedRow[connections.primaryTable.refCol as keyof RowType] !== null;
 
-			const rowHasCellSettings = cellConfigurator.hasAnyCellSettings; // TODO exclude default approve setting
+			const rowHasCellSettings = cellConfigurator.hasAnyNonDefaultCellSettings;
 
 			const { needsRowRefresh: needsRowRefreshSecondary } = await updateConnection({
 				...base,
