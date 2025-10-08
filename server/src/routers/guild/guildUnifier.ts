@@ -42,7 +42,7 @@ export const guildUnifier = createUnifier<
 >({
 	table: unifiedGuild,
 	confTable: unifiedGuildCellConfig,
-	version: 29,
+	version: 31,
 	getRow,
 	transform: (item, t) => {
 		return {
@@ -93,10 +93,7 @@ export const guildUnifier = createUnifier<
 				}
 			}),
 			title: t('title', item.dataRowContent.shortDesc),
-			description: t(
-				'description',
-				item.dataRowContent.desc?.sanitizedDescription || item.dataRowContent.longDesc
-			),
+			description: t('description', item.dataRowContent.longDesc || item.dataRowContent.shortDesc),
 			priceCents: t(
 				'priceCents',
 				item.flyerRowContent?.flyerPriceL1Cents ?? item.dataRowContent.priceL1Cents,
@@ -221,10 +218,13 @@ export const guildUnifier = createUnifier<
 									: undefined
 							),
 							columns: {
-								id: true
+								id: true,
+								gid: true
 							}
 						})
 						.execute();
+					const exactMatch = rows.find((r) => r.gid === row.gid);
+					if (exactMatch) return [exactMatch.id];
 					return rows.map((r) => r.id);
 				},
 				isDeleted: (row) => {
