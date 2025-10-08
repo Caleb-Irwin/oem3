@@ -10,6 +10,7 @@ import { shopifyRouter } from './routers/shopify';
 import { sprRouter } from './routers/spr';
 import { unifiedRouter } from './routers/unified';
 import { summariesRouter } from './routers/summaries';
+import { productRouter } from './routers/product';
 
 export const appRouter = router({
 	user: userRouter,
@@ -22,5 +23,6 @@ export const appRouter = router({
 	shopify: shopifyRouter,
 	spr: sprRouter,
 	unified: unifiedRouter,
-	summaries: summariesRouter
+	summaries: summariesRouter,
+	product: productRouter
 });

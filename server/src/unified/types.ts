@@ -3,18 +3,22 @@ import type {
 	guildData,
 	guildFlyer,
 	guildInventory,
+	qb,
+	shopify,
 	sprFlatFile,
 	sprPriceFile,
 	unifiedGuild,
 	unifiedGuildCellConfig,
+	unifiedProduct,
+	unifiedProductCellConfig,
 	unifiedSpr,
 	unifiedSprCellConfig
 } from '../db.schema';
 import type { InsertHistoryRowOptions } from '../utils/history';
 import type { OnUpdateCallback } from './unifier';
 
-export type UnifiedTables = typeof unifiedGuild | typeof unifiedSpr;
-export const UnifiedTableNamesArray = ['unifiedGuild', 'unifiedSpr'] as const;
+export type UnifiedTables = typeof unifiedGuild | typeof unifiedSpr | typeof unifiedProduct;
+export const UnifiedTableNamesArray = ['unifiedGuild', 'unifiedSpr', 'unifiedProduct'] as const;
 export type UnifiedTableNames = (typeof UnifiedTableNamesArray)[number];
 export const PrimarySourceTableNamesArray = ['unifiedGuild', 'guildData', 'sprPriceFile'] as const;
 export type PrimarySourceTables = typeof unifiedGuild | typeof guildData | typeof sprPriceFile;
@@ -24,13 +28,15 @@ export const OtherSourceTableNamesArray = [
 	'guildInventory',
 	'guildFlyer',
 	'sprFlatFile',
-	'unifiedSpr'
+	'qb',
+	'shopify'
 ] as const;
 export type OtherSourceTables =
 	| typeof guildInventory
 	| typeof guildFlyer
 	| typeof sprFlatFile
-	| typeof unifiedSpr;
+	| typeof qb
+	| typeof shopify;
 
 export type AllSourceTables = PrimarySourceTables | SecondarySourceTables | OtherSourceTables;
 export const AllSourceTableNamesArray = [
@@ -40,7 +46,10 @@ export const AllSourceTableNamesArray = [
 ] as const;
 export type AllSourceTableNames = (typeof AllSourceTableNamesArray)[number];
 
-export type CellConfigTable = typeof unifiedGuildCellConfig | typeof unifiedSprCellConfig;
+export type CellConfigTable =
+	| typeof unifiedGuildCellConfig
+	| typeof unifiedSprCellConfig
+	| typeof unifiedProductCellConfig;
 
 // Generic types that work with any unified table's config table
 export type CellConfigRowInsert = CellConfigTable['$inferInsert'];
@@ -64,7 +73,7 @@ export type AnyConnection = ConnectionTable<any, any, any, any>;
 export interface TableConnection<
 	RowType,
 	UnifiedTable extends UnifiedTables,
-	T extends PrimarySourceTables | OtherSourceTables
+	T extends PrimarySourceTables | SecondarySourceTables | OtherSourceTables
 > {
 	table: T;
 	refCol: keyof UnifiedTable;

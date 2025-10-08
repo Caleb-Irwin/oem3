@@ -1,6 +1,6 @@
 import { and, eq, inArray, countDistinct, isNull, or, count } from 'drizzle-orm';
 import { db } from '../../db';
-import type { UnifiedTableNames } from '../../unified/types';
+import type { TableConnection, UnifiedTableNames } from '../../unified/types';
 import { UnifierMap } from '../../unified/unifier.map';
 import { work } from '../../utils/workerBase';
 import {
@@ -10,13 +10,13 @@ import {
 	uniref,
 	unmatchedErrors
 } from '../../db.schema';
-import type { TableConnection } from '../../unified/unifier';
 import { getTableConfig } from 'drizzle-orm/pg-core';
 
 work({
 	process: async ({}) => {
 		await updateUnifiedSummary('unifiedGuild');
 		await updateUnifiedSummary('unifiedSpr');
+		await updateUnifiedSummary('unifiedProduct');
 	}
 });
 

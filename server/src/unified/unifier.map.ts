@@ -1,6 +1,8 @@
 import {
 	unifiedGuild,
 	unifiedGuildCellConfig,
+	unifiedProduct,
+	unifiedProductCellConfig,
 	unifiedSpr,
 	unifiedSprCellConfig
 } from '../db.schema';
@@ -11,6 +13,8 @@ import type { UnifiedTableNames, UnifiedTables, CellConfigTable } from './types'
 import { runGuildWorker } from '../routers/guild';
 import { runSprWorker } from '../routers/spr';
 import type { RunWorker } from '../utils/managedWorker';
+import { productUnifier } from '../routers/product/productUnifier';
+import { runProductWorker } from '../routers/product';
 
 export const UnifierMap: {
 	[key in UnifiedTableNames]: {
@@ -45,6 +49,18 @@ export const UnifierMap: {
 		allConnections: [
 			sprUnifier.conf.connections.primaryTable,
 			...sprUnifier.conf.connections.otherTables
+		]
+	},
+	unifiedProduct: {
+		unifier: productUnifier,
+		runUnifierWorker: runProductWorker,
+		table: unifiedProduct,
+		confTable: unifiedProductCellConfig,
+		pageUrl: '/app/product',
+		allConnections: [
+			productUnifier.conf.connections.primaryTable,
+			productUnifier.conf.connections.secondaryTable,
+			...productUnifier.conf.connections.otherTables
 		]
 	}
 };

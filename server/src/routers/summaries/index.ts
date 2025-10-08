@@ -48,15 +48,15 @@ export const summariesRouter = router({
 	get: viewerProcedure
 		.input(
 			z.object({
-				type: z.enum(['all', 'unifiedGuild', 'unifiedSpr'])
+				type: z.enum(['all', 'unifiedGuild', 'unifiedSpr', 'unifiedProduct'])
 			})
 		)
 		.query(async ({ input: { type } }) => {
 			return await getSummaryByType(type);
 		}),
 	getSub: createSub<
-		{ type: 'all' | 'unifiedGuild' | 'unifiedSpr' },
-		{ id: number; type: 'all' | 'unifiedGuild' | 'unifiedSpr'; data: any } | null
+		{ type: 'all' | 'unifiedGuild' | 'unifiedSpr' | 'unifiedProduct' },
+		{ id: number; type: 'all' | 'unifiedGuild' | 'unifiedSpr' | 'unifiedProduct'; data: any } | null
 	>(async ({ input: { type } }) => {
 		return await getSummaryByType(type);
 	})

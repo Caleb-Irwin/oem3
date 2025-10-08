@@ -40,7 +40,11 @@ export const cellConfigType = pgEnum('cellConfigType', [
 ] as const);
 
 export type CellConfigType = (typeof cellConfigType.enumValues)[number];
-export const UnifiedTableNamesArray = ['unifiedGuild', 'unifiedSpr'] satisfies UnifiedTableNames[];
+export const UnifiedTableNamesArray = [
+	'unifiedGuild',
+	'unifiedSpr',
+	'unifiedProduct'
+] satisfies UnifiedTableNames[];
 
 export function cellConfigTable<COLS extends [string, ...string[]]>({
 	originalTable,
