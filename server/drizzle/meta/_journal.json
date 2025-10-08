@@ -715,6 +715,13 @@
       "when": 1759881110789,
       "tag": "0101_gorgeous_payback",
       "breakpoints": true
+    },
+    {
+      "idx": 102,
+      "version": "7",
+      "when": 1759883733208,
+      "tag": "0102_green_sumo",
+      "breakpoints": true
     }
   ]
 }

@@ -9,7 +9,8 @@ import {
 	unifiedGuild,
 	guildInventory,
 	guildFlyer,
-	unifiedSpr
+	unifiedSpr,
+	unifiedProduct
 } from '../db.schema';
 import { relations } from 'drizzle-orm';
 
@@ -23,7 +24,8 @@ export const resourceTypeEnum = pgEnum('resource_type', [
 	'sprPriceFile',
 	'sprFlatFile',
 	'unifiedGuild',
-	'unifiedSpr'
+	'unifiedSpr',
+	'unifiedProduct'
 ]);
 export type ResourceType = (typeof resourceTypeEnum.enumValues)[number];
 
@@ -77,6 +79,11 @@ export const uniref = pgTable(
 			.references(() => unifiedSpr.id, {
 				onDelete: 'cascade'
 			})
+			.unique(),
+		unifiedProduct: integer('unifiedProduct')
+			.references(() => unifiedProduct.id, {
+				onDelete: 'cascade'
+			})
 			.unique()
 	},
 	(uniref) => [
@@ -90,7 +97,8 @@ export const uniref = pgTable(
 		uniqueIndex('uniref_spr_price_file_idx').on(uniref.sprPriceFile),
 		uniqueIndex('uniref_spr_flat_file_idx').on(uniref.sprFlatFile),
 		uniqueIndex('uniref_unifiedGuild_idx').on(uniref.unifiedGuild),
-		uniqueIndex('uniref_unifiedSpr_idx').on(uniref.unifiedSpr)
+		uniqueIndex('uniref_unifiedSpr_idx').on(uniref.unifiedSpr),
+		uniqueIndex('uniref_unifiedProduct_idx').on(uniref.unifiedProduct)
 	]
 );
 
@@ -131,5 +139,9 @@ export const unirefRelations = relations(uniref, ({ one }) => ({
 	unifiedSprData: one(unifiedSpr, {
 		fields: [uniref.unifiedSpr],
 		references: [unifiedSpr.id]
+	}),
+	unifiedProductData: one(unifiedProduct, {
+		fields: [uniref.unifiedProduct],
+		references: [unifiedProduct.id]
 	})
 }));

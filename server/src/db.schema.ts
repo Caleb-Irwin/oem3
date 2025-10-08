@@ -20,3 +20,4 @@ export * from './routers/guild/table';
 export * from './routers/summaries/table';
 export * from './unified/unmatchedErrors.table';
 export * from './routers/spr/table';
+export * from './routers/product/table';
