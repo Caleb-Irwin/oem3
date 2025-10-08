@@ -31,7 +31,7 @@ export interface Product {
 	connections?: Connection[];
 	unifiedGuildData?: (RawProduct['unifiedGuildData'] & { uniref: { uniId: number } }) | null;
 	unifiedSprData?: (RawProduct['unifiedSprData'] & { uniref: { uniId: number } }) | null;
-	// unifiedItemData?: RawProduct['unifiedItemData'] | null;
+	unifiedProductData?: (RawProduct['unifiedProductData'] & { uniref: { uniId: number } }) | null;
 }
 
 export const { format: formatCurrency } = new Intl.NumberFormat('en-CA', {
@@ -53,6 +53,17 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			description: undefined,
 			imageUrl: undefined,
 			lastUpdated: qb.lastUpdated,
+			connections: [
+				{
+					tableName: 'unifiedProduct',
+					name: 'Unified Product',
+					connected: qb.unifiedProductData !== null,
+					link: qb.unifiedProductData
+						? `/app/resource/${qb.unifiedProductData.uniref.uniId}/unified`
+						: '/app/product'
+				}
+			],
+			unifiedProductData: qb.unifiedProductData ?? null,
 			other: {
 				Cost: formatCurrency(qb.costCents / 100),
 				'Unit of Measure': qb.um,
@@ -86,9 +97,20 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 					link: guild.unifiedGuildData?.id
 						? `/app/resource/${guild.unifiedGuildData.uniref.uniId}/unified`
 						: '/app/guild'
+				},
+				{
+					tableName: 'unifiedProduct',
+					name: 'Unified Product',
+					connected:
+						guild.unifiedGuildData?.unifiedProductData !== null &&
+						guild.unifiedGuildData?.unifiedProductData !== undefined,
+					link: guild.unifiedGuildData?.unifiedProductData
+						? `/app/resource/${guild.unifiedGuildData.unifiedProductData.uniref.uniId}/unified`
+						: '/app/product'
 				}
 			],
 			unifiedGuildData: guild.unifiedGuildData ?? null,
+			unifiedProductData: guild.unifiedGuildData?.unifiedProductData ?? null,
 			other: {
 				'Basics Number': guild.basics,
 				'SPR Number': guild.spr,
@@ -136,9 +158,20 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 					link: inventory.unifiedGuildData?.id
 						? `/app/resource/${inventory.unifiedGuildData.uniref.uniId}/unified`
 						: '/app/guild'
+				},
+				{
+					tableName: 'unifiedProduct',
+					name: 'Unified Product',
+					connected:
+						inventory.unifiedGuildData?.unifiedProductData !== null &&
+						inventory.unifiedGuildData?.unifiedProductData !== undefined,
+					link: inventory.unifiedGuildData?.unifiedProductData
+						? `/app/resource/${inventory.unifiedGuildData.unifiedProductData.uniref.uniId}/unified`
+						: '/app/product'
 				}
 			],
 			unifiedGuildData: inventory.unifiedGuildData ?? null,
+			unifiedProductData: inventory.unifiedGuildData?.unifiedProductData ?? null,
 			other: {
 				'UPC#': inventory.upc,
 				'SPR#': inventory.spr,
@@ -170,10 +203,22 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 					connected: flyer.unifiedGuildData !== null,
 					link: flyer.unifiedGuildData?.id
 						? `/app/resource/${flyer.unifiedGuildData.uniref.uniId}/unified`
-						: '/app/guild'
+						: '/app/guild',
+					unmatchedVariant: 'variant-soft'
+				},
+				{
+					tableName: 'unifiedProduct',
+					name: 'Unified Product',
+					connected:
+						flyer.unifiedGuildData?.unifiedProductData !== null &&
+						flyer.unifiedGuildData?.unifiedProductData !== undefined,
+					link: flyer.unifiedGuildData?.unifiedProductData
+						? `/app/resource/${flyer.unifiedGuildData.unifiedProductData.uniref.uniId}/unified`
+						: '/app/product'
 				}
 			],
 			unifiedGuildData: flyer.unifiedGuildData ?? null,
+			unifiedProductData: flyer.unifiedGuildData?.unifiedProductData ?? null,
 			other: {
 				'Start Date': new Date(flyer.startDate as number).toLocaleDateString('en-CA'),
 				'End Date': new Date(flyer.endDate as number).toLocaleDateString('en-CA'),
@@ -199,6 +244,17 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			lastUpdated: shopify.lastUpdated,
 			description: shopify.htmlDescription ?? '',
 			imageUrl: shopify.imageUrl ?? undefined,
+			connections: [
+				{
+					tableName: 'unifiedProduct',
+					name: 'Unified Product',
+					connected: shopify.unifiedProductData !== null,
+					link: shopify.unifiedProductData
+						? `/app/resource/${shopify.unifiedProductData.uniref.uniId}/unified`
+						: '/app/product'
+				}
+			],
+			unifiedProductData: shopify.unifiedProductData ?? null,
 			other: {
 				Handle: shopify.handle,
 				Status: shopify.status,
@@ -254,8 +310,19 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 					link: sprPriceFileData.unifiedSprData
 						? `/app/resource/redirect/unifiedSpr-${sprPriceFileData.unifiedSprData.id}`
 						: '/app/spr'
+				},
+				{
+					tableName: 'unifiedProduct',
+					name: 'Unified Product',
+					connected:
+						sprPriceFileData.unifiedSprData?.unifiedProductData !== null &&
+						sprPriceFileData.unifiedSprData?.unifiedProductData !== undefined,
+					link: sprPriceFileData.unifiedSprData?.unifiedProductData
+						? `/app/resource/${sprPriceFileData.unifiedSprData.unifiedProductData.uniref.uniId}/unified`
+						: '/app/product'
 				}
 			],
+			unifiedProductData: sprPriceFileData.unifiedSprData?.unifiedProductData ?? null,
 			other: {
 				'Etilize Id': sprPriceFileData.etilizeId ?? 'Null',
 				'Dealer Net Price': formatCurrency(sprPriceFileData.dealerNetPriceCents / 100),
@@ -294,8 +361,19 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 					link: sprFlatFileData.unifiedSprData
 						? `/app/resource/redirect/unifiedSpr-${sprFlatFileData.unifiedSprData.id}`
 						: '/app/spr'
+				},
+				{
+					tableName: 'unifiedProduct',
+					name: 'Unified Product',
+					connected:
+						sprFlatFileData.unifiedSprData?.unifiedProductData !== null &&
+						sprFlatFileData.unifiedSprData?.unifiedProductData !== undefined,
+					link: sprFlatFileData.unifiedSprData?.unifiedProductData
+						? `/app/resource/${sprFlatFileData.unifiedSprData.unifiedProductData.uniref.uniId}/unified`
+						: '/app/product'
 				}
 			],
+			unifiedProductData: sprFlatFileData.unifiedSprData?.unifiedProductData ?? null,
 			other: {
 				'Etilize ID': sprFlatFileData.etilizeId,
 				'Brand Name': sprFlatFileData.brandName,
@@ -450,6 +528,96 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				'Manufacturer Name': unifiedSpr.manufacturerName ?? null,
 				'Image Description': unifiedSpr.primaryImageDescription ?? null,
 				'Other Images': unifiedSpr.otherImagesJsonArr
+			}
+		};
+	}
+	if (raw.unifiedProductData) {
+		const unifiedProduct = raw.unifiedProductData;
+		return {
+			idText: 'UnifiedProduct#' + unifiedProduct.id,
+			id: unifiedProduct.id,
+			name: unifiedProduct.title ?? 'No Title',
+			price: unifiedProduct.onlinePriceCents
+				? formatCurrency(unifiedProduct.onlinePriceCents / 100)
+				: 'No Price',
+			comparePrice: unifiedProduct.onlineComparePriceCents
+				? formatCurrency(unifiedProduct.onlineComparePriceCents / 100)
+				: null,
+			sku: unifiedProduct.gid ?? unifiedProduct.sprc ?? 'Unknown',
+			stock:
+				unifiedProduct.guildInventory || unifiedProduct.localInventory
+					? (unifiedProduct.guildInventory ?? 0) + (unifiedProduct.localInventory ?? 0)
+					: null,
+			deleted: unifiedProduct.deleted,
+			lastUpdated: unifiedProduct.lastUpdated,
+			description: unifiedProduct.description ?? undefined,
+			imageUrl: unifiedProduct.primaryImage ?? undefined,
+			otherImageUrls: unifiedProduct.otherImagesJsonArr
+				? JSON.parse(unifiedProduct.otherImagesJsonArr).map(({ url }: { url: string }) => url)
+				: undefined,
+			connections: [
+				{
+					tableName: 'unifiedGuild',
+					name: 'Unified Guild',
+					connected: unifiedProduct.unifiedGuildRow !== null,
+					link: unifiedProduct.unifiedGuildRow
+						? `/app/resource/redirect/unifiedGuild-${unifiedProduct.unifiedGuildRow}`
+						: '/app/guild'
+				},
+				{
+					tableName: 'unifiedSpr',
+					name: 'Unified SPR',
+					connected: unifiedProduct.unifiedSprRow !== null,
+					link: unifiedProduct.unifiedSprRow
+						? `/app/resource/redirect/unifiedSpr-${unifiedProduct.unifiedSprRow}`
+						: '/app/spr'
+				},
+				{
+					tableName: 'qb',
+					name: 'QB',
+					connected: unifiedProduct.qbRow !== null,
+					link: unifiedProduct.qbRow
+						? `/app/resource/redirect/qb-${unifiedProduct.qbRow}`
+						: '/app/qb'
+				},
+				{
+					tableName: 'shopify',
+					name: 'Shopify',
+					connected: unifiedProduct.shopifyRow !== null,
+					link: unifiedProduct.shopifyRow
+						? `/app/resource/redirect/shopify-${unifiedProduct.shopifyRow}`
+						: '/app/shopify'
+				}
+			],
+			other: {
+				GID: unifiedProduct.gid,
+				SPRC: unifiedProduct.sprc,
+				Status: unifiedProduct.status,
+				UPC: unifiedProduct.upc,
+				'SPR Number': unifiedProduct.spr,
+				'Basics Number': unifiedProduct.basics,
+				'CIS Number': unifiedProduct.cis,
+				'Etilize ID': unifiedProduct.etilizeId,
+				Category: unifiedProduct.category,
+				'In Flyer': unifiedProduct.inFlyer ? 'Yes' : 'No',
+				'QuickBooks Price': unifiedProduct.quickBooksPriceCents
+					? formatCurrency(unifiedProduct.quickBooksPriceCents / 100)
+					: null,
+				'Guild Cost': unifiedProduct.guildCostCents
+					? formatCurrency(unifiedProduct.guildCostCents / 100)
+					: null,
+				'SPR Cost': unifiedProduct.sprCostCents
+					? formatCurrency(unifiedProduct.sprCostCents / 100)
+					: null,
+				'Unit of Measure': unifiedProduct.um,
+				'Quantity per Unit': unifiedProduct.qtyPerUm?.toString() ?? null,
+				'Available for Sale Online': unifiedProduct.availableForSaleOnline ? 'Yes' : 'No',
+				'Guild Inventory': unifiedProduct.guildInventory?.toString() ?? null,
+				'Local Inventory': unifiedProduct.localInventory?.toString() ?? null,
+				'SPR Inventory Availability': unifiedProduct.sprInventoryAvailability ?? null,
+				Weight: unifiedProduct.weightGrams ? unifiedProduct.weightGrams + ' grams' : null,
+				Vendor: unifiedProduct.vendor,
+				'Primary Image Description': unifiedProduct.primaryImageDescription ?? null
 			}
 		};
 	}

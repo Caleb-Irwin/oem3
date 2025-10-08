@@ -11,7 +11,7 @@ import {
 	index,
 	uniqueIndex
 } from 'drizzle-orm/pg-core';
-import { uniref } from '../../db.schema';
+import { uniref, unifiedProduct } from '../../db.schema';
 
 export const statusEnum = pgEnum('shopifyStatus', ['ACTIVE', 'ARCHIVED', 'DRAFT']);
 
@@ -60,5 +60,14 @@ export const shopifyRelations = relations(shopify, ({ one }) => ({
 	uniref: one(uniref, {
 		fields: [shopify.id],
 		references: [uniref.shopify]
+	}),
+	unifiedProductData: one(unifiedProduct, {
+		fields: [shopify.id],
+		references: [unifiedProduct.shopifyRow]
+	}),
+	// Short relation name to avoid PostgreSQL identifier length issues in nested queries
+	upd: one(unifiedProduct, {
+		fields: [shopify.id],
+		references: [unifiedProduct.shopifyRow]
 	})
 }));

@@ -14,7 +14,7 @@ import { guildData, guildUmEnum } from './data/table';
 import { guildInventory } from './inventory/table';
 import { guildFlyer } from './flyer/table';
 import { relations } from 'drizzle-orm';
-import { uniref, cellConfigTable } from '../../db.schema';
+import { uniref, cellConfigTable, unifiedProduct } from '../../db.schema';
 
 export const categoryEnum = pgEnum('category', [
 	'officeSchool',
@@ -100,6 +100,15 @@ export const unifiedGuildRelations = relations(unifiedGuild, ({ one }) => ({
 	flyerRowContent: one(guildFlyer, {
 		fields: [unifiedGuild.flyerRow],
 		references: [guildFlyer.id]
+	}),
+	unifiedProductData: one(unifiedProduct, {
+		fields: [unifiedGuild.id],
+		references: [unifiedProduct.unifiedGuildRow]
+	}),
+	// Short relation name to avoid PostgreSQL identifier length issues in nested queries
+	upd: one(unifiedProduct, {
+		fields: [unifiedGuild.id],
+		references: [unifiedProduct.unifiedGuildRow]
 	})
 }));
 

@@ -10,7 +10,7 @@ import {
 	varchar,
 	bigint
 } from 'drizzle-orm/pg-core';
-import { uniref } from '../../db.schema';
+import { uniref, unifiedProduct } from '../../db.schema';
 
 export const qbItemTypeEnum = pgEnum('qb_item_type', [
 	'Service',
@@ -58,5 +58,14 @@ export const qb = pgTable(
 );
 
 export const qbRelations = relations(qb, ({ one }) => ({
-	uniref: one(uniref, { fields: [qb.id], references: [uniref.qb] })
+	uniref: one(uniref, { fields: [qb.id], references: [uniref.qb] }),
+	unifiedProductData: one(unifiedProduct, {
+		fields: [qb.id],
+		references: [unifiedProduct.qbRow]
+	}),
+	// Short relation name to avoid PostgreSQL identifier length issues in nested queries
+	upd: one(unifiedProduct, {
+		fields: [qb.id],
+		references: [unifiedProduct.qbRow]
+	})
 }));

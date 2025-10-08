@@ -5,7 +5,7 @@ import { desc, sql } from 'drizzle-orm';
 import { search } from './table';
 import { db } from '../../db';
 import { qbHook } from '../qb';
-import { resourceWith } from '../resources';
+import { resourceWith, normalizeRelationNames, type ResourceResult } from '../resources';
 import { guildDataHook } from '../guild/data';
 import { guildInventoryHook } from '../guild/inventory';
 import { changesetType } from '../../db.schema';
@@ -75,10 +75,15 @@ export const searchRouter = router({
 
 			const more = res.length === PAGE_SIZE + 1;
 
+			const normalizedResults = res.slice(0, PAGE_SIZE).map((result) => ({
+				...result,
+				uniref: normalizeRelationNames(result.uniref!) as Exclude<ResourceResult, null>
+			}));
+
 			return {
 				query,
 				queryType,
-				results: res.slice(0, PAGE_SIZE),
+				results: normalizedResults,
 				page,
 				count: page * PAGE_SIZE + res.length - (more ? 1 : 0),
 				more

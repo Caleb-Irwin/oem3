@@ -18,38 +18,48 @@ import { addOrSmartUpdateImage, getAccessURLBySourceURL } from '../utils/images'
 import { eventSubscription } from '../utils/eventSubscription';
 import { ColToTableName } from './unified.helpers';
 
+const unifiedProductDataWith = {
+	with: {
+		upd: {
+			with: {
+				u: true as true
+			}
+		}
+	}
+};
 const unifiedGuildDataWith = {
 	with: {
 		unifiedGuildData: {
 			with: {
-				uniref: true as true
+				uniref: true as true,
+				...unifiedProductDataWith.with
 			}
 		}
 	}
 };
-
 const unifiedSprDataWith = {
 	with: {
 		unifiedSprData: {
 			with: {
-				uniref: true as true
+				uniref: true as true,
+				...unifiedProductDataWith.with
 			}
 		}
 	}
 };
-
 export const resourceWith = {
 	changesetData: true as true,
-	qbData: true as true,
+	qbData: unifiedProductDataWith,
 	guildData: unifiedGuildDataWith,
 	guildInventoryData: unifiedGuildDataWith,
 	guildFlyerData: unifiedGuildDataWith,
-	shopifyData: true as true,
+	shopifyData: unifiedProductDataWith,
 	sprPriceFileData: unifiedSprDataWith,
 	sprFlatFileData: unifiedSprDataWith,
-	unifiedGuildData: true as true,
-	unifiedSprData: true as true
-};
+	unifiedGuildData: unifiedProductDataWith,
+	unifiedSprData: unifiedProductDataWith,
+	unifiedProductData: true as true
+} as const;
 
 export const getResource = async ({
 	input: { uniId, type, id, includeHistory, includeAllowUnmatched }
@@ -77,11 +87,13 @@ export const getResource = async ({
 		uniId = maybeUniId;
 	}
 
-	const getRes = async () =>
-		(await db.query.uniref.findFirst({
+	const getRes = async () => {
+		const rawResult = await db.query.uniref.findFirst({
 			where: eq(uniref.uniId, uniId),
 			with: resourceWith
-		})) ?? null;
+		});
+		return (rawResult ? normalizeRelationNames(rawResult) : null) as ResourceResult;
+	};
 	const getHistory = async () => {
 		if (includeHistory) {
 			return await db.query.history.findMany({
@@ -265,4 +277,74 @@ export async function getResourceByCol(col: string, value: string | number | boo
 			includeAllowUnmatched: false
 		}
 	});
+}
+
+const unifiedProductDataWithForType = {
+	with: {
+		unifiedProductData: {
+			with: {
+				uniref: true as true
+			}
+		}
+	}
+};
+const unifiedGuildDataWithForType = {
+	with: {
+		unifiedGuildData: {
+			with: {
+				uniref: true as true,
+				...unifiedProductDataWithForType.with
+			}
+		}
+	}
+};
+const unifiedSprDataWithForType = {
+	with: {
+		unifiedSprData: {
+			with: {
+				uniref: true as true,
+				...unifiedProductDataWithForType.with
+			}
+		}
+	}
+};
+const resourceWithForType = {
+	...resourceWith,
+	qbData: unifiedProductDataWithForType,
+	guildData: unifiedGuildDataWithForType,
+	guildInventoryData: unifiedGuildDataWithForType,
+	guildFlyerData: unifiedGuildDataWithForType,
+	shopifyData: unifiedProductDataWithForType,
+	sprPriceFileData: unifiedSprDataWithForType,
+	sprFlatFileData: unifiedSprDataWithForType,
+	unifiedGuildData: unifiedProductDataWithForType,
+	unifiedSprData: unifiedProductDataWithForType
+} as const;
+
+const _getResourceTypeHelper = async () =>
+	(await db.query.uniref.findFirst({
+		where: eq(uniref.uniId, 0),
+		with: resourceWithForType
+	})) ?? null;
+
+export type ResourceResult = Awaited<ReturnType<typeof _getResourceTypeHelper>>;
+
+export function normalizeRelationNames<T>(obj: T): T {
+	if (obj === null || obj === undefined) return obj;
+	if (typeof obj !== 'object') return obj;
+	if (Array.isArray(obj)) return obj.map(normalizeRelationNames) as T;
+
+	const result: any = {};
+	for (const [key, value] of Object.entries(obj)) {
+		// Transform short relation names to original names
+		if (key === 'upd') {
+			result.unifiedProductData = normalizeRelationNames(value);
+		} else if (key === 'u' && value && typeof value === 'object' && 'uniId' in value) {
+			// Only transform 'u' to 'uniref' if it looks like a uniref object (has uniId)
+			result.uniref = normalizeRelationNames(value);
+		} else {
+			result[key] = normalizeRelationNames(value);
+		}
+	}
+	return result as T;
 }

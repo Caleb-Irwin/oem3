@@ -117,6 +117,11 @@ export const unifiedProductRelations = relations(unifiedProduct, ({ one }) => ({
 		fields: [unifiedProduct.id],
 		references: [uniref.unifiedProduct]
 	}),
+	// Short relation name to avoid PostgreSQL identifier length issues in nested queries
+	u: one(uniref, {
+		fields: [unifiedProduct.id],
+		references: [uniref.unifiedProduct]
+	}),
 	unifiedGuildRowContent: one(unifiedGuild, {
 		fields: [unifiedProduct.unifiedGuildRow],
 		references: [unifiedGuild.id]

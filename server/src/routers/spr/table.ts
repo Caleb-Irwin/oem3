@@ -11,7 +11,7 @@ import {
 	uniqueIndex,
 	varchar
 } from 'drizzle-orm/pg-core';
-import { cellConfigTable, uniref } from '../../db.schema';
+import { cellConfigTable, uniref, unifiedProduct } from '../../db.schema';
 import { sprFlatFile } from './flatFile/table';
 import { sprPriceFile, sprPriceStatusEnum, sprPriceUmEnum } from './priceFile/table';
 
@@ -87,6 +87,15 @@ export const unifiedSprRelations = relations(unifiedSpr, ({ one }) => ({
 	sprFlatFileRowContent: one(sprFlatFile, {
 		fields: [unifiedSpr.sprFlatFileRow],
 		references: [sprFlatFile.id]
+	}),
+	unifiedProductData: one(unifiedProduct, {
+		fields: [unifiedSpr.id],
+		references: [unifiedProduct.unifiedSprRow]
+	}),
+	// Short relation name to avoid PostgreSQL identifier length issues in nested queries
+	upd: one(unifiedProduct, {
+		fields: [unifiedSpr.id],
+		references: [unifiedProduct.unifiedSprRow]
 	})
 }));
 
