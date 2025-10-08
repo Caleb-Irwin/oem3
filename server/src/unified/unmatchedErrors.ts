@@ -10,7 +10,7 @@ import { z } from 'zod';
 import { generalProcedure, viewerProcedure } from '../trpc';
 import { KV } from '../utils/kv';
 import { paginateCircular, pickInitialIndex } from '../utils/pagination';
-import { updateByChangesetType } from '../routers/resources';
+import { updateByTableName } from '../routers/resources';
 import { unifiedOnUpdateCallback } from '../routers/unified.helpers';
 import { runSummariesWorker } from '../routers/summaries';
 
@@ -34,7 +34,7 @@ export const updateUnmatched = generalProcedure
 			})
 			.execute();
 
-		updateByChangesetType(tableName);
+		updateByTableName(tableName);
 		unifiedOnUpdateCallback(uniId);
 		runSummariesWorker({});
 	});

@@ -6,7 +6,7 @@ import { TRPCError } from '@trpc/server';
 import { getChangeset } from './changeset';
 import { changesetType } from './changeset.table';
 import { KV } from './kv';
-import { updateByChangesetType } from '../routers/resources';
+import { updateByTableName } from '../routers/resources';
 import type { Subprocess } from 'bun';
 
 export type RunWorker = (data: HostMessage, time?: number) => Promise<void>;
@@ -95,7 +95,7 @@ export const managedWorker = (
 
 				if (done) {
 					console.log(`Finished ${name} worker`);
-					updateByChangesetType(name);
+					updateByTableName(name);
 					postRunCallbacks.forEach((cb) => cb());
 					if (
 						(await kv.get('lastStaled')) &&

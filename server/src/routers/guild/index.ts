@@ -5,7 +5,7 @@ import { descRouter, guildDescHook } from './desc';
 import { guildDataHook, guildDataRouter } from './data';
 import { managedWorker } from '../../utils/managedWorker';
 import { updateUnifiedTopicByUniId } from '../unified.helpers';
-import { updateByChangesetType } from '../resources';
+import { updateByTableName } from '../resources';
 
 const { worker, hook, runWorker } = managedWorker(
 	new URL('worker.ts', import.meta.url).href,
@@ -18,9 +18,9 @@ const { worker, hook, runWorker } = managedWorker(
 export const runGuildWorker = runWorker;
 
 hook(() => {
-	updateByChangesetType('guildData');
-	updateByChangesetType('guildInventory');
-	updateByChangesetType('guildFlyer');
+	updateByTableName('guildData');
+	updateByTableName('guildInventory');
+	updateByTableName('guildFlyer');
 });
 
 export const guildHook = hook;

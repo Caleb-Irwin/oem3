@@ -124,7 +124,7 @@ export const getResource = async ({
 };
 
 const { update, createSub } = eventSubscription();
-export const updateByChangesetType = update;
+export const updateByTableName = update;
 
 export const resourcesRouter = router({
 	get: viewerProcedure

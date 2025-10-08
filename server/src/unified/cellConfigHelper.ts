@@ -6,7 +6,7 @@ import { getUniId, modifySetting } from './cellSettings';
 import { retryableTransaction } from './retryableTransaction';
 import { modifyError, type ErrorAction } from './cellErrors';
 import type { OnUpdateCallback } from './unifier';
-import { updateByChangesetType } from '../routers/resources';
+import { updateByTableName } from '../routers/resources';
 
 export async function getCellConfigHelper(
 	compoundId: string,
@@ -75,7 +75,7 @@ export async function getCellConfigHelper(
 
 		if (refCols.has(col)) {
 			await unifier.recordMatchesInvalidatedByRefCol(col);
-			updateByChangesetType(refColToTableName[col]);
+			updateByTableName(refColToTableName[col]);
 		}
 		setTimeout(() => {
 			UnifierMap[tablePrefix].runUnifierWorker({});
@@ -105,7 +105,7 @@ export async function getCellConfigHelper(
 
 		if (refCols.has(col)) {
 			await unifier.recordMatchesInvalidatedByRefCol(col);
-			updateByChangesetType(refColToTableName[col]);
+			updateByTableName(refColToTableName[col]);
 		}
 		setTimeout(() => {
 			UnifierMap[tablePrefix].runUnifierWorker({});
