@@ -23,7 +23,8 @@ export const changesetType = pgEnum('changeset_type', [
 		'sprPriceFile',
 		'sprFlatFile',
 		'unifiedGuild',
-		'unifiedSpr'
+		'unifiedSpr',
+		'unifiedProduct'
 	]),
 	changesetStatusType = pgEnum('changeset_status_type', ['generating', 'completed']);
 export type ChangesetType = (typeof changesetType.enumValues)[number];
@@ -36,7 +37,8 @@ export type ChangesetTable =
 	| typeof sprPriceFile
 	| typeof sprFlatFile
 	| typeof unifiedGuild
-	| typeof unifiedSpr;
+	| typeof unifiedSpr
+	| typeof unifiedProduct;
 
 export const changesets = pgTable('changesets', {
 	id: serial('id').primaryKey(),

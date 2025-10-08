@@ -25,6 +25,7 @@ export const UnifierMap: {
 		pageUrl: string;
 		allConnections: (
 			| Unifier<any, any, any, any, any>['conf']['connections']['primaryTable']
+			| Exclude<Unifier<any, any, any, any, any>['conf']['connections']['secondaryTable'], null>
 			| Unifier<any, any, any, any, any>['conf']['connections']['otherTables'][number]
 		)[];
 	};
@@ -52,7 +53,7 @@ export const UnifierMap: {
 		]
 	},
 	unifiedProduct: {
-		unifier: productUnifier,
+		unifier: productUnifier as unknown as Unifier<any, any, any, any, any>,
 		runUnifierWorker: runProductWorker,
 		table: unifiedProduct,
 		confTable: unifiedProductCellConfig,

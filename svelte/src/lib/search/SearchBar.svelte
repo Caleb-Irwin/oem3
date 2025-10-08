@@ -76,6 +76,7 @@
 			<span class="text-nowrap font-semibold">Item Type </span>
 			<select class="max-w-40 select h-10 ml-2" name="type" bind:value={queryType}>
 				<option value="all">All</option>
+				<option value="unifiedProduct">Unified Product</option>
 				<option value="unifiedGuild">Unified Guild</option>
 				<option value="unifiedSpr">Unified SPR</option>
 				<option value="qb">QuickBooks</option>

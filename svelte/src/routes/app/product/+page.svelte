@@ -10,8 +10,8 @@
 <h1 class="text-center h2 p-2 pt-4">Unified Products</h1>
 
 <ModalSearchBar
-	queryType="unifiedSpr"
-	placeholder="Search Unified Product TODO"
+	queryType="unifiedProduct"
+	placeholder="Search Unified Products"
 	class="max-w-xl pb-2"
 />
 

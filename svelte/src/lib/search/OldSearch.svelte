@@ -108,6 +108,7 @@
 			{:else}
 				<select name="type" bind:value={queryType}>
 					<option value="all">All</option>
+					<option value="unifiedProduct">Unified Product</option>
 					<option value="unifiedGuild">Guild</option>
 					<option value="unifiedSpr">SPR</option>
 					<option value="qb">QB</option>

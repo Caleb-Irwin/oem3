@@ -39,8 +39,8 @@ export const unifiedProduct = pgTable(
 	'unifiedProduct',
 	{
 		id: serial('id').primaryKey(),
-		gid: varchar('gid', { length: 256 }).unique(),
-		sprc: varchar('sprc', { length: 256 }).unique(),
+		gid: varchar('gid', { length: 256 }),
+		sprc: varchar('sprc', { length: 256 }),
 
 		status: productStatusEnum('status'),
 
@@ -81,7 +81,7 @@ export const unifiedProduct = pgTable(
 		primaryImageDescription: text('primaryImageDescription'),
 		otherImagesJsonArr: text('otherImagesJsonArr'),
 
-		availableForSaleOnline: boolean('availableForSale').default(true).notNull(),
+		availableForSaleOnline: boolean('availableForSaleOnline').default(true).notNull(),
 		guildInventory: integer('guildInventory'),
 		localInventory: integer('localInventory'),
 		sprInventoryAvailability: sprPriceStatusEnum('sprInventoryAvailability'),

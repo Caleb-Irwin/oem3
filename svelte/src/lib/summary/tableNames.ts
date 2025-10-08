@@ -1,7 +1,7 @@
 import type { AllSourceTableNames } from '../../../../server/src/unified/types';
 
 export const UnifiedTableNamesReadable: {
-	[key in AllSourceTableNames]: string;
+	[key in AllSourceTableNames | 'unifiedProduct']: string;
 } = {
 	unifiedGuild: 'Unified Guild',
 	unifiedSpr: 'Unified SPR',
@@ -9,5 +9,8 @@ export const UnifiedTableNamesReadable: {
 	guildInventory: 'Guild Inventory',
 	guildFlyer: 'Guild Flyer',
 	sprPriceFile: 'SPR Price File',
-	sprFlatFile: 'SPR Flat File'
+	sprFlatFile: 'SPR Flat File',
+	qb: 'QuickBooks',
+	shopify: 'Shopify',
+	unifiedProduct: 'Unified Product'
 };

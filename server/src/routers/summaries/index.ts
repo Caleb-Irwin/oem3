@@ -8,11 +8,12 @@ import { summaries, type SummaryTypeEnum } from './table';
 import { eq } from 'drizzle-orm';
 import { sprHook } from '../spr';
 import type { UnifiedTableNames } from '../../unified/types';
+import { productHook } from '../product';
 
 const { worker, hook, runWorker } = managedWorker(
 	new URL('worker.ts', import.meta.url).href,
 	'summaries',
-	[guildHook, sprHook]
+	[guildHook, sprHook, productHook]
 );
 export const runSummariesWorker = runWorker;
 

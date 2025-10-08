@@ -12,6 +12,7 @@ import {
 	sprFlatFile,
 	sprPriceFile,
 	unifiedGuild,
+	unifiedProduct,
 	unifiedSpr,
 	type ChangesetTable,
 	type ResourceType
@@ -41,7 +42,8 @@ work({
 					sprPriceFile: db.query.sprPriceFile,
 					sprFlatFile: db.query.sprFlatFile,
 					unifiedGuild: db.query.unifiedGuild,
-					unifiedSpr: db.query.unifiedSpr
+					unifiedSpr: db.query.unifiedSpr,
+					unifiedProduct: db.query.unifiedProduct
 				}[resourceName] as typeof db.query.qb
 			).findMany({
 				with: { uniref: true },
@@ -142,6 +144,14 @@ work({
 				otherInfo: `${item.title} ${item.keywords} ${getSubStrings(
 					item.sprc ?? ''
 				)} ${getSubStrings(item.upc ?? '')}`
+			};
+		});
+		await updateSearchIndex(unifiedProduct, (item) => {
+			return {
+				keyInfo: `${item.gid ?? ''} ${item.upc ?? ''} ${item.spr ?? ''}`,
+				otherInfo: `${item.title} ${item.description} ${getSubStrings(
+					item.gid ?? ''
+				)} ${getSubStrings(item.upc ?? '')} ${getSubStrings(item.spr ?? '')} ${getSubStrings(item.etilizeId ?? '')}`
 			};
 		});
 	}
