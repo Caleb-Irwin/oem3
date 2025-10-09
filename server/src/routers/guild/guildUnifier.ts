@@ -42,7 +42,7 @@ export const guildUnifier = createUnifier<
 >({
 	table: unifiedGuild,
 	confTable: unifiedGuildCellConfig,
-	version: 31,
+	version: 32,
 	getRow,
 	transform: (item, t) => {
 		return {
@@ -105,6 +105,7 @@ export const guildUnifier = createUnifier<
 				'comparePriceCents',
 				item.flyerRowContent?.flyerPriceL1Cents ? item.dataRowContent.priceL1Cents : null
 			),
+			inFlyer: t('inFlyer', item.flyerRowContent && item.flyerRowContent.deleted === false),
 			costCents: t(
 				'costCents',
 				(item.dataRowContent.dropshipPriceCents === -1

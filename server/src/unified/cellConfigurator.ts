@@ -253,9 +253,7 @@ export async function createCellConfigurator<CellConfTable extends CellConfigTab
 			}
 			if (typeof transformedEntry.val === 'function') {
 				const v = await (transformedEntry.val as any)(newRow);
-				console.log(v);
 				transformedEntry.val = v;
-				console.log(transformedEntry.val);
 			}
 			const newVal = (await getConfiguredCellValue(
 				transformedEntry as any,

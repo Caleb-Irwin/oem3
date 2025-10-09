@@ -1,4 +1,4 @@
-import { and, eq, not, or } from 'drizzle-orm';
+import { and, eq, not, or, sql } from 'drizzle-orm';
 import { db as DB, type Tx } from '../../db';
 import { createUnifier } from '../../unified/unifier';
 import { cellTransformer } from '../../unified/cellConfigurator';
@@ -7,8 +7,8 @@ import {
 	unifiedProductCellConfig,
 	unifiedGuild,
 	unifiedSpr,
-	qb,
-	shopify,
+	qb as qbTable,
+	shopify as shopifyTable,
 	productCategoryEnum,
 	productStatusEnum,
 	productUmEnum
@@ -38,12 +38,12 @@ export const productUnifier = createUnifier<
 	typeof unifiedProduct,
 	typeof unifiedProductCellConfig,
 	typeof unifiedGuild,
-	typeof qb | typeof shopify,
+	typeof qbTable | typeof shopifyTable,
 	typeof unifiedSpr
 >({
 	table: unifiedProduct,
 	confTable: unifiedProductCellConfig,
-	version: 1,
+	version: 3,
 	getRow,
 	transform: (
 		item,
@@ -51,130 +51,122 @@ export const productUnifier = createUnifier<
 	) => {
 		const guild = item.unifiedGuildRowContent;
 		const spr = item.unifiedSprRowContent;
-		const qbRow = item.qbRowContent;
-		const shopifyRow = item.shopifyRowContent;
-
-		// Identifiers matching logic
-		const gidPrimary = guild?.gid ?? null;
-		const sprcPrimary = guild?.spr ?? null;
-		const sprcSecondary = spr?.sprc ?? null;
-
-		const upcGuild = guild?.upc ?? null;
-		const upcSpr = spr?.upc ?? null;
-		const upcShopify = shopifyRow?.vBarcode ?? null;
-
-		const sprIdGuild = guild?.spr ?? null;
-		const sprIdSpr = spr?.sprc ?? null;
-
-		const basicsId = guild?.basics ?? null;
-		const cisId = guild?.cis ?? null;
-		const etilizeId = spr?.etilizeId ?? null;
-
-		// Status determination
-		const statusFromSpr =
-			spr?.status === 'Active' ? 'ACTIVE' : spr?.status === 'Discontinued' ? 'DISCONTINUED' : null;
-		const statusFromShopify =
-			shopifyRow?.status === 'ACTIVE'
-				? 'ACTIVE'
-				: shopifyRow?.status === 'ARCHIVED'
-					? 'DISCONTINUED'
-					: 'DISABLED';
-		const status =
-			statusFromShopify ?? statusFromSpr ?? (guild?.deleted ? 'DISCONTINUED' : 'ACTIVE');
-
-		// Category mapping
-		const categoryGuild = guild?.category;
-		const categorySpr = spr?.category;
-		const category = mapCategory(categoryGuild, categorySpr);
+		const qb = item.qbRowContent;
+		const shopify = item.shopifyRowContent;
 
 		// Pricing
-		const onlinePriceCents = shopifyRow?.vPriceCents ?? guild?.priceCents ?? null;
+		const sprPriceCents =
+			spr && spr.netPriceCents && spr.dealerNetPriceCents
+				? spr.netPriceCents >= 1.4 * spr.dealerNetPriceCents
+					? spr.netPriceCents
+					: roundUpToNearestTenCents(spr.dealerNetPriceCents * 1.4)
+				: (spr?.dealerNetPriceCents ?? null);
+		const defaultPriceCents = guild?.priceCents ?? sprPriceCents ?? null;
+		const onlinePriceCents =
+			defaultPriceCents ?? shopify?.vPriceCents ?? item.onlinePriceCents ?? null;
 		const onlineComparePriceCents =
-			shopifyRow?.vComparePriceCents ?? guild?.comparePriceCents ?? null;
-		const quickBooksPriceCents = qbRow?.priceCents ?? null;
-		const guildCostCents = guild?.costCents ?? null;
-		const sprCostCents = spr?.dealerNetPriceCents ?? null;
-
-		// Units
-		const umGuild = guild?.um;
-		const umSpr = spr?.um;
-		const umQb = qbRow?.um;
-		const um = mapUm(umGuild, umSpr, umQb);
-		const qtyPerUm = guild?.qtyPerUm ?? null;
+			guild?.comparePriceCents && onlinePriceCents && guild.comparePriceCents > onlinePriceCents
+				? guild.comparePriceCents
+				: null;
 
 		// Images
-		const primaryImage = shopifyRow?.imageUrl ?? guild?.imageUrl ?? spr?.primaryImage ?? null;
+		const primaryImage = spr?.primaryImage ?? guild?.imageUrl ?? item?.primaryImage ?? null;
 		const primaryImageDescription =
-			shopifyRow?.imageAltText ??
-			guild?.imageDescription ??
 			spr?.primaryImageDescription ??
-			(item.gid ? `Image of ${item.gid}` : item.sprc ? `Image of ${item.sprc}` : null);
+			guild?.imageDescription ??
+			item?.primaryImageDescription ??
+			null;
+		const otherImagesJsonArr = spr?.otherImagesJsonArr
+			? JSON.parse(spr.otherImagesJsonArr).length > 0
+				? spr.otherImagesJsonArr
+				: guild?.imageUrl
+					? JSON.stringify([
+							{
+								url: guild?.imageUrl ?? null,
+								description: guild?.imageDescription ?? null
+							},
+							...JSON.parse(guild?.otherImageListJSON ?? '[]')
+						])
+					: null
+			: (guild?.otherImageListJSON ?? null);
 
-		const otherImagesJsonArr = guild?.otherImageListJSON ?? spr?.otherImagesJsonArr ?? null;
-
-		// Inventory
-		const guildInventory = guild?.inventory ?? null;
-		const localInventory = shopifyRow?.vInventoryOnHandStore ?? null;
-		const sprInventoryAvailability = spr?.status ?? null;
-
-		// Physical properties
-		const weightGrams = shopifyRow?.vWeightGrams ?? guild?.weightGrams ?? null;
-		const vendor = guild?.vendor ?? null;
+		const isDiscontinued =
+			((guild?.deleted ?? true) && (spr?.deleted ?? true)) || spr?.status === 'Discontinued';
+		const sprAvailable = spr?.status ? spr.status === 'Active' : false;
 
 		return {
 			id: t('id', item.id),
-			gid: t('gid', gidPrimary),
-			sprc: t('sprc', sprcPrimary ?? sprcSecondary, {
+			gid: t('gid', guild?.gid ?? item.gid),
+			sprc: t('sprc', spr?.sprc ?? guild?.spr ?? item.sprc, {
 				shouldMatch: {
-					primary: 'Guild SPR ID',
-					secondary: 'SPR SPRC',
-					val: sprcSecondary,
-					ignore: sprcPrimary === null || sprcSecondary === null
+					primary: 'SPR SPRC',
+					secondary: 'Guild SPR ID',
+					val: guild?.spr ?? null,
+					ignore: spr?.sprc == null || guild?.spr == null
 				}
 			}),
-			status: t('status', status as any),
+			status: t(
+				'status',
+				(item) => (item.deleted ? 'DISABLED' : isDiscontinued ? 'DISCONTINUED' : 'ACTIVE'),
+				{
+					dependsOn: new Set(['deleted'])
+				}
+			),
 
 			unifiedGuildRow: t('unifiedGuildRow', item.unifiedGuildRow),
 			unifiedSprRow: t('unifiedSprRow', item.unifiedSprRow),
 			qbRow: t('qbRow', item.qbRow),
 			shopifyRow: t('shopifyRow', item.shopifyRow),
 
-			upc: t('upc', upcGuild ?? upcSpr ?? upcShopify, {
+			upc: t('upc', guild?.upc ?? spr?.upc ?? item.upc, {
 				shouldMatch: {
 					primary: 'Guild UPC',
 					secondary: 'SPR UPC',
-					val: upcSpr,
-					ignore: upcGuild === null || upcSpr === null
+					val: spr?.upc ?? null,
+					ignore: guild?.upc == null || spr?.upc == null
 				}
 			}),
-			spr: t('spr', sprIdGuild ?? sprIdSpr, {
-				shouldMatch: {
-					primary: 'Guild SPR',
-					secondary: 'SPR SPRC',
-					val: sprIdSpr,
-					ignore: sprIdGuild === null || sprIdSpr === null
-				}
-			}),
-			basics: t('basics', basicsId),
-			cis: t('cis', cisId),
-			etilizeId: t('etilizeId', etilizeId),
+			basics: t('basics', guild?.basics ?? null),
+			cws: t('cws', spr?.cws ?? null),
+			cis: t('cis', guild?.cis ?? null),
+			etilizeId: t('etilizeId', spr?.etilizeId ?? null),
 
-			title: t('title', shopifyRow?.title ?? guild?.title ?? spr?.title ?? null),
+			title: t('title', spr?.title ?? guild?.title ?? shopify?.title ?? null, {
+				shouldNotBeNull: true
+			}),
 			description: t(
 				'description',
-				shopifyRow?.htmlDescription ?? guild?.description ?? spr?.description ?? null
+				spr?.description ?? guild?.description ?? shopify?.htmlDescription ?? null
 			),
-			category: t('category', category),
-			inFlyer: t('inFlyer', guild?.flyerRow !== null),
+			category: t('category', mapCategory(guild?.category, spr?.category) ?? item.category),
+			inFlyer: t('inFlyer', guild?.inFlyer ?? false),
 
-			onlinePriceCents: t('onlinePriceCents', onlinePriceCents),
+			onlinePriceCents: t('onlinePriceCents', onlinePriceCents, {
+				shouldMatch: {
+					val: guild?.priceCents ?? null,
+					primary: 'Calculated Online Price',
+					secondary: 'Guild Flyer Price',
+					ignore: !guild || !guild.inFlyer || guild.priceCents === null || onlinePriceCents === null
+				}
+			}),
 			onlineComparePriceCents: t('onlineComparePriceCents', onlineComparePriceCents),
-			quickBooksPriceCents: t('quickBooksPriceCents', quickBooksPriceCents),
-			guildCostCents: t('guildCostCents', guildCostCents),
-			sprCostCents: t('sprCostCents', sprCostCents),
+			quickBooksPriceCents: t(
+				'quickBooksPriceCents',
+				(item) => (qb ? (item.onlinePriceCents ?? null) : null),
+				{
+					dependsOn: new Set(['onlinePriceCents']),
+					defaultSettingOfApprove: {
+						currentThresholdPercent: 20,
+						lastThresholdPercent: null,
+						lastValueOverride: qb?.priceCents ?? null
+					}
+				}
+			),
+			guildCostCents: t('guildCostCents', guild?.costCents ?? null),
+			sprCostCents: t('sprCostCents', spr?.dealerNetPriceCents ?? null),
 
-			um: t('um', um),
-			qtyPerUm: t('qtyPerUm', qtyPerUm),
+			um: t('um', mapUm(guild?.um, spr?.um, qb?.um)),
+			qtyPerUm: t('qtyPerUm', guild?.qtyPerUm ?? null),
 
 			primaryImage: t('primaryImage', primaryImage),
 			primaryImageDescription: t('primaryImageDescription', primaryImageDescription),
@@ -182,19 +174,23 @@ export const productUnifier = createUnifier<
 
 			availableForSaleOnline: t(
 				'availableForSaleOnline',
-				shopifyRow !== null && shopifyRow.status === 'ACTIVE'
+				(item) =>
+					!item.deleted &&
+					item.status !== 'DISABLED' &&
+					(item.category !== 'furniture' || (!!item.weightGrams && item.weightGrams < 30000)) &&
+					((item.localInventory ?? 0) > 0 || sprAvailable || (guild?.deleted ?? true) === false),
+				{
+					dependsOn: new Set(['status', 'deleted', 'category', 'weightGrams', 'localInventory'])
+				}
 			),
-			guildInventory: t('guildInventory', guildInventory),
-			localInventory: t('localInventory', localInventory),
-			sprInventoryAvailability: t('sprInventoryAvailability', sprInventoryAvailability),
+			guildInventory: t('guildInventory', guild?.inventory ?? null),
+			localInventory: t('localInventory', qb?.quantityOnHand ?? null),
+			sprInventoryAvailability: t('sprInventoryAvailability', spr?.status ?? null),
 
-			weightGrams: t('weightGrams', weightGrams),
-			vendor: t('vendor', vendor),
+			weightGrams: t('weightGrams', guild?.weightGrams ?? null),
+			vendor: t('vendor', guild?.vendor ?? spr?.manufacturerName ?? null),
 
-			deleted: t(
-				'deleted',
-				guild?.deleted ?? spr?.deleted ?? qbRow?.deleted ?? shopifyRow?.deleted ?? false
-			),
+			deleted: t('deleted', (!guild || guild.deleted) && (!spr || spr.deleted)),
 			lastUpdated: t('lastUpdated', item.lastUpdated)
 		};
 	},
@@ -225,8 +221,10 @@ export const productUnifier = createUnifier<
 				});
 
 				// Prefer exact GID match
-				const exactMatch = res.find((r) => r.gid === gid);
-				if (exactMatch) return [exactMatch.id];
+				if (gid) {
+					const exactMatch = res.find((r) => r.gid === gid);
+					if (exactMatch) return [exactMatch.id];
+				}
 
 				return res.map((r) => r.id);
 			},
@@ -239,6 +237,7 @@ export const productUnifier = createUnifier<
 					unifiedSprRow: null,
 					qbRow: null,
 					shopifyRow: null,
+					upc: row.upc,
 					lastUpdated,
 					deleted: row.deleted
 				} satisfies typeof unifiedProduct.$inferInsert;
@@ -273,8 +272,10 @@ export const productUnifier = createUnifier<
 				});
 
 				// Prefer exact SPRC match
-				const exactMatch = res.find((r: any) => r.sprc === sprc);
-				if (exactMatch) return [exactMatch.id];
+				if (sprc) {
+					const exactMatch = res.find((r: any) => r.sprc === sprc);
+					if (exactMatch) return [exactMatch.id];
+				}
 
 				return res.map((r: any) => r.id);
 			},
@@ -291,6 +292,7 @@ export const productUnifier = createUnifier<
 					unifiedSprRow: row.id,
 					qbRow: null,
 					shopifyRow: null,
+					upc: row.upc,
 					lastUpdated,
 					deleted: row.deleted
 				} satisfies typeof unifiedProduct.$inferInsert;
@@ -301,7 +303,7 @@ export const productUnifier = createUnifier<
 		},
 		otherTables: [
 			{
-				table: qb,
+				table: qbTable,
 				refCol: 'qbRow',
 				findConnections: async (row, db) => {
 					const gid = row.gid;
@@ -310,57 +312,144 @@ export const productUnifier = createUnifier<
 
 					if (!gid && !sprc && !upc) return [];
 
-					// QB IDs are formatted as "Category:UPC" or similar patterns
-					const patterns: string[] = [];
-					if (gid) patterns.push(`%${gid}%`);
-					if (sprc) patterns.push(`%${sprc}%`);
-					if (upc) patterns.push(`%${upc}%`);
+					if (upc) {
+						const exactUpcMatches = await db.query.qb.findMany({
+							where: and(eq(qbTable.upc, upc), not(qbTable.deleted)),
+							columns: {
+								id: true,
+								upc: true
+							}
+						});
 
-					const res = await db.query.qb.findMany({
-						where: and(
-							or(...patterns.map((pattern) => eq(qb.qbId, pattern.replace(/%/g, '')))),
-							not(qb.deleted)
-						),
-						columns: {
-							id: true,
-							qbId: true
+						if (exactUpcMatches.length > 0) {
+							return exactUpcMatches.map((r) => r.id);
 						}
-					});
 
-					return res.map((r) => r.id);
+						const shortUpc = upc.length >= 12 ? upc.slice(upc.length - 11, upc.length - 1) : null;
+
+						if (shortUpc) {
+							const shortUpcMatches = await db.query.qb.findMany({
+								where: and(eq(qbTable.shortUpc, shortUpc), not(qbTable.deleted)),
+								columns: {
+									id: true,
+									shortUpc: true
+								}
+							});
+
+							if (shortUpcMatches.length > 0) {
+								return shortUpcMatches.map((r) => r.id);
+							}
+						}
+					}
+
+					const productNameConditions: any[] = [];
+
+					if (gid) {
+						const cleanGid = gid.toUpperCase().replace(/[^A-Z0-9]/g, '');
+						productNameConditions.push(
+							sql`UPPER(REGEXP_REPLACE(${qbTable.productName}, '[^A-Z0-9]', '', 'g')) = ${cleanGid}`
+						);
+					}
+
+					if (sprc) {
+						const cleanSprc = sprc.toUpperCase().replace(/[^A-Z0-9]/g, '');
+						productNameConditions.push(
+							sql`UPPER(REGEXP_REPLACE(${qbTable.productName}, '[^A-Z0-9]', '', 'g')) = ${cleanSprc}`
+						);
+					}
+
+					if (productNameConditions.length > 0) {
+						const nameMatches = await db.query.qb.findMany({
+							where: and(or(...productNameConditions), not(qbTable.deleted)),
+							columns: {
+								id: true,
+								productName: true
+							}
+						});
+
+						if (nameMatches.length > 0) {
+							return nameMatches.map((r) => r.id);
+						}
+					}
+
+					return [];
 				},
 				isDeleted: (row) => {
 					return row.qbRowContent?.deleted ?? true;
 				}
 			},
 			{
-				table: shopify,
+				table: shopifyTable,
 				refCol: 'shopifyRow',
 				findConnections: async (row, db) => {
 					const gid = row.gid;
+					const sprc = row.sprc ?? row.unifiedGuildRowContent?.spr ?? null;
 					const upc = row.unifiedGuildRowContent?.upc ?? row.unifiedSprRowContent?.upc ?? null;
 
-					if (!gid && !upc) return [];
+					if (!gid && !sprc && !upc) return [];
 
-					const res = await db.query.shopify.findMany({
-						where: and(
-							or(
-								gid ? eq(shopify.vSku, gid) : undefined,
-								upc ? eq(shopify.vBarcode, upc) : undefined
+					// First try to match vSku to gid or sprc
+					if (gid || sprc) {
+						const skuMatches = await db.query.shopify.findMany({
+							where: and(
+								or(
+									gid ? eq(shopifyTable.vSku, gid) : undefined,
+									sprc ? eq(shopifyTable.vSku, sprc) : undefined
+								),
+								not(shopifyTable.deleted)
 							),
-							not(shopify.deleted)
-						),
-						columns: {
-							id: true,
-							vSku: true
+							columns: {
+								id: true,
+								vSku: true
+							}
+						});
+
+						if (skuMatches.length > 0) {
+							// Prefer exact GID match over SPRC match
+							if (gid) {
+								const exactGidMatch = skuMatches.find((r) => r.vSku === gid);
+								if (exactGidMatch) return [exactGidMatch.id];
+							}
+
+							return skuMatches.map((r) => r.id);
 						}
-					});
+					}
 
-					// Prefer exact SKU match
-					const exactMatch = res.find((r) => r.vSku === gid);
-					if (exactMatch) return [exactMatch.id];
+					// If no SKU match, try to match vBarcode to UPC
+					if (upc) {
+						const barcodeMatches = await db.query.shopify.findMany({
+							where: and(eq(shopifyTable.vBarcode, upc), not(shopifyTable.deleted)),
+							columns: {
+								id: true,
+								vBarcode: true
+							}
+						});
 
-					return res.map((r) => r.id);
+						if (barcodeMatches.length > 0) {
+							return barcodeMatches.map((r) => r.id);
+						}
+					}
+
+					// Finally, try to match handle to shortened UPC
+					if (upc) {
+						const shortUpc = upc.length >= 12 ? upc.slice(upc.length - 11, upc.length - 1) : null;
+
+						if (shortUpc) {
+							const handleMatches = await db.query.shopify.findMany({
+								where: and(eq(shopifyTable.handle, shortUpc), not(shopifyTable.deleted)),
+								columns: {
+									id: true,
+									handle: true
+								}
+							});
+
+							if (handleMatches.length > 0) {
+								return handleMatches.map((r) => r.id);
+							}
+						}
+					}
+
+					return [];
 				},
 				isDeleted: (row) => {
 					return row.shopifyRowContent?.deleted ?? true;
@@ -456,3 +545,8 @@ const umMap: { [key: string]: 'ea' | 'pk' | 'bx' } = {
 	pac: 'pk',
 	box: 'bx'
 };
+
+function roundUpToNearestTenCents(value: number | null): number | null {
+	if (value === null) return null;
+	return Math.ceil(value / 10) * 10 - 1;
+}

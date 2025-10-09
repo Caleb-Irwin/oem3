@@ -597,7 +597,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				SPRC: unifiedProduct.sprc,
 				Status: unifiedProduct.status,
 				UPC: unifiedProduct.upc,
-				'SPR Number': unifiedProduct.spr,
+				'CWS Number': unifiedProduct.cws,
 				'Basics Number': unifiedProduct.basics,
 				'CIS Number': unifiedProduct.cis,
 				'Etilize ID': unifiedProduct.etilizeId,

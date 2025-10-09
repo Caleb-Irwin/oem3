@@ -220,7 +220,7 @@ export function ConnectionManager<
 			});
 		}
 
-		if (!allowRemoveMatch && newVal === null) {
+		if (!allowRemoveMatch && newVal === null && originalRow[connectionRowKey] !== null) {
 			cellConfigurator.addError(connectionRowKey as any, {
 				canNotBeSetToNull: {
 					message:

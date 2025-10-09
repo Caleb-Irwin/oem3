@@ -13,7 +13,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { uniref, unifiedProduct } from '../../db.schema';
 
-export const statusEnum = pgEnum('shopifyStatus', ['ACTIVE', 'ARCHIVED', 'DRAFT']);
+export const statusEnum = pgEnum('shopifyStatus', ['ACTIVE', 'ARCHIVED', 'DRAFT', 'UNLISTED']);
 
 export const shopify = pgTable(
 	'shopify',

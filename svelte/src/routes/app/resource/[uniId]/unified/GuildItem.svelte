@@ -70,4 +70,7 @@
 	<div class="p-1 flex">
 		<Text namedCell={{ name: 'Category', cell: row.cells.category }} />
 	</div>
+	<div class="p-1 flex">
+		<Text namedCell={{ name: 'In Flyer', cell: row.cells.inFlyer }} />
+	</div>
 </ItemLayout>

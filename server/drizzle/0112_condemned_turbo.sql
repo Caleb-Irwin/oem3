@@ -1,0 +1,1 @@
+ALTER TYPE "public"."shopifyStatus" ADD VALUE 'UNLISTED';

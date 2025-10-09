@@ -58,8 +58,8 @@ export const unifiedProduct = pgTable(
 			.references(() => shopify.id, { onDelete: 'set null' }),
 
 		upc: varchar('upc', { length: 128 }),
-		spr: varchar('spr', { length: 128 }),
 		basics: varchar('basics', { length: 128 }),
+		cws: varchar('cws', { length: 128 }),
 		cis: varchar('cis', { length: 128 }),
 		etilizeId: varchar('etilizeId', { length: 32 }),
 
@@ -93,13 +93,15 @@ export const unifiedProduct = pgTable(
 		lastUpdated: bigint('lastUpdated', { mode: 'number' }).notNull()
 	},
 	(product) => [
+		index('product_gid_idx').on(product.gid),
+		index('product_sprc_idx').on(product.sprc),
 		uniqueIndex('product_unifiedGuildRow_idx').on(product.unifiedGuildRow),
 		uniqueIndex('product_unifiedSprRow_idx').on(product.unifiedSprRow),
 		uniqueIndex('product_qbRow_idx').on(product.qbRow),
 		uniqueIndex('product_shopifyRow_idx').on(product.shopifyRow),
 		index('product_upc_idx').on(product.upc),
-		index('product_spr_idx').on(product.spr),
 		index('product_basics_idx').on(product.basics),
+		index('product_cws_idx').on(product.cws),
 		index('product_cis_idx').on(product.cis),
 		index('product_etilizeId_idx').on(product.etilizeId),
 		index('product_lastUpdated_idx').on(product.lastUpdated),
@@ -152,8 +154,8 @@ export const unifiedProductColumnEnum = pgEnum('unifiedProductColumn', [
 	'shopifyRow',
 	// Product identifiers
 	'upc',
-	'spr',
 	'basics',
+	'cws',
 	'cis',
 	'etilizeId',
 	// Product info
