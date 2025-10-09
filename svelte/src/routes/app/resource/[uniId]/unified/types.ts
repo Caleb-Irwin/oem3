@@ -3,7 +3,8 @@ import type { UnifiedCell } from '../../../../../../../server/src/routers/unifie
 export type {
 	UnifiedRow,
 	UnifiedGuildRow,
-	UnifiedSprRow
+	UnifiedSprRow,
+	UnifiedProductRow
 } from '../../../../../../../server/src/routers/unified';
 
 export type Cell = UnifiedCell;
@@ -25,5 +26,9 @@ export const ColToTableName: typeof ColToTableNameType = {
 	inventoryRow: 'guildInventory',
 	flyerRow: 'guildFlyer',
 	sprFlatFileRow: 'sprFlatFile',
-	sprPriceFileRow: 'sprPriceFile'
+	sprPriceFileRow: 'sprPriceFile',
+	qbRow: 'qb',
+	shopifyRow: 'shopify',
+	unifiedGuildRow: 'unifiedGuild',
+	unifiedSprRow: 'unifiedSpr'
 };

@@ -31,7 +31,10 @@
 		| {
 				title: string;
 				name: string;
-				item: Product['unifiedGuildData'] | Product['unifiedSprData'];
+				item:
+					| Product['unifiedGuildData']
+					| Product['unifiedSprData']
+					| Product['unifiedProductData'];
 				rawItem: ({ uniId: number } & RawProduct) | null;
 				queryType: QueryType;
 				unifiedColumn: string;
@@ -70,6 +73,25 @@
 				unifiedColumn: {
 					sprPriceFile: 'sprPriceFileRow',
 					sprFlatFile: 'sprFlatFileRow'
+				}[tableName]!
+			};
+		if (product?.unifiedProductData !== undefined)
+			return {
+				title: 'Unified Product',
+				name: 'unified product',
+				item: product.unifiedProductData,
+				rawItem: product.unifiedProductData
+					? {
+							uniId: product.unifiedProductData.uniref.uniId,
+							unifiedProductData: product.unifiedProductData
+						}
+					: null,
+				queryType: 'unifiedProduct',
+				unifiedColumn: {
+					unifiedGuild: 'unifiedGuildRow',
+					unifiedSpr: 'unifiedSprRow',
+					qb: 'qbRow',
+					shopify: 'shopifyRow'
 				}[tableName]!
 			};
 		return undefined;

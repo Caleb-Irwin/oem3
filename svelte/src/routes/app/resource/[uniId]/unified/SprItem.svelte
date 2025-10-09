@@ -30,7 +30,7 @@
 	primaryImage={row.cells.primaryImage}
 	primaryImageDescription={row.cells.primaryImageDescription}
 	otherImages={row.cells.otherImagesJsonArr}
-	price={row.cells.listPriceCents}
+	price={row.cells.netPriceCents}
 	description={row.cells.description}
 >
 	<div class="p-1 flex">

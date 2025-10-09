@@ -1,5 +1,12 @@
 import { z } from 'zod';
-import { history, unifiedGuild, unifiedSpr, uniref, type CellSetting } from '../db.schema';
+import {
+	history,
+	unifiedGuild,
+	unifiedProduct,
+	unifiedSpr,
+	uniref,
+	type CellSetting
+} from '../db.schema';
 import { generalProcedure, router, viewerProcedure } from '../trpc';
 import { db } from '../db';
 import { desc, eq } from 'drizzle-orm';
@@ -143,6 +150,7 @@ export interface UnifiedRow<T extends UnifiedTables = UnifiedTables> {
 }
 export type UnifiedGuildRow = UnifiedRow<typeof unifiedGuild>;
 export type UnifiedSprRow = UnifiedRow<typeof unifiedSpr>;
+export type UnifiedProductRow = UnifiedRow<typeof unifiedProduct>;
 
 export interface UnifiedCell {
 	compoundId: string;

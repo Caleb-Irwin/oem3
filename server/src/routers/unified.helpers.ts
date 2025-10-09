@@ -6,7 +6,11 @@ export const ColToTableName = {
 	inventoryRow: 'guildInventory',
 	flyerRow: 'guildFlyer',
 	sprPriceFileRow: 'sprPriceFile',
-	sprFlatFileRow: 'sprFlatFile'
+	sprFlatFileRow: 'sprFlatFile',
+	qbRow: 'qb',
+	shopifyRow: 'shopify',
+	unifiedGuildRow: 'unifiedGuild',
+	unifiedSprRow: 'unifiedSpr'
 } as const;
 
 const { update, createSub } = eventSubscription();
