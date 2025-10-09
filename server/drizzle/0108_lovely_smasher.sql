@@ -1,0 +1,1 @@
+ALTER TABLE "qb" ALTER COLUMN "product_name" DROP NOT NULL;

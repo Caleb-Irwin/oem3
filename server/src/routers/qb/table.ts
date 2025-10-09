@@ -32,6 +32,9 @@ export const qb = pgTable(
 	{
 		id: serial('id').primaryKey(),
 		qbId: varchar('qb_id', { length: 256 }).notNull(),
+		productName: varchar('product_name', { length: 256 }),
+		upc: varchar('upc', { length: 16 }),
+		shortUpc: varchar('short_upc', { length: 16 }),
 		desc: text('desc').notNull().default(''),
 		type: qbItemTypeEnum('type').notNull(),
 		costCents: integer('cost_cents').notNull(),
@@ -49,10 +52,8 @@ export const qb = pgTable(
 	},
 	(qb) => [
 		index('qb_qbId_idx').on(qb.qbId),
-		index('qb_shortUpc_idx').using(
-			'btree',
-			sql`substr(substr((qb.qb_id)::text, (POSITION((':'::text) IN (qb.qb_id)) + 1)), (length(substr((qb.qb_id)::text, (POSITION((':'::text) IN (qb.qb_id)) + 1))) - 10), 10)`
-		),
+		index('qb_upc_idx').on(qb.upc),
+		index('qb_shortUpc_idx').on(qb.shortUpc),
 		index('qb_last_updated_idx').on(qb.lastUpdated)
 	]
 );

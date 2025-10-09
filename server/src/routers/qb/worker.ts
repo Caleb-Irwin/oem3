@@ -30,6 +30,9 @@ work({
 				diff: genDiffer(
 					['quantityOnHand', 'quantityOnPurchaseOrder', 'quantityOnSalesOrder'],
 					[
+						'productName',
+						'upc',
+						'shortUpc',
 						'desc',
 						'type',
 						'costCents',
@@ -51,9 +54,23 @@ work({
 	}
 });
 
+const upcRegex = /^\d+$/,
+	validUpcLengths = [8, 12, 13, 14];
+
 const transformQBItem = (item: QbItemRaw): typeof qb.$inferInsert => {
+	const qbId = item.Item,
+		productName = qbId.indexOf(':') ? qbId.slice(qbId.indexOf(':') + 1).trim() : qbId.trim();
+
+	const isValidUpc = validUpcLengths.includes(productName.length) && upcRegex.test(productName);
+	const upc = isValidUpc ? productName : null;
+
+	const shortUpc = upc && upc.length >= 12 ? upc.slice(upc.length - 11, upc.length - 1) : null;
+
 	return {
-		qbId: item.Item,
+		qbId: qbId,
+		productName,
+		upc,
+		shortUpc,
 		desc: item.Description,
 		type: item.Type as (typeof qbItemTypeEnum.enumValues)[number],
 		costCents: removeNaN(Math.round(100 * parseFloat(item.Cost) || -1)) ?? -1,

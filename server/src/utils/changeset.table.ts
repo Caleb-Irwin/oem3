@@ -10,7 +10,8 @@ import {
 	type qb,
 	sprFlatFile,
 	unifiedGuild,
-	unifiedSpr
+	unifiedSpr,
+	unifiedProduct
 } from '../db.schema';
 import { relations } from 'drizzle-orm';
 

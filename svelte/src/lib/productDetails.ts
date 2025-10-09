@@ -65,6 +65,9 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			],
 			unifiedProductData: qb.unifiedProductData ?? null,
 			other: {
+				UPC: qb.upc,
+				'Short UPC': qb.shortUpc,
+				'Product Name': qb.productName,
 				Cost: formatCurrency(qb.costCents / 100),
 				'Unit of Measure': qb.um,
 				Account: qb.account,
