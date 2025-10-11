@@ -28,7 +28,9 @@
 		otherImages: Cell;
 		price: Cell;
 		comparePrice?: Cell;
+		thirdPrice?: NamedCell;
 		description: Cell;
+		customStatus?: Snippet;
 		children?: Snippet;
 	}
 	let {
@@ -47,7 +49,9 @@
 		otherImages,
 		price,
 		comparePrice,
+		thirdPrice,
 		description,
+		customStatus,
 		children
 	}: Props = $props();
 
@@ -122,12 +126,17 @@
 	<div class="p-2 w-full col-span-1 md:col-span-2">
 		<div class="flex w-full flex-col md:flex-row">
 			<Title cell={title} />
-			<Deleted cell={deleted} />
+			{#if !customStatus}
+				<Deleted cell={deleted} />
+			{/if}
 		</div>
 		<div class="py-2">
-			<Price {price} {comparePrice} />
+			<Price {price} {comparePrice} {thirdPrice} />
 			<span class="flex-grow"></span>
 		</div>
+		{#if customStatus}
+			{@render customStatus?.()}
+		{/if}
 		<Description cell={description} />
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-1 mx-[-4px]">
 			{@render children?.()}

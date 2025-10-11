@@ -36,6 +36,12 @@
 		padding-left: 1.25rem;
 		list-style-type: disc;
 	}
+	.desc :global(li) {
+		display: list-item;
+		margin-left: 1.25rem;
+		list-style-type: disc;
+		list-style-position: outside;
+	}
 	.desc > :global(div) {
 		padding-top: 1em;
 	}
