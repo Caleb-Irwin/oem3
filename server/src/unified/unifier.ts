@@ -102,21 +102,6 @@ export function createUnifier<
 			cellConfigurator,
 			_updateRow
 		});
-		// 1.a Deleted item based on primary connection
-		if (connections.primaryTable.isDeleted(updatedRow) && !updatedRow.deleted) {
-			const newVal = (await cellConfigurator.getConfiguredCellValue(
-				{
-					key: 'deleted',
-					val: true,
-					options: {}
-				},
-				originalRow.deleted
-			)) as boolean;
-			if (newVal !== updatedRow.deleted) {
-				updatedRow.deleted = newVal;
-				await _modifyRow(id, { deleted: newVal } as any, db);
-			}
-		}
 
 		// 2. Transform
 		const transformed = transform(updatedRow, cellTransformer);

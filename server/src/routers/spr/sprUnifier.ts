@@ -136,10 +136,7 @@ export const sprUnifier = createUnifier<
 			brandName: t('brandName', flat?.brandName ?? null),
 			manufacturerName: t('manufacturerName', flat?.manufacturerName ?? null),
 
-			deleted: t(
-				'deleted',
-				price.deleted /* || price.status === 'Discontinued' */ || price.status === null
-			),
+			deleted: t('deleted', price.deleted || price.status === null),
 			lastUpdated: t('lastUpdated', item.lastUpdated)
 		};
 	},

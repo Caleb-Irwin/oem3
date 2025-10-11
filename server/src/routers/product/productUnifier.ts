@@ -43,7 +43,7 @@ export const productUnifier = createUnifier<
 >({
 	table: unifiedProduct,
 	confTable: unifiedProductCellConfig,
-	version: 3,
+	version: 7,
 	getRow,
 	transform: (
 		item,
@@ -79,20 +79,22 @@ export const productUnifier = createUnifier<
 		const otherImagesJsonArr = spr?.otherImagesJsonArr
 			? JSON.parse(spr.otherImagesJsonArr).length > 0
 				? spr.otherImagesJsonArr
-				: guild?.imageUrl
+				: guild?.otherImageListJSON && guild?.imageUrl
 					? JSON.stringify([
+							...JSON.parse(guild?.otherImageListJSON ?? '[]'),
 							{
 								url: guild?.imageUrl ?? null,
 								description: guild?.imageDescription ?? null
-							},
-							...JSON.parse(guild?.otherImageListJSON ?? '[]')
+							}
 						])
-					: null
-			: (guild?.otherImageListJSON ?? null);
+					: item.otherImagesJsonArr
+			: (guild?.otherImageListJSON ?? item.otherImagesJsonArr);
 
 		const isDiscontinued =
 			((guild?.deleted ?? true) && (spr?.deleted ?? true)) || spr?.status === 'Discontinued';
+		const category = mapCategory(guild?.category, spr?.category) ?? item.category;
 		const sprAvailable = spr?.status ? spr.status === 'Active' : false;
+		// const isHpInkToner = category === 'technologyInk' &&
 
 		return {
 			id: t('id', item.id),
@@ -107,9 +109,14 @@ export const productUnifier = createUnifier<
 			}),
 			status: t(
 				'status',
-				(item) => (item.deleted ? 'DISABLED' : isDiscontinued ? 'DISCONTINUED' : 'ACTIVE'),
+				(item) =>
+					item.deleted || isGenericHpInkToner(item)
+						? 'DISABLED'
+						: isDiscontinued
+							? 'DISCONTINUED'
+							: 'ACTIVE',
 				{
-					dependsOn: new Set(['deleted'])
+					dependsOn: new Set(['deleted', 'title', 'description', 'category', 'vendor'])
 				}
 			),
 
@@ -123,7 +130,13 @@ export const productUnifier = createUnifier<
 					primary: 'Guild UPC',
 					secondary: 'SPR UPC',
 					val: spr?.upc ?? null,
-					ignore: guild?.upc == null || spr?.upc == null
+					ignore:
+						guild?.upc == null ||
+						spr?.upc == null ||
+						(guild.upc.length >= 12 &&
+							spr.upc.length >= 12 &&
+							guild.upc.slice(guild.upc.length - 11, guild.upc.length - 1) ===
+								spr.upc.slice(spr.upc.length - 11, spr.upc.length - 1))
 				}
 			}),
 			basics: t('basics', guild?.basics ?? null),
@@ -131,14 +144,12 @@ export const productUnifier = createUnifier<
 			cis: t('cis', guild?.cis ?? null),
 			etilizeId: t('etilizeId', spr?.etilizeId ?? null),
 
-			title: t('title', spr?.title ?? guild?.title ?? shopify?.title ?? null, {
-				shouldNotBeNull: true
-			}),
+			title: t('title', spr?.title ?? guild?.title ?? shopify?.title ?? item.title),
 			description: t(
 				'description',
-				spr?.description ?? guild?.description ?? shopify?.htmlDescription ?? null
+				spr?.description ?? guild?.description ?? shopify?.htmlDescription ?? item.description
 			),
-			category: t('category', mapCategory(guild?.category, spr?.category) ?? item.category),
+			category: t('category', category),
 			inFlyer: t('inFlyer', guild?.inFlyer ?? false),
 
 			onlinePriceCents: t('onlinePriceCents', onlinePriceCents, {
@@ -159,13 +170,14 @@ export const productUnifier = createUnifier<
 						currentThresholdPercent: 20,
 						lastThresholdPercent: null,
 						lastValueOverride: qb?.priceCents ?? null
-					}
+					},
+					shouldNotBeNull: guild?.inFlyer ?? false
 				}
 			),
 			guildCostCents: t('guildCostCents', guild?.costCents ?? null),
 			sprCostCents: t('sprCostCents', spr?.dealerNetPriceCents ?? null),
 
-			um: t('um', mapUm(guild?.um, spr?.um, qb?.um)),
+			um: t('um', mapUm(guild?.um, spr?.um, qb?.um) ?? item.um),
 			qtyPerUm: t('qtyPerUm', guild?.qtyPerUm ?? null),
 
 			primaryImage: t('primaryImage', primaryImage),
@@ -238,6 +250,7 @@ export const productUnifier = createUnifier<
 					qbRow: null,
 					shopifyRow: null,
 					upc: row.upc,
+					cis: row.cis,
 					lastUpdated,
 					deleted: row.deleted
 				} satisfies typeof unifiedProduct.$inferInsert;
@@ -252,32 +265,75 @@ export const productUnifier = createUnifier<
 			findConnections: async (row, db) => {
 				const sprc = row.sprc ?? row.unifiedGuildRowContent?.spr ?? null;
 				const upc = row.unifiedGuildRowContent?.upc ?? null;
-				const etilizeId = row.unifiedSprRowContent?.etilizeId ?? null;
+				const cis = row.unifiedGuildRowContent?.cis ?? null;
 
-				if (!sprc && !upc && !etilizeId) return [];
+				if (!sprc && !upc && !cis) return [];
 
-				const res = await db.query.unifiedSpr.findMany({
-					where: and(
-						or(
-							sprc ? eq(unifiedSpr.sprc, sprc) : undefined,
-							upc ? eq(unifiedSpr.upc, upc) : undefined,
-							etilizeId ? eq(unifiedSpr.etilizeId, etilizeId) : undefined
-						),
-						not(unifiedSpr.deleted)
-					),
-					columns: {
-						id: true,
-						sprc: true
-					}
-				});
-
-				// Prefer exact SPRC match
 				if (sprc) {
-					const exactMatch = res.find((r: any) => r.sprc === sprc);
-					if (exactMatch) return [exactMatch.id];
+					const sprcMatches = await db.query.unifiedSpr.findMany({
+						where: and(eq(unifiedSpr.sprc, sprc), not(unifiedSpr.deleted)),
+						columns: {
+							id: true,
+							sprc: true
+						}
+					});
+
+					if (sprcMatches.length > 0) {
+						return sprcMatches.map((r) => r.id);
+					}
 				}
 
-				return res.map((r: any) => r.id);
+				if (upc) {
+					const upcMatches = await db.query.unifiedSpr.findMany({
+						where: and(eq(unifiedSpr.upc, upc), not(unifiedSpr.deleted)),
+						columns: {
+							id: true,
+							upc: true
+						}
+					});
+
+					if (upcMatches.length > 0) {
+						return upcMatches.map((r) => r.id);
+					}
+				}
+
+				const otherResults = new Set<number>();
+				if (cis) {
+					const cisMatches = await db.query.unifiedSpr.findMany({
+						where: and(eq(unifiedSpr.cws, cis), not(unifiedSpr.deleted)),
+						columns: {
+							id: true,
+							cws: true
+						}
+					});
+
+					if (cisMatches.length > 0) {
+						cisMatches.forEach((r) => otherResults.add(r.id));
+					}
+				}
+
+				if (upc) {
+					const shortUpc = upc.length >= 12 ? upc.slice(upc.length - 11, upc.length - 1) : null;
+
+					if (shortUpc) {
+						const shortUpcMatches = await db.query.unifiedSpr.findMany({
+							where: and(
+								not(unifiedSpr.deleted),
+								sql`SUBSTRING(${unifiedSpr.upc}, LENGTH(${unifiedSpr.upc}) - 10, 10) = ${shortUpc}`
+							),
+							columns: {
+								id: true,
+								upc: true
+							}
+						});
+
+						if (shortUpcMatches.length > 0) {
+							shortUpcMatches.forEach((r) => otherResults.add(r.id));
+						}
+					}
+				}
+
+				return Array.from(otherResults);
 			},
 			newRowTransform: (row, lastUpdated) => {
 				return {
@@ -293,6 +349,7 @@ export const productUnifier = createUnifier<
 					qbRow: null,
 					shopifyRow: null,
 					upc: row.upc,
+					cws: row.cws,
 					lastUpdated,
 					deleted: row.deleted
 				} satisfies typeof unifiedProduct.$inferInsert;
@@ -549,4 +606,65 @@ const umMap: { [key: string]: 'ea' | 'pk' | 'bx' } = {
 function roundUpToNearestTenCents(value: number | null): number | null {
 	if (value === null) return null;
 	return Math.ceil(value / 10) * 10 - 1;
+}
+
+const hpRegex = /\b(HP|H\.P\.|HEWLETT[\s\-]*PACKARD)\b/i;
+function isGenericHpInkToner(item: {
+	category?: string | null | undefined;
+	title?: string | null | undefined;
+	description?: string | null | undefined;
+	vendor?: string | null | undefined;
+}): boolean {
+	const isHpInkToner =
+		item.category === 'technologyInk' &&
+		((item.title && hpRegex.test(item.title)) ||
+			(item.description && hpRegex.test(item.description)));
+
+	if (
+		!isHpInkToner ||
+		(item.title && item.title.toLowerCase().includes('original')) ||
+		(item.vendor && item.vendor.toUpperCase().includes('HP INC'))
+	)
+		return false;
+	if (
+		item.vendor &&
+		(item.vendor.toUpperCase().includes('CLOVER') ||
+			item.vendor.toUpperCase().includes('GENUINE SUPPLY SOURCE'))
+	)
+		return true;
+
+	if (item.title) {
+		const title = item.title.toLowerCase();
+		const keywords = [
+			'fuzion',
+			'ecotone',
+			'remanufactured',
+			'generic',
+			'compatible',
+			'refill',
+			'premium tone',
+			'clover'
+		];
+		if (keywords.some((keyword) => title.includes(keyword))) {
+			return true;
+		}
+	}
+	if (item.description) {
+		const description = item.description.toLowerCase();
+		const keywords = [
+			'fuzion',
+			'ecotone',
+			'remanufactured',
+			'generic',
+			'compatible',
+			'refill',
+			'premium tone',
+			'clover'
+		];
+		if (keywords.some((keyword) => description.includes(keyword))) {
+			return true;
+		}
+	}
+
+	return false;
 }

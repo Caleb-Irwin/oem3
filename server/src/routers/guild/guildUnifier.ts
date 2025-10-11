@@ -42,7 +42,7 @@ export const guildUnifier = createUnifier<
 >({
 	table: unifiedGuild,
 	confTable: unifiedGuildCellConfig,
-	version: 33,
+	version: 35,
 	getRow,
 	transform: (item, t) => {
 		return {
@@ -157,7 +157,10 @@ export const guildUnifier = createUnifier<
 				'category',
 				categoryMap[item.dataRowContent.webCategory.toString().slice(0, 1)] ?? null
 			),
-			weightGrams: t('weightGrams', item.dataRowContent.weightGrams),
+			weightGrams: t(
+				'weightGrams',
+				item.dataRowContent.weightGrams > 0 ? item.dataRowContent.weightGrams : null
+			),
 			heavyGoodsChargeSkCents: t(
 				'heavyGoodsChargeSkCents',
 				item.dataRowContent.heavyGoodsChargeSkCents
