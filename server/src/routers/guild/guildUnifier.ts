@@ -42,7 +42,7 @@ export const guildUnifier = createUnifier<
 >({
 	table: unifiedGuild,
 	confTable: unifiedGuildCellConfig,
-	version: 32,
+	version: 33,
 	getRow,
 	transform: (item, t) => {
 		return {

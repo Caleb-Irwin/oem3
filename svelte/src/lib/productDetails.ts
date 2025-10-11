@@ -459,6 +459,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 						: '/app/product'
 				}
 			],
+			unifiedProductData: unifiedGuild.unifiedProductData ?? null,
 			other: {
 				'SPR Number': unifiedGuild.spr,
 				'CIS Number': unifiedGuild.cis,
@@ -524,6 +525,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 						: '/app/product'
 				}
 			],
+			unifiedProductData: unifiedSpr.unifiedProductData ?? null,
 			other: {
 				Status: unifiedSpr.status ?? null,
 				'Unit of Measure': unifiedSpr.um ?? null,
