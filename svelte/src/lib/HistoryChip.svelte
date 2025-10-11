@@ -28,12 +28,14 @@
 		class="chip hover:cursor-default whitespace-break-spaces variant-filled-surface flex flex-col sm:flex-row m-0"
 	>
 		<span class="font-bold text-primary-500 pr-1">{key}:</span>
-		{#if !create && prev !== value}
-			<BreakableText text={toReadable(prev)} />
-			<span class="font-bold text-primary-500 pr-2">-></span>
-		{/if}
-		<span>
-			<BreakableText text={toReadable(value)} />
+		<span class="flex flex-wrap flex-col sm:flex-row">
+			{#if !create && prev !== value}
+				<BreakableText text={toReadable(prev)} />
+				<span class="font-bold text-primary-500 pr-2"> -> </span>
+			{/if}
+			<span>
+				<BreakableText text={toReadable(value)} />
+			</span>
 		</span>
 	</span>
 </div>

@@ -23,7 +23,20 @@
 </div>
 
 {#snippet valueRenderer(value: string | number | boolean | null)}
-	<p class="p-2 {value === null ? 'text-surface-400 dark:text-surface-200' : ''}">
+	<p class="desc p-2 {value === null ? 'text-surface-400 dark:text-surface-200' : ''}">
 		{@html value ? DOMPurify.sanitize(value as string) : 'Null'}
 	</p>
 {/snippet}
+
+<style>
+	.desc :global(span) {
+		font-weight: 600;
+	}
+	.desc :global(ul) {
+		padding-left: 1.25rem;
+		list-style-type: disc;
+	}
+	.desc > :global(div) {
+		padding-top: 1em;
+	}
+</style>

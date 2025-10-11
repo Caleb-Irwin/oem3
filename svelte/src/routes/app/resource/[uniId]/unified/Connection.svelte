@@ -17,7 +17,16 @@
 </script>
 
 <div class="card w-full flex flex-col min-w-72">
-	<div class="flex-grow flex flex-col items-center {cell.connectionRow ? '' : 'card'}">
+	<div class="flex p-2 items-center">
+		<p class="text-lg font-bold flex-grow pl-1">{name}</p>
+		<SettingButton {cell} />
+	</div>
+
+	<div class="flex flex-col w-full border-b-2 border-surface-200 dark:border-surface-500">
+		<Settings {cell} extraClass="p-2 pt-0" {valueRenderer} />
+	</div>
+
+	<div class="flex-grow flex flex-col items-center {cell.connectionRow ? '' : 'card p-1'}">
 		{#if cell.connectionRow}
 			<ItemRow rawProduct={cell.connectionRow as any} newTab />
 		{:else}
@@ -35,11 +44,6 @@
 			{/key}
 		{/if}
 	</div>
-	<div class="flex p-2 items-center border-t-2 border-surface-200 dark:border-surface-500">
-		<p class="text-lg font-bold flex-grow pl-1">{name}</p>
-		<SettingButton {cell} />
-	</div>
-	<Settings {cell} extraClass="p-2 pt-0" {valueRenderer} />
 </div>
 
 {#snippet valueRenderer(value: string | number | boolean | null)}

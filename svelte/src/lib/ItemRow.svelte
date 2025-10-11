@@ -119,7 +119,7 @@
 		href={link}
 		class="cursor-default chip {connected
 			? 'variant-filled-primary cursor-pointer hover:underline'
-			: (unmatchedVariant ?? 'variant-filled-error')}"
+			: (unmatchedVariant ?? 'variant-filled-warning')}"
 		target={newTab ? '_blank' : '_self'}
 	>
 		<span>

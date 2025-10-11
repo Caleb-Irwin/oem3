@@ -449,6 +449,14 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 						? `/app/resource/redirect/guildFlyer-${unifiedGuild.flyerRow}`
 						: '/app/guild',
 					unmatchedVariant: 'variant-soft'
+				},
+				{
+					tableName: 'unifiedProduct',
+					name: 'Unified Product',
+					connected: unifiedGuild.unifiedProductData !== null,
+					link: unifiedGuild.unifiedProductData
+						? `/app/resource/${unifiedGuild.unifiedProductData.uniref.uniId}/unified`
+						: '/app/product'
 				}
 			],
 			other: {
@@ -506,6 +514,14 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 					link: unifiedSpr.sprFlatFileRow
 						? `/app/resource/redirect/sprFlatFile-${unifiedSpr.sprFlatFileRow}`
 						: '/app/spr'
+				},
+				{
+					tableName: 'unifiedProduct',
+					name: 'Unified Product',
+					connected: unifiedSpr.unifiedProductData !== null,
+					link: unifiedSpr.unifiedProductData
+						? `/app/resource/${unifiedSpr.unifiedProductData.uniref.uniId}/unified`
+						: '/app/product'
 				}
 			],
 			other: {

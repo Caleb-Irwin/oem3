@@ -37,7 +37,7 @@ export const sprUnifier = createUnifier<
 >({
 	table: unifiedSpr,
 	confTable: unifiedSprCellConfig,
-	version: 24,
+	version: 28,
 	getRow,
 	transform: (item, t) => {
 		const price = item.sprPriceFileRowContent;
@@ -48,6 +48,16 @@ export const sprUnifier = createUnifier<
 		const etilizeSecondary = flat?.etilizeId ?? null;
 		const upcPrimary = price?.upc ?? null;
 		const upcSecondary = enh?.upc ?? null;
+
+		let desc = flat
+			? (flat.marketingText?.trim() ? `<p>${flat.marketingText}</p>` : '') +
+				(flat.fullDescription?.trim() ? `<p>${flat.fullDescription}</p>` : '') +
+				flat.productSpecs
+			: null;
+		if (desc) {
+			desc = desc.replace(/<\/span>:/g, ': </span>');
+			desc = desc.replace(/<\/ul><br\/>/g, '</ul>');
+		}
 
 		return {
 			id: t('id', item.id),
@@ -82,12 +92,7 @@ export const sprUnifier = createUnifier<
 					? decode((flat?.mainTitle ?? price.description) as string)
 					: null
 			),
-			description: t(
-				'description',
-				flat
-					? flat.marketingText + '<br><br>' + flat.fullDescription + '<br><br>' + flat.productSpecs
-					: null
-			),
+			description: t('description', desc),
 			category: t(
 				'category',
 				flat?.masterDepartmentNumber ? (categoryMap[flat?.masterDepartmentNumber] ?? null) : null

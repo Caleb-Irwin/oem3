@@ -29,15 +29,17 @@
 	</button>
 {:else}
 	<div class="flex flex-col justify-center items-center card variant-glass w-full p-2">
-		<div class="flex flex-row items-center justify-center w-full px-2 gap-x-2">
-			<OldSearch
-				quickAdd
-				initQuery={baseSearch}
-				quickAddQueryType={tableName}
-				altRes={(res) => {
-					searchRes = res;
-				}}
-			/>
+		<div class="flex flex-row items-center justify-center w-full px-2 gap-2 flex-wrap-reverse">
+			<div>
+				<OldSearch
+					quickAdd
+					initQuery={baseSearch}
+					quickAddQueryType={tableName}
+					altRes={(res) => {
+						searchRes = res;
+					}}
+				/>
+			</div>
 			<button
 				class="btn variant-glass-secondary"
 				onclick={() => {
