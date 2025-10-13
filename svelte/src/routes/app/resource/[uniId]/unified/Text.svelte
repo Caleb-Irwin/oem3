@@ -25,8 +25,8 @@
 	}
 </script>
 
-<div class="card p-2 w-full {className ?? ''}">
-	<div class="flex flex-row items-center justify-between">
+<div class="card p-1 w-full {className ?? ''}">
+	<div class="flex flex-row items-center justify-between p-1">
 		<div>
 			<p class="text-lg font-bold flex-grow">{nc.name}</p>
 			{@render valueRenderer(nc.cell.value)}
@@ -35,7 +35,7 @@
 			<SettingButton cell={nc.cell} />
 		</div>
 	</div>
-	<Settings cell={nc.cell} {valueRenderer} />
+	<Settings cell={nc.cell} extraClass="p-0" {valueRenderer} />
 </div>
 
 {#snippet valueRenderer(value: string | number | boolean | null)}

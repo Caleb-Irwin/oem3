@@ -20,36 +20,36 @@
 		{@render primaryImageRenderer(primary.value)}
 
 		<div class="flex flex-row flex-wrap">
-			<div
-				class="flex flex-1 border-t-2 border-surface-200 p-2 items-center dark:border-surface-500"
-			>
+			<div class="flex flex-1 p-2 items-center pt-1">
 				<p class="text-lg font-bold flex-grow pl-1">Primary Image</p>
 				<SettingButton cell={primary} />
 			</div>
 
-			<div
-				class="flex flex-1 border-t-2 border-surface-200 p-2 items-center dark:border-surface-500"
-			>
+			<div class="flex flex-1 p-2 items-center pt-1">
 				<p class="text-lg font-bold flex-grow pl-1">Description</p>
 				<SettingButton cell={primaryDescription} />
 			</div>
 		</div>
 
-		<Settings cell={primary} valueRenderer={primaryImageRenderer} extraClass="p-2" />
+		<Settings cell={primary} valueRenderer={primaryImageRenderer} extraClass="p-1 pt-0" />
 		<Settings
 			cell={primaryDescription}
 			valueRenderer={primaryImageDescriptionRenderer}
-			extraClass="p-2"
+			extraClass="p-1 pt-0"
 		/>
 	</div>
 
 	<div class="mt-2 card">
 		{@render otherImageRenderer(other.value)}
-		<div class="flex p-2 items-center border-t-2 border-surface-200 dark:border-surface-500">
+		<div
+			class="flex p-2 items-center {other.value && JSON.parse(other.value as string).length > 0
+				? 'pt-1'
+				: ''}"
+		>
 			<p class="text-lg font-bold flex-grow pl-1">Other Images</p>
 			<SettingButton cell={other} />
 		</div>
-		<Settings cell={other} extraClass="p-2" valueRenderer={otherImageRenderer} />
+		<Settings cell={other} extraClass="p-1" valueRenderer={otherImageRenderer} />
 	</div>
 </div>
 

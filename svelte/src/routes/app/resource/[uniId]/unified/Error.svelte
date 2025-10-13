@@ -13,6 +13,7 @@
 	import Info from 'lucide-svelte/icons/info';
 	import X from 'lucide-svelte/icons/x';
 	import ArrowRight from 'lucide-svelte/icons/arrow-right';
+	import ArrowDown from 'lucide-svelte/icons/arrow-down';
 	import type { Snippet } from 'svelte';
 	import Button from '$lib/Button.svelte';
 	import { client } from '$lib/client';
@@ -144,16 +145,20 @@
 		</div>
 	{:else if displayType === 'approval'}
 		{@const percentChange =
-			((parseInt(error.value as string) - (cell.value as number)) / (cell.value as number)) * 100}
+			((parseInt(error.value as string) - ((error.lastValue ?? cell.value) as number)) /
+				((error.lastValue ?? cell.value) as number)) *
+			100}
 		<div class="p-2 variant-glass">
-			<div class="pt-2 flex">
+			<div class="pt-2 flex flex-wrap">
 				<div class="flex-1 text-center opacity-60">
 					<p class="text-sm pb-0.5">Last Approved</p>
-					{@render valueRenderer(coerceString(cell.value?.toString() ?? 'Null', cell.type))}
+					{@render valueRenderer(
+						coerceString(error.lastValue ?? cell.value?.toString() ?? 'Null', cell.type)
+					)}
 				</div>
-				<div class="grid place-content-center p-2 opacity-60">
+				<!-- <div class="grid place-content-center p-2 opacity-60">
 					<ArrowRight size="28" />
-				</div>
+				</div> -->
 				<div class="flex-1 text-center">
 					<p class="text-sm pb-0.5">New Value</p>
 					{@render valueRenderer(coerceString(error.value ?? 'Null', cell.type))}

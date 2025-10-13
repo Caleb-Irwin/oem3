@@ -10,7 +10,7 @@ export async function retryableTransaction<T>(
 		try {
 			return await db.transaction(fn, { isolationLevel });
 		} catch (err: any) {
-			if (err?.code === '40001' && attempt < maxAttempts) {
+			if ((err?.code === '40001' || err?.code === '40P01') && attempt < maxAttempts) {
 				const backoff = Math.min(2 ** attempt * 50, 200);
 				await sleep(backoff + Math.floor(Math.random() * 30));
 				continue;

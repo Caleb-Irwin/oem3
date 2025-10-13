@@ -10,14 +10,18 @@
 	let { cell }: Props = $props();
 </script>
 
-<div class="card flex-grow">
-	{@render valueRenderer(cell.value)}
-
-	<div class="flex p-2 items-center border-t-2 border-surface-200 dark:border-surface-500">
-		<p class="text-lg font-bold flex-grow pl-1">Title</p>
-		<SettingButton {cell} />
+<div class="card flex-grow p-1">
+	<div class="flex items-center">
+		<div class="flex-grow">
+			{@render valueRenderer(cell.value)}
+		</div>
+		<div class="flex flex-col p-1 items-center justify-center">
+			<SettingButton {cell} />
+			<!-- <p class="text-lg font-bold flex-grow pt-1">Title</p> -->
+		</div>
 	</div>
-	<Settings {cell} extraClass="p-2" {valueRenderer} />
+
+	<Settings {cell} extraClass="p-0" {valueRenderer} />
 </div>
 
 {#snippet valueRenderer(value: string | number | boolean | null)}

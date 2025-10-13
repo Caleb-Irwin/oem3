@@ -17,18 +17,23 @@
 </script>
 
 <div class="card w-full flex flex-col min-w-72">
-	<div class="flex p-2 items-center">
+	<div class="flex p-2 pb-0 items-center">
 		<p class="text-lg font-bold flex-grow pl-1">{name}</p>
 		<SettingButton {cell} />
 	</div>
 
-	<div class="flex flex-col w-full border-b-2 border-surface-200 dark:border-surface-500">
-		<Settings {cell} extraClass="p-2 pt-0" {valueRenderer} />
+	<div class="flex flex-col w-full">
+		<Settings {cell} extraClass="p-1" {valueRenderer} />
 	</div>
 
-	<div class="flex-grow flex flex-col items-center {cell.connectionRow ? '' : 'card p-1'}">
+	<div
+		class="flex-grow flex flex-col items-center justify-center {cell.connectionRow ? '' : 'p-1'}"
+	>
 		{#if cell.connectionRow}
-			<ItemRow rawProduct={cell.connectionRow as any} newTab />
+			<ItemRow
+				rawProduct={cell.connectionRow as any}
+				replaceClass="max-w-none w-full h-full p-2 flex justify-center items-center flex-row flex-wrap"
+			/>
 		{:else}
 			<p class="text-lg font-semibold p-2 w-full text-center">No Connection</p>
 			{#key keyIds}

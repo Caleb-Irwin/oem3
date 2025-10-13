@@ -21,8 +21,8 @@
 			? 'lg:grid-cols-2'
 			: ''}  lg:gap-x-2 lg:gap-y-0 gap-y-2"
 >
-	<div class="card p-2">
-		<div class="flex flex-row items-center justify-between">
+	<div class="card p-1">
+		<div class="flex flex-row items-center justify-between p-1">
 			<div>
 				<p class="text-lg font-bold flex-grow">Price</p>
 				{@render priceValueRenderer(price.value)}
@@ -34,8 +34,8 @@
 		<Settings cell={price} valueRenderer={priceValueRenderer} />
 	</div>
 	{#if comparePrice}
-		<div class="card p-2">
-			<div class="flex flex-row items-center justify-between">
+		<div class="card p-1">
+			<div class="flex flex-row items-center justify-between p-1">
 				<div>
 					<p class="text-lg font-bold flex-grow">Compare Price</p>
 					{@render comparePriceValueRenderer(comparePrice.value)}
@@ -48,8 +48,8 @@
 		</div>
 	{/if}
 	{#if thirdPrice}
-		<div class="card p-2">
-			<div class="flex flex-row items-center justify-between">
+		<div class="card p-1">
+			<div class="flex flex-row items-center justify-between p-1">
 				<div>
 					<p class="text-lg font-bold flex-grow">{thirdPrice.name}</p>
 					{@render priceValueRenderer(thirdPrice.cell.value)}

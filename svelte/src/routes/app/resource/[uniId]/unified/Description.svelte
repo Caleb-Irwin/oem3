@@ -12,14 +12,14 @@
 </script>
 
 <div class="card">
-	<div class="p-2">
-		{@render valueRenderer(cell.value)}
-	</div>
-	<div class="flex p-2 items-center border-t-2 border-surface-200 dark:border-surface-500">
+	<div class="flex p-2 pb-0 items-center">
 		<p class="text-lg font-bold flex-grow pl-1">Description</p>
 		<SettingButton {cell} />
 	</div>
-	<Settings {cell} extraClass="p-2" {valueRenderer} />
+	<Settings {cell} extraClass="p-1" {valueRenderer} />
+	<div class="p-2">
+		{@render valueRenderer(cell.value)}
+	</div>
 </div>
 
 {#snippet valueRenderer(value: string | number | boolean | null)}

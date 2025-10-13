@@ -62,7 +62,7 @@ export async function createCellConfigurator<CellConfTable extends CellConfigTab
 		if (options?.defaultSettingOfApprove) {
 			const { lastThresholdPercent, currentThresholdPercent } = options.defaultSettingOfApprove;
 			if (
-				(lastThresholdPercent === null && setting === null) ||
+				(lastThresholdPercent === null && setting.setting === null) ||
 				(setting.setting === 'setting:approve' &&
 					setting.conf?.value === lastThresholdPercent?.toString())
 			) {
@@ -70,7 +70,9 @@ export async function createCellConfigurator<CellConfTable extends CellConfigTab
 					const settingData = {
 						confType: 'setting:approve',
 						value: currentThresholdPercent?.toString() ?? '0',
-						lastValue: oldVal?.toString() ?? '0',
+						lastValue:
+							options.defaultSettingOfApprove.lastValueOverride?.toString() ||
+							(oldVal?.toString() ?? '0'),
 						col: key as any,
 						refId: id,
 						created: Date.now(),
@@ -87,7 +89,7 @@ export async function createCellConfigurator<CellConfTable extends CellConfigTab
 					});
 					setting = {
 						setting: 'setting:approve',
-						conf: { ...settingData } as any
+						conf: settingData as any
 					};
 				} else {
 					await modifySetting({
@@ -102,8 +104,8 @@ export async function createCellConfigurator<CellConfTable extends CellConfigTab
 					setting = { setting: null, conf: null };
 				}
 
-				if (setting.setting === 'setting:approve' && setting.conf) {
-					setting.conf.lastValue =
+				if (setting.setting === 'setting:approve') {
+					setting.conf!.lastValue =
 						options.defaultSettingOfApprove.lastValueOverride?.toString() ?? null;
 				}
 			}
@@ -113,7 +115,10 @@ export async function createCellConfigurator<CellConfTable extends CellConfigTab
 		if (setting !== null) {
 			if (setting.setting === 'setting:custom') {
 				newVal = setting.conf?.value ?? null;
-			} else if (setting.setting === 'setting:approve' && oldVal !== val) {
+			} else if (
+				setting.setting === 'setting:approve' &&
+				(oldVal !== val || options?.defaultSettingOfApprove)
+			) {
 				const thresholdPercent = parseFloat(setting.conf?.value ?? '0');
 				const lastApprovedValue = parseFloat(setting.conf?.lastValue ?? '0');
 
@@ -129,10 +134,11 @@ export async function createCellConfigurator<CellConfTable extends CellConfigTab
 					errorManager.addError(key as any, {
 						needsApproval: {
 							value: val as ValType,
+							lastValue: lastApprovedValue as ValType,
 							message: `Value changed by ${percentChange.toFixed(2)}% which exceeds threshold of ${thresholdPercent}%`
 						}
 					});
-					newVal = oldVal;
+					newVal = lastApprovedValue;
 				} else if (currentValue.toString() !== setting.conf?.lastValue) {
 					await modifySetting({
 						db,

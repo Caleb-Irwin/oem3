@@ -149,6 +149,7 @@ export interface NewError {
 	};
 	needsApproval?: {
 		value: ValType;
+		lastValue: ValType;
 		message: string;
 	};
 	needsApprovalCustom?: {

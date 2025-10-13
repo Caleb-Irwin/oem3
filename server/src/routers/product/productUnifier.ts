@@ -43,7 +43,7 @@ export const productUnifier = createUnifier<
 >({
 	table: unifiedProduct,
 	confTable: unifiedProductCellConfig,
-	version: 7,
+	version: 10,
 	getRow,
 	transform: (
 		item,
@@ -163,7 +163,7 @@ export const productUnifier = createUnifier<
 			onlineComparePriceCents: t('onlineComparePriceCents', onlineComparePriceCents),
 			quickBooksPriceCents: t(
 				'quickBooksPriceCents',
-				(item) => (qb ? (item.onlinePriceCents ?? null) : null),
+				(item) => (qb && qb.priceCents && item.onlinePriceCents ? item.onlinePriceCents : null),
 				{
 					dependsOn: new Set(['onlinePriceCents']),
 					defaultSettingOfApprove: {
