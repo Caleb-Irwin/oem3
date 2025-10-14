@@ -5,7 +5,6 @@
 	import { client } from '$lib/client';
 	import ItemRow from '$lib/ItemRow.svelte';
 	import type { Product, RawProduct } from '$lib/productDetails';
-	import OldSearch from '$lib/search/OldSearch.svelte';
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
 	import ChevronRight from 'lucide-svelte/icons/chevron-right';
 	import Link from 'lucide-svelte/icons/link';
@@ -13,9 +12,10 @@
 	import type { QueryType } from '../../../../../../server/src/routers/search';
 	import Check from 'lucide-svelte/icons/check';
 	import { UnifiedTableNamesReadable } from '$lib/summary/tableNames';
-	import { getModalStore } from '@skeletonlabs/skeleton';
-	import QuickAddModal from './QuickAddModal.svelte';
+	import QuickAdd from './QuickAdd.svelte';
 	import X from 'lucide-svelte/icons/x';
+	import Maximize_2 from 'lucide-svelte/icons/maximize-2';
+	import Minimize_2 from 'lucide-svelte/icons/minimize-2';
 
 	interface Props {
 		unmatchedMode: boolean;
@@ -100,7 +100,7 @@
 	const isUnmatched = $derived(unifiedItem && unifiedItem.item === null);
 	const isComplete = $derived(!isUnmatched || allowUnmatched);
 
-	const modalStore = getModalStore();
+	let quickAddExpanded = $state(unmatchedMode);
 </script>
 
 {#if unmatchedMode}
@@ -155,59 +155,51 @@
 {/if}
 
 {#if unifiedItem}
-	<div class="card variant-soft p-1 m-2 flex flex-row items-center justify-around flex-wrap">
-		<h3 class="h3 pl-3 pr-4 p-1 flex items-center gap-x-2 text-center justify-center">
-			<span>
-				{#if isUnmatched}
-					<Unlink />
-				{:else}
-					<Link />
-				{/if}
-			</span>
-			<span> {unifiedItem.title} Connection </span>
-		</h3>
-		{#if unifiedItem?.rawItem}
-			<div class="px-4">
-				<ItemRow
-					newTab={true}
-					replaceClass="flex justify-center items-center"
-					rawProduct={unifiedItem.rawItem}
-				/>
-			</div>
-		{:else}
-			<div class="flex flex-col items-center p-2">
-				<p class="text-lg font-semibold">No Connection</p>
-				<p class="text-sm pb-2 text-center">
-					Add a custom value setting in a {unifiedItem.name} item to add a connection or quick add
-				</p>
-				<div class="flex flex-row items-center justify-center w-full gap-2 flex-wrap">
-					<div class="flex-grow">
-						<OldSearch
-							quickAdd
-							quickAddQueryType={unifiedItem.queryType}
-							select={async (selection) => {
-								if (selection.uniref) {
-									modalStore.trigger({
-										type: 'component',
-										component: {
-											ref: QuickAddModal,
-											props: {
-												uniId: selection.uniref,
-												unifiedResourceType: unifiedItem.queryType,
-												resourceType,
-												unifiedTitle: unifiedItem.title,
-												unifiedItemId: selection.id,
-												resourceId: product!.id,
-												unifiedColumn: unifiedItem.unifiedColumn
-											}
-										}
-									});
-								}
-							}}
-						/>
-					</div>
+	<div class="card variant-soft p-1 m-2">
+		<div class="flex flex-row items-center justify-around flex-wrap">
+			<h3 class="h3 pl-3 pr-4 p-1 flex items-center gap-x-2 text-center justify-center">
+				<span>
+					{#if isUnmatched}
+						<Unlink />
+					{:else}
+						<Link />
+					{/if}
+				</span>
+				<span> {unifiedItem.title} Connection </span>
+			</h3>
+			{#if unifiedItem?.rawItem}
+				<div class="px-4">
+					<ItemRow
+						newTab={true}
+						replaceClass="flex justify-center items-center"
+						rawProduct={unifiedItem.rawItem}
+					/>
+				</div>
+			{:else}
+				<div class="text-center p-1">
+					<p class="text-lg font-semibold">No Connection</p>
+					<p class="text-sm pb-2 text-center">
+						Add a custom value setting in a {unifiedItem.name} item to add a connection or quick add
+					</p>
+				</div>
+
+				<div class="flex flex-row items-center justify-center gap-2 flex-wrap pt-4 p-2">
+					<button
+						class="btn w-56 variant-glass-secondary"
+						onclick={() => {
+							quickAddExpanded = !quickAddExpanded;
+						}}
+					>
+						{#if quickAddExpanded}
+							<Minimize_2 />
+							<span>Hide Quick Add</span>
+						{:else}
+							<Maximize_2 />
+							<span>Show Quick Add</span>
+						{/if}
+					</button>
 					<Button
-						class="btn btn-lg text-base h-[54px] {allowUnmatched
+						class="btn w-56 {allowUnmatched
 							? 'variant-filled-secondary'
 							: 'variant-filled-warning'} "
 						action={client.unified.updateUnmatched}
@@ -226,6 +218,21 @@
 						{/if}
 					</Button>
 				</div>
+			{/if}
+		</div>
+		{#if quickAddExpanded && !unifiedItem?.rawItem}
+			<div class="w-full">
+				{#key product?.id}
+					<QuickAdd
+						baseSearch={(product?.keyProductIds || []).join(' ')}
+						tableName={unifiedItem.queryType}
+						unifiedResourceType={unifiedItem.queryType}
+						{resourceType}
+						unifiedTitle={unifiedItem.title}
+						resourceId={product!.id}
+						unifiedColumn={unifiedItem.unifiedColumn}
+					/>
+				{/key}
 			</div>
 		{/if}
 	</div>

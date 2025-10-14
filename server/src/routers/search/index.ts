@@ -47,6 +47,7 @@ export const searchRouter = router({
 			const PAGE_SIZE = 48,
 				processedQuery = query
 					.trim()
+					.replace(/[^\w\s]/g, ' ')
 					.split(' ')
 					.filter((value) => value !== '')
 					.join(' | ');

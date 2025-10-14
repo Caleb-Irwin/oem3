@@ -14,13 +14,15 @@
 		select: SelectFunc;
 		editSearchQuery?: ((q: { query: string; queryType: QueryType }) => void) | undefined;
 		fullHeight?: boolean;
+		overrideGrid?: boolean;
 	}
 
 	let {
 		searchPages = $bindable(),
 		select,
 		editSearchQuery = undefined,
-		fullHeight = false
+		fullHeight = false,
+		overrideGrid = false
 	}: Props = $props();
 
 	let grid = $state(false),
@@ -28,7 +30,7 @@
 		more = $state(searchPages[searchPages.length - 1].more);
 
 	onMount(() => {
-		if (localStorage.getItem('grid')) {
+		if (!overrideGrid && localStorage.getItem('grid')) {
 			grid = localStorage.getItem('grid') === 'true';
 		}
 	});

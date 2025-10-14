@@ -72,7 +72,7 @@
 				<div class="p-2 w-full">
 					<div class="flex items-start justify-between">
 						<h1 class="h1 {product.name ? '' : 'italic'}">
-							<CopyableText text={product.name || 'Unnamed Item'} />
+							{product.name || 'Unnamed Item'}
 						</h1>
 					</div>
 					<h2 class="py-2 h2 font-semibold flex flex-wrap align-middle">

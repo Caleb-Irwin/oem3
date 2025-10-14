@@ -32,6 +32,7 @@ export interface Product {
 	unifiedGuildData?: (RawProduct['unifiedGuildData'] & { uniref: { uniId: number } }) | null;
 	unifiedSprData?: (RawProduct['unifiedSprData'] & { uniref: { uniId: number } }) | null;
 	unifiedProductData?: (RawProduct['unifiedProductData'] & { uniref: { uniId: number } }) | null;
+	keyProductIds: string[];
 }
 
 export const { format: formatCurrency } = new Intl.NumberFormat('en-CA', {
@@ -64,6 +65,9 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				}
 			],
 			unifiedProductData: qb.unifiedProductData ?? null,
+			keyProductIds: [qb.productName, qb.upc, qb.shortUpc].filter((id): id is string =>
+				Boolean(id)
+			),
 			other: {
 				UPC: qb.upc,
 				'Short UPC': qb.shortUpc,
@@ -114,6 +118,9 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			],
 			unifiedGuildData: guild.unifiedGuildData ?? null,
 			unifiedProductData: guild.unifiedGuildData?.unifiedProductData ?? null,
+			keyProductIds: [guild.gid, guild.basics, guild.spr, guild.cis, guild.upc].filter(
+				(id): id is string => Boolean(id)
+			),
 			other: {
 				'Basics Number': guild.basics,
 				'SPR Number': guild.spr,
@@ -175,6 +182,14 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			],
 			unifiedGuildData: inventory.unifiedGuildData ?? null,
 			unifiedProductData: inventory.unifiedGuildData?.unifiedProductData ?? null,
+			keyProductIds: [
+				inventory.gid,
+				inventory.sku,
+				inventory.upc,
+				inventory.spr,
+				inventory.basics,
+				inventory.cis
+			].filter((id): id is string => Boolean(id)),
 			other: {
 				'UPC#': inventory.upc,
 				'SPR#': inventory.spr,
@@ -222,6 +237,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			],
 			unifiedGuildData: flyer.unifiedGuildData ?? null,
 			unifiedProductData: flyer.unifiedGuildData?.unifiedProductData ?? null,
+			keyProductIds: [flyer.gid].filter((id): id is string => Boolean(id)),
 			other: {
 				'Start Date': new Date(flyer.startDate as number).toLocaleDateString('en-CA'),
 				'End Date': new Date(flyer.endDate as number).toLocaleDateString('en-CA'),
@@ -258,6 +274,9 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				}
 			],
 			unifiedProductData: shopify.unifiedProductData ?? null,
+			keyProductIds: [shopify.vSku, shopify.vBarcode, shopify.handle].filter((id): id is string =>
+				Boolean(id)
+			),
 			other: {
 				Handle: shopify.handle,
 				Status: shopify.status,
@@ -326,6 +345,11 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				}
 			],
 			unifiedProductData: sprPriceFileData.unifiedSprData?.unifiedProductData ?? null,
+			keyProductIds: [
+				sprPriceFileData.sprcSku,
+				sprPriceFileData.upc,
+				sprPriceFileData.etilizeId
+			].filter((id): id is string => Boolean(id)),
 			other: {
 				'Etilize Id': sprPriceFileData.etilizeId ?? 'Null',
 				'Dealer Net Price': formatCurrency(sprPriceFileData.dealerNetPriceCents / 100),
@@ -377,6 +401,9 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				}
 			],
 			unifiedProductData: sprFlatFileData.unifiedSprData?.unifiedProductData ?? null,
+			keyProductIds: [sprFlatFileData.sprcSku, sprFlatFileData.etilizeId].filter(
+				(id): id is string => Boolean(id)
+			),
 			other: {
 				'Etilize ID': sprFlatFileData.etilizeId,
 				'Brand Name': sprFlatFileData.brandName,
@@ -460,6 +487,13 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				}
 			],
 			unifiedProductData: unifiedGuild.unifiedProductData ?? null,
+			keyProductIds: [
+				unifiedGuild.gid,
+				unifiedGuild.spr,
+				unifiedGuild.cis,
+				unifiedGuild.basics,
+				unifiedGuild.upc
+			].filter((id): id is string => Boolean(id)),
 			other: {
 				'SPR Number': unifiedGuild.spr,
 				'CIS Number': unifiedGuild.cis,
@@ -526,6 +560,9 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				}
 			],
 			unifiedProductData: unifiedSpr.unifiedProductData ?? null,
+			keyProductIds: [unifiedSpr.sprc, unifiedSpr.etilizeId, unifiedSpr.cws, unifiedSpr.upc].filter(
+				(id): id is string => Boolean(id)
+			),
 			other: {
 				Status: unifiedSpr.status ?? null,
 				'Unit of Measure': unifiedSpr.um ?? null,
@@ -610,6 +647,15 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 						: '/app/shopify'
 				}
 			],
+			keyProductIds: [
+				unifiedProduct.gid,
+				unifiedProduct.sprc,
+				unifiedProduct.upc,
+				unifiedProduct.cws,
+				unifiedProduct.basics,
+				unifiedProduct.cis,
+				unifiedProduct.etilizeId
+			].filter((id): id is string => Boolean(id)),
 			other: {
 				GID: unifiedProduct.gid,
 				SPRC: unifiedProduct.sprc,
