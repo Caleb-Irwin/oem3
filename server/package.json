@@ -1,7 +1,7 @@
 {
 	"dependencies": {
 		"@shopify/admin-api-client": "^1.0.8",
-		"@shopify/shopify-api": "^11.12.0",
+		"@shopify/shopify-api": "^12.0.0",
 		"@supercharge/promise-pool": "^3.2.0",
 		"@trpc/client": "^10.45.2",
 		"@trpc/server": "next",

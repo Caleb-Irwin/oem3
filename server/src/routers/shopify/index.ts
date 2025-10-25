@@ -4,6 +4,7 @@ import { fileProcedures } from '../../utils/files';
 import { managedWorker } from '../../utils/managedWorker';
 import { shopifyConnect } from './connect';
 import { KV } from '../../utils/kv';
+import { SHOPIFY_LOCATION_ID_STORE, SHOPIFY_LOCATION_ID_WAREHOUSE } from '../../env';
 
 const { worker, runWorker, hook } = managedWorker(
 	new URL('worker.ts', import.meta.url).href,
@@ -32,15 +33,24 @@ export const shopifyRouter = router({
 		runWorker,
 		async () => {
 			const kv = new KV('shopify'),
-				lastUpdatedAt: number = parseInt((await kv.get('lastUpdatedAt')) ?? '0') ?? 0,
+				kvLastUpdatedAt = await kv.get('lastUpdatedAt'),
+				kvQueryVersion = await kv.get('productQueryVersion'),
+				parsedQueryVersion = kvQueryVersion ? parseInt(kvQueryVersion) : null,
+				parsedLastUpdatedAt = kvLastUpdatedAt ? parseInt(kvLastUpdatedAt) : null,
+				lastUpdatedAt: number =
+					parsedLastUpdatedAt && parsedQueryVersion === PRODUCT_QUERY_VERSION
+						? parsedLastUpdatedAt >= 5000
+							? parsedLastUpdatedAt - 5000
+							: parsedLastUpdatedAt
+						: 0,
 				startTime = Date.now(),
 				{ client } = shopifyConnect(),
 				bulkOperationCreateRes = await client.request(bulkQueryMutation, {
 					variables: {
-						query: productsQuery.replaceAll(
-							'$lastUpdatedAtISOString',
-							new Date(lastUpdatedAt).toISOString()
-						)
+						query: productsQuery
+							.replaceAll('$lastUpdatedAtISOString', new Date(lastUpdatedAt).toISOString())
+							.replaceAll('$LOCATION_ID_STORE', SHOPIFY_LOCATION_ID_STORE)
+							.replaceAll('$LOCATION_ID_WAREHOUSE', SHOPIFY_LOCATION_ID_WAREHOUSE)
 					}
 				});
 
@@ -98,6 +108,7 @@ export const shopifyRouter = router({
 	)
 });
 
+const PRODUCT_QUERY_VERSION = 1;
 const productsQuery = `#graphql
   query recentlyUpdatedProducts {
     products(query: "updated_at:>'$lastUpdatedAtISOString'") {
@@ -138,12 +149,12 @@ const productsQuery = `#graphql
                   unitCost {
                     amount
                   }
-                  store0: inventoryLevel(locationId: "gid://shopify/Location/64080085182") {
+                  store0: inventoryLevel(locationId: "$LOCATION_ID_STORE") {
                     quantities(names: ["available", "on_hand", "committed"]) {
                       quantity
                     }
                   }
-                  warehouse0: inventoryLevel(locationId: "gid://shopify/Location/68291231934") {
+                  warehouse0: inventoryLevel(locationId: "$LOCATION_ID_WAREHOUSE") {
                     quantities(names: ["on_hand"]) {
                       quantity
                     }

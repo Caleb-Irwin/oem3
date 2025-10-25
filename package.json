@@ -12,7 +12,10 @@
     "dev": "cd server && bun run dev",
     "build": "docker build .",
     "start": "docker compose up",
-    "preview": "docker compose up --build"
+    "preview": "docker compose up --build",
+    "count-lines": "bunx cloc . --exclude-dir=node_modules,build,.svelte-kit,.git,drizzle,types --exclude-ext=lock,json",
+    "count-lines:svelte": "bunx cloc ./svelte --exclude-dir=node_modules,build,.svelte-kit --exclude-ext=lock,json",
+    "count-lines:server": "bunx cloc ./server --exclude-dir=node_modules,types,drizzle --exclude-ext=lock,json"
   },
   "type": "module",
   "dependencies": {}
