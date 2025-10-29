@@ -43,7 +43,7 @@ export const productUnifier = createUnifier<
 >({
 	table: unifiedProduct,
 	confTable: unifiedProductCellConfig,
-	version: 10,
+	version: 11,
 	getRow,
 	transform: (
 		item,
@@ -57,9 +57,9 @@ export const productUnifier = createUnifier<
 		// Pricing
 		const sprPriceCents =
 			spr && spr.netPriceCents && spr.dealerNetPriceCents
-				? spr.netPriceCents >= 1.4 * spr.dealerNetPriceCents
+				? spr.netPriceCents >= 1.8 * spr.dealerNetPriceCents
 					? spr.netPriceCents
-					: roundUpToNearestTenCents(spr.dealerNetPriceCents * 1.4)
+					: roundUpToNearestTenCents(spr.dealerNetPriceCents * 1.8)
 				: (spr?.dealerNetPriceCents ?? null);
 		const defaultPriceCents = guild?.priceCents ?? sprPriceCents ?? null;
 		const onlinePriceCents =
@@ -189,7 +189,7 @@ export const productUnifier = createUnifier<
 				(item) =>
 					!item.deleted &&
 					item.status !== 'DISABLED' &&
-					(item.category !== 'furniture' || (!!item.weightGrams && item.weightGrams < 30000)) &&
+					// (item.category !== 'furniture' || (!!item.weightGrams && item.weightGrams < 30000)) && // Allow all furniture
 					((item.localInventory ?? 0) > 0 || sprAvailable || (guild?.deleted ?? true) === false),
 				{
 					dependsOn: new Set(['status', 'deleted', 'category', 'weightGrams', 'localInventory'])
