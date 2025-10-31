@@ -24,13 +24,12 @@ OEM3 is intended to make these processes more reliable, easier to use, and impro
   - [x] QuickBooks
   - [x] Shopify
 - [x] Search
-- [x] Matching
-  - [ ] Guild
-  - [ ] SPR
-  - [ ] Unified Items
+- [x] Unifiers
+  - [x] Guild
+  - [x] SPR
+  - [x] Unified Items
 - [ ] Exports
-  - [ ] QuickBooks Flyer Changes
-  - [ ] QuickBooks Price Updates
+  - [ ] QuickBooks Price + Flyer Updates
   - [ ] Shopify Sync
 - [x] Shelf Labels
   - [x] Quick Add
