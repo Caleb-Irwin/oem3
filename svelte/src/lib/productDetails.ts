@@ -263,6 +263,9 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			lastUpdated: shopify.lastUpdated,
 			description: shopify.htmlDescription ?? '',
 			imageUrl: shopify.imageUrl ?? undefined,
+			otherImageUrls: JSON.parse(shopify.allMediaJSONArray ?? '[]')
+				.filter(({ url, id }: { url: string; id: string }) => url && id !== shopify.imageId)
+				.map(({ url }: { url: string }) => url ?? ''),
 			connections: [
 				{
 					tableName: 'unifiedProduct',
@@ -278,6 +281,8 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				Boolean(id)
 			),
 			other: {
+				'Online Store URL': shopify.onlineStoreUrl,
+				'Online Store Preview URL': shopify.onlineStorePreviewUrl,
 				Handle: shopify.handle,
 				Status: shopify.status,
 				'Compare At Price': shopify.vComparePriceCents
@@ -302,6 +307,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				'Shopify Published At': shopify.publishedAt
 					? new Date(shopify.publishedAt as number).toLocaleString('en-CA')
 					: 'Unknown',
+				Vendor: shopify.vendor,
 				'Updated At': shopify.updatedAt
 					? new Date(shopify.updatedAt as number).toLocaleString('en-CA')
 					: 'Unknown'

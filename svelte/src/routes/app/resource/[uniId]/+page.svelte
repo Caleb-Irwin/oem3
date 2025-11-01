@@ -120,7 +120,11 @@
 									? 'italic'
 									: ''}"
 							>
-								<CopyableText text={value ?? 'Undefined'} />
+								{#if value && value.startsWith('https://')}
+									<a href={value} target="_blank" rel="noopener noreferrer">{value}</a>
+								{:else}
+									<CopyableText text={value ?? 'Undefined'} />
+								{/if}
 							</p>
 						{/each}
 					</div>
