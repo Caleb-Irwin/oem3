@@ -72,7 +72,10 @@ export const shopifyRouter = router({
 							r.data?.currentBulkOperation?.objectCount
 						} objects so far)`
 					);
-				if (r.data?.currentBulkOperation?.status !== 'RUNNING') {
+				if (
+					r.data?.currentBulkOperation?.status !== 'RUNNING' ||
+					r.data?.currentBulkOperation?.status !== 'CREATED'
+				) {
 					bulkQueryResults = r;
 					break;
 				}
