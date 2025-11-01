@@ -3,6 +3,7 @@ import type { DeletionEvent, Product, Variant } from '.';
 import { work } from '../../utils/workerBase';
 import { shopify, statusEnum } from './table';
 import { enforceEnum, genDiffer, removeNaN } from '../../utils/changeset.helpers';
+import type { MediaImage } from '../../../types/admin.types';
 
 work({
 	process: async ({ db, message, progress, utils: { getFileDataUrl, createChangeset } }) => {
@@ -12,18 +13,29 @@ work({
 			rows = atob(dataUrl.slice(dataUrl.indexOf('base64,') + 7)).split('\n'),
 			productsMap = new Map<string, OutProduct>(),
 			variants: VariantWithParent[] = [],
+			media: MediaWithParent[] = [],
 			deletionEvents: DeletionEvent[] = [];
 
 		rows
 			.filter((row) => row !== '' && row[0] === '{')
 			.forEach((row) => {
-				const obj = JSON.parse(row) as PartialProduct | VariantWithParent | DeletionEvent;
+				const obj = JSON.parse(row) as
+					| PartialProduct
+					| VariantWithParent
+					| DeletionEvent
+					| MediaWithParent;
 
 				if ((obj as VariantWithParent)?.__parentId) {
-					variants.push(obj as VariantWithParent);
-				} else if ((obj as PartialProduct)?.id?.includes('gid://shopify/Product/')) {
-					productsMap.set((obj as PartialProduct).id, obj as OutProduct);
-				} else if ((obj as DeletionEvent)?.subjectId?.includes('gid://shopify/Product/')) {
+					if ((obj as VariantWithParent)?.id.startsWith('gid://shopify/ProductVariant/')) {
+						variants.push(obj as VariantWithParent);
+					} else if ((obj as VariantWithParent)?.id.startsWith('gid://shopify/MediaImage/')) {
+						media.push(obj as MediaWithParent);
+					} else {
+						console.error('Unknown child type', obj);
+					}
+				} else if ((obj as PartialProduct)?.['id']?.includes('gid://shopify/Product/')) {
+					productsMap.set((obj as PartialProduct)['id'], obj as OutProduct);
+				} else if ((obj as DeletionEvent)?.['subjectId']?.includes('gid://shopify/Product/')) {
 					deletionEvents.push(obj as DeletionEvent);
 				} else {
 					console.error('Unknown object type', obj);
@@ -37,6 +49,16 @@ work({
 				return;
 			}
 			parent.defaultVariant = variant;
+		});
+
+		media.forEach((mediaItem) => {
+			const parent = productsMap.get(mediaItem.__parentId);
+			if (!parent) {
+				console.error('Parent product not found for media', mediaItem);
+				return;
+			}
+			if (!parent.media) parent.media = [];
+			parent.media.push(mediaItem);
 		});
 
 		const products = Array.from(productsMap.values());
@@ -102,7 +124,11 @@ work({
 						'vInventoryAvailableStore',
 						'vInventoryOnHandStore',
 						'vInventoryCommittedStore',
-						'vInventoryOnHandWarehouse0'
+						'vInventoryOnHandWarehouse0',
+						'vendor',
+						'onlineStoreUrl',
+						'onlineStorePreviewUrl',
+						'allMediaJSONArray'
 					]
 				),
 				progress,
@@ -118,10 +144,22 @@ const transform = (product: OutProduct): typeof shopify.$inferInsert => {
 		productId: product.id,
 		handle: product.handle,
 		title: product.title ?? '',
-		htmlDescription: product.description,
-		imageId: product.featuredImage?.id,
-		imageAltText: product.featuredImage?.altText,
-		imageUrl: product.featuredImage?.url,
+		htmlDescription: product.descriptionHtml,
+		onlineStoreUrl: product.onlineStoreUrl,
+		imageId: product.featuredMedia?.id,
+		imageAltText: product.featuredMedia?.preview?.image?.altText,
+		imageUrl: product.featuredMedia?.preview?.image?.url,
+		allMediaJSONArray: JSON.stringify(
+			(product.media ?? []).map((media) => ({
+				id: media.id,
+				alt: media.alt,
+				mediaContentType: media.mediaContentType,
+				status: media.status,
+				url: media.preview?.image?.url,
+				description: media.preview?.image?.altText
+			}))
+		),
+		vendor: product.vendor,
 		totalInventory: product.totalInventory,
 		tagsJsonArr: JSON.stringify(product.tags),
 		hasOnlyDefaultVariant: product.hasOnlyDefaultVariant,
@@ -161,6 +199,8 @@ const transform = (product: OutProduct): typeof shopify.$inferInsert => {
 	};
 };
 
-type PartialProduct = Omit<Product, 'variants'>;
+type PartialProduct = Omit<Product, 'variants' | 'media'>;
 type VariantWithParent = Variant & { __parentId: string };
-type OutProduct = PartialProduct & { defaultVariant?: VariantWithParent };
+type OutProduct = PartialProduct & { defaultVariant?: VariantWithParent; media: Media[] };
+type Media = MediaImage;
+type MediaWithParent = Media & { __parentId: string };

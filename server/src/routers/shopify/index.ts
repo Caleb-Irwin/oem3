@@ -5,6 +5,8 @@ import { managedWorker } from '../../utils/managedWorker';
 import { shopifyConnect } from './connect';
 import { KV } from '../../utils/kv';
 import { SHOPIFY_LOCATION_ID_STORE, SHOPIFY_LOCATION_ID_WAREHOUSE } from '../../env';
+import { shopifyPushRouter } from './push';
+import type { RecentlyUpdatedProductsQuery } from '../../../types/admin.generated';
 
 const { worker, runWorker, hook } = managedWorker(
 	new URL('worker.ts', import.meta.url).href,
@@ -26,6 +28,7 @@ const verify = (dataUrl: string, fileType: string) => {
 	}
 };
 export const shopifyRouter = router({
+	pushSync: shopifyPushRouter,
 	worker,
 	files: fileProcedures(
 		'shopify',
@@ -54,8 +57,10 @@ export const shopifyRouter = router({
 					}
 				});
 
-			if (bulkOperationCreateRes.data?.bulkOperationRunQuery?.bulkOperation?.status !== 'CREATED')
+			if (bulkOperationCreateRes.data?.bulkOperationRunQuery?.bulkOperation?.status !== 'CREATED') {
+				console.error(JSON.stringify(bulkOperationCreateRes.data, undefined, 2));
 				throw new Error('Failed to create bulk operation');
+			}
 
 			let bulkQueryResults,
 				iterations = 0;
@@ -108,7 +113,7 @@ export const shopifyRouter = router({
 	)
 });
 
-const PRODUCT_QUERY_VERSION = 1;
+const PRODUCT_QUERY_VERSION = 3;
 const productsQuery = `#graphql
   query recentlyUpdatedProducts {
     products(query: "updated_at:>'$lastUpdatedAtISOString'") {
@@ -117,16 +122,42 @@ const productsQuery = `#graphql
           id
           handle
           title
-          description
+          descriptionHtml
           tags
+          vendor
+          onlineStoreUrl
+          onlineStorePreviewUrl
           hasOnlyDefaultVariant
           publishedAt
           status
           updatedAt
-          featuredImage {
+          featuredMedia {
             id
-            altText
-            url
+            alt
+            mediaContentType
+            status
+            preview {
+              image {
+                altText
+                url
+              }
+            }
+          }
+          media {
+            edges {
+              node {
+                id
+                alt
+                mediaContentType
+                status
+                preview {
+                  image {
+                    altText
+                    url
+                  }
+                }
+              }
+            }
           }
           totalInventory
           variants(first: 1) {
@@ -176,7 +207,7 @@ const productsQuery = `#graphql
       }
     }
   }
-`;
+` as const;
 
 const bulkQueryMutation = `#graphql
   mutation genericBulkQuery($query: String!) {
@@ -192,7 +223,7 @@ const bulkQueryMutation = `#graphql
         message
       }
     }
-  }`;
+  }` as const;
 
 const pollBulkQueryQuery = `#graphql
   query pollBulkOperation {
@@ -208,13 +239,8 @@ const pollBulkQueryQuery = `#graphql
       partialDataUrl
     }
   }
-`;
+` as const;
 
-const productQueryType = async () => {
-	const client = shopifyConnect().client;
-	return await client.request(productsQuery);
-};
-type BulkRes = Exclude<Awaited<ReturnType<typeof productQueryType>>['data'], undefined>;
-export type Product = BulkRes['products']['edges'][0]['node'];
+export type Product = RecentlyUpdatedProductsQuery['products']['edges'][0]['node'];
 export type Variant = Product['variants']['edges'][0]['node'];
-export type DeletionEvent = BulkRes['deletionEvents']['edges'][0]['node'];
+export type DeletionEvent = RecentlyUpdatedProductsQuery['deletionEvents']['edges'][0]['node'];

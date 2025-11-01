@@ -21,7 +21,7 @@ export function shopifyConnect() {
 		adminApiAccessToken: SHOPIFY_ADMIN_API_ACCESS_TOKEN,
 		scopes: ['write_products', 'read_products', 'write_inventory', 'read_inventory'],
 		isEmbeddedApp: false,
-		apiVersion: ApiVersion.July24,
+		apiVersion: ApiVersion.October25,
 		hostName: `${SHOPIFY_SHOP}.myshopify.com`,
 		isCustomStoreApp: true
 	});
