@@ -37,6 +37,9 @@
 		"graphql-codegen": "graphql-codegen"
 	},
 	"devDependencies": {
+		"@graphql-codegen/cli": "^5.0.0",
+		"@graphql-codegen/introspection": "^4.0.0",
+		"@graphql-codegen/typescript": "^4.0.1",
 		"@shopify/api-codegen-preset": "^1.1.7",
 		"@types/bun": "^1.2.13",
 		"@types/cookies": "^0.9.0",

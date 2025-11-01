@@ -2,12 +2,12 @@ import { ApiType, pluckConfig, preset } from '@shopify/api-codegen-preset';
 
 export default {
 	// For syntax highlighting / auto-complete when writing operations
-	schema: 'https://shopify.dev/admin-graphql-direct-proxy/2024-07',
+	schema: 'https://shopify.dev/admin-graphql-direct-proxy/2025-10',
 	documents: ['./src/**/*.{js,ts,jsx,tsx}'],
 	projects: {
 		default: {
 			// For type extraction
-			schema: 'https://shopify.dev/admin-graphql-direct-proxy/2024-07',
+			schema: 'https://shopify.dev/admin-graphql-direct-proxy/2025-10',
 			documents: ['./src/**/*.{js,ts,jsx,tsx}'],
 			extensions: {
 				codegen: {
