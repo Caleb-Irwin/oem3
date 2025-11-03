@@ -1,3 +1,21 @@
-import { router } from '../../../trpc';
+import { adminProcedure, router } from '../../../trpc';
+import { managedWorker } from '../../../utils/managedWorker';
+import { archiveUnmatchedProducts } from './archiveUnmatched';
+// import { productHook } from '../../product';
 
-export const shopifyPushRouter = router({});
+const { worker } = managedWorker(
+	new URL('worker.ts', import.meta.url).href,
+	'shopify',
+	[
+		/*productHook TODO*/
+	],
+	undefined,
+	1
+);
+
+export const shopifyPushRouter = router({
+	worker,
+	archiveAllUnmatchedProducts: adminProcedure.mutation(async () => {
+		await archiveUnmatchedProducts();
+	})
+});
