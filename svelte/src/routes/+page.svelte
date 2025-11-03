@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-	<title>OEM3 - Login</title>
+	<title>OEM3 Login</title>
 </svelte:head>
 
 <div class="container h-full mx-auto flex flex-col justify-center items-center">

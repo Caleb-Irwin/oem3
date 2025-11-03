@@ -9,6 +9,10 @@
 	let { data }: Props = $props();
 </script>
 
+<svelte:head>
+	<title>OEM3 Home</title>
+</svelte:head>
+
 <div class="container h-full mx-auto flex flex-col justify-center items-center">
 	<div>
 		<h1 class="h1 text-center mb-2">Home</h1>

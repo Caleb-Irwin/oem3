@@ -5,6 +5,10 @@
 	import UserList from './UserList.svelte';
 </script>
 
+<svelte:head>
+	<title>OEM3 Admin</title>
+</svelte:head>
+
 <div class="container h-full mx-auto flex justify-center items-center flex-col">
 	<div class="flex flex-col">
 		<UserList />

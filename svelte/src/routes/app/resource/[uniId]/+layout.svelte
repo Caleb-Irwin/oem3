@@ -23,7 +23,29 @@
 	const resProductStore = toStore(() => ({ res, product }));
 
 	setContext('resProduct', resProductStore);
+
+	const idTextToName: Record<string, string> = {
+		QB: 'QuickBooks',
+		GuildData: 'Guild Data',
+		GuildInventory: 'Guild Inventory',
+		GuildFlyer: 'Guild Flyer',
+		Shopify: 'Shopify',
+		SPRPriceFile: 'SPR Price',
+		SPRFlatFile: 'SPR Flat',
+		UnifiedGuild: 'Guild',
+		UnifiedSPR: 'SPR',
+		UnifiedProduct: 'Product',
+		Unknown: 'Unknown'
+	};
 </script>
+
+<svelte:head>
+	<title
+		>OEM3 {data.res === null
+			? 'Resource Not Found'
+			: `${idTextToName[product?.idText.split('#')[0] ?? 'Unknown'] ?? 'Unknown'} "${product?.name ?? 'Unnamed Item'}"`}
+	</title>
+</svelte:head>
 
 <div class="md:p-2">
 	<UnifiedMatchConf

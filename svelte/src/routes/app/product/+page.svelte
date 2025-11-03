@@ -7,6 +7,10 @@
 	const { data }: PageProps = $props();
 </script>
 
+<svelte:head>
+	<title>OEM3 Unified Products</title>
+</svelte:head>
+
 <h1 class="text-center h2 p-2 pt-4">Unified Products</h1>
 
 <ModalSearchBar

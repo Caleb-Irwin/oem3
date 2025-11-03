@@ -11,6 +11,10 @@
 	let { data }: PageProps = $props();
 </script>
 
+<svelte:head>
+	<title>OEM3 SPR</title>
+</svelte:head>
+
 <h1 class="text-center h2 p-2 pt-4">SPR</h1>
 
 <ModalSearchBar queryType="unifiedSpr" placeholder="Search Unified SPR" class="max-w-xl pb-2" />

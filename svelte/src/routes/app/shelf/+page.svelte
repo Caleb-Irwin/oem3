@@ -45,6 +45,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>OEM3 Shelf{currentSheet?.name ? ` "${currentSheet.name}"` : ''}</title>
+</svelte:head>
+
 <div class="h-full w-full p-4 flex flex-col items-center">
 	<div class="flex w-full max-w-lg card p-3">
 		<div class="pr-2 grid place-content-center">

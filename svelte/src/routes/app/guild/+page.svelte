@@ -11,6 +11,10 @@
 	let { data }: PageProps = $props();
 </script>
 
+<svelte:head>
+	<title>OEM3 Guild</title>
+</svelte:head>
+
 <h1 class="text-center h2 p-2 pt-4">Guild</h1>
 
 <ModalSearchBar queryType="unifiedGuild" placeholder="Search Unified Guild" class="max-w-xl pb-2" />

@@ -8,6 +8,10 @@
 	let { data }: { data: PageData } = $props();
 </script>
 
+<svelte:head>
+	<title>OEM3 Search "{data.query}"</title>
+</svelte:head>
+
 <h1 class="text-center h2 p-2 pt-4">Search</h1>
 
 <SearchBar {...data}></SearchBar>
