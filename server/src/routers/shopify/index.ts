@@ -2,11 +2,11 @@ import { TRPCError } from '@trpc/server';
 import { router } from '../../trpc';
 import { fileProcedures } from '../../utils/files';
 import { managedWorker } from '../../utils/managedWorker';
-import { shopifyConnect } from './connect';
 import { KV } from '../../utils/kv';
 import { SHOPIFY_LOCATION_ID_STORE, SHOPIFY_LOCATION_ID_WAREHOUSE } from '../../env';
 import { shopifyPushRouter } from './push';
 import type { RecentlyUpdatedProductsQuery } from '../../../types/admin.generated';
+import { createBulkQuery, pollBulkOperation } from './bulk';
 
 const { worker, runWorker, hook } = managedWorker(
 	new URL('worker.ts', import.meta.url).href,
@@ -40,58 +40,60 @@ export const shopifyRouter = router({
 				kvQueryVersion = await kv.get('productQueryVersion'),
 				parsedQueryVersion = kvQueryVersion ? parseInt(kvQueryVersion) : null,
 				parsedLastUpdatedAt = kvLastUpdatedAt ? parseInt(kvLastUpdatedAt) : null,
-				lastUpdatedAt: number =
-					parsedLastUpdatedAt && parsedQueryVersion === PRODUCT_QUERY_VERSION
-						? parsedLastUpdatedAt >= 5000
-							? parsedLastUpdatedAt - 5000
-							: parsedLastUpdatedAt
-						: 0,
-				startTime = Date.now(),
-				{ client } = shopifyConnect(),
-				bulkOperationCreateRes = await client.request(bulkQueryMutation, {
-					variables: {
-						query: productsQuery
-							.replaceAll('$lastUpdatedAtISOString', new Date(lastUpdatedAt).toISOString())
-							.replaceAll('$LOCATION_ID_STORE', SHOPIFY_LOCATION_ID_STORE)
-							.replaceAll('$LOCATION_ID_WAREHOUSE', SHOPIFY_LOCATION_ID_WAREHOUSE)
-					}
-				});
+				startTime = Date.now();
 
-			if (bulkOperationCreateRes.data?.bulkOperationRunQuery?.bulkOperation?.status !== 'CREATED') {
-				console.error(JSON.stringify(bulkOperationCreateRes.data, undefined, 2));
+			// Determine lastUpdatedAt: use stored value with margin if query version matches, otherwise start from 0
+			let lastUpdatedAt: number;
+			if (parsedQueryVersion === PRODUCT_QUERY_VERSION && parsedLastUpdatedAt !== null) {
+				// Rolling updates: use last updated time minus 5 second margin to catch any edge cases
+				lastUpdatedAt = parsedLastUpdatedAt >= 5000 ? parsedLastUpdatedAt - 5000 : 0;
+			} else {
+				// Query version changed or first run: get all products
+				lastUpdatedAt = 0;
+			}
+
+			// Create bulk query operation
+			const bulkOperation = await createBulkQuery(
+				productsQuery
+					.replaceAll('$lastUpdatedAtISOString', new Date(lastUpdatedAt).toISOString())
+					.replaceAll('$LOCATION_ID_STORE', SHOPIFY_LOCATION_ID_STORE)
+					.replaceAll('$LOCATION_ID_WAREHOUSE', SHOPIFY_LOCATION_ID_WAREHOUSE)
+			);
+
+			if (bulkOperation.status !== 'CREATED') {
+				console.error(JSON.stringify(bulkOperation, undefined, 2));
 				throw new Error('Failed to create bulk operation');
 			}
 
-			let bulkQueryResults,
-				iterations = 0;
-			while (true) {
-				const r = await client.request(pollBulkQueryQuery);
-				if (iterations % 10 === 0)
-					console.log(
-						`${Math.round((Date.now() - startTime) / 100) / 10}s elapsed (${
-							r.data?.currentBulkOperation?.objectCount
-						} objects so far)`
-					);
-				if (
-					r.data?.currentBulkOperation?.status !== 'RUNNING' &&
-					r.data?.currentBulkOperation?.status !== 'CREATED'
-				) {
-					bulkQueryResults = r;
-					break;
+			// Poll until complete with progress logging
+			const result = await pollBulkOperation(
+				'query',
+				500,
+				undefined,
+				(objectCount, elapsedSeconds) => {
+					console.log(`${elapsedSeconds}s elapsed (${objectCount} objects so far)`);
 				}
-				await new Promise((resolve) => setTimeout(resolve, 500));
-				iterations++;
-			}
-			if (bulkQueryResults.data?.currentBulkOperation?.status !== 'COMPLETED') {
-				console.log(JSON.stringify(bulkQueryResults.data, undefined, 2));
+			);
+
+			if (result.status !== 'COMPLETED') {
+				console.log(JSON.stringify(result, undefined, 2));
 				throw new TRPCError({
-					message: `Bulk operation failed (status is ${bulkQueryResults.data?.currentBulkOperation?.status})`,
+					message: `Bulk operation failed (status is ${result.status})`,
 					code: 'INTERNAL_SERVER_ERROR'
 				});
 			}
-			if (bulkQueryResults.data.currentBulkOperation.objectCount === '0') return null;
 
-			const fileRes = await fetch(bulkQueryResults.data?.currentBulkOperation?.url),
+			if (result.objectCount === '0') return null;
+
+			// Download and convert results to data URL
+			if (!result.url) {
+				throw new TRPCError({
+					message: 'Bulk operation completed but no URL available',
+					code: 'INTERNAL_SERVER_ERROR'
+				});
+			}
+
+			const fileRes = await fetch(result.url),
 				fileType = fileRes.headers.get('Content-Type'),
 				binString = Array.from(new Uint8Array(await fileRes.arrayBuffer()), (byte) =>
 					String.fromCodePoint(byte)
@@ -100,7 +102,9 @@ export const shopifyRouter = router({
 
 			verify(dataUrl, fileType ?? '');
 
+			// Update KV with current time and query version
 			await kv.set('lastUpdatedAt', startTime.toString());
+			await kv.set('productQueryVersion', PRODUCT_QUERY_VERSION.toString());
 
 			return {
 				name:
@@ -208,38 +212,6 @@ const productsQuery = `#graphql
           subjectType
         }
       }
-    }
-  }
-` as const;
-
-const bulkQueryMutation = `#graphql
-  mutation genericBulkQuery($query: String!) {
-    bulkOperationRunQuery(
-     query: $query
-    ) {
-      bulkOperation {
-        id
-        status
-      }
-      userErrors {
-        field
-        message
-      }
-    }
-  }` as const;
-
-const pollBulkQueryQuery = `#graphql
-  query pollBulkOperation {
-    currentBulkOperation {
-      id
-      status
-      errorCode
-      createdAt
-      completedAt
-      objectCount
-      fileSize
-      url
-      partialDataUrl
     }
   }
 ` as const;

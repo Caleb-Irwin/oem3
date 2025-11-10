@@ -59678,6 +59678,10 @@ export type ShopifyPaymentsTransactionSet = {
 
 /** The possible types of transactions. */
 export enum ShopifyPaymentsTransactionType {
+  /** The ach_bank_failure_debit_fee transaction type. */
+  AchBankFailureDebitFee = 'ACH_BANK_FAILURE_DEBIT_FEE',
+  /** The ach_bank_failure_debit_reversal_fee transaction type. */
+  AchBankFailureDebitReversalFee = 'ACH_BANK_FAILURE_DEBIT_REVERSAL_FEE',
   /** The adjustment transaction type. */
   Adjustment = 'ADJUSTMENT',
   /** The ads_publisher_credit transaction type. */
