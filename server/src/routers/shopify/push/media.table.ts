@@ -19,7 +19,7 @@ export const shopifyImageEnum = pgEnum('shopify_image_status', [
 ]);
 
 export const shopifyMedia = pgTable(
-	'shopify_media',
+	'shopifyMedia',
 	{
 		id: serial('id').primaryKey(),
 		originalUploadUrl: text('original_upload_url').notNull(),
