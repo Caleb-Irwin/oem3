@@ -79,6 +79,6 @@ export const userRouter = router({
 
 function sign(username: string, permissionLevel: PermissionLevel): string {
 	return jwt.sign({ username, permissionLevel } satisfies jwtFieldsInput, JWT_SECRET, {
-		expiresIn: '12h'
+		expiresIn: '48h'
 	});
 }

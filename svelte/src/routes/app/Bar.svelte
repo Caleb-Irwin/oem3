@@ -1,5 +1,5 @@
 <script>
-	import Bttn from '$lib/Button.svelte';
+	import Button from '$lib/Button.svelte';
 	import { client } from '$lib/client';
 	import { AppBar } from '@skeletonlabs/skeleton';
 	import Home from 'lucide-svelte/icons/home';
@@ -14,8 +14,14 @@
 	{/snippet}
 	<a href="/" class="font-semibold text-2xl">OEM3</a>
 	{#snippet trail()}
-		<Bttn action={client.user.logout} class="btn btn-icon variant-filled-primary" reloadPage
-			><LogOut /></Bttn
+		<Button
+			action={client.user.logout}
+			class="btn btn-icon variant-filled-primary"
+			res={() => {
+				window.location.href = '/';
+			}}
 		>
+			<LogOut />
+		</Button>
 	{/snippet}
 </AppBar>

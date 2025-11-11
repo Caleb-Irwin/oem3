@@ -2,6 +2,9 @@
 	import Form from '$lib/Form.svelte';
 	import { client } from '$lib/client';
 	import Footer from './app/Footer.svelte';
+	import type { PageData } from './$types';
+
+	const { data }: { data: PageData } = $props();
 </script>
 
 <svelte:head>
@@ -12,7 +15,14 @@
 	<div class="flex-grow"></div>
 	<div class="space-y-5">
 		<h1 class="h1 text-center">OEM3</h1>
-		<Form class="card p-4" action={client.user.login} successMessage={'Welcome'} reloadPage>
+		<Form
+			class="card p-4"
+			action={client.user.login}
+			successMessage={'Welcome'}
+			res={() => {
+				window.location.href = data.redirectTo;
+			}}
+		>
 			<label class="label my-1">
 				<span>Username</span>
 				<input class="input" type="text" placeholder="username" name="username" />
