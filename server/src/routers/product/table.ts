@@ -15,6 +15,7 @@ import {
 	cellConfigTable,
 	qb,
 	shopify,
+	shopifyMetadata,
 	sprPriceStatusEnum,
 	unifiedGuild,
 	unifiedSpr,
@@ -139,6 +140,10 @@ export const unifiedProductRelations = relations(unifiedProduct, ({ one }) => ({
 	shopifyRowContent: one(shopify, {
 		fields: [unifiedProduct.shopifyRow],
 		references: [shopify.id]
+	}),
+	shopifyMetadata: one(shopifyMetadata, {
+		fields: [unifiedProduct.id],
+		references: [shopifyMetadata.productId]
 	})
 }));
 

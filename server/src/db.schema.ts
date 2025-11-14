@@ -22,3 +22,4 @@ export * from './unified/unmatchedErrors.table';
 export * from './routers/spr/table';
 export * from './routers/product/table';
 export * from './routers/shopify/push/media.table';
+export * from './routers/shopify/push/shopifyMetadata.table';
