@@ -43,7 +43,7 @@ export const productUnifier = createUnifier<
 >({
 	table: unifiedProduct,
 	confTable: unifiedProductCellConfig,
-	version: 11,
+	version: 12,
 	getRow,
 	transform: (
 		item,
@@ -94,7 +94,17 @@ export const productUnifier = createUnifier<
 			((guild?.deleted ?? true) && (spr?.deleted ?? true)) || spr?.status === 'Discontinued';
 		const category = mapCategory(guild?.category, spr?.category) ?? item.category;
 		const sprAvailable = spr?.status ? spr.status === 'Active' : false;
-		// const isHpInkToner = category === 'technologyInk' &&
+
+		const otherProductIDs = `<br><p><span>Product Numbers:</span> ${Array.from(new Set([guild?.gid, guild?.upc, guild?.cis, guild?.basics, guild?.spr, spr?.cws, spr?.upc].filter(Boolean).map((val) => val!.toUpperCase().trim()))).join(' ')}</p>`,
+			description =
+				(spr?.description
+					? `<div class="oem-cont">${spr.description} ${otherProductIDs}</div>`
+					: null) ??
+				(guild?.description
+					? `<div class="oem-cont">${guild.description} ${otherProductIDs}</div>`
+					: null) ??
+				shopify?.htmlDescription ??
+				item.description;
 
 		return {
 			id: t('id', item.id),
@@ -145,10 +155,7 @@ export const productUnifier = createUnifier<
 			etilizeId: t('etilizeId', spr?.etilizeId ?? null),
 
 			title: t('title', spr?.title ?? guild?.title ?? shopify?.title ?? item.title),
-			description: t(
-				'description',
-				spr?.description ?? guild?.description ?? shopify?.htmlDescription ?? item.description
-			),
+			description: t('description', description),
 			category: t('category', category),
 			inFlyer: t('inFlyer', guild?.inFlyer ?? false),
 

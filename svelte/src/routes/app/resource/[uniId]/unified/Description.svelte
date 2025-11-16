@@ -28,7 +28,7 @@
 	</p>
 {/snippet}
 
-<style>
+<style lang="postcss">
 	.desc :global(span) {
 		font-weight: 600;
 	}
@@ -42,7 +42,12 @@
 		list-style-type: disc;
 		list-style-position: outside;
 	}
-	.desc > :global(div) {
+	.desc > :global(div),
+	:global(.oem-cont > div) {
 		padding-top: 1em;
+	}
+
+	.desc :global(hr) {
+		@apply border-surface-300 dark:border-surface-400;
 	}
 </style>
