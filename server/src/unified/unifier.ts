@@ -1,6 +1,6 @@
 import { uniref } from '../db.schema';
 import { db, db as DB, type Tx } from '../db';
-import { eq, isNull, type SQLWrapper, gt, or } from 'drizzle-orm';
+import { eq, isNull, type SQLWrapper, gt, or, getTableName } from 'drizzle-orm';
 import { getTableConfig } from 'drizzle-orm/pg-core';
 import { chunk } from '../utils/chunk';
 import {
@@ -71,13 +71,15 @@ export function createUnifier<
 		db,
 		onUpdateCallback,
 		nestedMode = false,
-		removeAutoMatch = false
+		removeAutoMatch = false,
+		skipAutoMatchByTableName = new Set<string>()
 	}: {
 		id: number;
 		db: Tx | typeof DB;
 		onUpdateCallback: OnUpdateCallback;
 		nestedMode?: boolean;
 		removeAutoMatch?: boolean;
+		skipAutoMatchByTableName?: Set<string>;
 	}) {
 		const originalRow = await getRow(id, db);
 		let updatedRow = structuredClone(originalRow);
@@ -100,7 +102,8 @@ export function createUnifier<
 			originalRow,
 			updatedRow,
 			cellConfigurator,
-			_updateRow
+			_updateRow,
+			skipAutoMatchByTableName
 		});
 
 		// 2. Transform
@@ -146,9 +149,13 @@ export function createUnifier<
 		};
 	}
 
-	async function updateRow(id: number, onUpdateCallback: OnUpdateCallback) {
+	async function updateRow(
+		id: number,
+		onUpdateCallback: OnUpdateCallback,
+		skipAutoMatchByTableName?: Set<string>
+	) {
 		return await retryableTransaction(async (tx) => {
-			return await _updateRow({ id, db: tx, onUpdateCallback });
+			return await _updateRow({ id, db: tx, onUpdateCallback, skipAutoMatchByTableName });
 		});
 	}
 
@@ -214,11 +221,13 @@ export function createUnifier<
 	async function _updateRows({
 		progress,
 		onUpdateCallback,
-		rowsToUpdate
+		rowsToUpdate,
+		skipAutoMatchByTableName
 	}: {
 		progress?: (progress: number) => void;
 		onUpdateCallback: OnUpdateCallback;
 		rowsToUpdate: Set<number>;
+		skipAutoMatchByTableName?: Set<string>;
 	}) {
 		if (progress) progress(0);
 		let done = 0;
@@ -233,7 +242,7 @@ export function createUnifier<
 				if (progress && done % 100 === 0) progress(done / rowsToUpdate.size);
 			})
 			.process(async (id) => {
-				await updateRow(id, onUpdateCallback);
+				await updateRow(id, onUpdateCallback, skipAutoMatchByTableName);
 			});
 		if (progress) progress(1);
 	}
@@ -261,6 +270,7 @@ export function createUnifier<
 
 		// 1. Add missing primary rows
 		await _addMissingRows({ newLastUpdated, rowsToUpdate, connection: connections.primaryTable });
+		const skipAutoMatchByTableName = new Set<string>();
 
 		// 2. Determine which rows need to be updated
 		if (updateAll) {
@@ -289,9 +299,12 @@ export function createUnifier<
 					(prev, curr) => (curr.lastUpdated && prev < curr.lastUpdated ? curr.lastUpdated : prev),
 					lastUpdated
 				);
-				if (lastUpdatedBySource[sourceTable.refCol as string] > lastUpdated)
+				if (lastUpdatedBySource[sourceTable.refCol as string] > lastUpdated) {
 					// If no rows are updated, there will also be no new connections
 					rows.forEach((r) => rowsToUpdate.add(r.id!));
+				} else {
+					skipAutoMatchByTableName.add(getTableConfig(sourceTable.table).name);
+				}
 			}
 		}
 
@@ -299,7 +312,8 @@ export function createUnifier<
 		await _updateRows({
 			progress,
 			onUpdateCallback,
-			rowsToUpdate
+			rowsToUpdate,
+			skipAutoMatchByTableName
 		});
 
 		// 4. Secondary Sources

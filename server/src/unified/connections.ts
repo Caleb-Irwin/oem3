@@ -11,6 +11,7 @@ import type {
 	UnifiedTables
 } from './types';
 import type { CreateUnifierConf, OnUpdateCallback, RowTypeBase } from './unifier';
+import { getTableConfig } from 'drizzle-orm/pg-core';
 
 export function ConnectionManager<
 	RowType extends RowTypeBase<TableType>,
@@ -78,7 +79,8 @@ export function ConnectionManager<
 		removeAutoMatch,
 		_updateRow,
 		allowRemoveMatch,
-		conType
+		conType,
+		skipCheckingAutoMatch
 	}: {
 		db: Tx | typeof DB;
 		id: number;
@@ -92,6 +94,7 @@ export function ConnectionManager<
 		_updateRow: _UpdateRow;
 		allowRemoveMatch: boolean;
 		conType: 'primary' | 'secondary' | 'other';
+		skipCheckingAutoMatch: boolean;
 	}) {
 		const updatedRow = structuredClone(updatedRowIn);
 		const otherConnections = await connectionTable.findConnections(updatedRow, db);
@@ -267,7 +270,8 @@ export function ConnectionManager<
 		originalRow,
 		updatedRow,
 		cellConfigurator,
-		_updateRow
+		_updateRow,
+		skipAutoMatchByTableName
 	}: {
 		db: Tx | typeof DB;
 		id: number;
@@ -278,6 +282,7 @@ export function ConnectionManager<
 		updatedRow: RowType;
 		cellConfigurator: CellConfigurator;
 		_updateRow: _UpdateRow;
+		skipAutoMatchByTableName: Set<string>;
 	}) {
 		const base = {
 			db,
@@ -295,7 +300,10 @@ export function ConnectionManager<
 			connectionTable: connections.primaryTable,
 			updatedRow,
 			allowRemoveMatch: false,
-			conType: 'primary'
+			conType: 'primary',
+			skipCheckingAutoMatch: skipAutoMatchByTableName.has(
+				getTableConfig(connections.primaryTable.table).name
+			)
 		});
 		if (needsRowRefresh) {
 			updatedRow = await getRow(id, db);
@@ -313,7 +321,10 @@ export function ConnectionManager<
 				updatedRow,
 				allowRemoveMatch:
 					hasPrimaryConnection || (!hasPrimaryConnection && removeAutoMatch && !rowHasCellSettings),
-				conType: 'secondary'
+				conType: 'secondary',
+				skipCheckingAutoMatch: skipAutoMatchByTableName.has(
+					getTableConfig(connections.secondaryTable.table).name
+				)
 			});
 			if (needsRowRefreshSecondary) {
 				updatedRow = await getRow(id, db);
@@ -326,7 +337,10 @@ export function ConnectionManager<
 				updatedRow,
 				connectionTable,
 				allowRemoveMatch: true,
-				conType: 'other'
+				conType: 'other',
+				skipCheckingAutoMatch: skipAutoMatchByTableName.has(
+					getTableConfig(connectionTable.table).name
+				)
 			});
 			if (needsRowRefresh) {
 				updatedRow = await getRow(id, db);
