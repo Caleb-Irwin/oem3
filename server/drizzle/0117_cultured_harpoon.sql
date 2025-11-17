@@ -1,0 +1,1 @@
+ALTER TABLE "shopify" ADD COLUMN "productType" varchar(255);

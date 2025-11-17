@@ -120,7 +120,7 @@ export const shopifyRouter = router({
 	)
 });
 
-const PRODUCT_QUERY_VERSION = 3;
+const PRODUCT_QUERY_VERSION = 4;
 const productsQuery = `#graphql
   query recentlyUpdatedProducts {
     products(query: "updated_at:>'$lastUpdatedAtISOString'") {
@@ -138,6 +138,7 @@ const productsQuery = `#graphql
           publishedAt
           status
           updatedAt
+          productType
           featuredMedia {
             id
             alt

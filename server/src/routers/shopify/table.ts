@@ -24,6 +24,7 @@ export const shopify = pgTable(
 		handle: varchar('handle', { length: 255 }).notNull(),
 		title: text('title').notNull(),
 		htmlDescription: text('htmlDescription'),
+		productType: varchar('productType', { length: 255 }),
 		onlineStoreUrl: text('onlineStoreUrl'),
 		onlineStorePreviewUrl: text('onlineStorePreviewUrl'),
 		imageId: varchar('imageId', { length: 128 }),
