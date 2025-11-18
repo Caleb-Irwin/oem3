@@ -4,6 +4,8 @@ import type {
 	ProductVariantInventoryPolicy as ProductVariantInventoryPolicyType,
 	WeightUnit as WeightUnitType
 } from '../../../../types/admin.types';
+import type { shopify, unifiedProduct } from '../../../db.schema';
+import { db } from '../../../db';
 
 // Define Enums locally as values, cast to the remote types for compatibility
 export const ProductStatus = {
@@ -37,3 +39,19 @@ export type ImageMap = Map<
 >;
 
 export type ShopifyMedia = typeof shopifyMedia.$inferSelect;
+
+export type Product = typeof unifiedProduct.$inferSelect;
+export type Shopify = typeof shopify.$inferSelect;
+
+async function productQueryResFunc() {
+	return await db.query.unifiedProduct.findMany({
+		with: {
+			shopifyMetadata: true,
+			shopifyRowContent: true,
+			uniref: true,
+			shopifyMedia: true
+		}
+	});
+}
+
+export type ProductQueryRes = Awaited<ReturnType<typeof productQueryResFunc>>[number];

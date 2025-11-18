@@ -94,6 +94,20 @@ export type ProductSetMutationVariables = AdminTypes.Exact<{
 
 export type ProductSetMutation = { productSet?: AdminTypes.Maybe<{ product?: AdminTypes.Maybe<Pick<AdminTypes.Product, 'id' | 'status'>>, userErrors: Array<Pick<AdminTypes.ProductSetUserError, 'field' | 'message'>> }> };
 
+export type ProductPushMutationVariables = AdminTypes.Exact<{
+  input: AdminTypes.ProductSetInput;
+  identifier?: AdminTypes.InputMaybe<AdminTypes.ProductSetIdentifiers>;
+}>;
+
+
+export type ProductPushMutation = { productSet?: AdminTypes.Maybe<{ product?: AdminTypes.Maybe<(
+      Pick<AdminTypes.Product, 'id' | 'handle'>
+      & { media: { nodes: Array<Pick<AdminTypes.ExternalVideo, 'id' | 'status'> | (
+          Pick<AdminTypes.MediaImage, 'id' | 'status'>
+          & { originalSource?: AdminTypes.Maybe<Pick<AdminTypes.MediaImageOriginalSource, 'url'>> }
+        ) | Pick<AdminTypes.Model3d, 'id' | 'status'> | Pick<AdminTypes.Video, 'id' | 'status'>> } }
+    )>, userErrors: Array<Pick<AdminTypes.ProductSetUserError, 'field' | 'message'>> }> };
+
 interface GeneratedQueryTypes {
   "#graphql\n  query pollCurrentBulkOperation($type: BulkOperationType) {\n    currentBulkOperation(type: $type) {\n      id\n      status\n      errorCode\n      createdAt\n      completedAt\n      objectCount\n      fileSize\n      url\n      partialDataUrl\n    }\n  }\n": {return: PollCurrentBulkOperationQuery, variables: PollCurrentBulkOperationQueryVariables},
   "#graphql\n  query getBulkOperation($id: ID!) {\n    node(id: $id) {\n      ... on BulkOperation {\n        id\n        status\n        errorCode\n        createdAt\n        completedAt\n        objectCount\n        fileSize\n        url\n        partialDataUrl\n      }\n    }\n  }\n": {return: GetBulkOperationQuery, variables: GetBulkOperationQueryVariables},
@@ -106,6 +120,7 @@ interface GeneratedMutationTypes {
   "#graphql\n  mutation cancelBulkOperation($id: ID!) {\n    bulkOperationCancel(id: $id) {\n      bulkOperation {\n        id\n        status\n      }\n      userErrors {\n        field\n        message\n      }\n    }\n  }\n": {return: CancelBulkOperationMutation, variables: CancelBulkOperationMutationVariables},
   "#graphql\n  mutation stagedUploadsCreate($input: [StagedUploadInput!]!) {\n    stagedUploadsCreate(input: $input) {\n      userErrors {\n        field\n        message\n      }\n      stagedTargets {\n        url\n        resourceUrl\n        parameters {\n          name\n          value\n        }\n      }\n    }\n  }\n": {return: StagedUploadsCreateMutation, variables: StagedUploadsCreateMutationVariables},
   "#graphql\n\t\t\tmutation productSet($input: ProductSetInput!) {\n\t\t\t\tproductSet(input: $input) {\n\t\t\t\t\tproduct {\n\t\t\t\t\t\tid\n\t\t\t\t\t\tstatus\n\t\t\t\t\t}\n\t\t\t\t\tuserErrors {\n\t\t\t\t\t\tfield\n\t\t\t\t\t\tmessage\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t": {return: ProductSetMutation, variables: ProductSetMutationVariables},
+  "#graphql\n\t\t\t\tmutation productPush($input: ProductSetInput!, $identifier: ProductSetIdentifiers) {\n\t\t\t\t\tproductSet(input: $input, identifier: $identifier) {\n\t\t\t\t\t\tproduct {\n\t\t\t\t\t\t\tid\n\t\t\t\t\t\t\thandle\n\t\t\t\t\t\t\tmedia(first: 50) {\n\t\t\t\t\t\t\t\tnodes {\n\t\t\t\t\t\t\t\t\tid\n\t\t\t\t\t\t\t\t\tstatus\n\t\t\t\t\t\t\t\t\t... on MediaImage {\n\t\t\t\t\t\t\t\t\t\toriginalSource {\n\t\t\t\t\t\t\t\t\t\t\turl\n\t\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t\tuserErrors {\n\t\t\t\t\t\t\tfield\n\t\t\t\t\t\t\tmessage\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t": {return: ProductPushMutation, variables: ProductPushMutationVariables},
 }
 declare module '@shopify/admin-api-client' {
   type InputMaybe<T> = AdminTypes.InputMaybe<T>;
