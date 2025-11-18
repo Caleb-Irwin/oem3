@@ -91,6 +91,16 @@ export async function getAccessURLBySourceURL(
 	});
 }
 
+export function getAccessURLByFilePath(filePath: string, thumbnail: boolean = false): string {
+	const path = thumbnail ? `/thumbnail/${filePath}` : filePath;
+	const image = s3.file(path);
+	return image.presign({
+		expiresIn: 7 * 24 * 60 * 60,
+		method: 'GET',
+		acl: 'public-read'
+	});
+}
+
 export async function addOrSmartUpdateImage(
 	url: string,
 	productId: string,

@@ -15,6 +15,7 @@ import {
 	cellConfigTable,
 	qb,
 	shopify,
+	shopifyMedia,
 	shopifyMetadata,
 	sprPriceStatusEnum,
 	unifiedGuild,
@@ -115,7 +116,7 @@ export const unifiedProduct = pgTable(
 	]
 );
 
-export const unifiedProductRelations = relations(unifiedProduct, ({ one }) => ({
+export const unifiedProductRelations = relations(unifiedProduct, ({ one, many }) => ({
 	uniref: one(uniref, {
 		fields: [unifiedProduct.id],
 		references: [uniref.unifiedProduct]
@@ -144,7 +145,8 @@ export const unifiedProductRelations = relations(unifiedProduct, ({ one }) => ({
 	shopifyMetadata: one(shopifyMetadata, {
 		fields: [unifiedProduct.id],
 		references: [shopifyMetadata.productId]
-	})
+	}),
+	shopifyMedia: many(shopifyMedia)
 }));
 
 export const unifiedProductColumnEnum = pgEnum('unifiedProductColumn', [

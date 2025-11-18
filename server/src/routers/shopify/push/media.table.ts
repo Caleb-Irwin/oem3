@@ -10,6 +10,7 @@ import {
 	varchar
 } from 'drizzle-orm/pg-core';
 import { unifiedProduct } from '../../product/table';
+import { relations } from 'drizzle-orm';
 
 export const shopifyImageEnum = pgEnum('shopify_image_status', [
 	'FAILED',
@@ -36,3 +37,10 @@ export const shopifyMedia = pgTable(
 		uniqueIndex('shopify_media_id_idx').on(table.shopifyMediaId)
 	]
 );
+
+export const shopifyMediaRelations = relations(shopifyMedia, ({ one }) => ({
+	product: one(unifiedProduct, {
+		fields: [shopifyMedia.productId],
+		references: [unifiedProduct.id]
+	})
+}));

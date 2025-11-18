@@ -222,7 +222,7 @@ export function createUnifier<
 	}) {
 		if (progress) progress(0);
 		let done = 0;
-		await PromisePool.withConcurrency(25)
+		await PromisePool.withConcurrency(5)
 			.for(Array.from(rowsToUpdate))
 			.handleError(async (error) => {
 				console.error('Error updating row:', error);
