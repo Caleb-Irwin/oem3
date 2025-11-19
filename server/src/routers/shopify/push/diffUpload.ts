@@ -1,5 +1,5 @@
 import type { ProductSetInput } from '../../../../types/admin.types';
-import { convertToProductSetInput, shopifyToProductSetInput } from './pushConvert';
+import { convertToProductSetInput /*, shopifyToProductSetInput */ } from './pushConvert';
 import type { ImageMap, ProductQueryRes } from './types';
 
 export function diffUpload(products: ProductQueryRes[], options: { imageMap: ImageMap }) {
@@ -26,7 +26,8 @@ export function diffUpload(products: ProductQueryRes[], options: { imageMap: Ima
 		toUploadNew.push({
 			product,
 			productSetInput: converted,
-			newMedia
+			newMedia,
+			hash: Bun.hash(JSON.stringify(converted)).toString()
 		});
 	}
 
@@ -35,9 +36,10 @@ export function diffUpload(products: ProductQueryRes[], options: { imageMap: Ima
 				imageMap: options.imageMap,
 				shopifyMedia: product.shopifyMedia
 			}),
-			newMedia = getNewMedia(converted),
-			existing = shopifyToProductSetInput(product.shopifyRowContent!);
-		// TODO : Fix diffing logic to avoid unnecessary updates
+			newMedia = getNewMedia(converted);
+		// ,
+		// existing = shopifyToProductSetInput(product.shopifyRowContent!);
+		// Maybe TODO : Fix diffing logic to avoid unnecessary updates
 		// if (deepEqual(converted, existing)) {
 		// 	continue;
 		// }
@@ -55,7 +57,8 @@ export function diffUpload(products: ProductQueryRes[], options: { imageMap: Ima
 		toUploadUpdate.push({
 			product,
 			productSetInput: converted,
-			newMedia
+			newMedia,
+			hash: Bun.hash(JSON.stringify(converted)).toString()
 		});
 	}
 
@@ -73,6 +76,7 @@ interface ProductUpload {
 	product: ProductQueryRes;
 	productSetInput: ProductSetInput;
 	newMedia: NewMedia[];
+	hash: string;
 }
 
 interface NewMedia {
@@ -103,42 +107,42 @@ function getNewMedia(productSetInput: ProductSetInput): NewMedia[] {
 	);
 }
 
-function deepEqual(a: any, b: any, trace = false): boolean {
-	if (a === b) return true;
+// function deepEqual(a: any, b: any, trace = false): boolean {
+// 	if (a === b) return true;
 
-	if (typeof a !== 'object' || typeof b !== 'object' || a == null || b == null) {
-		return false;
-	}
+// 	if (typeof a !== 'object' || typeof b !== 'object' || a == null || b == null) {
+// 		return false;
+// 	}
 
-	const keysA = Object.keys(a).filter((k) => a[k] !== undefined);
-	const keysB = Object.keys(b).filter((k) => b[k] !== undefined);
+// 	const keysA = Object.keys(a).filter((k) => a[k] !== undefined);
+// 	const keysB = Object.keys(b).filter((k) => b[k] !== undefined);
 
-	if (trace && keysA.length !== keysB.length) {
-		console.log({
-			keyALength: keysA.length,
-			keysA,
-			a,
-			keyBLength: keysB.length,
-			keysB,
-			b
-		});
-	}
+// 	if (trace && keysA.length !== keysB.length) {
+// 		console.log({
+// 			keyALength: keysA.length,
+// 			keysA,
+// 			a,
+// 			keyBLength: keysB.length,
+// 			keysB,
+// 			b
+// 		});
+// 	}
 
-	if (keysA.length !== keysB.length) return false;
+// 	if (keysA.length !== keysB.length) return false;
 
-	for (const key of keysA) {
-		if (!keysB.includes(key) || !deepEqual(a[key], b[key])) {
-			if (key === 'descriptionHtml') continue;
-			if (trace) {
-				if (!keysB.includes(key)) {
-					console.log(`Key ${key} missing in B`);
-				} else {
-					console.log(`Value mismatch on key ${key}:`, { a: a[key], b: b[key] });
-				}
-			}
-			return false;
-		}
-	}
+// 	for (const key of keysA) {
+// 		if (!keysB.includes(key) || !deepEqual(a[key], b[key])) {
+// 			if (key === 'descriptionHtml') continue;
+// 			if (trace) {
+// 				if (!keysB.includes(key)) {
+// 					console.log(`Key ${key} missing in B`);
+// 				} else {
+// 					console.log(`Value mismatch on key ${key}:`, { a: a[key], b: b[key] });
+// 				}
+// 			}
+// 			return false;
+// 		}
+// 	}
 
-	return true;
-}
+// 	return true;
+// }

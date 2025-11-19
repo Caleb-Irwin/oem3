@@ -28,7 +28,8 @@ export const shopifyMetadata = pgTable(
 		shopifyProductId: varchar('shopify_product_id', { length: 256 }),
 		lastUpdated: bigint('lastUpdated', { mode: 'number' }).notNull(),
 		status: shopifyUploadStatusEnum('status').notNull(),
-		failureCount: integer('failure_count').notNull().default(0)
+		failureCount: integer('failure_count').notNull().default(0),
+		lastUploadedHash: varchar('last_uploaded_hash', { length: 128 })
 	},
 	(table) => [
 		uniqueIndex('shopify_metadata_product_id_idx').on(table.productId),

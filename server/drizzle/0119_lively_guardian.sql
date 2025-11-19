@@ -1,0 +1,1 @@
+ALTER TABLE "shopifyMetadata" ADD COLUMN "last_uploaded_hash" varchar(128);

@@ -104,21 +104,38 @@ function prepareUploads(
 	const { toUploadUpdate, toUploadNew } = diffUpload(products, { imageMap });
 
 	return [
-		// ...toUploadNew.map((u) => ({ ...u, identifier: undefined }))
 		...toUploadUpdate.map((u) => ({
 			...u,
 			identifier: { id: u.product.shopifyRowContent!.productId }
-		}))
+		})),
+		...toUploadNew.map((u) => ({ ...u, identifier: undefined }))
 	].filter((u) => {
+		// Only upload a subset of new products
+		if (!u.product.shopifyRowContent) {
+			if (u.product.id % 10 !== 0) return false;
+		}
+
 		const meta = u.product.shopifyMetadata;
-		if (!meta) return true;
-		if (meta.failureCount >= 10) {
+		if (!meta) {
+			if (u.product.deleted || u.product.status === 'DISABLED') return false;
+			return true;
+		} else if (!u.product.shopifyRowContent && meta.status === 'UPLOADED') {
+			return false;
+		}
+
+		if (u.product.lastUpdated <= meta.lastUpdated && meta.status !== 'FAILED') return false;
+
+		if (meta.lastUploadedHash && meta.lastUploadedHash === u.hash && meta.status === 'UPLOADED') {
+			return false;
+		}
+
+		if (meta.failureCount >= 3) {
 			console.error(
 				`Skipping product ${u.product.id} (${[u.product.gid, u.product.sprc].filter(Boolean).join(' ')}) due to ${meta.failureCount} previous failures.`
 			);
 			return false;
 		}
-		if (!u.product.shopifyRowContent) return false;
+
 		return true;
 	});
 }
@@ -157,14 +174,17 @@ async function processBatchResults(
 	);
 
 	await db.transaction(async (tx) => {
+		const missingHandles = new Set<string>(batchHandleMap.keys());
+
 		for (let j = 0; j < results.length; j++) {
 			const result = results[j].data;
 			const handle = result.productSet?.product?.handle;
 			if (!handle) {
 				console.error('No handle in result:', JSON.stringify(result.productSet));
-				throw new Error('No handle in result; cannot associate result with upload item!');
+				continue;
 			}
 			const item = batchHandleMap.get(handle)!;
+			missingHandles.delete(handle);
 			if (
 				item.product.shopifyRowContent?.productId &&
 				result.productSet?.product?.id !== item.product.shopifyRowContent?.productId
@@ -203,7 +223,8 @@ async function processBatchResults(
 				.set({
 					status: 'UPLOADED',
 					shopifyProductId: product.id,
-					failureCount: 0
+					failureCount: 0,
+					lastUploadedHash: item.hash
 				})
 				.where(eq(shopifyMetadata.productId, item.product.id));
 
@@ -230,6 +251,18 @@ async function processBatchResults(
 					}
 				}
 			}
+		}
+
+		for (const handle of missingHandles) {
+			const item = batchHandleMap.get(handle)!;
+			console.error(`Marking product ${item.product.id} as FAILED due to missing result.`);
+			await tx
+				.update(shopifyMetadata)
+				.set({
+					status: 'FAILED',
+					failureCount: (item.product.shopifyMetadata?.failureCount ?? 0) + 1
+				})
+				.where(eq(shopifyMetadata.productId, item.product.id));
 		}
 	});
 }

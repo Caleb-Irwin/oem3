@@ -22,7 +22,7 @@ export function convertToProductSetInput(
 
 	// Title
 	if (product.title !== undefined && product.title !== null) {
-		input.title = product.title;
+		input.title = product.title || product.gid || product.sprc || 'Untitled Product';
 	}
 
 	// Description
@@ -37,7 +37,9 @@ export function convertToProductSetInput(
 		input.handle = (
 			product.title +
 			' ' +
-			(product.gid ?? product.sprc ?? Math.random().toString(36).substring(2, 8))
+			(product.gid ?? product.sprc ?? Math.random().toString(36).substring(2, 5)) +
+			' ' +
+			Math.random().toString(36).substring(2, 5)
 		)
 			.toLowerCase()
 			.replace(/[^a-z0-9]+/g, '-')
