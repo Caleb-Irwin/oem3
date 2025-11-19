@@ -76,22 +76,25 @@ interface ProductUpload {
 
 interface NewMedia {
 	originalSource: string;
+	index: number;
 }
 
 function getNewMedia(productSetInput: ProductSetInput): NewMedia[] {
 	return (
 		productSetInput.files
-			?.map((file) => {
+			?.map((file, index): NewMedia | undefined => {
 				const fileName = file.filename;
 				if (fileName) {
 					delete file.filename;
 					return {
-						originalSource: fileName
+						originalSource: fileName,
+						index
 					};
 				}
 				if (file.originalSource) {
 					return {
-						originalSource: file.originalSource
+						originalSource: file.originalSource,
+						index
 					};
 				}
 			})
@@ -108,6 +111,13 @@ function deepEqual(a: any, b: any): boolean {
 
 	const keysA = Object.keys(a).filter((k) => a[k] !== undefined);
 	const keysB = Object.keys(b).filter((k) => b[k] !== undefined);
+
+	if (a?.handle === '1034391032') {
+		console.log('Comparing objects for handle 1034391032:', {
+			a: keysA.length,
+			b: keysB.length
+		});
+	}
 
 	if (keysA.length !== keysB.length) return false;
 

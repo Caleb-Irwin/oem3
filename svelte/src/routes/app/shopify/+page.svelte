@@ -60,13 +60,20 @@
 					</Button>
 				</div>
 				<WorkerStatus status={workerStatus} />
-				<div class="card flex flex-col mt-2 p-4">
+				<div class="card flex flex-col mt-2 p-4 gap-2">
 					<h5 class="h4 font-semibold">Utilities</h5>
 					<Button
 						class="btn variant-filled-error"
 						action={client.shopify.pushSync.archiveAllUnmatchedProducts}
 						confirm="Are you sure you want to archive ALL unmatched products? This action cannot be undone. Admin access is required."
 						>Archive All Unmatched Products</Button
+					>
+					<Button
+						class="btn variant-filled-error"
+						action={client.shopify.pushSync.activateAllInventoryLocations}
+						confirm="Are you sure you want to activate ALL inventory locations? This action cannot be undone. Admin access is required."
+						successMessage="Started. DO NOT RETRY UNTIL PREVIOUS ACTIVATION IS COMPLETE."
+						>Activate All Inventory Locations</Button
 					>
 				</div>
 			</div>

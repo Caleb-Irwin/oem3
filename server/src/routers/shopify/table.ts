@@ -46,6 +46,7 @@ export const shopify = pgTable(
 		vInventoryPolicyContinue: boolean('vInventoryPolicyContinue'),
 		vRequiresShipping: boolean('vRequiresShipping'),
 		vUnitCostCents: integer('vUnitCostCents'),
+		vInventoryItemId: varchar('vInventoryItemId', { length: 128 }),
 		vInventoryAvailableStore: integer('vInventoryAvailableStore'),
 		vInventoryOnHandStore: integer('vInventoryOnHandStore'),
 		vInventoryCommittedStore: integer('vInventoryCommittedStore'),

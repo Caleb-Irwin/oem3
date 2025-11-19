@@ -129,7 +129,8 @@ work({
 						'vendor',
 						'onlineStoreUrl',
 						'onlineStorePreviewUrl',
-						'allMediaJSONArray'
+						'allMediaJSONArray',
+						'vInventoryItemId'
 					]
 				),
 				progress,
@@ -178,6 +179,7 @@ const transform = (product: OutProduct): typeof shopify.$inferInsert => {
 		vBarcode: variant.barcode,
 		vInventoryPolicyContinue: variant.inventoryPolicy === 'CONTINUE',
 		vRequiresShipping: variant.inventoryItem?.requiresShipping ?? true,
+		vInventoryItemId: variant.inventoryItem?.id,
 		vUnitCostCents: variant.inventoryItem.unitCost?.amount
 			? removeNaN(Math.round(variant.inventoryItem.unitCost.amount * 100))
 			: null,

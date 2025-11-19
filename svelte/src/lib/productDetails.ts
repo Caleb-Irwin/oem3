@@ -308,6 +308,8 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 					? new Date(shopify.publishedAt as number).toLocaleString('en-CA')
 					: 'Unknown',
 				Vendor: shopify.vendor,
+				'Variant Inventory Item Id': shopify.vInventoryItemId,
+				'Other Images': shopify.allMediaJSONArray,
 				'Updated At': shopify.updatedAt
 					? new Date(shopify.updatedAt as number).toLocaleString('en-CA')
 					: 'Unknown'

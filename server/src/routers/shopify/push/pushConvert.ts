@@ -160,7 +160,8 @@ export function convertToProductSetInput(
 			product.guildCostCents || product.sprCostCents
 				? ((product.guildCostCents || product.sprCostCents || 0) / 100).toFixed(2)
 				: null,
-		measurement: null
+		measurement: null,
+		tracked: true
 	};
 
 	if (product.weightGrams) {
@@ -395,7 +396,8 @@ export function shopifyToProductSetInput(shopify: Shopify): ProductSetInput {
 	variant.inventoryItem = {
 		requiresShipping: shopify.vRequiresShipping ?? true,
 		cost: shopify.vUnitCostCents ? (shopify.vUnitCostCents / 100).toFixed(2) : null,
-		measurement: null
+		measurement: null,
+		tracked: true
 	};
 
 	if (shopify.vWeightGrams) {

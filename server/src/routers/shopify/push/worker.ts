@@ -17,13 +17,10 @@ work({
 		const allUploads = prepareUploads(products, imageMap);
 
 		console.log(`Preparing to upload ${allUploads.length} products to Shopify.`);
-		console.log(
-			`${allUploads[0]?.product.shopifyRowContent?.handle} ${allUploads[0]?.product.shopifyRowContent?.onlineStoreUrl} ${allUploads[0]?.product.shopifyRowContent?.onlineStorePreviewUrl}`
-		);
 
 		// return;
 
-		const batchSize = 100;
+		const batchSize = 256; // Arbitrary
 		for (let i = 0; i < allUploads.length; i += batchSize) {
 			const batch = allUploads.slice(i, i + batchSize);
 
@@ -44,7 +41,6 @@ work({
 									id
 									status
 									alt
-									
 								}
 							}
 						}
@@ -110,19 +106,17 @@ function prepareUploads(
 	const { toUploadUpdate, toUploadNew } = diffUpload(products, { imageMap });
 
 	return [
-		...toUploadNew.map((u) => ({ ...u, identifier: undefined }))
-		// ...toUploadUpdate.map((u) => ({
-		// 	...u,
-		// 	identifier: { id: u.product.shopifyRowContent!.productId }
-		// }))
-	]
-		.filter((u) => {
-			const meta = u.product.shopifyMetadata;
-			if (!meta) return true;
-			if (meta.status === 'PENDING') return false;
-			return u.product.lastUpdated > meta.lastUpdated;
-		})
-		.slice(0, 1); // LIMIT FOR TESTING ONLY
+		// ...toUploadNew.map((u) => ({ ...u, identifier: undefined }))
+		...toUploadUpdate.map((u) => ({
+			...u,
+			identifier: { id: u.product.shopifyRowContent!.productId }
+		}))
+	].filter((u) => {
+		const meta = u.product.shopifyMetadata;
+		if (!meta) return true;
+		if (meta.status === 'PENDING' && u.product.lastUpdated <= meta.lastUpdated) return false;
+		return true;
+	});
 }
 
 type UploadItem = ReturnType<typeof prepareUploads>[number];
@@ -136,6 +130,7 @@ async function markBatchPending(batch: UploadItem[]) {
 					productId: item.product.id,
 					lastUpdated: item.product.lastUpdated,
 					status: 'PENDING',
+					shopifyProductId: item.product.shopifyRowContent?.productId || null,
 					failureCount: 0
 				})
 				.onConflictDoUpdate({
@@ -153,7 +148,6 @@ async function processBatchResults(
 	results: { data: ProductPushMutation; __lineNumber: number }[],
 	batch: UploadItem[]
 ) {
-	console.log(JSON.stringify(results, null, 2));
 	await db.transaction(async (tx) => {
 		for (let j = 0; j < results.length; j++) {
 			const result = results[j].data;
@@ -189,33 +183,22 @@ async function processBatchResults(
 
 			// Handle Media
 			if (item.newMedia.length > 0 && product.media?.nodes) {
-				for (const mediaNode of product.media.nodes) {
-					const originalUrl =
-						'originalSource' in mediaNode ? mediaNode.originalSource?.url : undefined;
-
-					if (!originalUrl) continue;
-
-					const matchedMedia = item.newMedia.find((nm) => nm.originalSource === originalUrl);
+				for (const [i, mediaNode] of product.media.nodes.entries()) {
+					const matchedMedia = item.newMedia.find((nm) => nm.index === i);
 
 					if (matchedMedia) {
 						await tx
 							.insert(shopifyMedia)
 							.values({
 								originalUploadUrl: matchedMedia.originalSource,
-								status:
-									mediaNode.status === 'UPLOADED' || mediaNode.status === 'READY'
-										? 'UPLOADED'
-										: 'PROCESSING',
+								status: mediaNode.status,
 								shopifyMediaId: mediaNode.id,
 								productId: item.product.id
 							})
 							.onConflictDoUpdate({
 								target: shopifyMedia.shopifyMediaId,
 								set: {
-									status:
-										mediaNode.status === 'UPLOADED' || mediaNode.status === 'READY'
-											? 'UPLOADED'
-											: 'PROCESSING'
+									status: mediaNode.status
 								}
 							});
 					}

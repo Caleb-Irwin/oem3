@@ -1,5 +1,5 @@
 import '@shopify/shopify-api/adapters/node';
-import { shopifyApi, ApiVersion, Session } from '@shopify/shopify-api';
+import { shopifyApi, ApiVersion, Session, LogSeverity } from '@shopify/shopify-api';
 
 export function shopifyConnect() {
 	const SHOPIFY_API_KEY = process.env['SHOPIFY_API_KEY'] as string;
@@ -23,7 +23,10 @@ export function shopifyConnect() {
 		isEmbeddedApp: false,
 		apiVersion: ApiVersion.October25,
 		hostName: `${SHOPIFY_SHOP}.myshopify.com`,
-		isCustomStoreApp: true
+		isCustomStoreApp: true,
+		logger: {
+			level: LogSeverity.Warning
+		}
 	});
 
 	const session = new Session({

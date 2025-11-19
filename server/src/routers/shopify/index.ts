@@ -120,7 +120,7 @@ export const shopifyRouter = router({
 	)
 });
 
-const PRODUCT_QUERY_VERSION = 4;
+const PRODUCT_QUERY_VERSION = 5;
 const productsQuery = `#graphql
   query recentlyUpdatedProducts {
     products(query: "updated_at:>'$lastUpdatedAtISOString'") {
@@ -178,6 +178,7 @@ const productsQuery = `#graphql
                 barcode
                 inventoryPolicy
                 inventoryItem {
+                  id
                   measurement {
                     weight {
                       value
@@ -205,7 +206,10 @@ const productsQuery = `#graphql
         }
       }
     }
-    deletionEvents(subjectTypes: PRODUCT, query: "occurred_at:>'$lastUpdatedAtISOString'") {
+    deletionEvents(
+      subjectTypes: PRODUCT
+      query: "occurred_at:>'$lastUpdatedAtISOString'"
+    ) {
       edges {
         node {
           occurredAt
