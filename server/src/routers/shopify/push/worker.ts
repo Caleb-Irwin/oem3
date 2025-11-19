@@ -14,7 +14,14 @@ work({
 
 		const { products, images } = await fetchData();
 		const imageMap = createImageMap(images);
-		const allUploads = prepareUploads(products, imageMap).slice(0, 1);
+		const allUploads = prepareUploads(products, imageMap);
+
+		console.log(`Preparing to upload ${allUploads.length} products to Shopify.`);
+		console.log(
+			`${allUploads[0]?.product.shopifyRowContent?.handle} ${allUploads[0]?.product.shopifyRowContent?.onlineStoreUrl} ${allUploads[0]?.product.shopifyRowContent?.onlineStorePreviewUrl}`
+		);
+
+		// return;
 
 		const batchSize = 100;
 		for (let i = 0; i < allUploads.length; i += batchSize) {
@@ -23,13 +30,12 @@ work({
 			await markBatchPending(batch);
 
 			const variables = batch.map((item) => ({
-				input: item.productSetInput,
-				identifier: item.identifier
+				input: item.productSetInput
 			}));
 
 			const mutation = `#graphql
-				mutation productPush($input: ProductSetInput!, $identifier: ProductSetIdentifiers) {
-					productSet(input: $input, identifier: $identifier) {
+				mutation productPush($input: ProductSetInput!) {
+					productSet(input: $input) {
 						product {
 							id
 							handle
@@ -37,11 +43,8 @@ work({
 								nodes {
 									id
 									status
-									... on MediaImage {
-										originalSource {
-											url
-										}
-									}
+									alt
+									
 								}
 							}
 						}
@@ -54,7 +57,10 @@ work({
 			`;
 
 			try {
-				const results = await executeBulkMutation<ProductPushMutation>(mutation, variables);
+				const results = await executeBulkMutation<{
+					data: ProductPushMutation;
+					__lineNumber: number;
+				}>(mutation, variables);
 				await processBatchResults(results, batch);
 			} catch (e) {
 				console.error('Bulk mutation failed:', e);
@@ -101,14 +107,14 @@ function prepareUploads(
 	products: Awaited<ReturnType<typeof fetchData>>['products'],
 	imageMap: ImageMap
 ) {
-	const { toUploadNew, toUploadUpdate } = diffUpload(products, { imageMap });
+	const { toUploadUpdate, toUploadNew } = diffUpload(products, { imageMap });
 
 	return [
-		// ...toUploadNew.map((u) => ({ ...u, identifier: undefined })),
-		...toUploadUpdate.map((u) => ({
-			...u,
-			identifier: { id: u.product.shopifyRowContent!.productId }
-		}))
+		...toUploadNew.map((u) => ({ ...u, identifier: undefined }))
+		// ...toUploadUpdate.map((u) => ({
+		// 	...u,
+		// 	identifier: { id: u.product.shopifyRowContent!.productId }
+		// }))
 	]
 		.filter((u) => {
 			const meta = u.product.shopifyMetadata;
@@ -143,10 +149,14 @@ async function markBatchPending(batch: UploadItem[]) {
 	});
 }
 
-async function processBatchResults(results: ProductPushMutation[], batch: UploadItem[]) {
+async function processBatchResults(
+	results: { data: ProductPushMutation; __lineNumber: number }[],
+	batch: UploadItem[]
+) {
+	console.log(JSON.stringify(results, null, 2));
 	await db.transaction(async (tx) => {
 		for (let j = 0; j < results.length; j++) {
-			const result = results[j];
+			const result = results[j].data;
 			const item = batch[j];
 
 			if (

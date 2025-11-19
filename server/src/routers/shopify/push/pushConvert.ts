@@ -15,6 +15,11 @@ export function convertToProductSetInput(
 ): ProductSetInput {
 	const input: ProductSetInput = {};
 
+	if (shopifyData) {
+		//@ts-expect-error This field exists but it is deprecated. However, it is needed for bulk mutations still.
+		input.id = shopifyData.productId!;
+	}
+
 	// Title
 	if (product.title !== undefined && product.title !== null) {
 		input.title = product.title;
@@ -80,6 +85,9 @@ export function convertToProductSetInput(
 
 	// Images
 	input.files = getFiles(product, options);
+
+	// Product Options
+	input.productOptions = [{ name: 'Title', values: [{ name: 'Default Title' }] }];
 
 	// Variants
 	const variant: NonNullable<ProductSetInput['variants']>[number] = {
@@ -245,6 +253,9 @@ function getFiles(
 export function shopifyToProductSetInput(shopify: Shopify): ProductSetInput {
 	const input: ProductSetInput = {};
 
+	//@ts-expect-error This field exists but it is deprecated. However, it is needed for bulk mutations still.
+	input.id = shopify.productId;
+
 	// Title
 	if (shopify.title) {
 		input.title = shopify.title;
@@ -314,6 +325,9 @@ export function shopifyToProductSetInput(shopify: Shopify): ProductSetInput {
 			// ignore
 		}
 	}
+
+	// Product Options
+	input.productOptions = [{ name: 'Title', values: [{ name: 'Default Title' }] }];
 
 	// Variants
 	const variant: NonNullable<ProductSetInput['variants']>[number] = {
