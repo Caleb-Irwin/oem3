@@ -27,97 +27,100 @@ const verify = (dataUrl: string, fileType: string) => {
 		throw new Error('Invalid File (Missing IDs)');
 	}
 };
+
+const files = fileProcedures(
+	'shopify',
+	verify,
+	runWorker,
+	async () => {
+		const kv = new KV('shopify'),
+			kvLastUpdatedAt = await kv.get('lastUpdatedAt'),
+			kvQueryVersion = await kv.get('productQueryVersion'),
+			parsedQueryVersion = kvQueryVersion ? parseInt(kvQueryVersion) : null,
+			parsedLastUpdatedAt = kvLastUpdatedAt ? parseInt(kvLastUpdatedAt) : null,
+			startTime = Date.now();
+
+		// Determine lastUpdatedAt: use stored value with margin if query version matches, otherwise start from 0
+		let lastUpdatedAt: number;
+		if (parsedQueryVersion === PRODUCT_QUERY_VERSION && parsedLastUpdatedAt !== null) {
+			// Rolling updates: use last updated time minus 5 second margin to catch any edge cases
+			lastUpdatedAt = parsedLastUpdatedAt >= 5000 ? parsedLastUpdatedAt - 5000 : 0;
+		} else {
+			// Query version changed or first run: get all products
+			lastUpdatedAt = 0;
+		}
+
+		// Create bulk query operation
+		const bulkOperation = await createBulkQuery(
+			productsQuery
+				.replaceAll('$lastUpdatedAtISOString', new Date(lastUpdatedAt).toISOString())
+				.replaceAll('$LOCATION_ID_STORE', SHOPIFY_LOCATION_ID_STORE)
+				.replaceAll('$LOCATION_ID_WAREHOUSE', SHOPIFY_LOCATION_ID_WAREHOUSE)
+		);
+
+		if (bulkOperation.status !== 'CREATED') {
+			console.error(JSON.stringify(bulkOperation, undefined, 2));
+			throw new Error('Failed to create bulk operation');
+		}
+
+		// Poll until complete with progress logging
+		const result = await pollBulkOperation(
+			'query',
+			500,
+			undefined,
+			(objectCount, elapsedSeconds) => {
+				console.log(`${elapsedSeconds}s elapsed (${objectCount} objects so far)`);
+			}
+		);
+
+		if (result.status !== 'COMPLETED') {
+			console.log(JSON.stringify(result, undefined, 2));
+			throw new TRPCError({
+				message: `Bulk operation failed (status is ${result.status})`,
+				code: 'INTERNAL_SERVER_ERROR'
+			});
+		}
+
+		if (result.objectCount === '0') return null;
+
+		// Download and convert results to data URL
+		if (!result.url) {
+			throw new TRPCError({
+				message: 'Bulk operation completed but no URL available',
+				code: 'INTERNAL_SERVER_ERROR'
+			});
+		}
+
+		const fileRes = await fetch(result.url),
+			fileType = fileRes.headers.get('Content-Type'),
+			binString = Array.from(new Uint8Array(await fileRes.arrayBuffer()), (byte) =>
+				String.fromCodePoint(byte)
+			).join(''),
+			dataUrl = `data:${fileType};base64,${btoa(binString)}`;
+
+		verify(dataUrl, fileType ?? '');
+
+		// Update KV with current time and query version
+		await kv.set('lastUpdatedAt', startTime.toString());
+		await kv.set('productQueryVersion', PRODUCT_QUERY_VERSION.toString());
+
+		return {
+			name:
+				`Changes from ${new Date(lastUpdatedAt).toLocaleString('en-CA', {
+					timeZone: 'America/Regina'
+				})} to ${new Date(startTime).toLocaleString('en-CA', {
+					timeZone: 'America/Regina'
+				})}`.replaceAll('.', '') + '.jsonl',
+			dataUrl
+		};
+	},
+	true
+);
+
 export const shopifyRouter = router({
 	pushSync: shopifyPushRouter,
 	worker,
-	files: fileProcedures(
-		'shopify',
-		verify,
-		runWorker,
-		async () => {
-			const kv = new KV('shopify'),
-				kvLastUpdatedAt = await kv.get('lastUpdatedAt'),
-				kvQueryVersion = await kv.get('productQueryVersion'),
-				parsedQueryVersion = kvQueryVersion ? parseInt(kvQueryVersion) : null,
-				parsedLastUpdatedAt = kvLastUpdatedAt ? parseInt(kvLastUpdatedAt) : null,
-				startTime = Date.now();
-
-			// Determine lastUpdatedAt: use stored value with margin if query version matches, otherwise start from 0
-			let lastUpdatedAt: number;
-			if (parsedQueryVersion === PRODUCT_QUERY_VERSION && parsedLastUpdatedAt !== null) {
-				// Rolling updates: use last updated time minus 5 second margin to catch any edge cases
-				lastUpdatedAt = parsedLastUpdatedAt >= 5000 ? parsedLastUpdatedAt - 5000 : 0;
-			} else {
-				// Query version changed or first run: get all products
-				lastUpdatedAt = 0;
-			}
-
-			// Create bulk query operation
-			const bulkOperation = await createBulkQuery(
-				productsQuery
-					.replaceAll('$lastUpdatedAtISOString', new Date(lastUpdatedAt).toISOString())
-					.replaceAll('$LOCATION_ID_STORE', SHOPIFY_LOCATION_ID_STORE)
-					.replaceAll('$LOCATION_ID_WAREHOUSE', SHOPIFY_LOCATION_ID_WAREHOUSE)
-			);
-
-			if (bulkOperation.status !== 'CREATED') {
-				console.error(JSON.stringify(bulkOperation, undefined, 2));
-				throw new Error('Failed to create bulk operation');
-			}
-
-			// Poll until complete with progress logging
-			const result = await pollBulkOperation(
-				'query',
-				500,
-				undefined,
-				(objectCount, elapsedSeconds) => {
-					console.log(`${elapsedSeconds}s elapsed (${objectCount} objects so far)`);
-				}
-			);
-
-			if (result.status !== 'COMPLETED') {
-				console.log(JSON.stringify(result, undefined, 2));
-				throw new TRPCError({
-					message: `Bulk operation failed (status is ${result.status})`,
-					code: 'INTERNAL_SERVER_ERROR'
-				});
-			}
-
-			if (result.objectCount === '0') return null;
-
-			// Download and convert results to data URL
-			if (!result.url) {
-				throw new TRPCError({
-					message: 'Bulk operation completed but no URL available',
-					code: 'INTERNAL_SERVER_ERROR'
-				});
-			}
-
-			const fileRes = await fetch(result.url),
-				fileType = fileRes.headers.get('Content-Type'),
-				binString = Array.from(new Uint8Array(await fileRes.arrayBuffer()), (byte) =>
-					String.fromCodePoint(byte)
-				).join(''),
-				dataUrl = `data:${fileType};base64,${btoa(binString)}`;
-
-			verify(dataUrl, fileType ?? '');
-
-			// Update KV with current time and query version
-			await kv.set('lastUpdatedAt', startTime.toString());
-			await kv.set('productQueryVersion', PRODUCT_QUERY_VERSION.toString());
-
-			return {
-				name:
-					`Changes from ${new Date(lastUpdatedAt).toLocaleString('en-CA', {
-						timeZone: 'America/Regina'
-					})} to ${new Date(startTime).toLocaleString('en-CA', {
-						timeZone: 'America/Regina'
-					})}`.replaceAll('.', '') + '.jsonl',
-				dataUrl
-			};
-		},
-		true
-	)
+	files
 });
 
 const PRODUCT_QUERY_VERSION = 5;

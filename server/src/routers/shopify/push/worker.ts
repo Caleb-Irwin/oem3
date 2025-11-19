@@ -7,6 +7,7 @@ import { shopifyMetadata } from './shopifyMetadata.table';
 import { shopifyMedia } from './media.table';
 import { eq } from 'drizzle-orm';
 import type { ProductPushMutation } from '../../../../types/admin.generated';
+import { appRouter } from '../../../appRouter';
 
 work({
 	process: async ({ progress }) => {
@@ -63,6 +64,19 @@ work({
 
 			progress((i + batch.length) / allUploads.length);
 		}
+
+		progress(-1);
+
+		await appRouter
+			.createCaller({
+				user: {
+					username: 'admin',
+					permissionLevel: 'general',
+					exp: Date.now() + 1000,
+					iat: Date.now() - 1000
+				}
+			})
+			.shopify.files.cloudDownload({});
 	}
 });
 
@@ -111,7 +125,7 @@ function prepareUploads(
 		...toUploadNew.map((u) => ({ ...u, identifier: undefined }))
 	].filter((u) => {
 		// Only upload a subset of new products
-		if (!u.product.shopifyRowContent) {
+		if (!u.product.shopifyRowContent && u.product.inFlyer === false) {
 			if (u.product.id % 10 !== 0) return false;
 		}
 
