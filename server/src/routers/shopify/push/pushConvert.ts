@@ -72,21 +72,23 @@ export function convertToProductSetInput(
 	}
 
 	// Tags
-	if (product.inFlyer || shopifyData?.tagsJsonArr) {
-		try {
-			const existingTags = JSON.parse(shopifyData?.tagsJsonArr ?? '[]');
-			if (Array.isArray(existingTags)) {
-				if (product.inFlyer && !existingTags.includes('Flyer')) {
-					existingTags.push('Flyer');
-					input.tags = existingTags satisfies string[];
-				} else if (!product.inFlyer && existingTags.includes('Flyer')) {
-					input.tags = existingTags.filter((tag) => tag !== 'Flyer') satisfies string[];
-				}
-				input.tags = existingTags;
+	try {
+		const existingTags = JSON.parse(shopifyData?.tagsJsonArr ?? '[]');
+		if (Array.isArray(existingTags)) {
+			if (product.inFlyer && !existingTags.includes('Flyer')) {
+				existingTags.push('Flyer');
+				input.tags = existingTags satisfies string[];
+			} else if (!product.inFlyer && existingTags.includes('Flyer')) {
+				input.tags = existingTags.filter((tag) => tag !== 'Flyer') satisfies string[];
 			}
-		} catch (e) {
-			// Invalid JSON, skip tags
+			if (!existingTags.includes('OEM3')) {
+				existingTags.push('OEM3');
+			}
+			input.tags = existingTags;
 		}
+	} catch (e) {
+		// Invalid JSON
+		input.tags = ['OEM3'];
 	}
 
 	// Images
