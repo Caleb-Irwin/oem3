@@ -34,7 +34,11 @@ export function convertToProductSetInput(
 	if (shopifyData?.handle) {
 		input.handle = shopifyData.handle;
 	} else if (product.title) {
-		input.handle = product.title
+		input.handle = (
+			product.title +
+			' ' +
+			(product.gid ?? product.sprc ?? Math.random().toString(36).substring(2, 8))
+		)
 			.toLowerCase()
 			.replace(/[^a-z0-9]+/g, '-')
 			.replace(/^-|-$/g, '');
@@ -69,7 +73,7 @@ export function convertToProductSetInput(
 	if (product.inFlyer || shopifyData?.tagsJsonArr) {
 		try {
 			const existingTags = JSON.parse(shopifyData?.tagsJsonArr ?? '[]');
-			if (Array.isArray(existingTags) && existingTags.length > 0) {
+			if (Array.isArray(existingTags)) {
 				if (product.inFlyer && !existingTags.includes('Flyer')) {
 					existingTags.push('Flyer');
 					input.tags = existingTags satisfies string[];
@@ -130,12 +134,12 @@ export function convertToProductSetInput(
 			{
 				locationId: SHOPIFY_LOCATION_ID_STORE,
 				name: 'on_hand',
-				quantity: product.localInventory ?? 0
+				quantity: (product.localInventory ?? 0) >= 0 ? (product.localInventory ?? 0) : 0
 			},
 			{
 				locationId: SHOPIFY_LOCATION_ID_WAREHOUSE,
-				name: 'available',
-				quantity: product.guildInventory ?? 0
+				name: 'on_hand',
+				quantity: (product.guildInventory ?? 0) >= 0 ? (product.guildInventory ?? 0) : 0
 			}
 		];
 	} else {
@@ -384,7 +388,7 @@ export function shopifyToProductSetInput(shopify: Shopify): ProductSetInput {
 	if (shopify.vInventoryOnHandWarehouse0 !== null) {
 		inventoryQuantities.push({
 			locationId: SHOPIFY_LOCATION_ID_WAREHOUSE,
-			name: 'available',
+			name: 'on_hand',
 			quantity: shopify.vInventoryOnHandWarehouse0
 		});
 	}

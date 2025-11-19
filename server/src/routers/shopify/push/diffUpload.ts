@@ -37,19 +37,20 @@ export function diffUpload(products: ProductQueryRes[], options: { imageMap: Ima
 			}),
 			newMedia = getNewMedia(converted),
 			existing = shopifyToProductSetInput(product.shopifyRowContent!);
-		if (deepEqual(converted, existing)) {
-			continue;
-		}
+		// TODO : Fix diffing logic to avoid unnecessary updates
+		// if (deepEqual(converted, existing)) {
+		// 	continue;
+		// }
 
-		// If files match, remove them to avoid unnecessary updates
-		if (deepEqual(converted.files, existing.files)) {
-			delete converted.files;
-		}
+		// // If files match, remove them to avoid unnecessary updates
+		// if (deepEqual(converted.files, existing.files)) {
+		// 	delete converted.files;
+		// }
 
-		// If variants match, remove them to avoid unnecessary updates
-		if (deepEqual(converted.variants, existing.variants)) {
-			delete converted.variants;
-		}
+		// // If variants match, remove them to avoid unnecessary updates
+		// if (deepEqual(converted.variants, existing.variants)) {
+		// 	delete converted.variants;
+		// }
 
 		toUploadUpdate.push({
 			product,
@@ -102,7 +103,7 @@ function getNewMedia(productSetInput: ProductSetInput): NewMedia[] {
 	);
 }
 
-function deepEqual(a: any, b: any): boolean {
+function deepEqual(a: any, b: any, trace = false): boolean {
 	if (a === b) return true;
 
 	if (typeof a !== 'object' || typeof b !== 'object' || a == null || b == null) {
@@ -112,10 +113,14 @@ function deepEqual(a: any, b: any): boolean {
 	const keysA = Object.keys(a).filter((k) => a[k] !== undefined);
 	const keysB = Object.keys(b).filter((k) => b[k] !== undefined);
 
-	if (a?.handle === '1034391032') {
-		console.log('Comparing objects for handle 1034391032:', {
-			a: keysA.length,
-			b: keysB.length
+	if (trace && keysA.length !== keysB.length) {
+		console.log({
+			keyALength: keysA.length,
+			keysA,
+			a,
+			keyBLength: keysB.length,
+			keysB,
+			b
 		});
 	}
 
@@ -123,6 +128,14 @@ function deepEqual(a: any, b: any): boolean {
 
 	for (const key of keysA) {
 		if (!keysB.includes(key) || !deepEqual(a[key], b[key])) {
+			if (key === 'descriptionHtml') continue;
+			if (trace) {
+				if (!keysB.includes(key)) {
+					console.log(`Key ${key} missing in B`);
+				} else {
+					console.log(`Value mismatch on key ${key}:`, { a: a[key], b: b[key] });
+				}
+			}
 			return false;
 		}
 	}
