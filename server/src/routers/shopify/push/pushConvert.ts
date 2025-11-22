@@ -22,7 +22,10 @@ export function convertToProductSetInput(
 
 	// Title
 	if (product.title !== undefined && product.title !== null) {
-		input.title = product.title || product.gid || product.sprc || 'Untitled Product';
+		input.title = (product.title || product.gid || product.sprc || 'Untitled Product').slice(
+			0,
+			255
+		);
 	}
 
 	// Description
@@ -43,7 +46,8 @@ export function convertToProductSetInput(
 		)
 			.toLowerCase()
 			.replace(/[^a-z0-9]+/g, '-')
-			.replace(/^-|-$/g, '');
+			.replace(/^-|-$/g, '')
+			.slice(0, 255);
 	}
 
 	// Status

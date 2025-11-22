@@ -8,6 +8,7 @@ import { shopifyMedia } from './media.table';
 import { eq } from 'drizzle-orm';
 import type { ProductPushMutation } from '../../../../types/admin.generated';
 import { appRouter } from '../../../appRouter';
+import { TRPCError } from '@trpc/server';
 
 work({
 	process: async ({ progress }) => {
@@ -18,6 +19,11 @@ work({
 		const allUploads = prepareUploads(products, imageMap);
 
 		console.log(`Preparing to upload ${allUploads.length} products to Shopify.`);
+
+		throw new TRPCError({
+			code: 'FORBIDDEN',
+			message: `Shopify uploads are currently disabled. ${allUploads.length} products were ready to upload.`
+		});
 
 		const batchSize = 256; // Arbitrary
 		for (let i = 0; i < allUploads.length; i += batchSize) {
@@ -124,10 +130,10 @@ function prepareUploads(
 		})),
 		...toUploadNew.map((u) => ({ ...u, identifier: undefined }))
 	].filter((u) => {
-		// Only upload a subset of new products
-		if (!u.product.shopifyRowContent && u.product.inFlyer === false) {
-			if (u.product.id % 10 !== 0) return false;
-		}
+		// // Only upload a subset of new products
+		// if (!u.product.shopifyRowContent && u.product.inFlyer === false) {
+		// 	if (u.product.id % 10 !== 0) return false;
+		// }
 
 		const meta = u.product.shopifyMetadata;
 		if (!meta) {
