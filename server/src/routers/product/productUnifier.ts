@@ -43,7 +43,7 @@ export const productUnifier = createUnifier<
 >({
 	table: unifiedProduct,
 	confTable: unifiedProductCellConfig,
-	version: 14,
+	version: 15,
 	getRow,
 	transform: (
 		item,
@@ -98,7 +98,7 @@ export const productUnifier = createUnifier<
 		const otherProductIDs = `<br><p><span>Product Numbers:</span> ${Array.from(new Set([guild?.gid, guild?.upc, guild?.cis, guild?.basics, guild?.spr, spr?.cws, spr?.upc].filter(Boolean).map((val) => val!.toUpperCase().trim()))).join(' ')}</p>`;
 		let description = shopify?.htmlDescription ?? item.description;
 		if (spr?.description && guild?.description) {
-			description = `<div class="oem-cont"><p>${guild.description}</p> <p>${spr.sprMarketingText}</p> ${spr.sprProductSpecs} ${otherProductIDs}</div>`;
+			description = `<div class="oem-cont"><p>${guild.description}</p> ${spr.sprMarketingText ? `<p>${spr.sprMarketingText}</p>` : ''} ${spr.sprProductSpecs ?? ''} ${otherProductIDs}</div>`;
 		} else if (spr?.description) {
 			description = `<div class="oem-cont">${spr.description} ${otherProductIDs}</div>`;
 		} else if (guild?.description) {
