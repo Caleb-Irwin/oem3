@@ -841,6 +841,20 @@
       "when": 1763584035252,
       "tag": "0119_lively_guardian",
       "breakpoints": true
+    },
+    {
+      "idx": 120,
+      "version": "7",
+      "when": 1764432791374,
+      "tag": "0120_chilly_pandemic",
+      "breakpoints": true
+    },
+    {
+      "idx": 121,
+      "version": "7",
+      "when": 1764433060079,
+      "tag": "0121_new_scourge",
+      "breakpoints": true
     }
   ]
 }

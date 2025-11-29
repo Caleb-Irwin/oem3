@@ -37,7 +37,7 @@ export const sprUnifier = createUnifier<
 >({
 	table: unifiedSpr,
 	confTable: unifiedSprCellConfig,
-	version: 28,
+	version: 29,
 	getRow,
 	transform: (item, t) => {
 		const price = item.sprPriceFileRowContent;
@@ -97,6 +97,8 @@ export const sprUnifier = createUnifier<
 				'category',
 				flat?.masterDepartmentNumber ? (categoryMap[flat?.masterDepartmentNumber] ?? null) : null
 			),
+			sprMarketingText: t('sprMarketingText', flat?.marketingText ?? null),
+			sprProductSpecs: t('sprProductSpecs', flat?.productSpecs ?? null),
 
 			dealerNetPriceCents: t('dealerNetPriceCents', price.dealerNetPriceCents ?? null, {
 				shouldNotBeNull: true

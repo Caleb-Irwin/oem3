@@ -7,8 +7,7 @@ import {
 	pgTable,
 	serial,
 	varchar,
-	index,
-	uniqueIndex
+	index
 } from 'drizzle-orm/pg-core';
 import { sprFlatFile } from '../flatFile/table';
 
@@ -59,7 +58,7 @@ export const sprEnhancedContent = pgTable(
 	'sprEnhancedContent',
 	{
 		id: serial('id').primaryKey(),
-		etilizeId: varchar('etilizeId', { length: 32 }).unique().notNull(),
+		etilizeId: varchar('etilizeId', { length: 32 }).notNull(),
 		sprc: varchar('sprc', { length: 64 }),
 		cws: varchar('cws', { length: 64 }),
 		upc: varchar('upc', { length: 64 }),
@@ -71,7 +70,7 @@ export const sprEnhancedContent = pgTable(
 		lastUpdated: bigint('lastUpdated', { mode: 'number' }).notNull()
 	},
 	(enhancedContent) => [
-		uniqueIndex('sprEnhancedContent_etilizeId_idx').on(enhancedContent.etilizeId),
+		index('sprEnhancedContent_etilizeId_idx').on(enhancedContent.etilizeId),
 		index('sprEnhancedContent_last_updated_idx').on(enhancedContent.lastUpdated)
 	]
 );

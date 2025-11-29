@@ -372,7 +372,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 	if (raw.sprFlatFileData) {
 		const sprFlatFileData = raw.sprFlatFileData;
 		return {
-			idText: 'SPRFlatFile#' + sprFlatFileData.sprcSku,
+			idText: 'SPRFlatFile#' + sprFlatFileData.id,
 			id: sprFlatFileData.id,
 			name: sprFlatFileData.mainTitle ?? '',
 			price: '',

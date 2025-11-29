@@ -43,7 +43,7 @@ export const productUnifier = createUnifier<
 >({
 	table: unifiedProduct,
 	confTable: unifiedProductCellConfig,
-	version: 12,
+	version: 14,
 	getRow,
 	transform: (
 		item,
@@ -95,16 +95,15 @@ export const productUnifier = createUnifier<
 		const category = mapCategory(guild?.category, spr?.category) ?? item.category;
 		const sprAvailable = spr?.status ? spr.status === 'Active' : false;
 
-		const otherProductIDs = `<br><p><span>Product Numbers:</span> ${Array.from(new Set([guild?.gid, guild?.upc, guild?.cis, guild?.basics, guild?.spr, spr?.cws, spr?.upc].filter(Boolean).map((val) => val!.toUpperCase().trim()))).join(' ')}</p>`,
-			description =
-				(spr?.description
-					? `<div class="oem-cont">${spr.description} ${otherProductIDs}</div>`
-					: null) ??
-				(guild?.description
-					? `<div class="oem-cont">${guild.description} ${otherProductIDs}</div>`
-					: null) ??
-				shopify?.htmlDescription ??
-				item.description;
+		const otherProductIDs = `<br><p><span>Product Numbers:</span> ${Array.from(new Set([guild?.gid, guild?.upc, guild?.cis, guild?.basics, guild?.spr, spr?.cws, spr?.upc].filter(Boolean).map((val) => val!.toUpperCase().trim()))).join(' ')}</p>`;
+		let description = shopify?.htmlDescription ?? item.description;
+		if (spr?.description && guild?.description) {
+			description = `<div class="oem-cont"><p>${guild.description}</p> <p>${spr.sprMarketingText}</p> ${spr.sprProductSpecs} ${otherProductIDs}</div>`;
+		} else if (spr?.description) {
+			description = `<div class="oem-cont">${spr.description} ${otherProductIDs}</div>`;
+		} else if (guild?.description) {
+			description = `<div class="oem-cont">${guild.description} ${otherProductIDs}</div>`;
+		}
 
 		return {
 			id: t('id', item.id),
@@ -154,7 +153,7 @@ export const productUnifier = createUnifier<
 			cis: t('cis', guild?.cis ?? null),
 			etilizeId: t('etilizeId', spr?.etilizeId ?? null),
 
-			title: t('title', spr?.title ?? guild?.title ?? shopify?.title ?? item.title),
+			title: t('title', guild?.title ?? spr?.title ?? shopify?.title ?? item.title),
 			description: t('description', description),
 			category: t('category', category),
 			inFlyer: t('inFlyer', guild?.inFlyer ?? false),
@@ -184,7 +183,14 @@ export const productUnifier = createUnifier<
 			guildCostCents: t('guildCostCents', guild?.costCents ?? null),
 			sprCostCents: t('sprCostCents', spr?.dealerNetPriceCents ?? null),
 
-			um: t('um', mapUm(guild?.um, spr?.um, qb?.um) ?? item.um),
+			um: t('um', mapUm(guild?.um, spr?.um, qb?.um) ?? item.um, {
+				shouldMatch: {
+					primary: 'Guild UM',
+					secondary: 'SPR UM',
+					val: mapUm(null, spr?.um, null) ?? null,
+					ignore: guild?.um == null || spr?.um == null
+				}
+			}),
 			qtyPerUm: t('qtyPerUm', guild?.qtyPerUm ?? null),
 
 			primaryImage: t('primaryImage', primaryImage),

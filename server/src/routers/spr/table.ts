@@ -48,6 +48,9 @@ export const unifiedSpr = pgTable(
 		description: text('description'),
 		category: sprCategoryEnum('category'),
 
+		sprMarketingText: text('sprMarketingText'),
+		sprProductSpecs: text('sprProductSpecs'),
+
 		dealerNetPriceCents: integer('dealerNetPriceCents'),
 		netPriceCents: integer('netPriceCents'),
 		listPriceCents: integer('listPriceCents'),
@@ -114,6 +117,8 @@ export const unifiedSprColumnEnum = pgEnum('unifiedSprColumn', [
 	'title',
 	'description',
 	'category',
+	'sprMarketingText',
+	'sprProductSpecs',
 	// Pricing (from PriceFile)
 	'dealerNetPriceCents',
 	'netPriceCents',
