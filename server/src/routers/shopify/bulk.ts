@@ -212,7 +212,7 @@ export async function createBulkMutation(mutation: string, stagedUploadPath: str
 export async function pollBulkOperation(
 	type: BulkOperationType,
 	pollInterval: number = 500,
-	maxDuration: number = 10 * 60 * 1000,
+	maxDuration: number = 30 * 60 * 1000,
 	onProgress?: (objectCount: string, elapsedSeconds: number) => void
 ): Promise<BulkOperationResult> {
 	const { client } = shopifyConnect();
