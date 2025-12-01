@@ -20,10 +20,10 @@ work({
 
 		console.log(`Preparing to upload ${allUploads.length} products to Shopify.`);
 
-		throw new TRPCError({
-			code: 'FORBIDDEN',
-			message: `Shopify uploads are currently disabled. ${allUploads.length} products were ready to upload.`
-		});
+		// throw new TRPCError({
+		// 	code: 'FORBIDDEN',
+		// 	message: `Shopify uploads are currently disabled. ${allUploads.length} products were ready to upload.`
+		// });
 
 		const batchSize = 256; // Arbitrary
 		for (let i = 0; i < allUploads.length; i += batchSize) {
