@@ -133,17 +133,34 @@ export const fileProcedures = (
 					code: 'METHOD_NOT_SUPPORTED',
 					message: 'Cloud Download Not Supported'
 				});
-			const file = await cloudDownload();
-			if (!file) return { message: 'Latest File Already Downloaded' };
-			const { fileId } = await upload({
-				input: {
-					file: file.dataUrl,
-					fileName: file.name,
-					processFile: file.apply ?? true
-				},
-				ctx
+
+			const downloadAndUpload = async () => {
+				const file = await cloudDownload();
+				if (!file) return { message: 'Latest File Already Downloaded' };
+				const { fileId } = await upload({
+					input: {
+						file: file.dataUrl,
+						fileName: file.name,
+						processFile: file.apply ?? true
+					},
+					ctx
+				});
+				return { message: `File #${fileId} "${file.name}" Downloaded` };
+			};
+
+			const timeout = new Promise<{ message: string }>((resolve) =>
+				setTimeout(() => resolve({ message: 'Cloud Download Started Successfully' }), 30000)
+			);
+
+			const operation = downloadAndUpload();
+			const result = await Promise.race([operation, timeout]);
+
+			// Ensure the original operation completes even if we returned early
+			operation.catch((e) => {
+				console.error('Cloud Download Error:', e);
 			});
-			return { message: `File #${fileId} "${file.name}" Downloaded` };
+
+			return result;
 		})
 	});
 };
