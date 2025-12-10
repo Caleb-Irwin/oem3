@@ -43,7 +43,7 @@ export const productUnifier = createUnifier<
 >({
 	table: unifiedProduct,
 	confTable: unifiedProductCellConfig,
-	version: 15,
+	version: 17,
 	getRow,
 	transform: (
 		item,
@@ -60,7 +60,7 @@ export const productUnifier = createUnifier<
 				? spr.netPriceCents >= 1.8 * spr.dealerNetPriceCents
 					? spr.netPriceCents
 					: roundUpToNearestTenCents(spr.dealerNetPriceCents * 1.8)
-				: (spr?.dealerNetPriceCents ?? null);
+				: (spr?.netPriceCents ?? null);
 		const defaultPriceCents = guild?.priceCents ?? sprPriceCents ?? null;
 		const onlinePriceCents =
 			defaultPriceCents ?? shopify?.vPriceCents ?? item.onlinePriceCents ?? null;
@@ -87,8 +87,8 @@ export const productUnifier = createUnifier<
 								description: guild?.imageDescription ?? null
 							}
 						])
-					: item.otherImagesJsonArr
-			: (guild?.otherImageListJSON ?? item.otherImagesJsonArr);
+					: null
+			: (guild?.otherImageListJSON ?? null);
 
 		const isDiscontinued =
 			((guild?.deleted ?? true) && (spr?.deleted ?? true)) || spr?.status === 'Discontinued';
