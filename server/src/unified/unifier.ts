@@ -89,8 +89,8 @@ export function createUnifier<
 			db,
 			verifyCellValue
 		});
-		// 1. Check + make connections
 
+		// 1. Check + make connections
 		updatedRow = await connectionsManager.updateConnections({
 			db,
 			id,

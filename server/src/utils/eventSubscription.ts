@@ -39,7 +39,9 @@ export const eventSubscription = () => {
 
 	return {
 		update,
-		createSub
+		createSub,
+		addListener: (updateTopic: string, listener: () => void) =>
+			ee.addListener(updateTopic, listener)
 	};
 };
 
