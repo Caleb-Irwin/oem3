@@ -95,91 +95,92 @@ export const managedWorker = (
 			}
 		}
 
-		try {
-			registeredWorkersSummary.currentlyRunning++;
-			status.processRunning = true;
-			console.log(`Running ${name} worker`);
-			update();
-			updateSummary();
-			await new Promise<void>((res, rej) => {
-				const proc = Bun.spawn(['bun', workerUrl.slice(7)], {
-					ipc(message: WorkerMessage, subprocess: Subprocess) {
-						if (message.type === 'ready') {
-							subprocess.send(data);
-							return;
-						} else if (message.type === 'done') {
-							done = true;
-							update();
-						} else if (message.type === 'started') {
-							status.progress = 0;
-							update();
-							started = true;
-							res();
-						} else if (message.type === 'progress') {
-							status.progress = parseFloat(message.msg ?? '0');
-							update();
-						} else if (message.type === 'changesetUpdate') {
-							update('changeset');
-						} else if (message.type === 'custom') {
-							customMessageCallback?.(message);
-						} else if (message.type === 'error') {
-							status.running = false;
-							status.error = true;
-							status.message = message.msg ?? 'Error in worker';
-							update();
-							if (started) {
-								rej(message.msg ?? 'Error in worker');
-							} else {
-								rej('Worker failed to start');
-							}
-						}
+		registeredWorkersSummary.currentlyRunning++;
+		status.processRunning = true;
+		console.log(`Running ${name} worker`);
+		update();
+		updateSummary();
+
+		return new Promise<void>((res, rej) => {
+			const proc = Bun.spawn(['bun', workerUrl.slice(7)], {
+				ipc(message: WorkerMessage, subprocess: Subprocess) {
+					if (message.type === 'ready') {
+						subprocess.send(data);
+					} else if (message.type === 'done') {
+						done = true;
+						update();
 						updateSummary();
-					},
-					serialization: 'advanced',
-					stdio: ['inherit', 'inherit', 'inherit']
-				});
-
-				let done = false,
-					started = false;
-
-				proc.exited.then(async () => {
-					await kv.set('lastRan', time.toString());
-					status.running = false;
-					status.message = done ? 'Completed' : 'Worker closed before completing task';
-					status.error = done ? false : true;
-					update();
-					updateSummary();
-
-					if (done) {
-						console.log(`Finished ${name} worker`);
-						updateByTableName(name);
-						postRunCallbacks.forEach((cb) => cb());
-						if (
-							(await kv.get('lastStaled')) &&
-							parseInt((await kv.get('lastStaled')) as string) >
-								(parseInt((await kv.get('lastRan')) as string) ?? 0)
-						) {
-							runWorker({});
-						}
-						if (runQueue.length > 0) {
-							const next = runQueue.shift();
-							if (next) {
-								runWorker(next);
-							}
+					} else if (message.type === 'started') {
+						status.progress = 0;
+						update();
+						updateSummary();
+						started = true;
+						res();
+					} else if (message.type === 'progress') {
+						status.progress = parseFloat(message.msg ?? '0');
+						update();
+						updateSummary();
+					} else if (message.type === 'changesetUpdate') {
+						update('changeset');
+						updateSummary();
+					} else if (message.type === 'custom') {
+						customMessageCallback?.(message);
+					} else if (message.type === 'error') {
+						status.running = false;
+						status.error = true;
+						status.message = message.msg ?? 'Error in worker';
+						update();
+						updateSummary();
+						if (started) {
+							rej(message.msg ?? 'Error in worker');
+						} else {
+							rej('Worker failed to start');
 						}
 					}
-					if (!started) rej('Worker closed before completing task');
-				});
+				},
+				serialization: 'advanced',
+				stdio: ['inherit', 'inherit', 'inherit']
 			});
-		} catch (e: any) {
-			console.log(`Error in ${name} worker:`, e);
-		} finally {
-			status.running = false;
-			registeredWorkersSummary.currentlyRunning--;
-			status.processRunning = false;
-			update();
-			updateSummary();
-		}
+
+			let done = false,
+				started = false;
+
+			proc.exited.then(async () => {
+				console.log(`Exited ${name} worker process`);
+				await kv.set('lastRan', time.toString());
+				status.running = false;
+				registeredWorkersSummary.currentlyRunning--;
+				status.message = done ? 'Completed' : 'Worker closed before completing task';
+				status.error = done ? false : true;
+				update();
+				updateSummary();
+
+				if (done) {
+					console.log(`Finished ${name} worker`);
+					updateByTableName(name);
+					postRunCallbacks.forEach((cb) => cb());
+					if (
+						(await kv.get('lastStaled')) &&
+						parseInt((await kv.get('lastStaled')) as string) >
+							(parseInt((await kv.get('lastRan')) as string) ?? 0)
+					) {
+						runWorker({});
+					}
+					if (runQueue.length > 0) {
+						const next = runQueue.shift();
+						if (next) {
+							runWorker(next);
+						}
+					}
+				} else if (!started) {
+					console.log(`Error in ${name} worker: Worker closed before starting task`);
+					rej('Worker closed before starting task');
+				} else {
+					console.log(`Error in ${name} worker: Worker process exited before completing task`);
+					rej('Worker process exited before completing task');
+				}
+			});
+		});
 	};
 
 	if (runAfter.length > 0) {
