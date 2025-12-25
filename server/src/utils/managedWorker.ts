@@ -36,7 +36,7 @@ export const registeredWorkersSummary = {
 	createSub: createSummarySub,
 	addSummaryListener,
 	currentlyRunning: 0,
-	MAX_WORKERS: 2
+	MAX_WORKERS: 4
 };
 
 export const managedWorker = (

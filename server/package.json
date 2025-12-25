@@ -32,7 +32,7 @@
 		"dev": "concurrently \"DEV=TRUE bun --watch src/index.ts\" \"cd ../svelte && bun run dev\" \"docker compose up\" -n Server,Kit,DB -c blue,yellow,green",
 		"dev:server": "bun --watch src/index.ts",
 		"dev:server-kit": "concurrently \"DEV=TRUE bun --watch src/index.ts\" \"cd ../svelte && bun run dev\" -n Server,Kit -c blue,yellow",
-		"dev:db": "docker compose up",
+		"dev:db": "docker-compose up",
 		"start": "bun run src/index.ts",
 		"generate": "drizzle-kit generate",
 		"preview": "concurrently \"bun run start\" \"docker compose up\" -n Server,DB -c blue,green",

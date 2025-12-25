@@ -1,6 +1,6 @@
 import { uniref } from '../db.schema';
 import { db, db as DB, type Tx } from '../db';
-import { eq, isNull, type SQLWrapper, gt, or } from 'drizzle-orm';
+import { eq, isNull, type SQLWrapper, gt, or, and } from 'drizzle-orm';
 import { getTableConfig } from 'drizzle-orm/pg-core';
 import { chunk } from '../utils/chunk';
 import {
@@ -257,6 +257,40 @@ export function createUnifier<
 			rowsToUpdate = new Set<number>();
 		if (parseInt((await initKV.get('version')) ?? '-1') < version) {
 			updateAll = true;
+		}
+
+		// 0. Delete orphaned unified rows
+		if (connections.secondaryTable) {
+			const orphans = await db
+				.select({ id: table.id })
+				.from(table as any)
+				.where(
+					and(
+						isNull(table[connections.primaryTable.refCol as keyof UnifiedTables] as SQLWrapper),
+						isNull(table[connections.secondaryTable.refCol as keyof UnifiedTables] as SQLWrapper)
+					)
+				);
+
+			let deletedOrphans = 0;
+			for (const item of orphans) {
+				const uniId = (await getRow(item.id, db)).uniref.uniId;
+				const cellConfig = await createCellConfigurator({
+					table: confTable,
+					unifiedTable: table,
+					id: item.id,
+					db,
+					uniId,
+					verifyCellValue: verifyCellValue
+				});
+				if (!cellConfig.hasAnyNonDefaultCellSettings) {
+					await db.delete(table).where(eq(table.id, item.id));
+					deletedOrphans++;
+					onUpdateCallback(uniId);
+				}
+			}
+			if (deletedOrphans > 0) {
+				console.log(`Deleted ${deletedOrphans} orphaned unified rows from ${unifiedTableName}`);
+			}
 		}
 
 		// 1. Add missing primary rows
