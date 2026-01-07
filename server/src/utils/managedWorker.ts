@@ -146,7 +146,6 @@ export const managedWorker = (
 				started = false;
 
 			proc.exited.then(async () => {
-				console.log(`Exited ${name} worker process`);
 				await kv.set('lastRan', time.toString());
 				status.running = false;
 				registeredWorkersSummary.currentlyRunning--;
@@ -188,7 +187,10 @@ export const managedWorker = (
 			setCb(async () => {
 				const time = Date.now();
 				await kv.set('lastStaled', time.toString());
-				if (!status.running) runWorker({}, time);
+				// Don't check status.running here - let runWorker handle it internally.
+				// Checking here creates a race condition where multiple callbacks can
+				// pass the check before any of them set status.running = true.
+				runWorker({}, time);
 			})
 		);
 

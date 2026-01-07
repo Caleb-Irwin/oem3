@@ -77,8 +77,8 @@ export async function getCellConfigHelper(
 			await unifier.recordMatchesInvalidatedByRefCol(col);
 			updateByTableName(refColToTableName[col]);
 		}
-		setTimeout(() => {
-			UnifierMap[tablePrefix].runUnifierWorker({});
+		setTimeout(async () => {
+			(await UnifierMap[tablePrefix].runUnifierWorker())({});
 		}, 100);
 
 		onUpdateCallback(uniId);
@@ -107,8 +107,8 @@ export async function getCellConfigHelper(
 			await unifier.recordMatchesInvalidatedByRefCol(col);
 			updateByTableName(refColToTableName[col]);
 		}
-		setTimeout(() => {
-			UnifierMap[tablePrefix].runUnifierWorker({});
+		setTimeout(async () => {
+			(await UnifierMap[tablePrefix].runUnifierWorker())({});
 		}, 100);
 
 		onUpdateCallback(uniId);

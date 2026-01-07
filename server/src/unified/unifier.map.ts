@@ -10,16 +10,16 @@ import { guildUnifier } from '../routers/guild/guildUnifier';
 import { sprUnifier } from '../routers/spr/sprUnifier';
 import type { Unifier } from './unifier';
 import type { UnifiedTableNames, UnifiedTables, CellConfigTable } from './types';
-import { runGuildWorker } from '../routers/guild';
-import { runSprWorker } from '../routers/spr';
 import type { RunWorker } from '../utils/managedWorker';
 import { productUnifier } from '../routers/product/productUnifier';
-import { runProductWorker } from '../routers/product';
+import type { runGuildWorker } from '../routers/guild';
+import type { runSprWorker } from '../routers/spr';
+import type { runProductWorker } from '../routers/product';
 
 export const UnifierMap: {
 	[key in UnifiedTableNames]: {
 		unifier: Unifier<any, any, any, any, any>;
-		runUnifierWorker: RunWorker;
+		runUnifierWorker: () => Promise<RunWorker>;
 		table: UnifiedTables;
 		confTable: CellConfigTable;
 		pageUrl: string;
@@ -32,7 +32,8 @@ export const UnifierMap: {
 } = {
 	unifiedGuild: {
 		unifier: guildUnifier,
-		runUnifierWorker: runGuildWorker,
+		runUnifierWorker: async () =>
+			(await import('../routers/guild')).runGuildWorker satisfies typeof runGuildWorker,
 		table: unifiedGuild,
 		confTable: unifiedGuildCellConfig,
 		pageUrl: '/app/guild',
@@ -43,7 +44,8 @@ export const UnifierMap: {
 	},
 	unifiedSpr: {
 		unifier: sprUnifier,
-		runUnifierWorker: runSprWorker,
+		runUnifierWorker: async () =>
+			(await import('../routers/spr')).runSprWorker satisfies typeof runSprWorker,
 		table: unifiedSpr,
 		confTable: unifiedSprCellConfig,
 		pageUrl: '/app/spr',
@@ -54,7 +56,8 @@ export const UnifierMap: {
 	},
 	unifiedProduct: {
 		unifier: productUnifier as unknown as Unifier<any, any, any, any, any>,
-		runUnifierWorker: runProductWorker,
+		runUnifierWorker: async () =>
+			(await import('../routers/product')).runProductWorker satisfies typeof runProductWorker,
 		table: unifiedProduct,
 		confTable: unifiedProductCellConfig,
 		pageUrl: '/app/product',
