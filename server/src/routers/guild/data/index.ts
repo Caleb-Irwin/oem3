@@ -26,7 +26,7 @@ export const guildDataRouter = router({
 				'Product Code (Guild Product #)',
 				'UPC#',
 				'SPR#',
-				'Basics#',
+				// 'Basics#', Removed as of Feb 2026
 				'CIS#',
 				'ENglish Short Description',
 				'FRench Short Description',
