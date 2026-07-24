@@ -6,6 +6,7 @@ import { guildHook } from '../guild';
 import { qbHook } from '../qb';
 import { shopifyHook } from '../shopify';
 import { sprHook } from '../spr';
+import { notifyPriceListUpdated, priceListRouter } from './priceList';
 
 const { worker, hook, runWorker } = managedWorker(
 	new URL('worker.ts', import.meta.url).href,
@@ -27,10 +28,12 @@ hook(() => {
 	updateByTableName('shopify');
 	updateByTableName('unifiedGuild');
 	updateByTableName('unifiedSpr');
+	notifyPriceListUpdated();
 });
 
 export const productHook = hook;
 
 export const productRouter = router({
-	worker
+	worker,
+	priceList: priceListRouter
 });

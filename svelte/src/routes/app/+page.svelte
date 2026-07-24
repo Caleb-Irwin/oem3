@@ -24,6 +24,9 @@
 		<a href="/app/shelf" class="card card-hover p-6 m-2">
 			<h3 class="font-semibold text-2xl">Shelf</h3>
 		</a>
+		<a href="/app/price" class="card card-hover p-6 m-2">
+			<h3 class="font-semibold text-2xl">Price List</h3>
+		</a>
 		<a href="/app/product" class="card p-6 m-2 card-hover">
 			<h3 class="font-semibold text-2xl">Unified Products</h3>
 		</a>
