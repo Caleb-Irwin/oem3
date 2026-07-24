@@ -18,10 +18,14 @@
 	let loaded = 0;
 	const loadedCB = () => {
 		loaded++;
-		if (loaded === page.length) tick().then(() => svgCallback(divEl.innerHTML));
+		if (loaded === page.length)
+			tick().then(() => {
+				// innerHTML emits HTML-only entities such as &nbsp;, which are invalid in XML.
+				svgCallback(new XMLSerializer().serializeToString(svgEl));
+			});
 	};
 
-	let divEl: HTMLDivElement;
+	let svgEl: SVGSVGElement;
 	let rows = $derived(
 		divideArray(
 			page.map((v): Label => {
@@ -34,8 +38,9 @@
 	);
 </script>
 
-<div bind:this={divEl}>
+<div>
 	<svg
+		bind:this={svgEl}
 		height={792 * sf}
 		width={612 * sf}
 		viewBox="0 0 612 792"
