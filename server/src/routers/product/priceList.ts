@@ -28,16 +28,22 @@ const basePriceListQuery = () =>
 			gid: unifiedProduct.gid,
 			sprc: unifiedProduct.sprc,
 			upc: unifiedProduct.upc,
+			deleted: unifiedProduct.deleted,
+			um: unifiedProduct.um,
+			qtyPerUm: unifiedProduct.qtyPerUm,
 			primaryImage: unifiedProduct.primaryImage,
 			primaryImageDescription: unifiedProduct.primaryImageDescription,
 			currentPriceCents: unifiedProduct.onlinePriceCents,
+			guildCostCents: unifiedProduct.guildCostCents,
+			novexcoCostCents: unifiedProduct.sprCostCents,
 			customSettingId: unifiedProductCellConfig.id,
 			customPrice: unifiedProductCellConfig.value,
 			guildPriceCents: unifiedGuild.priceCents,
 			sprNetPriceCents: unifiedSpr.netPriceCents,
 			sprDealerNetPriceCents: unifiedSpr.dealerNetPriceCents,
 			shopifyPriceCents: shopify.vPriceCents,
-			quickBooksPriceCents: qb.priceCents
+			quickBooksPriceCents: qb.priceCents,
+			quickBooksCostCents: qb.costCents
 		})
 		.from(unifiedProduct)
 		.innerJoin(uniref, eq(uniref.unifiedProduct, unifiedProduct.id))
@@ -62,7 +68,10 @@ function roundUpToNearestTenCents(value: number): number {
 	return Math.ceil(value / 10) * 10 - 1;
 }
 
-function getRecommendedPriceCents(row: RawPriceListRow): number | null {
+function getRecommendedPrice(row: RawPriceListRow): {
+	priceCents: number | null;
+	source: 'guild' | 'novexco' | 'shopify' | 'current' | null;
+} {
 	const sprPriceCents =
 		row.sprNetPriceCents && row.sprDealerNetPriceCents
 			? row.sprNetPriceCents >= 1.8 * row.sprDealerNetPriceCents
@@ -70,12 +79,19 @@ function getRecommendedPriceCents(row: RawPriceListRow): number | null {
 				: roundUpToNearestTenCents(row.sprDealerNetPriceCents * 1.8)
 			: (row.sprNetPriceCents ?? null);
 
-	return (
-		row.guildPriceCents ??
-		sprPriceCents ??
-		row.shopifyPriceCents ??
-		(row.customSettingId === null ? row.currentPriceCents : null)
-	);
+	if (row.guildPriceCents !== null) {
+		return { priceCents: row.guildPriceCents, source: 'guild' };
+	}
+	if (sprPriceCents !== null) {
+		return { priceCents: sprPriceCents, source: 'novexco' };
+	}
+	if (row.shopifyPriceCents !== null) {
+		return { priceCents: row.shopifyPriceCents, source: 'shopify' };
+	}
+	if (row.customSettingId === null && row.currentPriceCents !== null) {
+		return { priceCents: row.currentPriceCents, source: 'current' };
+	}
+	return { priceCents: null, source: null };
 }
 
 function parseCustomPriceCents(value: string | null): number | null {
@@ -85,6 +101,13 @@ function parseCustomPriceCents(value: string | null): number | null {
 }
 
 function toPriceListItem(row: RawPriceListRow) {
+	const recommendedPrice = getRecommendedPrice(row);
+	const novexcoPriceCents =
+		row.sprNetPriceCents && row.sprDealerNetPriceCents
+			? row.sprNetPriceCents >= 1.8 * row.sprDealerNetPriceCents
+				? row.sprNetPriceCents
+				: roundUpToNearestTenCents(row.sprDealerNetPriceCents * 1.8)
+			: (row.sprNetPriceCents ?? null);
 	return {
 		id: row.id,
 		uniId: row.uniId,
@@ -92,11 +115,20 @@ function toPriceListItem(row: RawPriceListRow) {
 		gid: row.gid,
 		sprc: row.sprc,
 		upc: row.upc,
+		deleted: row.deleted,
+		um: row.um,
+		qtyPerUm: row.qtyPerUm,
 		primaryImage: row.primaryImage,
 		primaryImageDescription: row.primaryImageDescription,
-		recommendedPriceCents: getRecommendedPriceCents(row),
+		recommendedPriceCents: recommendedPrice.priceCents,
+		recommendedPriceSource: recommendedPrice.source,
+		guildPriceCents: row.guildPriceCents,
+		novexcoPriceCents,
 		customPriceCents: parseCustomPriceCents(row.customPrice),
 		quickBooksPriceCents: row.quickBooksPriceCents,
+		quickBooksCostCents: row.quickBooksCostCents,
+		guildCostCents: row.guildCostCents,
+		novexcoCostCents: row.novexcoCostCents,
 		hasCustomPrice: row.customSettingId !== null
 	};
 }

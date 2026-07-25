@@ -1,9 +1,7 @@
 <script lang="ts">
 	import { getModalStore, ProgressBar } from '@skeletonlabs/skeleton';
-	import Plus from 'lucide-svelte/icons/plus';
 	import Search from 'lucide-svelte/icons/search';
 	import { client, subVal } from '$lib/client';
-	import CompactSearch from '$lib/search/CompactSearch.svelte';
 	import OldSearch from '$lib/search/OldSearch.svelte';
 	import PriceForm from './PriceForm.svelte';
 	import PriceRow from './PriceRow.svelte';
@@ -50,7 +48,9 @@
 	<div class="w-full max-w-6xl">
 		<div class="text-center pb-3">
 			<h1 class="h2">Unified Price List</h1>
-			<p class="text-surface-500">Custom pricing overrides for unified products</p>
+			<p class="text-surface-600 dark:text-surface-300">
+				Custom pricing overrides for unified products
+			</p>
 		</div>
 
 		<div class="flex flex-col md:flex-row gap-2 pb-4">
@@ -70,23 +70,6 @@
 					select={addProduct}
 				/>
 			</div>
-			<button
-				class="btn variant-ghost-primary text-primary-500 h-14 md:w-auto"
-				onclick={() =>
-					modalStore.trigger({
-						type: 'component',
-						component: {
-							ref: CompactSearch,
-							props: {
-								queryType: 'unifiedProduct',
-								select: addProduct
-							}
-						}
-					})}
-			>
-				<Plus />
-				<span>Add Price</span>
-			</button>
 		</div>
 
 		{#if $priceList === undefined}
@@ -95,7 +78,7 @@
 			</div>
 		{:else}
 			<div class="flex justify-between items-center px-1 pb-2">
-				<p class="text-sm text-surface-500">
+				<p class="text-sm text-surface-600 dark:text-surface-300">
 					{filteredPrices.length} of {$priceList.length}
 					{filter.trim() ? ' matching' : ''} custom {filteredPrices.length === 1 ? 'price' : 'prices'}
 				</p>
@@ -109,7 +92,7 @@
 						<p class="text-lg font-semibold">
 							{filter.trim() ? 'No matching custom prices' : 'No custom prices yet'}
 						</p>
-						<p class="text-surface-500 pt-1">
+						<p class="text-surface-600 dark:text-surface-300 pt-1">
 							{filter.trim()
 								? 'Try a different title or product number.'
 								: 'Search for a unified product above to add one.'}

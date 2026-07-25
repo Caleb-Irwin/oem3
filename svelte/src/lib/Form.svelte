@@ -98,7 +98,7 @@
 		disabled = false;
 	}}
 >
-	<fieldset class={center ? 'flex place-content-center w-full' : ''} {disabled}>
+	<fieldset class="min-w-0 {center ? 'flex place-content-center w-full' : ''}" {disabled}>
 		{@render children?.()}
 	</fieldset>
 </form>
