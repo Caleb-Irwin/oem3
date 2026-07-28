@@ -1,22 +1,28 @@
 <script lang="ts">
 	import Search from 'lucide-svelte/icons/search';
+	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { page } from '$app/state';
-	import { afterNavigate } from '$app/navigation';
-	import type { QueryType } from '../../../../server/src/routers/search';
+	import SearchModal from './SearchModal.svelte';
+	import { DEFAULT_QUERY_TYPE, isQueryType } from './queryTypes';
 
-	let query = $state(''),
-		loading = $state(false),
-		input: HTMLInputElement | undefined = $state();
+	const modalStore = getModalStore();
 
-	const onSearchPage = $derived(page.url.pathname === '/app/search');
-	const queryType: QueryType = $derived(
-		onSearchPage ? ((page.url.searchParams.get('type') as QueryType) ?? 'all') : 'all'
-	);
-
-	afterNavigate(() => {
-		loading = false;
-		query = page.url.pathname === '/app/search' ? (page.url.searchParams.get('query') ?? '') : '';
-	});
+	/** Carries the search page's current query and filter into the modal. */
+	function openSearch() {
+		if ($modalStore.length > 0) return;
+		const type = page.url.searchParams.get('type'),
+			onSearchPage = page.url.pathname === '/app/search';
+		modalStore.trigger({
+			type: 'component',
+			component: {
+				ref: SearchModal,
+				props: {
+					query: onSearchPage ? (page.url.searchParams.get('query') ?? '') : '',
+					queryType: onSearchPage && isQueryType(type) ? type : DEFAULT_QUERY_TYPE
+				}
+			}
+		});
+	}
 
 	function shortcut(e: KeyboardEvent) {
 		const typingElsewhere =
@@ -25,41 +31,32 @@
 
 		if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || (e.key === '/' && !typingElsewhere)) {
 			e.preventDefault();
-			input?.focus();
-			input?.select();
-		} else if (e.key === 'Escape' && document.activeElement === input) {
-			input?.blur();
+			openSearch();
 		}
 	}
 </script>
 
 <svelte:window onkeydown={shortcut} />
 
-<form class="w-full max-w-xl" action="/app/search" onsubmit={() => (loading = true)}>
-	<div
-		class="input-group grid-cols-[auto_1fr_auto] h-10 items-center {loading
-			? 'opacity-60'
-			: ''} transition-opacity"
+<button
+	type="button"
+	onclick={openSearch}
+	aria-label="Search items"
+	class="btn btn-sm btn-icon btn-icon-sm text-surface-400 hover:variant-soft-surface dark:text-surface-300 sm:hidden"
+>
+	<Search size={16} class="text-surface-400 dark:text-surface-300" />
+</button>
+
+<button
+	type="button"
+	onclick={openSearch}
+	aria-label="Search items"
+	class="btn btn-sm hidden h-9 gap-2 rounded-full border border-surface-300 bg-surface-100 px-3 text-surface-400 transition-colors hover:border-primary-500 dark:border-surface-400/30 dark:bg-surface-700 dark:text-surface-300 sm:flex"
+>
+	<Search size={16} />
+	<span class="text-sm">Search</span>
+	<kbd
+		class="hidden text-xs font-medium text-surface-400 dark:text-surface-300 md:inline"
+		aria-hidden="true">⌘K</kbd
 	>
-		<div class="!pl-3 !pr-0 text-surface-400 dark:text-surface-300">
-			<Search size={18} />
-		</div>
-		<input
-			type="search"
-			name="query"
-			placeholder="Search items…"
-			aria-label="Search items"
-			autocomplete="off"
-			class="!px-3 text-sm"
-			bind:value={query}
-			bind:this={input}
-		/>
-		<input type="hidden" name="type" value={queryType} />
-		<kbd
-			class="hidden md:flex !px-3 text-xs font-medium text-surface-400 dark:text-surface-300 select-none"
-			aria-hidden="true"
-		>
-			⌘K
-		</kbd>
-	</div>
-</form>
+</button>

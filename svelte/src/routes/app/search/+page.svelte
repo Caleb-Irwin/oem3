@@ -12,19 +12,20 @@
 	<title>OEM3 Search "{data.query}"</title>
 </svelte:head>
 
-<h1 class="text-center h2 p-2 pt-4">Search</h1>
-
-<SearchBar {...data}></SearchBar>
+<div class="mx-auto flex w-full max-w-3xl flex-col items-center gap-4 px-4 pb-6 pt-8">
+	<h1 class="h2">Search</h1>
+	<SearchBar {...data}></SearchBar>
+</div>
 
 {#key data.res}
 	{#if data.res}
-		{#await data.res}
-			<div class="w-full p-2">
+		<div class="px-4 pb-6">
+			{#await data.res}
 				<ProgressBar />
-			</div>
-		{:then res}
-			<SearchRes searchPages={[res]} select={undefined} editSearchQuery={undefined} fullHeight />
-		{/await}
+			{:then res}
+				<SearchRes searchPages={[res]} select={undefined} editSearchQuery={undefined} fullHeight />
+			{/await}
+		</div>
 	{/if}
 {/key}
 

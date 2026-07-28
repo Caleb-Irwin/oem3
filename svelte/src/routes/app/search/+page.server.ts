@@ -1,4 +1,5 @@
 import { redirect } from '@sveltejs/kit';
+import { DEFAULT_QUERY_TYPE, isQueryType } from '$lib/search/queryTypes';
 import type { QueryType } from '../../../../../server/src/routers/search';
 import type { PageServerLoad } from './$types';
 
@@ -10,27 +11,10 @@ export const load: PageServerLoad = async ({ url, locals: { client } }) => {
 
 	let res: ReturnType<typeof client.search.search.query> | undefined = undefined;
 	if (query) {
-		if (
-			!(
-				[
-					'all',
-					'all',
-					'qb',
-					'guildData',
-					'guildInventory',
-					'guildFlyer',
-					'shopify',
-					'sprPriceFile',
-					'sprFlatFile',
-					'unifiedGuild',
-					'unifiedSpr',
-					'unifiedProduct'
-				] satisfies QueryType[]
-			).includes(url.searchParams.get('type') as QueryType)
-		) {
+		if (!isQueryType(url.searchParams.get('type'))) {
 			return redirect(
 				307,
-				`/app/search?query=${query}&type=all${qbMode ? '&qbMode=on' : ''}${searchInResults ? '&searchInResults=on' : ''}`
+				`/app/search?query=${query}&type=${DEFAULT_QUERY_TYPE}${qbMode ? '&qbMode=on' : ''}${searchInResults ? '&searchInResults=on' : ''}`
 			);
 		}
 		res = client.search.search.query({
@@ -41,7 +25,7 @@ export const load: PageServerLoad = async ({ url, locals: { client } }) => {
 
 	return {
 		query: query ?? '',
-		queryType: type ?? 'all',
+		queryType: type ?? DEFAULT_QUERY_TYPE,
 		qbMode,
 		searchInResults,
 		res,

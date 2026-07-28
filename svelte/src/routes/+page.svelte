@@ -14,7 +14,10 @@
 <div class="container h-full mx-auto flex flex-col justify-center items-center">
 	<div class="flex-grow"></div>
 	<div class="space-y-5">
-		<h1 class="h1 text-center">OEM3</h1>
+		<div class="flex flex-col items-center gap-3">
+			<img src="/logo.svg" alt="Office Experts" class="h-20 w-20 rounded-xl shadow-sm" />
+			<h1 class="h1 text-center">OEM3</h1>
+		</div>
 		<Form
 			class="card p-4"
 			action={client.user.login}

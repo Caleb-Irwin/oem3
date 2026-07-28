@@ -1,15 +1,11 @@
 <script lang="ts">
 	import SearchBar from '$lib/search/SearchBar.svelte';
-	import HomeTile from './HomeTile.svelte';
+	import HomeTile, { type TileStat } from './HomeTile.svelte';
+	import { adminItems, dataSources, workflows, type NavItem } from '$lib/nav';
+	import { client, subVal } from '$lib/client';
+	import { derived as derivedStore } from 'svelte/store';
+	import type { UnifiedErrorSummary } from '../../../../server/src/routers/summaries/worker';
 	import type { PageData } from './$types';
-	import Tags from 'lucide-svelte/icons/tags';
-	import ReceiptText from 'lucide-svelte/icons/receipt-text';
-	import Boxes from 'lucide-svelte/icons/boxes';
-	import Building2 from 'lucide-svelte/icons/building-2';
-	import Truck from 'lucide-svelte/icons/truck';
-	import Calculator from 'lucide-svelte/icons/calculator';
-	import ShoppingBag from 'lucide-svelte/icons/shopping-bag';
-	import ShieldCheck from 'lucide-svelte/icons/shield-check';
 
 	interface Props {
 		data: PageData;
@@ -17,53 +13,101 @@
 
 	let { data }: Props = $props();
 
-	const workflows = [
-		{
-			href: '/app/shelf',
-			title: 'Shelf Labels',
-			description: 'Build, arrange, and print label sheets',
-			icon: Tags
-		},
-		{
-			href: '/app/price',
-			title: 'Price List',
-			description: 'Look up costs and price breakdowns',
-			icon: ReceiptText
-		},
-		{
-			href: '/app/product',
-			title: 'Unified Products',
-			description: 'Review matches and resolve item errors',
-			icon: Boxes
-		}
-	];
+	const productSummary = subVal(client.summaries.getSub, {
+			init: data.productSummary,
+			input: { type: 'unifiedProduct' }
+		}),
+		guildSummary = subVal(client.summaries.getSub, {
+			init: data.guildSummary,
+			input: { type: 'unifiedGuild' }
+		}),
+		sprSummary = subVal(client.summaries.getSub, {
+			init: data.sprSummary,
+			input: { type: 'unifiedSpr' }
+		});
 
-	const sources = [
-		{
-			href: '/app/guild',
-			title: 'Guild',
-			description: 'Price file, inventory, and flyer data',
-			icon: Building2
-		},
-		{
-			href: '/app/spr',
-			title: 'SPRichards',
-			description: 'Price file and Etilize content',
-			icon: Truck
-		},
-		{
-			href: '/app/qb',
-			title: 'QuickBooks',
-			description: 'Item list imports and exports',
-			icon: Calculator
-		},
-		{
-			href: '/app/shopify',
-			title: 'Shopify',
-			description: 'Storefront catalogue sync',
-			icon: ShoppingBag
-		}
-	];
+	/** A tile reports on every worker its page owns, not just the unifier. */
+	const workerState = (statuses: ({ running: boolean; error: boolean } | undefined)[]) => ({
+		running: statuses.some((status) => status?.running),
+		errored: statuses.some((status) => status?.error)
+	});
+
+	const productState = derivedStore(
+			[subVal(client.product.worker.statusSub, { init: data.productWorker })],
+			workerState
+		),
+		guildState = derivedStore(
+			[
+				subVal(client.guild.worker.statusSub, { init: data.guildWorker }),
+				subVal(client.guild.data.worker.statusSub, { init: data.guildDataWorker }),
+				subVal(client.guild.inventory.worker.statusSub, { init: data.guildInventoryWorker }),
+				subVal(client.guild.flyer.worker.statusSub, { init: data.guildFlyerWorker }),
+				subVal(client.guild.desc.worker.statusSub, { init: data.guildDescWorker })
+			],
+			workerState
+		),
+		sprState = derivedStore(
+			[
+				subVal(client.spr.worker.statusSub, { init: data.sprWorker }),
+				subVal(client.spr.priceFile.worker.statusSub, { init: data.sprPriceFileWorker }),
+				subVal(client.spr.flatFile.worker.statusSub, { init: data.sprFlatFileWorker }),
+				subVal(client.spr.enhancedContent.worker.statusSub, { init: data.sprEnhancedContentWorker })
+			],
+			workerState
+		),
+		qbState = derivedStore(
+			[subVal(client.qb.worker.statusSub, { init: data.qbWorker })],
+			workerState
+		),
+		shopifyState = derivedStore(
+			[
+				subVal(client.shopify.worker.statusSub, { init: data.shopifyWorker }),
+				subVal(client.shopify.pushSync.worker.statusSub, { init: data.shopifyPushWorker })
+			],
+			workerState
+		);
+
+	/** Each unifier lists its primary table first, so that connection holds the headline count. */
+	function unifiedStat(
+		summary: UnifiedErrorSummary | null,
+		state: { running: boolean; errored: boolean }
+	): TileStat {
+		return {
+			active: summary?.connectionSummaries[0]?.matchedActive ?? null,
+			issues: summary?.itemCounts.nonDeletedWithErrors ?? null,
+			...state
+		};
+	}
+
+	/** Source tables have no errors of their own, so they only carry an item count. */
+	function sourceStat(
+		productSummary: UnifiedErrorSummary | null,
+		tableName: string,
+		state: { running: boolean; errored: boolean }
+	): TileStat {
+		const connection = productSummary?.connectionSummaries.find((c) => c.tableName === tableName);
+		return {
+			active: connection
+				? connection.matchedActive + connection.unmatchedActive + connection.approvedUnmatchedActive
+				: null,
+			issues: null,
+			...state
+		};
+	}
+
+	const stats: Record<NonNullable<NavItem['stat']>, TileStat> = $derived.by(() => {
+		const product = ($productSummary?.data ?? null) as UnifiedErrorSummary | null;
+		return {
+			unifiedProduct: unifiedStat(product, $productState),
+			unifiedGuild: unifiedStat(
+				($guildSummary?.data ?? null) as UnifiedErrorSummary | null,
+				$guildState
+			),
+			unifiedSpr: unifiedStat(($sprSummary?.data ?? null) as UnifiedErrorSummary | null, $sprState),
+			qb: sourceStat(product, 'qb', $qbState),
+			shopify: sourceStat(product, 'shopify', $shopifyState)
+		};
+	});
 </script>
 
 <svelte:head>
@@ -85,21 +129,14 @@
 	</div>
 
 	{@render section('Workflows', workflows)}
-	{@render section('Data Sources', sources)}
+	{@render section('Data Sources', dataSources)}
 
 	{#if data.user.permissionLevel === 'admin'}
-		{@render section('Administration', [
-			{
-				href: '/app/admin',
-				title: 'Admin Panel',
-				description: 'Manage users and permissions',
-				icon: ShieldCheck
-			}
-		])}
+		{@render section('Administration', adminItems)}
 	{/if}
 </div>
 
-{#snippet section(heading: string, tiles: (typeof workflows)[number][])}
+{#snippet section(heading: string, tiles: NavItem[])}
 	<section class="space-y-3">
 		<h2
 			class="text-sm font-semibold uppercase tracking-wider text-surface-400 dark:text-surface-300"
@@ -108,7 +145,7 @@
 		</h2>
 		<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 			{#each tiles as tile (tile.href)}
-				<HomeTile {...tile} />
+				<HomeTile {...tile} stat={tile.stat ? stats[tile.stat] : undefined} />
 			{/each}
 		</div>
 	</section>
