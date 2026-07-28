@@ -24,8 +24,9 @@
 
 <div class="w-full flex flex-col xl:grid xl:grid-cols-2 justify-center p-2">
 	<div class="w-full flex flex-col items-center p-2">
-		<div class="w-full max-w-xl mb-2">
+		<div class="card w-full max-w-xl">
 			<ChangesetStatus
+				embedded
 				name="Shopify"
 				status={subVal(client.shopify.worker.statusSub, {
 					init: data.status
@@ -34,9 +35,8 @@
 					init: data.changeset
 				})}
 			/>
-		</div>
-		<div class="w-full max-w-xl">
 			<Files
+				embedded
 				filesRouter={client.shopify.files}
 				title="Shopify Product Updates"
 				applyMutation={client.shopify.worker.run}

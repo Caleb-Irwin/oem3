@@ -17,17 +17,17 @@
 
 <div class="flex w-full justify-center p-2">
 	<div class="w-full flex flex-col items-center p-2">
-		<div class="w-full max-w-xl mb-2">
+		<div class="card w-full max-w-xl">
 			<ChangesetStatus
+				embedded
 				name="QuickBooks"
 				status={subVal(client.qb.worker.statusSub, { init: data.status })}
 				changeset={subVal(client.qb.worker.changesetSub, {
 					init: data.changeset
 				})}
 			/>
-		</div>
-		<div class="w-full max-w-xl">
 			<Files
+				embedded
 				filesRouter={client.qb.files}
 				title="QuickBooks Items"
 				applyMutation={client.qb.worker.run}

@@ -17,7 +17,7 @@ export const greenTheme: CustomThemeConfig = {
 		'--on-tertiary': '0 0 0',
 		'--on-success': '0 0 0',
 		'--on-warning': '0 0 0',
-		'--on-error': '0 0 0',
+		'--on-error': '255 255 255',
 		'--on-surface': '255 255 255',
 		// =~= Theme Colors  =~=
 		// primary | #1b7b3c
@@ -75,17 +75,17 @@ export const greenTheme: CustomThemeConfig = {
 		'--color-warning-700': '183 164 104', // #b7a468
 		'--color-warning-800': '146 131 83', // #928353
 		'--color-warning-900': '120 107 68', // #786b44
-		// error | #f48abf
-		'--color-error-50': '253 237 245', // #fdedf5
-		'--color-error-100': '253 232 242', // #fde8f2
-		'--color-error-200': '252 226 239', // #fce2ef
-		'--color-error-300': '251 208 229', // #fbd0e5
-		'--color-error-400': '247 173 210', // #f7add2
-		'--color-error-500': '244 138 191', // #f48abf
-		'--color-error-600': '220 124 172', // #dc7cac
-		'--color-error-700': '183 104 143', // #b7688f
-		'--color-error-800': '146 83 115', // #925373
-		'--color-error-900': '120 68 94', // #78445e
+		// error | #b33434
+		'--color-error-50': '244 225 225', // #f4e1e1
+		'--color-error-100': '240 214 214', // #f0d6d6
+		'--color-error-200': '236 204 204', // #eccccc
+		'--color-error-300': '225 174 174', // #e1aeae
+		'--color-error-400': '202 113 113', // #ca7171
+		'--color-error-500': '179 52 52', // #b33434
+		'--color-error-600': '161 47 47', // #a12f2f
+		'--color-error-700': '134 39 39', // #862727
+		'--color-error-800': '107 31 31', // #6b1f1f
+		'--color-error-900': '88 25 25', // #581919
 		// surface | #141414
 		// 50-400 form the light theme ramp (page, cards, fills, borders, muted text).
 		// 500-900 stay near-black for the dark theme.

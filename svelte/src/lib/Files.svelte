@@ -34,6 +34,7 @@
 			| undefined;
 		acceptFileType: string;
 		initVal: Awaited<ReturnType<FileRouterType['get']['query']>> | undefined;
+		embedded?: boolean;
 	}
 
 	let {
@@ -42,7 +43,8 @@
 		applyMutation,
 		cloudSyncMutation = undefined,
 		acceptFileType,
-		initVal
+		initVal,
+		embedded = false
 	}: Props = $props();
 
 	const _files = subVal(filesRouter.getSub, { init: initVal });
@@ -52,7 +54,9 @@
 		toastStore = getToastStore();
 </script>
 
-<div class="w-full card p-4">
+<div
+	class="w-full p-4 {embedded ? 'border-t border-surface-300/80 dark:border-surface-600' : 'card'}"
+>
 	<div class="flex items-center pb-2">
 		<h4 class="h4 font-semibold">Files: {title}</h4>
 		<div class="flex-grow min-w-2"></div>
@@ -90,22 +94,22 @@
 		</button>
 	</div>
 
-	<ul class="rounded-lg max-h-64 overflow-y-auto">
+	<ul class="max-h-64 overflow-y-auto overflow-x-hidden rounded-lg">
 		{#each files ?? [] as file, i}
 			<li
-				class="py-0.5 px-2 flex items-center {i % 2 === 0
-					? 'bg-surface-200 dark:bg-surface-600'
-					: 'bg-surface-200/50 dark:bg-surface-600/50'}"
+				class="flex min-w-0 items-center gap-2 px-2 py-1 {i % 2 === 0
+					? 'bg-primary-50/60 dark:bg-primary-900/20'
+					: 'bg-primary-50/25 dark:bg-primary-900/10'}"
 			>
 				<Button
 					action={applyMutation}
 					input={{ fileId: file.id }}
 					successMessage="Processing Started"
-					class="btn btn-sm variant-ghost-primary mr-3">Apply</Button
+					class="btn btn-sm shrink-0 variant-ghost-primary">Apply</Button
 				>
-				<p class="flex-grow">
-					<span class="font-semibold flex items-center"
-						>#{file.id}
+				<p class="min-w-0 flex-1">
+					<span class="flex min-w-0 items-start font-semibold">
+						<span class="shrink-0">#{file.id}</span>
 						<button
 							onclick={async () => {
 								toastStore.trigger({
@@ -126,10 +130,11 @@
 								link.click();
 								document.body.removeChild(link);
 							}}
-							class="pl-1.5 underline">{file.name}</button
-						></span
-					>
-					<span class="text-sm">
+							class="min-w-0 break-words pl-1.5 text-left underline [overflow-wrap:anywhere]"
+							>{file.name}</button
+						>
+					</span>
+					<span class="block break-words text-sm">
 						uploaded {file.author === null ? 'automatically' : 'by ' + file.author} at
 						{new Date(file.uploadedTime ?? 0).toLocaleString()}</span
 					>
@@ -139,7 +144,7 @@
 					input={{ fileId: file.id }}
 					confirm
 					successMessage="Deleted"
-					class="btn-icon btn-icon-sm  text-error-600 ml-2"
+					class="btn-icon btn-icon-sm ml-1 shrink-0 text-error-600"
 				>
 					<Trash_2 />
 				</Button>

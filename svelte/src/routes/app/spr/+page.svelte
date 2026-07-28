@@ -36,8 +36,9 @@
 
 <div class="w-full flex flex-col xl:grid xl:grid-cols-3 justify-center p-2">
 	<div class="w-full flex flex-col items-center p-2">
-		<div class="w-full mb-2">
+		<div class="card w-full">
 			<ChangesetStatus
+				embedded
 				name="SPR Price File"
 				status={subVal(client.spr.priceFile.worker.statusSub, {
 					init: data.sprPriceFileStatus
@@ -46,9 +47,8 @@
 					init: data.sprPriceFileChangeset
 				})}
 			/>
-		</div>
-		<div class="w-full">
 			<Files
+				embedded
 				filesRouter={client.spr.priceFile.files}
 				title="SPR Price File"
 				applyMutation={client.spr.priceFile.worker.run}
@@ -58,8 +58,9 @@
 		</div>
 	</div>
 	<div class="w-full flex flex-col items-center p-2">
-		<div class="w-full mb-2">
+		<div class="card w-full">
 			<ChangesetStatus
+				embedded
 				name="SPR Flat File"
 				status={subVal(client.spr.flatFile.worker.statusSub, {
 					init: data.sprFlatFileStatus
@@ -68,9 +69,8 @@
 					init: data.sprFlatFileChangeset
 				})}
 			/>
-		</div>
-		<div class="w-full">
 			<Files
+				embedded
 				filesRouter={client.spr.flatFile.files}
 				title="SPR Flat File"
 				applyMutation={client.spr.flatFile.worker.run}

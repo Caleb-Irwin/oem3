@@ -50,8 +50,10 @@
 </svelte:head>
 
 <div class="h-full w-full p-4 flex flex-col items-center">
-	<div class="flex w-full max-w-lg card p-3">
-		<div class="pr-2 grid place-content-center">
+	<div
+		class="card grid w-full max-w-lg grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-2 p-3"
+	>
+		<div class="grid place-content-center">
 			<button
 				class="btn btn-icon variant-glass-primary text-primary-500"
 				onclick={() =>
@@ -70,7 +72,7 @@
 					})}><Plus /></button
 			>
 		</div>
-		<select class="select" bind:value={sheetId} placeholder="Choose Sheet">
+		<select class="select min-w-0 w-full" bind:value={sheetId} placeholder="Choose Sheet">
 			{#if $allSheets}
 				{#each $allSheets as sheet}
 					<option value={sheet.id}
@@ -81,7 +83,7 @@
 				<option value={-1}>Loading...</option>
 			{/if}
 		</select>
-		<div class="pl-2 grid place-content-center">
+		<div class="grid place-content-center">
 			<button
 				class="btn btn-icon variant-glass-secondary text-secondary-500"
 				onclick={() =>
@@ -98,7 +100,7 @@
 					})}><Pencil /></button
 			>
 		</div>
-		<div class="pl-2 grid place-content-center">
+		<div class="grid min-w-0 place-content-center">
 			<Button
 				class="btn btn-icon variant-glass-error text-error-500"
 				action={client.labels.sheet.del}

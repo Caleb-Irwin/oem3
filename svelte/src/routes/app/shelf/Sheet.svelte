@@ -94,21 +94,21 @@
 		</Button>
 	</div>
 
-	<ul class="w-full max-w-6xl">
+	<ul class="w-full max-w-6xl overflow-hidden rounded-lg">
 		{#each $sheet ?? [] as label, i}
 			<li
-				class="m-0.5 rounded-sm flex {i % 2 === 0
-					? 'bg-surface-100 dark:bg-surface-600'
-					: 'bg-surface-200 dark:bg-surface-800'}"
+				class="flex min-w-0 items-center px-2 py-1 {i % 2 === 0
+					? 'bg-primary-50/60 dark:bg-primary-900/20'
+					: 'bg-primary-50/25 dark:bg-primary-900/10'}"
 			>
 				<Button
 					action={client.labels.duplicate}
-					class="p-0.5 px-1 btn btn-icon btn-icon-sm text-gray-400"
+					class="btn btn-icon btn-icon-sm shrink-0 text-surface-400 dark:text-surface-300"
 					successMessage="Duplicated Label"
 					input={{ id: label.id, sheetId }}><Copy /></Button
 				>
 				<button
-					class="p-0.5 px-1 btn btn-icon btn-icon-sm text-gray-400"
+					class="btn btn-icon btn-icon-sm shrink-0 text-surface-400 dark:text-surface-300"
 					onclick={() =>
 						modalStore.trigger({
 							type: 'component',
@@ -116,30 +116,36 @@
 						})}><Pencil /></button
 				>
 				<button
-					class="grid place-content-center grid-cols-2 lg:grid-cols-6 flex-grow px-1"
+					class="grid min-w-0 flex-grow self-stretch grid-cols-2 items-center gap-x-2 px-2 lg:grid-cols-6"
 					onclick={() =>
 						modalStore.trigger({
 							type: 'component',
 							component: { ref: AddLabel, props: { sheetId, edit: true, label } }
 						})}
 				>
-					<span class="col-span-2 lg:col-span-4 flex-grow text-center">{label.name}</span>
-					<span class="col-span-1 text-center font-semibold"
+					<span
+						class="col-span-2 flex min-h-full min-w-0 items-center justify-center text-center lg:col-span-4"
+						>{label.name}</span
+					>
+					<span
+						class="col-span-1 flex min-h-full items-center justify-center text-center font-semibold"
 						>{formatPrice((label.priceCents ?? 0) / 100)}</span
 					>
 					<span
-						class="col-span-1 flex-grow text-center font-semibold text-gray-800 dark:text-gray-300"
+						class="col-span-1 flex min-h-full items-center justify-center text-center font-semibold text-gray-800 dark:text-gray-300"
 						>{label.barcode}</span
 					>
 				</button>
-				<Button
-					action={client.labels.del}
-					input={{ id: label.id, sheetId }}
-					confirm="Delete?"
-					class="btn btn-icon btn-icon-sm text-error-500"
-				>
-					<Trash_2 />
-				</Button>
+				<div class="grid w-10 shrink-0 place-content-center">
+					<Button
+						action={client.labels.del}
+						input={{ id: label.id, sheetId }}
+						confirm="Delete?"
+						class="btn btn-icon btn-icon-sm text-error-500"
+					>
+						<Trash_2 />
+					</Button>
+				</div>
 			</li>
 		{:else}
 			<p class="text-center text-lg italic">Empty Sheet</p>

@@ -21,9 +21,10 @@
 		>;
 		changeset: Readable<typeof changesets.$inferSelect | null | undefined>;
 		name: string;
+		embedded?: boolean;
 	}
 
-	let { status, changeset, name }: Props = $props();
+	let { status, changeset, name, embedded = false }: Props = $props();
 
 	type SummaryType = 'nop' | 'inventoryUpdate' | 'update' | 'create' | 'delete';
 
@@ -67,7 +68,7 @@
 	const modalStore = getModalStore();
 </script>
 
-<div class="card p-4 min-w-72">
+<div class="min-w-0 p-4 {embedded ? '' : 'card min-w-72'}">
 	<div class="flex justify-between pb-2 items-center">
 		<h4 class="pr-2 h4 font-semibold">{name} Changeset {$changeset ? '#' + $changeset?.id : ''}</h4>
 		<button

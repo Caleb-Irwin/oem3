@@ -36,8 +36,9 @@
 
 <div class="w-full flex flex-col xl:grid xl:grid-cols-3 justify-center p-2">
 	<div class="p-2 w-full xl:w-auto flex flex-col items-center min-w-96">
-		<div class="w-full mb-2">
+		<div class="card w-full">
 			<ChangesetStatus
+				embedded
 				name="Guild Data"
 				status={subVal(client.guild.data.worker.statusSub, {
 					init: data.guildDataStatus
@@ -46,9 +47,8 @@
 					init: data.guildDataChangeset
 				})}
 			/>
-		</div>
-		<div class="w-full">
 			<Files
+				embedded
 				filesRouter={client.guild.data.files}
 				title="Guild Items"
 				applyMutation={client.guild.data.worker.run}
@@ -58,8 +58,9 @@
 		</div>
 	</div>
 	<div class="p-2 w-full xl:w-auto flex flex-col items-center min-w-96">
-		<div class="w-full mb-2">
+		<div class="card w-full">
 			<ChangesetStatus
+				embedded
 				name="Guild Inventory"
 				status={subVal(client.guild.inventory.worker.statusSub, {
 					init: data.guildInventoryStatus
@@ -68,9 +69,8 @@
 					init: data.guildInventoryChangeset
 				})}
 			/>
-		</div>
-		<div class="w-full">
 			<Files
+				embedded
 				filesRouter={client.guild.inventory.files}
 				title="Guild Inventory"
 				applyMutation={client.guild.inventory.worker.run}
@@ -81,8 +81,9 @@
 		</div>
 	</div>
 	<div class="p-2 w-full xl:w-auto flex flex-col items-center min-w-96">
-		<div class="w-full mb-2">
+		<div class="card w-full">
 			<ChangesetStatus
+				embedded
 				name="Guild Flyer"
 				status={subVal(client.guild.flyer.worker.statusSub, {
 					init: data.guildFlyerStatus
@@ -91,9 +92,8 @@
 					init: data.guildFlyerChangeset
 				})}
 			/>
-		</div>
-		<div class="w-full">
 			<Files
+				embedded
 				filesRouter={client.guild.flyer.files}
 				title="Guild Flyer"
 				applyMutation={client.guild.flyer.worker.run}

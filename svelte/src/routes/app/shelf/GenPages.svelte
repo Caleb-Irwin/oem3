@@ -46,7 +46,13 @@
 	disabled={running || labels.length === 0}
 >
 	{#if running}
-		<ProgressBar height="h-6" value={index} max={pages.length} track="bg-primary-900" />
+		<ProgressBar
+			height="h-6"
+			value={index}
+			max={pages.length}
+			meter="bg-primary-500"
+			track="bg-primary-100 dark:bg-primary-900"
+		/>
 	{:else}
 		<span><Download /></span><span>Download</span>
 	{/if}

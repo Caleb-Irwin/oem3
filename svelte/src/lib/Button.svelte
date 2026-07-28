@@ -36,8 +36,8 @@
 	{action}
 	{res}
 	class={flexible
-		? 'flex flex-grow place-content-center items-stretch '
-		: 'grid place-content-center'}
+		? 'flex min-w-0 flex-grow place-content-center items-stretch '
+		: 'grid min-w-0 place-content-center'}
 	invalidateAll={invalidateAllFlag}
 	{reloadPage}
 	{successMessage}
