@@ -42,6 +42,7 @@
 		<div class="py-2">
 			<ProgressBar
 				meter="bg-primary-500"
+				track="bg-primary-100 dark:bg-primary-900"
 				value={$status.progress >= 0
 					? $status.progress * 100
 					: $status.progress === -1

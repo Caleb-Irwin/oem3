@@ -21,7 +21,10 @@
 	{#if data.res}
 		<div class="px-4 pb-6">
 			{#await data.res}
-				<ProgressBar />
+				<ProgressBar
+					meter="bg-primary-500"
+					track="bg-primary-100 dark:bg-primary-900"
+				/>
 			{:then res}
 				<SearchRes searchPages={[res]} select={undefined} editSearchQuery={undefined} fullHeight />
 			{/await}

@@ -95,7 +95,11 @@
 	{/each}
 	{#if more}
 		<div class="w-full h-4 p-4">
-			<ProgressBar height="h-4" />
+			<ProgressBar
+				height="h-4"
+				meter="bg-primary-500"
+				track="bg-primary-100 dark:bg-primary-900"
+			/>
 		</div>
 	{/if}
 </div>

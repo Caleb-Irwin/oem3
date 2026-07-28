@@ -29,6 +29,8 @@
 		</select>
 	</label>
 	<button class="btn variant-ghost-primary w-full flex flex-col justify-center group"
-		>Upload <div class="w-full flex-grow hidden group-disabled:block pt-1"><ProgressBar /></div>
+		>Upload <div class="w-full flex-grow hidden group-disabled:block pt-1">
+			<ProgressBar meter="bg-primary-500" track="bg-primary-100 dark:bg-primary-900" />
+		</div>
 	</button>
 </Form>

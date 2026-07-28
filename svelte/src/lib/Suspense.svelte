@@ -23,7 +23,7 @@
 			{#if !minimal}
 				<ProgressRadial
 					meter="stroke-primary-500"
-					track="stroke-primary-900"
+					track="stroke-primary-100 dark:stroke-primary-900"
 					width="w-24"
 					stroke={100}
 				/>

@@ -47,7 +47,7 @@
 		{#if workerData?.running && workerData?.progress >= 0}
 			<ProgressBar
 				meter="bg-primary-600"
-				track="bg-surface-200 dark:bg-surface-500"
+				track="bg-primary-100 dark:bg-primary-900"
 				height="h-1.5"
 				value={workerData.progress * 100}
 			/>

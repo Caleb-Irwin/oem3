@@ -73,7 +73,10 @@
 
 		{#if $priceList === undefined}
 			<div class="w-full max-w-lg mx-auto py-2">
-				<ProgressBar />
+				<ProgressBar
+					meter="bg-primary-500"
+					track="bg-primary-100 dark:bg-primary-900"
+				/>
 			</div>
 		{:else}
 			<div class="flex justify-between items-center px-1 pb-2">

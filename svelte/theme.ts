@@ -13,7 +13,7 @@ export const greenTheme: CustomThemeConfig = {
 		'--theme-border-base': '1px',
 		// =~= Theme On-X Colors =~=
 		'--on-primary': '255 255 255',
-		'--on-secondary': '0 0 0',
+		'--on-secondary': '255 255 255',
 		'--on-tertiary': '0 0 0',
 		'--on-success': '0 0 0',
 		'--on-warning': '0 0 0',

@@ -126,7 +126,7 @@
 		{/key}
 	{:else if !($allSheets !== undefined && $allSheets.length === 0)}
 		<div class="w-full max-w-lg py-2">
-			<ProgressBar />
+			<ProgressBar meter="bg-primary-500" track="bg-primary-100 dark:bg-primary-900" />
 		</div>
 		<p>Hello</p>
 	{/if}
