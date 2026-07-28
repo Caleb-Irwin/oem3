@@ -7,6 +7,7 @@ import Truck from 'lucide-svelte/icons/truck';
 import Calculator from 'lucide-svelte/icons/calculator';
 import ShoppingBag from 'lucide-svelte/icons/shopping-bag';
 import ShieldCheck from 'lucide-svelte/icons/shield-check';
+import BadgeDollarSign from 'lucide-svelte/icons/badge-dollar-sign';
 
 /** A destination shown both in the nav bar menus and as a home page tile. */
 export interface NavItem {
@@ -27,6 +28,11 @@ export const workflows: NavItem[] = [
 		href: '/app/price',
 		title: 'Price List',
 		icon: ReceiptText
+	},
+	{
+		href: '/app/price-changes',
+		title: 'Price Changes',
+		icon: BadgeDollarSign
 	},
 	{
 		href: '/app/product',

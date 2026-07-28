@@ -14,6 +14,7 @@
 		quickAddQueryType?: QueryType;
 		initQuery?: string;
 		altRes?: (res: Awaited<ReturnType<typeof client.search.search.query>>) => void;
+		size?: 'sm' | 'lg';
 	}
 
 	let {
@@ -21,10 +22,12 @@
 		quickAdd = false,
 		quickAddQueryType = 'all',
 		initQuery = '',
-		altRes
+		altRes,
+		size
 	}: Props = $props();
 
 	const modalStore = getModalStore();
+	const fieldSize = $derived(size ?? (quickAdd ? 'sm' : 'lg'));
 	let query = $state(initQuery),
 		queryType: QueryType = $state(quickAdd ? quickAddQueryType : 'all'),
 		formRef: { submit?: () => void } | undefined = $state();
@@ -70,7 +73,7 @@
 	noReset
 >
 	<SearchField
-		size={quickAdd ? 'sm' : 'lg'}
+		size={fieldSize}
 		bind:query
 		bind:queryType
 		queryTypes={quickAdd ? [quickAddQueryType] : undefined}
