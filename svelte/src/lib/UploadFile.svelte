@@ -28,7 +28,7 @@
 			<option value="">Only Upload</option>
 		</select>
 	</label>
-	<button class="btn variant-filled-primary w-full flex flex-col justify-center group"
+	<button class="btn variant-ghost-primary w-full flex flex-col justify-center group"
 		>Upload <div class="w-full flex-grow hidden group-disabled:block pt-1"><ProgressBar /></div>
 	</button>
 </Form>

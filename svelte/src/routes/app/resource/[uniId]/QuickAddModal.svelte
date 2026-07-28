@@ -91,7 +91,7 @@
 			<div class="flex gap-x-2 w-full pt-2">
 				<div class="flex-1 flex justify-stretch">
 					<button
-						class="btn variant-filled-error flex-grow"
+						class="btn variant-ghost-error flex-grow"
 						onclick={() => {
 							modalStore.close();
 						}}
@@ -102,7 +102,7 @@
 				</div>
 				<div class="flex-1">
 					<Button
-						class="btn variant-filled-primary w-full"
+						class="btn variant-ghost-primary w-full"
 						action={client.unified.updateSetting}
 						input={{
 							compoundId: `${unifiedResourceType}:${unifiedItemId}`,

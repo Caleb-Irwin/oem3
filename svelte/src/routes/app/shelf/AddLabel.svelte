@@ -43,5 +43,5 @@
 			value={label?.barcode ?? ''}
 		/>
 	</label>
-	<button class="btn variant-filled-primary w-full mt-1">{edit ? 'Save' : 'Add'}</button>
+	<button class="btn variant-ghost-primary w-full mt-1">{edit ? 'Save' : 'Add'}</button>
 </Form>

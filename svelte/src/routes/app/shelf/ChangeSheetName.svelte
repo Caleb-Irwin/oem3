@@ -25,5 +25,5 @@
 		</select>
 	</label>
 
-	<button class="btn variant-filled-primary w-full">Save</button>
+	<button class="btn variant-ghost-primary w-full">Save</button>
 </Form>

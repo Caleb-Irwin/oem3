@@ -17,7 +17,7 @@
 	}
 
 	let {
-		class: btnClass = 'btn variant-filled-primary',
+		class: btnClass = 'btn variant-ghost-primary',
 		invalidateAll: invalidateAllFlag = false,
 		reloadPage = false,
 		action,

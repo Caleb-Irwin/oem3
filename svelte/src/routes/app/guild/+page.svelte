@@ -107,7 +107,7 @@
 	<!-- Disable for now
 	<div class="p-2 w-full xl:w-auto flex flex-col items-center min-w-96">
 		<div class="w-full card p-4">
-			<Button class="mb-2 btn variant-filled-primary" action={client.guild.desc.worker.run}
+			<Button class="mb-2 btn variant-ghost-primary" action={client.guild.desc.worker.run}
 				>Update Enhanced Descriptions</Button
 			>
 			<WorkerStatus

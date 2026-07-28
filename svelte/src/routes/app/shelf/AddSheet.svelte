@@ -27,5 +27,5 @@
 			<option value="public">Public</option>
 		</select>
 	</label>
-	<button class="btn variant-filled-primary w-full">Add</button>
+	<button class="btn variant-ghost-primary w-full">Add</button>
 </Form>

@@ -34,7 +34,7 @@
 				<span>Password</span>
 				<input class="input" type="password" placeholder="******" name="password" />
 			</label>
-			<button type="submit" class="btn variant-filled-primary w-full mt-1">Login</button>
+			<button type="submit" class="btn variant-ghost-primary w-full mt-1">Login</button>
 		</Form>
 	</div>
 	<div class="flex-grow"></div>

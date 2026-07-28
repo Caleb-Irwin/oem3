@@ -66,7 +66,7 @@
 				</Button>
 				<Button
 					class="btn w-36 {allErrors.length === 0
-						? 'variant-filled-primary'
+						? 'variant-ghost-primary'
 						: 'variant-soft-surface'}"
 					action={client.unified.getErrorUrl}
 					queryMode

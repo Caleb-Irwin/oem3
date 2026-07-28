@@ -23,6 +23,37 @@
 	box-shadow: inset 0 -1px 0 0 rgb(var(--color-surface-300) / 0.8);
 }
 
+/* Skeleton's ghost variants provide the tinted background and inset border,
+   but otherwise inherit their text color. Keep button labels and icons paired
+   with the same semantic color used by that border. */
+.btn.variant-ghost-primary {
+	color: rgb(var(--color-primary-500));
+}
+
+.btn.variant-ghost-secondary {
+	color: rgb(var(--color-secondary-500));
+}
+
+.btn.variant-ghost-tertiary {
+	color: rgb(var(--color-tertiary-500));
+}
+
+.btn.variant-ghost-success {
+	color: rgb(var(--color-success-500));
+}
+
+.btn.variant-ghost-warning {
+	color: rgb(var(--color-warning-500));
+}
+
+.btn.variant-ghost-error {
+	color: rgb(var(--color-error-500));
+}
+
+.btn.variant-ghost-surface {
+	color: rgb(var(--color-surface-500));
+}
+
 /* Consistent, visible focus ring for keyboard users across both themes. */
 :where(a, button, input, select, textarea):focus-visible {
 	outline: 2px solid rgb(var(--color-primary-500));

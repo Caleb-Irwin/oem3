@@ -12,5 +12,5 @@
 	<h4 class="h4 font-semibold w-full">Change Password</h4>
 	<input type="hidden" name="username" value={username} />
 	<input class="input my-2" type="password" name="password" placeholder="New Password" />
-	<button class="btn variant-filled-primary w-full">Save</button>
+	<button class="btn variant-ghost-primary w-full">Save</button>
 </Form>

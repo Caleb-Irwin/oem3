@@ -135,7 +135,7 @@
 						<span class="flex-grow">Previous</span>
 					</Button>
 					<Button
-						class="btn w-36 {isComplete ? 'variant-filled-primary' : 'variant-soft-surface'}"
+						class="btn w-36 {isComplete ? 'variant-ghost-primary' : 'variant-soft-surface'}"
 						action={client.unified.getUnmatchedUrl}
 						queryMode
 						input={{
@@ -200,8 +200,8 @@
 					</button>
 					<Button
 						class="btn w-56 {allowUnmatched
-							? 'variant-filled-secondary'
-							: 'variant-filled-warning'} "
+							? 'variant-ghost-secondary'
+							: 'variant-ghost-warning'} "
 						action={client.unified.updateUnmatched}
 						input={{
 							uniId,

@@ -91,7 +91,7 @@
 
 		<button
 			type="submit"
-			class="btn my-1.5 shrink-0 variant-filled-primary {large ? 'ml-2 px-6' : 'ml-1.5 px-4'}"
+			class="btn my-1.5 shrink-0 variant-ghost-primary {large ? 'ml-2 px-6' : 'ml-1.5 px-4'}"
 			aria-label="Search"
 			disabled={loading}
 		>

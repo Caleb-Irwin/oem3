@@ -30,7 +30,7 @@
 {/key}
 
 <button
-	class="absolute right-2 bottom-12 btn btn-sm variant-filled-secondary"
+	class="absolute right-2 bottom-12 btn btn-sm variant-ghost-secondary"
 	onclick={() => {
 		const elemPage = document.querySelector('#page');
 		if (elemPage !== null) {

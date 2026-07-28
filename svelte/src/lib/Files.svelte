@@ -62,13 +62,13 @@
 				res={({ message }) => {
 					toastStore.trigger({ message, background: 'variant-filled-success' });
 				}}
-				class="btn btn-icon btn-icon-sm variant-filled-primary mr-1.5"
+				class="btn btn-icon btn-icon-sm variant-ghost-primary mr-1.5"
 			>
 				<CloudDownload />
 			</Button>
 		{/if}
 		<button
-			class="btn btn-sm variant-filled-primary max-w-48"
+			class="btn btn-sm variant-ghost-primary max-w-48"
 			onclick={() => {
 				modalStore.trigger({
 					type: 'component',
@@ -101,7 +101,7 @@
 					action={applyMutation}
 					input={{ fileId: file.id }}
 					successMessage="Processing Started"
-					class="btn btn-sm variant-filled-primary mr-3">Apply</Button
+					class="btn btn-sm variant-ghost-primary mr-3">Apply</Button
 				>
 				<p class="flex-grow">
 					<span class="font-semibold flex items-center"

@@ -86,7 +86,7 @@
 				</label>
 			</div>
 
-			<button type="submit" class="btn variant-filled-primary">Download JSON</button>
+			<button type="submit" class="btn variant-ghost-primary">Download JSON</button>
 
 			{#if priceChangesData}
 				<div class="text-center text-sm text-surface-500 dark:text-surface-300">

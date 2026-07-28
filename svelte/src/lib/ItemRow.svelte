@@ -106,7 +106,7 @@
 
 			<div class={grid ? 'mt-0.5' : ''}>
 				<button
-					class="btn variant-filled-primary font-semibold"
+					class="btn variant-ghost-primary font-semibold"
 					onclick={() => select({ uniref: rawProduct.uniId, id: product.id })}>Select</button
 				>
 			</div>

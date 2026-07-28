@@ -49,7 +49,7 @@
 							>
 							<div class="flex-grow"></div>
 							<Button
-								class="btn variant-filled-error"
+								class="btn variant-ghost-error"
 								action={client.unified.getFirstErrorUrl}
 								queryMode
 								input={{
@@ -112,7 +112,7 @@
 						<svelte:fragment slot="content">
 							<div class="flex flex-col">
 								<Button
-									class="btn variant-filled-warning mb-2"
+									class="btn variant-ghost-warning mb-2"
 									action={client.unified.getFirstErrorUrl}
 									queryMode
 									input={{
@@ -156,7 +156,7 @@
 									input={{
 										sourceTableName: item.tableName
 									}}
-									class="btn btn-sm variant-filled-error"
+									class="btn btn-sm variant-ghost-error"
 									queryMode
 									res={async (output) => goto(output.url)}
 								>

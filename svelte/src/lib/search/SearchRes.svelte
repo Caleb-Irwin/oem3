@@ -75,14 +75,14 @@
 		<span class="flex-grow min-w-4"></span>
 		<div class="flex flex-col sm:flex-row rounded-full p-1 variant-outline-primary border-[1px]">
 			<button
-				class="btn btn-icon btn-icon-lg w-8 h-8 {grid ? 'variant-filled-primary' : ''}"
+				class="btn btn-icon btn-icon-lg w-8 h-8 {grid ? 'variant-ghost-primary' : ''}"
 				onclick={() => {
 					grid = true;
 					localStorage.setItem('grid', 'true');
 				}}><LayoutGrid /></button
 			>
 			<button
-				class="btn btn-icon btn-icon-lg w-8 h-8 {grid ? '' : 'variant-filled-primary'}"
+				class="btn btn-icon btn-icon-lg w-8 h-8 {grid ? '' : 'variant-ghost-primary'}"
 				onclick={() => {
 					grid = false;
 					localStorage.setItem('grid', 'false');

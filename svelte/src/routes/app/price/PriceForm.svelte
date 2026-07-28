@@ -103,7 +103,7 @@
 			compact
 		/>
 	</div>
-	<button class="btn variant-filled-primary w-full mt-2">
+	<button class="btn variant-ghost-primary w-full mt-2">
 		{item.hasCustomPrice ? 'Save Custom Price' : 'Add to Price List'}
 	</button>
 </Form>

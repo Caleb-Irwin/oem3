@@ -260,7 +260,7 @@
 						{/if}
 					</div>
 					<div class="w-full pt-2">
-						<button class="btn variant-filled-primary w-full" disabled={!hasChanges}>
+						<button class="btn variant-ghost-primary w-full" disabled={!hasChanges}>
 							Save Setting
 						</button>
 					</div>

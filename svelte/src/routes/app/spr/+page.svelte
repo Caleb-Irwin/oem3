@@ -82,7 +82,7 @@
 	</div>
 	<div class="w-full flex flex-col items-center p-2">
 		<div class="w-full card p-4">
-			<Button class="mb-2 btn variant-filled-primary" action={client.spr.enhancedContent.worker.run}
+			<Button class="mb-2 btn variant-ghost-primary" action={client.spr.enhancedContent.worker.run}
 				>Update Enhanced Content</Button
 			>
 			<WorkerStatus
