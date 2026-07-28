@@ -9,7 +9,7 @@ export const greenTheme: CustomThemeConfig = {
 		'--theme-font-color-base': '0 0 0',
 		'--theme-font-color-dark': '255 255 255',
 		'--theme-rounded-base': '9999px',
-		'--theme-rounded-container': '4px',
+		'--theme-rounded-container': '8px',
 		'--theme-border-base': '1px',
 		// =~= Theme On-X Colors =~=
 		'--on-primary': '0 0 0',
@@ -87,11 +87,13 @@ export const greenTheme: CustomThemeConfig = {
 		'--color-error-800': '146 83 115', // #925373
 		'--color-error-900': '120 68 94', // #78445e
 		// surface | #141414
-		'--color-surface-50': '220 220 220', // #dcdcdc
-		'--color-surface-100': '208 208 208', // #d0d0d0
-		'--color-surface-200': '196 196 196', // #c4c4c4
-		'--color-surface-300': '161 161 161', // #a1a1a1
-		'--color-surface-400': '91 91 91', // #5b5b5b
+		// 50-400 form the light theme ramp (page, cards, fills, borders, muted text).
+		// 500-900 stay near-black for the dark theme.
+		'--color-surface-50': '246 248 247', // #f6f8f7 — light page background
+		'--color-surface-100': '255 255 255', // #ffffff — light cards / app bar
+		'--color-surface-200': '232 237 235', // #e8edeb — light fills, inputs, tracks
+		'--color-surface-300': '195 204 201', // #c3ccc9 — light borders / dark muted text
+		'--color-surface-400': '115 125 122', // #737d7a — muted text and icons
 		'--color-surface-500': '20 20 20', // #141414
 		'--color-surface-600': '18 18 18', // #121212
 		'--color-surface-700': '15 15 15', // #0f0f0f

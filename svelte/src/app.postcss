@@ -2,3 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 @tailwind variants;
+
+/* Light theme polish: Skeleton paints cards with surface-100 (white) on a
+   surface-50 page, so they need a slightly stronger edge than the default
+   near-invisible ring to read as raised. Dark theme keeps Skeleton's defaults. */
+:root:not(.dark) .card {
+	--tw-ring-color: rgb(var(--color-surface-300) / 0.7);
+	--tw-shadow: 0 1px 2px 0 rgb(16 24 40 / 0.04);
+}
+
+/* Form controls default to a surface-200 fill with a dark surface-400 border,
+   which reads as a heavy grey block on the lightened page. White fill with a
+   softer border keeps them legible without dominating. */
+:root:not(.dark) :where(.input, .textarea, .select, .input-group) {
+	background-color: rgb(var(--color-surface-100));
+	border-color: rgb(var(--color-surface-300));
+}
+
+:root:not(.dark) .app-bar {
+	box-shadow: inset 0 -1px 0 0 rgb(var(--color-surface-300) / 0.8);
+}
+
+/* Consistent, visible focus ring for keyboard users across both themes. */
+:where(a, button, input, select, textarea):focus-visible {
+	outline: 2px solid rgb(var(--color-primary-500));
+	outline-offset: 2px;
+}

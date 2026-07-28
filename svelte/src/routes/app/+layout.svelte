@@ -32,7 +32,7 @@
 
 <AppShell>
 	{#snippet header()}
-		<Bar />
+		<Bar user={data.user} />
 	{/snippet}
 	{@render children?.()}
 	{#snippet footer()}
