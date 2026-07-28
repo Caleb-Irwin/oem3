@@ -2,11 +2,9 @@
 	import { client } from '$lib/client';
 	import Form from '$lib/Form.svelte';
 	import type { QueryType } from '../../../../server/src/routers/search';
-	import Search from 'lucide-svelte/icons/search';
-	import SearchRes from './SearchRes.svelte';
-	import { tick } from 'svelte';
-	import { focusTrap } from '@skeletonlabs/skeleton';
 	import type { SelectFunc } from '$lib/ItemRow.svelte';
+	import SearchField from './SearchField.svelte';
+	import SearchRes from './SearchRes.svelte';
 
 	interface Props {
 		select?: SelectFunc;
@@ -16,48 +14,42 @@
 	let { select = undefined, queryType = $bindable() }: Props = $props();
 
 	let query = $state(''),
-		searchRes: any = $state(),
-		focus: boolean = $state(false);
+		searchPages: Awaited<ReturnType<typeof client.search.search.query>>[] = $state([]);
 </script>
 
-<div class="card min-w-80 max-h-[90vh] overflow-scroll">
+<div class="card flex max-h-[85vh] w-[min(92vw,64rem)] flex-col overflow-hidden shadow-xl">
 	<Form
 		action={{ mutate: client.search.search.query }}
 		res={(res) => {
-			searchRes = res;
+			searchPages = [res];
 		}}
-		class="w-full"
-		center
+		class="mx-auto w-full max-w-3xl shrink-0 p-4"
+		noReset
 	>
-		<div class="h-16 my-3 p-1 max-w-2xl form w-full flex">
-			<div class="input-group input-group-divider grid-cols-[1fr_auto] mx-2" use:focusTrap={focus}>
-				<input type="text" placeholder="Search Query" name="query" bind:value={query} />
-				<select name="type" class="hidden" bind:value={queryType}>
-					<option value={queryType}>QUERY TYPE</option>
-				</select>
-
-				<button class="variant-filled-primary w-16">
-					<Search />
-				</button>
-			</div>
-		</div>
+		<SearchField
+			size="lg"
+			bind:query
+			bind:queryType
+			queryTypes={[queryType]}
+			placeholder="Find a new match…"
+			autofocus
+		/>
 	</Form>
-	{#if searchRes}
-		{#key searchRes}
+
+	{#if searchPages.length > 0}
+		<div class="min-h-0 flex-1 overflow-y-auto px-3 pb-3">
 			<SearchRes
-				searchPages={[searchRes]}
+				bind:searchPages
 				{select}
-				editSearchQuery={async (q) => {
-					query = '';
-					//@ts-ignore
-					queryType = '';
-					focus = false;
-					await tick();
-					query = q.query;
-					queryType = q.queryType;
-					focus = true;
+				fullHeight
+				editSearchQuery={(next) => {
+					query = next.query;
 				}}
 			/>
-		{/key}
+		</div>
+	{:else}
+		<p class="px-4 pb-6 text-center text-sm text-surface-400 dark:text-surface-300">
+			Search for an item to create a new match.
+		</p>
 	{/if}
 </div>

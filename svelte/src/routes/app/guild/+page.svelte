@@ -17,7 +17,12 @@
 
 <h1 class="text-center h2 p-2 pt-4">Guild</h1>
 
-<ModalSearchBar queryType="unifiedGuild" placeholder="Search Unified Guild" class="max-w-xl pb-2" />
+<ModalSearchBar
+	queryType="unifiedGuild"
+	queryTypes={['unifiedGuild', 'guildData', 'guildInventory', 'guildFlyer']}
+	placeholder="Search Guild"
+	class="max-w-3xl pb-2"
+/>
 
 <UnifiedSummary
 	tableName="unifiedGuild"

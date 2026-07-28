@@ -5,7 +5,7 @@
 	import type { QueryType } from '../../../../../../../server/src/routers/search';
 	import Minimize2 from 'lucide-svelte/icons/minimize-2';
 	import Maximize2 from 'lucide-svelte/icons/maximize-2';
-	import type { Cell, CellConfigRowInsert } from './types';
+	import type { Cell } from './types';
 
 	interface Props {
 		baseSearch: string;
@@ -30,7 +30,7 @@
 {:else}
 	<div class="flex flex-col justify-center items-center card variant-glass w-full p-2">
 		<div class="flex flex-row items-center justify-center w-full px-2 gap-2 flex-wrap-reverse">
-			<div>
+			<div class="min-w-0 flex-1 basis-72">
 				<OldSearch
 					quickAdd
 					initQuery={baseSearch}
@@ -59,17 +59,18 @@
 								rawProduct={item.uniref}
 								grid={false}
 								select={async ({ id }) => {
-									await client.unified.updateSetting.mutate({
+									const input = {
 										compoundId: cell.compoundId,
 										col: cell.col,
 										settingData: {
-											col: cell.col as any,
+											col: cell.col,
 											confType: 'setting:custom',
 											refId: parseInt(cell.compoundId.split(':')[1]),
 											created: Date.now(),
 											value: id.toString()
-										} satisfies CellConfigRowInsert
-									});
+										}
+									} as Parameters<typeof client.unified.updateSetting.mutate>[0];
+									await client.unified.updateSetting.mutate(input);
 								}}
 							/>
 						</div>

@@ -13,6 +13,8 @@
 		placeholder?: string;
 		autofocus?: boolean;
 		loading?: boolean;
+		/** Allowed scopes. A single scope is submitted silently instead of showing a selector. */
+		queryTypes?: QueryType[];
 	}
 
 	let {
@@ -21,10 +23,15 @@
 		size = 'sm',
 		placeholder = 'Search items…',
 		autofocus = false,
-		loading = false
+		loading = false,
+		queryTypes = queryTypeOptions.map((option) => option.value)
 	}: Props = $props();
 
 	const large = $derived(size === 'lg');
+	const availableOptions = $derived(
+		queryTypeOptions.filter((option) => queryTypes.includes(option.value))
+	);
+	const showTypeSelect = $derived(availableOptions.length > 1);
 
 	// The pill shows focus for the whole field, so the controls inside suppress their
 	// own outline — `!` beats the global :focus-visible ring in app.postcss.
@@ -60,24 +67,27 @@
 			bind:value={query}
 		/>
 
-		<div class="my-3 hidden w-px shrink-0 bg-surface-300 dark:bg-surface-400/40 sm:block"></div>
-
-		<label class="relative hidden shrink-0 items-stretch sm:flex">
-			<span class="sr-only">Item type</span>
-			<select
-				name="type"
-				bind:value={queryType}
-				class="h-full cursor-pointer appearance-none truncate py-0 pl-3 pr-7 text-sm font-medium {controlReset}"
-			>
-				{#each queryTypeOptions as option (option.value)}
-					<option value={option.value}>{option.label}</option>
-				{/each}
-			</select>
-			<ChevronDown
-				size={16}
-				class="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-surface-400 dark:text-surface-300"
-			/>
-		</label>
+		{#if showTypeSelect}
+			<div class="my-3 hidden w-px shrink-0 bg-surface-300 dark:bg-surface-400/40 sm:block"></div>
+			<label class="relative hidden shrink-0 items-stretch sm:flex">
+				<span class="sr-only">Item type</span>
+				<select
+					name="type"
+					bind:value={queryType}
+					class="h-full cursor-pointer appearance-none truncate py-0 pl-3 pr-7 text-sm font-medium {controlReset}"
+				>
+					{#each availableOptions as option (option.value)}
+						<option value={option.value}>{option.label}</option>
+					{/each}
+				</select>
+				<ChevronDown
+					size={16}
+					class="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-surface-400 dark:text-surface-300"
+				/>
+			</label>
+		{:else}
+			<input type="hidden" name="type" value={queryType} />
+		{/if}
 
 		<button
 			type="submit"
@@ -96,20 +106,22 @@
 		</button>
 	</div>
 
-	<label class="relative flex h-10 items-stretch sm:hidden">
-		<span class="sr-only">Item type</span>
-		<select
-			name="type"
-			bind:value={queryType}
-			class="select h-full w-full cursor-pointer appearance-none bg-none py-0 pl-3 pr-9 text-sm font-medium"
-		>
-			{#each queryTypeOptions as option (option.value)}
-				<option value={option.value}>{option.label}</option>
-			{/each}
-		</select>
-		<ChevronDown
-			size={16}
-			class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 dark:text-surface-300"
-		/>
-	</label>
+	{#if showTypeSelect}
+		<label class="relative flex h-10 items-stretch sm:hidden">
+			<span class="sr-only">Item type</span>
+			<select
+				name="type"
+				bind:value={queryType}
+				class="select h-full w-full cursor-pointer appearance-none bg-none py-0 pl-3 pr-9 text-sm font-medium"
+			>
+				{#each availableOptions as option (option.value)}
+					<option value={option.value}>{option.label}</option>
+				{/each}
+			</select>
+			<ChevronDown
+				size={16}
+				class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 dark:text-surface-300"
+			/>
+		</label>
+	{/if}
 </div>

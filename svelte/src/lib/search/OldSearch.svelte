@@ -1,9 +1,9 @@
 <script lang="ts">
-	import Search from 'lucide-svelte/icons/search';
 	import { client } from '../client';
 	import Form from '../Form.svelte';
-	import { focusTrap, getModalStore } from '@skeletonlabs/skeleton';
+	import { getModalStore } from '@skeletonlabs/skeleton';
 	import SearchRes from './SearchRes.svelte';
+	import SearchField from './SearchField.svelte';
 	import { onMount, tick } from 'svelte';
 	import type { QueryType } from '../../../../server/src/routers/search';
 	import type { SelectFunc } from '$lib/ItemRow.svelte';
@@ -20,31 +20,25 @@
 		select = undefined,
 		quickAdd = false,
 		quickAddQueryType = 'all',
-		initQuery,
+		initQuery = '',
 		altRes
 	}: Props = $props();
 
 	const modalStore = getModalStore();
-	let query: string | undefined = $state(initQuery),
-		queryType: QueryType | undefined = $state(quickAdd ? quickAddQueryType : undefined),
-		focus: boolean = $state(false);
-	let formRef: any = undefined;
-	const response = async (prev: { query: string; queryType: typeof queryType }) => {
-		if (prev === undefined) return;
-		query = '';
-		queryType = '' as typeof queryType;
+	let query = $state(initQuery),
+		queryType: QueryType = $state(quickAdd ? quickAddQueryType : 'all'),
+		formRef: { submit?: () => void } | undefined = $state();
+
+	const response = async (previous: { query: string; queryType: QueryType }) => {
+		if (!previous) return;
+		query = previous.query;
+		queryType = previous.queryType;
 		await tick();
-		query = prev.query;
-		queryType = prev.queryType;
-		focus = true;
-		await tick();
-		focus = false;
 	};
 
 	onMount(async () => {
-		if (initQuery && initQuery.trim().length > 0) {
+		if (initQuery.trim().length > 0) {
 			await tick();
-			if (quickAdd) queryType = quickAddQueryType;
 			formRef?.submit?.();
 		}
 	});
@@ -52,7 +46,7 @@
 
 <Form
 	bind:this={formRef}
-	action={{ mutate: (input: object) => client.search.search.query(input as any) }}
+	action={{ mutate: client.search.search.query }}
 	res={(res) => {
 		if (altRes) return altRes(res);
 		modalStore.trigger({
@@ -63,67 +57,23 @@
 				props: {
 					searchPages: [res],
 					select,
-					editSearchQuery: async (q: { query: string; queryType: QueryType }) => {
+					editSearchQuery: (next: { query: string; queryType: QueryType }) => {
+						query = next.query;
+						queryType = next.queryType;
 						modalStore.close();
-						query = '';
-						//@ts-ignore
-						queryType = '';
-						focus = false;
-						await tick();
-						query = q.query;
-						focus = true;
 					}
 				}
 			}
 		});
-		tick().then(async () => {
-			const prevQueryType = queryType;
-			//@ts-ignore
-			queryType = '';
-			await tick();
-			queryType = prevQueryType;
-		});
 	}}
-	class="w-full"
-	center
+	class="mx-auto min-w-0 w-full max-w-3xl"
+	noReset
 >
-	<div class="{quickAdd ? 'h-14' : 'h-20 my-3 p-1'} max-w-2xl form w-full flex">
-		<div
-			class="input-group input-group-divider grid-cols-[1fr_auto_auto] {quickAdd
-				? '!variant-ghost-primary placeholder-primary-500 border-primary-500 '
-				: ''}"
-			use:focusTrap={focus}
-		>
-			<input
-				type="text"
-				placeholder={quickAdd ? 'Quick Add' : 'Search Query'}
-				name="query"
-				class={quickAdd ? 'placeholder-primary-700' : ''}
-				bind:value={query}
-			/>
-			{#if quickAdd}
-				<select name="type" class="hidden" bind:value={quickAddQueryType}>
-					<option value={quickAddQueryType}>QUERY TYPE</option>
-				</select>
-			{:else}
-				<select name="type" bind:value={queryType}>
-					<option value="all">All</option>
-					<option value="unifiedProduct">Unified Product</option>
-					<option value="unifiedGuild">Guild</option>
-					<option value="unifiedSpr">SPR</option>
-					<option value="qb">QB</option>
-					<option value="shopify">Shopify</option>
-					<option value="guildData">Guild Data</option>
-					<option value="guildInventory">G. Inv.</option>
-					<option value="guildFlyer">G. Flyer</option>
-					<option value="sprPriceFile">SPR Price</option>
-					<option value="sprFlatFile">SPR Info</option>
-				</select>
-			{/if}
-
-			<button class="variant-filled-primary w-16">
-				<Search />
-			</button>
-		</div>
-	</div>
+	<SearchField
+		size={quickAdd ? 'sm' : 'lg'}
+		bind:query
+		bind:queryType
+		queryTypes={quickAdd ? [quickAddQueryType] : undefined}
+		placeholder={quickAdd ? 'Quick Add' : 'Search items…'}
+	/>
 </Form>
