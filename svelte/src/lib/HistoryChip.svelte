@@ -25,13 +25,13 @@
 
 <div class="p-0.5">
 	<span
-		class="chip hover:cursor-default whitespace-break-spaces variant-filled-surface flex flex-col sm:flex-row m-0"
+		class="chip m-0 flex cursor-default flex-col whitespace-break-spaces border border-surface-300 bg-surface-200 text-surface-800 sm:flex-row dark:border-surface-600 dark:bg-surface-700 dark:text-surface-100"
 	>
-		<span class="font-bold text-primary-500 pr-1">{key}:</span>
+		<span class="pr-1 font-bold text-primary-700 dark:text-primary-300">{key}:</span>
 		<span class="flex flex-wrap flex-col sm:flex-row">
 			{#if !create && prev !== value}
 				<BreakableText text={toReadable(prev)} />
-				<span class="font-bold text-primary-500 pr-2"> -> </span>
+				<span class="pr-2 font-bold text-primary-700 dark:text-primary-300"> -> </span>
 			{/if}
 			<span>
 				<BreakableText text={toReadable(value)} />

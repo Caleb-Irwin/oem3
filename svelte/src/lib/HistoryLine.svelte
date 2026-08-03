@@ -26,9 +26,9 @@
 	</div>
 	<div
 		class="flex items-center w-32 lg:w-60 px-2 border-l-8 {entry.entryType === 'create'
-			? 'border-primary-500'
+			? 'border-primary-500 dark:border-primary-400'
 			: entry.entryType === 'update'
-				? 'border-secondary-600'
+				? 'border-primary-600 dark:border-primary-400'
 				: 'border-error-700'}"
 	>
 		<div>
