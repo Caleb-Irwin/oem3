@@ -9,7 +9,7 @@ import { sprFlatFile } from '../flatFile/table';
 import { eq, isNull } from 'drizzle-orm';
 import { DEV } from '../../../config';
 import { chunk } from '../../../utils/chunk';
-import { checkEtilizeFile, downloadEtilizeFile, getEtilizeCredentials } from './lftp';
+import { checkEtilizeFile, downloadEtilizeFile, getEtilizeCredentials } from '../etilizeLftp';
 
 const tempFolderPath = DEV ? join(process.cwd(), 'temp') : '/tmp/oem3';
 

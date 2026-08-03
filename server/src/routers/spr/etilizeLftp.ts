@@ -3,7 +3,7 @@ const NETWORK_TIMEOUT_SECONDS = 30;
 const MAX_RETRIES = 2;
 const PROCESS_TIMEOUT_MS = 30 * 60 * 1000;
 
-type EtilizeCredentials = {
+export type EtilizeCredentials = {
 	user: string;
 	password: string;
 };
@@ -17,9 +17,7 @@ export function getEtilizeCredentials(): EtilizeCredentials {
 	const password = process.env['ETILIZE_PASSWORD'];
 
 	if (!user || !password) {
-		throw new Error(
-			'ETILIZE_USER and ETILIZE_PASSWORD must be set for SPR enhanced-content downloads'
-		);
+		throw new Error('ETILIZE_USER and ETILIZE_PASSWORD must be set for SPR Etilize downloads');
 	}
 
 	return { user, password };
@@ -100,11 +98,11 @@ async function runLftp(
 		const detail = error instanceof Error ? error.message : String(error);
 		if (/executable not found|enoent/i.test(detail)) {
 			throw new Error(
-				'lftp is required for SPR enhanced-content downloads but was not found in PATH. ' +
+				'lftp is required for SPR Etilize downloads but was not found in PATH. ' +
 					'Install it with `brew install lftp` on macOS or `sudo apt-get install lftp` on Debian/Ubuntu.'
 			);
 		}
-		throw new Error(`Unable to start lftp for SPR enhanced-content downloads: ${detail}`);
+		throw new Error(`Unable to start lftp for SPR Etilize downloads: ${detail}`);
 	}
 
 	const stdout = new Response(subprocess.stdout).text();
@@ -122,13 +120,13 @@ async function runLftp(
 	const [, errorOutput] = await Promise.all([stdout, stderr]);
 
 	if (timedOut) {
-		throw new Error('lftp timed out while downloading SPR enhanced content');
+		throw new Error('lftp timed out during an SPR Etilize download');
 	}
 
 	if (exitCode !== 0) {
 		const safeError = redactSecrets(errorOutput.trim(), credentials).slice(0, 4_000);
 		throw new Error(
-			`lftp failed while downloading SPR enhanced content (exit ${exitCode})${safeError ? `: ${safeError}` : ''}`
+			`lftp failed during an SPR Etilize download (exit ${exitCode})${safeError ? `: ${safeError}` : ''}`
 		);
 	}
 }

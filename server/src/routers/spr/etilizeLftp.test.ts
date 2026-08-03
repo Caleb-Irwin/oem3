@@ -2,9 +2,9 @@ import { describe, expect, test } from 'bun:test';
 import { chmodSync, mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { buildLftpScript, downloadEtilizeFile, quoteLftpArgument } from './lftp';
+import { buildLftpScript, downloadEtilizeFile, quoteLftpArgument } from './etilizeLftp';
 
-describe('SPR enhanced-content lftp transport', () => {
+describe('SPR Etilize lftp transport', () => {
 	test('quotes lftp arguments without allowing command injection', () => {
 		expect(quoteLftpArgument("spaces ' ; $HOME \\ value")).toBe("'spaces '\\'' ; $HOME \\ value'");
 		expect(() => quoteLftpArgument('line\nbreak')).toThrow('newline');
