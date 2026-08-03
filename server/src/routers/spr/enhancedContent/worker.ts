@@ -1,5 +1,4 @@
 import { work } from '../../../utils/workerBase';
-import { Client } from 'basic-ftp';
 import { existsSync, mkdirSync, rmSync, createReadStream } from 'fs';
 import { join } from 'path';
 import unzipper from 'unzipper';
@@ -10,6 +9,7 @@ import { sprFlatFile } from '../flatFile/table';
 import { eq, isNull } from 'drizzle-orm';
 import { DEV } from '../../../config';
 import { chunk } from '../../../utils/chunk';
+import { checkEtilizeFile, downloadEtilizeFile, getEtilizeCredentials } from './lftp';
 
 const tempFolderPath = DEV ? join(process.cwd(), 'temp') : '/tmp/oem3';
 
@@ -22,37 +22,18 @@ work({
 
 		const totalSteps = 13;
 
-		const client = new Client();
-		try {
-			await client.access({
-				host: 'ftp.etilize.com',
-				user: process.env['ETILIZE_USER'],
-				password: process.env['ETILIZE_PASSWORD'],
-				secure: true
-			});
-			progress(1 / totalSteps);
+		const credentials = getEtilizeCredentials();
+		const basicRemotePath = '/Novexco/content/EN_CA/basic/basic_EN_CA_current_mysql.zip';
+		const skuRemotePath = '/Novexco/content/EN_CA/sku/sku_EN_CA_current_mysql.zip';
 
-			const { code: code0 } = await client.downloadTo(
-				tempFolderPath + '/basic.zip',
-				'/Novexco/content/EN_CA/basic/basic_EN_CA_current_mysql.zip'
-			);
-			progress(2 / totalSteps);
+		await checkEtilizeFile(credentials, basicRemotePath);
+		progress(1 / totalSteps);
 
-			const { code: code1 } = await client.downloadTo(
-				tempFolderPath + '/sku.zip',
-				'/Novexco/content/EN_CA/sku/sku_EN_CA_current_mysql.zip'
-			);
-			progress(3 / totalSteps);
+		await downloadEtilizeFile(credentials, basicRemotePath, tempFolderPath + '/basic.zip');
+		progress(2 / totalSteps);
 
-			if (code0 !== 226 || code1 !== 226) {
-				throw new Error('Download failed');
-			}
-
-			client.close();
-		} catch (err) {
-			client.close();
-			throw err;
-		}
+		await downloadEtilizeFile(credentials, skuRemotePath, tempFolderPath + '/sku.zip');
+		progress(3 / totalSteps);
 
 		await unzipFile(tempFolderPath + '/basic.zip', tempFolderPath + '/basic');
 		await unzipFile(tempFolderPath + '/sku.zip', tempFolderPath + '/sku');

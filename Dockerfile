@@ -31,6 +31,9 @@ RUN bun run build
 
 # copy production dependencies and source code into final image
 FROM base AS release
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates lftp \
+	&& rm -rf /var/lib/apt/lists/*
 COPY --from=svelte-install /temp/svelte/prod/node_modules ./svelte/node_modules
 COPY --from=svlete-prerelease /usr/src/app/build/. ./svelte/build/.
 COPY --from=svlete-prerelease /usr/src/app/package.json ./svelte/.
