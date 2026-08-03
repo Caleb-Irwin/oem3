@@ -1,6 +1,5 @@
-import { enforceEnum, genDiffer, removeNaN } from '../../../utils/changeset.helpers';
+import { genDiffer, removeNaN } from '../../../utils/changeset.helpers';
 import { work } from '../../../utils/workerBase';
-import { guildUmEnum } from '../data/table';
 import { guildInventory } from './table';
 import Papa from 'papaparse';
 
@@ -47,8 +46,9 @@ function transformGuildInventory(item: GuildInventoryRaw): typeof guildInventory
 		spr: item['SPR#']?.trim() ?? null,
 		basics: item['Basics#']?.trim() ?? null,
 		cis: item['CIS#']?.trim() ?? null,
-		um: enforceEnum(item['Unit of Measure'].toLowerCase(), guildUmEnum.enumValues),
-		qtyPerUm: removeNaN(parseInt(item['Qty/UoM'])),
+		// The current inventory file no longer includes unit-of-measure data.
+		um: null,
+		qtyPerUm: null,
 		lastUpdated: 0
 	};
 }
@@ -61,6 +61,4 @@ export interface GuildInventoryRaw {
 	'SPR#': string;
 	'Basics#': string;
 	'CIS#': string;
-	'Qty/UoM': string;
-	'Unit of Measure': string;
 }

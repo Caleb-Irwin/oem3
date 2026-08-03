@@ -42,7 +42,7 @@ export const guildUnifier = createUnifier<
 >({
 	table: unifiedGuild,
 	confTable: unifiedGuildCellConfig,
-	version: 35,
+	version: 36,
 	getRow,
 	transform: (item, t) => {
 		return {
@@ -115,14 +115,8 @@ export const guildUnifier = createUnifier<
 						? null
 						: item.dataRowContent.memberPriceCents)
 			),
-			um: t('um', item.dataRowContent.um, {
-				shouldMatch: {
-					primary: 'Guild Data UM',
-					secondary: 'Guild Inventory UM',
-					val: item.inventoryRowContent?.um ?? null,
-					ignore: item.inventoryRowContent === null
-				}
-			}),
+			// Inventory no longer provides unit-of-measure data; use Guild Data only.
+			um: t('um', item.dataRowContent.um),
 			qtyPerUm: t('qtyPerUm', item.dataRowContent.standardPackQty, {
 				// shouldMatch: {
 				//   name: "Guild Inventory Qty Per UM",

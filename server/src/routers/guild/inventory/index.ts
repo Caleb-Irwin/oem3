@@ -22,17 +22,7 @@ const files = fileProcedures(
 				.split(',')
 				.map((x) => x.split('"')[1]);
 
-		[
-			'SKU',
-			'Qty On Hand',
-			'Product#',
-			'UPC#',
-			'SPR#',
-			'Basics#',
-			'CIS#',
-			'Qty/UoM',
-			'Unit of Measure'
-		].forEach((key) => {
+		['SKU', 'Qty On Hand', 'Product#', 'UPC#', 'SPR#', 'Basics#', 'CIS#'].forEach((key) => {
 			if (!headers.includes(key))
 				throw new TRPCError({
 					message: 'Missing Column: ' + key,
