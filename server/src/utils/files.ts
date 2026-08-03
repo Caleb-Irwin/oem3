@@ -15,7 +15,12 @@ export const fileProcedures = (
 	verifyFunction: (dataUrl: string, fileType: string) => Promise<void> | void,
 	runWorker: RunWorker,
 	cloudDownload:
-		| (() => Promise<{ name: string; dataUrl: string; apply?: boolean } | null>)
+		| (() => Promise<{
+				name: string;
+				dataUrl: string;
+				apply?: boolean;
+				onUploaded?: () => Promise<void> | void;
+		  } | null>)
 		| undefined = undefined,
 	dailyRunCloudDownload = false
 ) => {
@@ -81,6 +86,7 @@ export const fileProcedures = (
 				},
 				ctx: { user: { username: null as any } }
 			});
+			await file.onUploaded?.();
 		});
 	}
 
@@ -145,6 +151,7 @@ export const fileProcedures = (
 					},
 					ctx
 				});
+				await file.onUploaded?.();
 				return { message: `File #${fileId} "${file.name}" Downloaded` };
 			};
 

@@ -6,6 +6,7 @@ import * as xlsx from 'xlsx';
 import { KV } from '../../../utils/kv';
 import type { GuildFlyerRaw } from './worker';
 import { ensureSheetCols } from '../../../utils/ensureSheetCols';
+import { getLatestFlyerFileName } from './source';
 
 const { worker, runWorker, hook } = managedWorker(
 	new URL('worker.ts', import.meta.url).href,
@@ -46,7 +47,7 @@ export const flyerRouter = router({
 				await fetch('https://www.guildstationers.com/images/+Public/MA-Data/+Vezina_J/?C=M;O=D')
 			).text();
 
-			const fileName = (txt.match(/(?<=href=").*?TCC_Flyer_File\.xlsx(?=")/g) ?? [])[0];
+			const fileName = getLatestFlyerFileName(txt);
 
 			if (!fileName)
 				throw new TRPCError({
@@ -80,8 +81,13 @@ export const flyerRouter = router({
 				fileName.indexOf('.') + 1
 			)}`;
 
-			await kv.set('lastDownloadedName', encodeURIComponent(fileName));
-			return { name, dataUrl, apply: false };
+			const downloadedName = encodeURIComponent(fileName);
+			return {
+				name,
+				dataUrl,
+				apply: false,
+				onUploaded: () => kv.set('lastDownloadedName', downloadedName)
+			};
 		},
 		true
 	),
