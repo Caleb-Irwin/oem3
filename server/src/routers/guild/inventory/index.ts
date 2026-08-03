@@ -35,8 +35,9 @@ const files = fileProcedures(
 		const kv = new KV('guildInventory');
 
 		const res = await fetch(
-			'http://www.guildstationers.com/images/+Public/+Data_Qty/qryInventory-2.csv'
+			'https://www.guildstationers.com/images/+Public/+Data_Qty/qryInventory.csv'
 		);
+		if (!res.ok) throw new Error(`Guild inventory download failed (${res.status})`);
 
 		const name =
 			'Inventory @ ' +
@@ -49,9 +50,11 @@ const files = fileProcedures(
 
 		const dataUrl = `data:${res.headers.get('Content-Type')};base64,${btoa(await res.text())}`;
 
-		await kv.set('lastDownloadedName', encodeURIComponent(name));
-
-		return { name, dataUrl };
+		return {
+			name,
+			dataUrl,
+			onUploaded: () => kv.set('lastDownloadedName', encodeURIComponent(name))
+		};
 	},
 	true
 );
