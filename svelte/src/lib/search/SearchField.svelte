@@ -13,6 +13,8 @@
 		placeholder?: string;
 		autofocus?: boolean;
 		loading?: boolean;
+		showSubmitButton?: boolean;
+		ariaLabel?: string;
 		/** Allowed scopes. A single scope is submitted silently instead of showing a selector. */
 		queryTypes?: QueryType[];
 	}
@@ -24,6 +26,8 @@
 		placeholder = 'Search items…',
 		autofocus = false,
 		loading = false,
+		showSubmitButton = true,
+		ariaLabel = 'Search query',
 		queryTypes = queryTypeOptions.map((option) => option.value)
 	}: Props = $props();
 
@@ -59,7 +63,7 @@
 			name="query"
 			{placeholder}
 			{autofocus}
-			aria-label="Search query"
+			aria-label={ariaLabel}
 			autocomplete="off"
 			class="h-full min-w-0 flex-1 rounded-l-full p-0 pr-3 placeholder:text-surface-400 dark:placeholder:text-surface-300 {controlReset} {large
 				? 'pl-14 text-lg'
@@ -89,21 +93,23 @@
 			<input type="hidden" name="type" value={queryType} />
 		{/if}
 
-		<button
-			type="submit"
-			class="btn my-1.5 shrink-0 variant-ghost-primary {large ? 'ml-2 px-6' : 'ml-1.5 px-4'}"
-			aria-label="Search"
-			disabled={loading}
-		>
-			{#if loading}
-				<LoaderCircle size={large ? 20 : 16} class="animate-spin" />
-			{:else}
-				<Search size={large ? 20 : 16} />
-			{/if}
-			{#if large}
-				<span class="ml-2 hidden sm:inline">Search</span>
-			{/if}
-		</button>
+		{#if showSubmitButton}
+			<button
+				type="submit"
+				class="btn my-1.5 shrink-0 variant-ghost-primary {large ? 'ml-2 px-6' : 'ml-1.5 px-4'}"
+				aria-label="Search"
+				disabled={loading}
+			>
+				{#if loading}
+					<LoaderCircle size={large ? 20 : 16} class="animate-spin" />
+				{:else}
+					<Search size={large ? 20 : 16} />
+				{/if}
+				{#if large}
+					<span class="ml-2 hidden sm:inline">Search</span>
+				{/if}
+			</button>
+		{/if}
 	</div>
 
 	{#if showTypeSelect}

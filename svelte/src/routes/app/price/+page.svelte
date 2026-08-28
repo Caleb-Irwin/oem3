@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { getModalStore, ProgressBar } from '@skeletonlabs/skeleton';
-	import Search from 'lucide-svelte/icons/search';
 	import { client, subVal } from '$lib/client';
 	import OldSearch from '$lib/search/OldSearch.svelte';
+	import SearchField from '$lib/search/SearchField.svelte';
 	import PriceForm from './PriceForm.svelte';
 	import PriceRow from './PriceRow.svelte';
 	import type { PageProps } from './$types';
@@ -53,21 +53,18 @@
 			</p>
 		</div>
 
-		<div class="flex flex-col md:flex-row gap-2 pb-4">
-			<label
-				class="flex h-14 flex-grow items-center rounded-full border border-surface-300 bg-surface-100 px-5 shadow-sm transition-colors focus-within:border-primary-500 dark:border-surface-400/40 dark:bg-surface-700"
-			>
-				<Search size={20} class="shrink-0 text-surface-400 dark:text-surface-300" />
-				<input
-					type="search"
-					placeholder="Filter this price list"
-					aria-label="Filter this price list"
-					class="h-full min-w-0 flex-1 border-0 bg-transparent bg-none px-3 outline-none focus:!outline-none focus:ring-0"
-					bind:value={filter}
-				/>
-			</label>
-			<div class="md:w-[28rem]">
-				<OldSearch quickAdd quickAddQueryType="unifiedProduct" select={addProduct} />
+		<div class="grid grid-cols-1 gap-2 pb-4 md:grid-cols-2">
+			<SearchField
+				size="lg"
+				queryType="unifiedProduct"
+				queryTypes={['unifiedProduct']}
+				placeholder="Filter this price list"
+				ariaLabel="Filter this price list"
+				showSubmitButton={false}
+				bind:query={filter}
+			/>
+			<div class="w-full min-w-0">
+				<OldSearch quickAdd quickAddQueryType="unifiedProduct" select={addProduct} size="lg" />
 			</div>
 		</div>
 
