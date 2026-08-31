@@ -1,16 +1,23 @@
 import { TRPCError } from '@trpc/server';
-import { router, viewerProcedure } from '../../trpc';
+import { generalProcedure, router, viewerProcedure } from '../../trpc';
 import { fileProcedures } from '../../utils/files';
 import { managedWorker } from '../../utils/managedWorker';
 import { z } from 'zod';
 import { db } from '../../db';
-import { eq, isNull } from 'drizzle-orm';
+import { and, eq, gte, isNull } from 'drizzle-orm';
 import { qb } from './table';
 import { unifiedProduct } from '../product/table';
 import { unifiedGuild } from '../guild/table';
 import { guildFlyer } from '../guild/flyer/table';
+import { files, qbInventoryHistory } from '../../db.schema';
+import { getFileRow } from '../../utils/files.s3';
+import Papa from 'papaparse';
+import type { QbItemRaw } from './worker';
 
-const { worker, runWorker, hook } = managedWorker(new URL('worker.ts', import.meta.url).href, 'qb');
+const { worker, runWorker, hook, triggerHooks } = managedWorker(
+	new URL('worker.ts', import.meta.url).href,
+	'qb'
+);
 export const qbHook = hook;
 
 export const qbRouter = router({
@@ -51,6 +58,78 @@ export const qbRouter = router({
 		runWorker
 	),
 	worker,
+	backfillInventoryHistory: generalProcedure.input(z.object({})).mutation(async () => {
+		const oldestUpload = new Date();
+		oldestUpload.setMonth(oldestUpload.getMonth() - 3);
+		const recentFiles = await db
+			.select({ id: files.id, uploadedTime: files.uploadedTime })
+			.from(files)
+			.where(and(eq(files.type, 'qb'), gte(files.uploadedTime, oldestUpload.getTime())))
+			.orderBy(files.uploadedTime);
+
+		const qbRowsById = new Map(
+			(await db.select({ id: qb.id, qbId: qb.qbId }).from(qb)).map((item) => [item.qbId, item.id])
+		);
+		let snapshotsAdded = 0;
+		let matchedItems = 0;
+
+		for (const file of recentFiles) {
+			if (file.uploadedTime === null) continue;
+			const recordedAt = file.uploadedTime;
+			const storedFile = await getFileRow(file.id);
+			if (!storedFile?.content) continue;
+			const dataUrl = storedFile.content;
+			const parsed = Papa.parse<QbItemRaw>(atob(dataUrl.slice(dataUrl.indexOf('base64,') + 7)), {
+				header: true,
+				skipEmptyLines: true
+			});
+			const snapshots = [
+				...new Map(
+					parsed.data
+						.filter((item) => item.Type === 'Inventory Part')
+						.map((item) => {
+							const qbRow = qbRowsById.get(item.Item);
+							if (qbRow === undefined) return null;
+							const numberOrNull = (value: string) => {
+								const number = parseInt(value);
+								return Number.isNaN(number) ? null : number;
+							};
+							return [
+								qbRow,
+								{
+									qbRow,
+									quantityOnHand: numberOrNull(item['Quantity On Hand']),
+									quantityOnSalesOrder: numberOrNull(item['Quantity On Sales Order']),
+									quantityOnPurchaseOrder: numberOrNull(item['Quantity On Purchase Order']),
+									sourceFile: file.id,
+									recordedAt
+								}
+							] as const;
+						})
+						.filter((entry): entry is NonNullable<typeof entry> => entry !== null)
+				).values()
+			];
+			matchedItems += snapshots.length;
+
+			for (let start = 0; start < snapshots.length; start += 5000) {
+				const inserted = await db
+					.insert(qbInventoryHistory)
+					.values(snapshots.slice(start, start + 5000))
+					.onConflictDoNothing({
+						target: [qbInventoryHistory.qbRow, qbInventoryHistory.sourceFile]
+					})
+					.returning({ id: qbInventoryHistory.id });
+				snapshotsAdded += inserted.length;
+			}
+		}
+
+		triggerHooks();
+		return {
+			filesProcessed: recentFiles.length,
+			matchedItems,
+			snapshotsAdded
+		};
+	}),
 	priceChanges: viewerProcedure
 		.input(
 			z.object({

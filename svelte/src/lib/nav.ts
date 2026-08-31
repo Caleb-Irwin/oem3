@@ -8,6 +8,7 @@ import Calculator from 'lucide-svelte/icons/calculator';
 import ShoppingBag from 'lucide-svelte/icons/shopping-bag';
 import ShieldCheck from 'lucide-svelte/icons/shield-check';
 import BadgeDollarSign from 'lucide-svelte/icons/badge-dollar-sign';
+import PackageSearch from 'lucide-svelte/icons/package-search';
 
 /** A destination shown both in the nav bar menus and as a home page tile. */
 export interface NavItem {
@@ -23,6 +24,11 @@ export const workflows: NavItem[] = [
 		href: '/app/shelf',
 		title: 'Shelf Labels',
 		icon: Tags
+	},
+	{
+		href: '/app/order-planner',
+		title: 'Order Planner',
+		icon: PackageSearch
 	},
 	{
 		href: '/app/price',

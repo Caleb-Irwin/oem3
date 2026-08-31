@@ -1,7 +1,8 @@
 import { work } from '../../utils/workerBase';
 import Papa from 'papaparse';
-import { qb, qbItemTypeEnum, qbUmEnum, taxCodeEnum } from './table';
+import { qb, qbInventoryHistory, qbItemTypeEnum, qbUmEnum, taxCodeEnum } from '../../db.schema';
 import { enforceEnum, genDiffer, removeNaN } from '../../utils/changeset.helpers';
+import { eq } from 'drizzle-orm';
 
 work({
 	process: async ({ db, progress, message, utils: { createChangeset, getFileDataUrl } }) => {
@@ -50,6 +51,33 @@ work({
 				progress,
 				fileId
 			});
+
+			const recordedAt = Date.now();
+			const currentInventory = await db
+				.select({
+					qbRow: qb.id,
+					quantityOnHand: qb.quantityOnHand,
+					quantityOnSalesOrder: qb.quantityOnSalesOrder,
+					quantityOnPurchaseOrder: qb.quantityOnPurchaseOrder
+				})
+				.from(qb)
+				.where(eq(qb.deleted, false));
+
+			// Keep inserts below PostgreSQL's parameter limit for larger item files.
+			for (let start = 0; start < currentInventory.length; start += 5000) {
+				await db
+					.insert(qbInventoryHistory)
+					.values(
+						currentInventory.slice(start, start + 5000).map((item) => ({
+							...item,
+							sourceFile: fileId,
+							recordedAt
+						}))
+					)
+					.onConflictDoNothing({
+						target: [qbInventoryHistory.qbRow, qbInventoryHistory.sourceFile]
+					});
+			}
 		});
 	}
 });

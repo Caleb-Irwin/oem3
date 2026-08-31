@@ -11,6 +11,7 @@ import { sprRouter } from './routers/spr';
 import { unifiedRouter } from './routers/unified';
 import { summariesRouter } from './routers/summaries';
 import { productRouter } from './routers/product';
+import { orderPlannerRouter } from './routers/orderPlanner';
 
 export const appRouter = router({
 	user: userRouter,
@@ -24,5 +25,6 @@ export const appRouter = router({
 	spr: sprRouter,
 	unified: unifiedRouter,
 	summaries: summariesRouter,
-	product: productRouter
+	product: productRouter,
+	orderPlanner: orderPlannerRouter
 });

@@ -1,0 +1,1 @@
+ALTER TABLE "low_inventory_orders" ADD COLUMN "notes" text DEFAULT '' NOT NULL;

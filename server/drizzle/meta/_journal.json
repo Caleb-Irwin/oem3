@@ -855,6 +855,41 @@
       "when": 1764433060079,
       "tag": "0121_new_scourge",
       "breakpoints": true
+    },
+    {
+      "idx": 122,
+      "version": "7",
+      "when": 1788145765801,
+      "tag": "0122_flowery_mauler",
+      "breakpoints": true
+    },
+    {
+      "idx": 123,
+      "version": "7",
+      "when": 1788148567753,
+      "tag": "0123_odd_felicia_hardy",
+      "breakpoints": true
+    },
+    {
+      "idx": 124,
+      "version": "7",
+      "when": 1788149585419,
+      "tag": "0124_chubby_the_professor",
+      "breakpoints": true
+    },
+    {
+      "idx": 125,
+      "version": "7",
+      "when": 1788149645419,
+      "tag": "0125_lyrical_the_professor",
+      "breakpoints": true
+    },
+    {
+      "idx": 126,
+      "version": "7",
+      "when": 1788149705419,
+      "tag": "0126_smooth_the_hand",
+      "breakpoints": true
     }
   ]
 }
