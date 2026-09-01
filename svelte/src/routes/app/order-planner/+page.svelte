@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { ProgressBar, getModalStore, getToastStore } from '@skeletonlabs/skeleton';
 	import Boxes from 'lucide-svelte/icons/boxes';
+	import ChevronDown from 'lucide-svelte/icons/chevron-down';
 	import ClipboardList from 'lucide-svelte/icons/clipboard-list';
+	import PackagePlus from 'lucide-svelte/icons/package-plus';
 	import TriangleAlert from 'lucide-svelte/icons/triangle-alert';
 	import { client, handleTRPCError, subVal } from '$lib/client';
 	import OldSearch from '$lib/search/OldSearch.svelte';
@@ -19,7 +21,7 @@
 
 	let view: 'list' | 'orders' = $state('list');
 	let filter = $state('');
-	let orderFilter: 'all' | 'unassigned' = $state('all');
+	let orderFilter: 'all' | 'unassigned' = $state('unassigned');
 	let selectedItemIds: number[] = $state([]);
 	let duplicateWarning: { qbRow: number; locations: string[] } | null = $state(null);
 	const canEdit = $derived(
@@ -27,6 +29,27 @@
 	);
 	const activeItems = $derived(
 		($planner?.items ?? []).filter((item) => item.orderStatus !== 'completed')
+	);
+	const openOrderCount = $derived(
+		($planner?.orders ?? []).filter((order) => order.status === 'draft').length
+	);
+	const tabs = $derived([
+		{ id: 'list' as const, label: 'Items', icon: Boxes, count: activeItems.length, unit: 'active' },
+		{
+			id: 'orders' as const,
+			label: 'Orders',
+			icon: ClipboardList,
+			count: openOrderCount,
+			unit: 'open'
+		}
+	]);
+
+	/** Plain-language names for whatever is currently narrowing the list, for the empty state. */
+	const activeFilterLabels = $derived(
+		[
+			orderFilter === 'unassigned' ? 'not in an order' : null,
+			filter.trim() ? `matching “${filter.trim()}”` : null
+		].filter((label) => label !== null)
 	);
 	const filteredItems = $derived.by(() => {
 		const query = filter.trim().toLowerCase();
@@ -60,6 +83,11 @@
 		return [...grouped.entries()]
 			.map(([vendor, vendorItems]) => ({ vendor, items: vendorItems }))
 			.sort((a, b) => a.vendor.localeCompare(b.vendor));
+	}
+
+	function clearFilters() {
+		filter = '';
+		orderFilter = 'all';
 	}
 
 	function toggleItem(id: number, selected: boolean) {
@@ -193,45 +221,42 @@
 {/if}
 
 <div class="order-planner-route mx-auto w-full max-w-[1500px] p-4 sm:p-6">
-	<header class="mb-5 text-center">
-		<h1 class="h2 font-semibold">Order Planner</h1>
-	</header>
-
-	<div class="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-		<div
-			class="inline-flex self-start rounded-lg bg-surface-200 p-1 dark:bg-surface-700"
-			role="tablist"
-		>
-			<button
-				class="btn gap-2 {view === 'list' ? 'bg-surface-50 shadow dark:bg-surface-800' : ''}"
-				role="tab"
-				aria-selected={view === 'list'}
-				onclick={() => (view = 'list')}
-			>
-				<Boxes size={18} />
-				Items
-			</button>
-			<button
-				class="btn gap-2 {view === 'orders' ? 'bg-surface-50 shadow dark:bg-surface-800' : ''}"
-				role="tab"
-				aria-selected={view === 'orders'}
-				onclick={() => (view = 'orders')}
-			>
-				<ClipboardList size={18} />
-				Orders
-			</button>
+	<div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+		<div>
+			<h1 class="h3">Order Planner</h1>
+			<p class="mt-1 text-sm text-surface-600 dark:text-surface-300">
+				Flag low-stock items and group them into supplier orders.
+			</p>
 		</div>
 
-		{#if $planner}
-			<div class="flex flex-wrap gap-2 text-sm">
-				<span class="rounded-full bg-surface-200 px-3 py-1 dark:bg-surface-700">
-					{activeItems.length} active
-				</span>
-				<span class="rounded-full bg-surface-200 px-3 py-1 dark:bg-surface-700">
-					{$planner.orders.filter((order) => order.status === 'draft').length} open orders
-				</span>
-			</div>
-		{/if}
+		<div
+			class="inline-flex self-start rounded-lg bg-surface-200 p-1 dark:bg-surface-700 sm:self-auto"
+			role="tablist"
+		>
+			{#each tabs as tab (tab.id)}
+				{@const active = view === tab.id}
+				<button
+					class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors {active
+						? 'bg-surface-50 shadow-sm dark:bg-surface-800'
+						: 'text-surface-600 hover:text-surface-900 dark:text-surface-300 dark:hover:text-surface-50'}"
+					role="tab"
+					aria-selected={active}
+					onclick={() => (view = tab.id)}
+				>
+					<tab.icon size={16} />
+					{tab.label}
+					{#if $planner}
+						<span
+							class="rounded-full px-1.5 py-0.5 text-xs tabular-nums {active
+								? 'bg-surface-200 dark:bg-surface-700'
+								: 'bg-surface-300/70 dark:bg-surface-800'}"
+						>
+							{tab.count}<span class="sr-only"> {tab.unit}</span>
+						</span>
+					{/if}
+				</button>
+			{/each}
+		</div>
 	</div>
 
 	{#if $planner === undefined}
@@ -241,7 +266,26 @@
 	{:else if view === 'orders'}
 		<OrderView data={$planner} {canEdit} onAssign={assign} />
 	{:else}
-		<div class="mb-4 grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+		{#if canEdit}
+			<section class="card mb-4 p-4">
+				<h2 class="mb-3 flex items-center gap-2 font-semibold">
+					<PackagePlus size={18} class="text-primary-600 dark:text-primary-400" />
+					Add an item to the planner
+					<span class="font-normal text-surface-500 dark:text-surface-300">
+						— search QuickBooks to flag a low-stock item
+					</span>
+				</h2>
+				<OldSearch
+					quickAdd
+					quickAddQueryType="qb"
+					select={flagItem}
+					size="lg"
+					class="w-full min-w-0"
+				/>
+			</section>
+		{/if}
+
+		<div class="mb-4">
 			<SearchField
 				size="lg"
 				queryType="qb"
@@ -250,17 +294,29 @@
 				ariaLabel="Filter order planner"
 				showSubmitButton={false}
 				bind:query={filter}
-			/>
-			<label>
-				<span class="sr-only">Filter items by order</span>
-				<select class="select h-full min-h-12 w-full md:w-44" bind:value={orderFilter}>
-					<option value="all">All active items</option>
-					<option value="unassigned">Not in an order</option>
-				</select>
-			</label>
-			{#if canEdit}
-				<OldSearch quickAdd quickAddQueryType="qb" select={flagItem} size="lg" />
-			{/if}
+			>
+				{#snippet trailing(place)}
+					<label class="relative flex items-stretch {place === 'pill' ? 'h-full' : 'h-10'}">
+						<span class="sr-only">Filter items by order</span>
+						<select
+							bind:value={orderFilter}
+							class={place === 'pill'
+								? 'h-full cursor-pointer appearance-none truncate border-0 bg-transparent bg-none py-0 pl-3 pr-7 text-sm font-medium outline-none focus:!outline-none focus:ring-0'
+								: 'select h-full w-full cursor-pointer appearance-none bg-none py-0 pl-3 pr-9 text-sm font-medium'}
+						>
+							<option value="all">All active items</option>
+							<option value="unassigned">Not in an order</option>
+						</select>
+						<ChevronDown
+							size={16}
+							class="pointer-events-none absolute top-1/2 -translate-y-1/2 text-surface-400 dark:text-surface-300 {place ===
+							'pill'
+								? 'right-1.5'
+								: 'right-3'}"
+						/>
+					</label>
+				{/snippet}
+			</SearchField>
 		</div>
 
 		{#if selectedItemIds.length > 0 && canEdit}
@@ -351,18 +407,24 @@
 				</section>
 			{:else}
 				<div class="card p-10 text-center">
-					<h2 class="h3 font-semibold">
-						{filter.trim() || orderFilter === 'unassigned'
-							? 'No matching items'
-							: 'No low-stock items'}
-					</h2>
-					<p class="mt-1 text-surface-600 dark:text-surface-300">
-						{filter.trim() || orderFilter === 'unassigned'
-							? 'Try a different item, vendor, or order name.'
-							: canEdit
+					{#if activeItems.length > 0}
+						<h2 class="h3 font-semibold">No matching items</h2>
+						<p class="mt-1 text-surface-600 dark:text-surface-300">
+							All {activeItems.length}
+							{activeItems.length === 1 ? 'item' : 'items'} on the planner are hidden by your current
+							filters ({activeFilterLabels.join(', ')}).
+						</p>
+						<button class="btn variant-soft-primary mt-4" onclick={clearFilters}>
+							Clear filters
+						</button>
+					{:else}
+						<h2 class="h3 font-semibold">No low-stock items</h2>
+						<p class="mt-1 text-surface-600 dark:text-surface-300">
+							{canEdit
 								? 'Use the QuickBooks search above when an employee spots low stock.'
 								: 'Employees have not flagged any items.'}
-					</p>
+						</p>
+					{/if}
 				</div>
 			{/each}
 		</div>

@@ -3,6 +3,7 @@
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
 	import LoaderCircle from 'lucide-svelte/icons/loader-circle';
 	import { DEFAULT_QUERY_TYPE, queryTypeOptions } from './queryTypes';
+	import type { Snippet } from 'svelte';
 	import type { QueryType } from '../../../../server/src/routers/search';
 
 	interface Props {
@@ -17,6 +18,11 @@
 		ariaLabel?: string;
 		/** Allowed scopes. A single scope is submitted silently instead of showing a selector. */
 		queryTypes?: QueryType[];
+		/**
+		 * An extra control that belongs to the query, drawn inside the pill on desktop and stacked
+		 * underneath on mobile. `place` tells the caller which of the two is rendering.
+		 */
+		trailing?: Snippet<[place: 'pill' | 'stacked']>;
 	}
 
 	let {
@@ -28,7 +34,8 @@
 		loading = false,
 		showSubmitButton = true,
 		ariaLabel = 'Search query',
-		queryTypes = queryTypeOptions.map((option) => option.value)
+		queryTypes = queryTypeOptions.map((option) => option.value),
+		trailing = undefined
 	}: Props = $props();
 
 	const large = $derived(size === 'lg');
@@ -93,6 +100,13 @@
 			<input type="hidden" name="type" value={queryType} />
 		{/if}
 
+		{#if trailing}
+			<div class="my-3 hidden w-px shrink-0 bg-surface-300 dark:bg-surface-400/40 sm:block"></div>
+			<div class="hidden shrink-0 items-stretch sm:flex">
+				{@render trailing('pill')}
+			</div>
+		{/if}
+
 		{#if showSubmitButton}
 			<button
 				type="submit"
@@ -129,5 +143,11 @@
 				class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 dark:text-surface-300"
 			/>
 		</label>
+	{/if}
+
+	{#if trailing}
+		<div class="sm:hidden">
+			{@render trailing('stacked')}
+		</div>
 	{/if}
 </div>

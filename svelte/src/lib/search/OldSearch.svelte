@@ -15,6 +15,8 @@
 		initQuery?: string;
 		altRes?: (res: Awaited<ReturnType<typeof client.search.search.query>>) => void;
 		size?: 'sm' | 'lg';
+		/** Overrides the form wrapper, whose default centres the field at a readable width. */
+		class?: string;
 	}
 
 	let {
@@ -23,7 +25,8 @@
 		quickAddQueryType = 'all',
 		initQuery = '',
 		altRes,
-		size
+		size,
+		class: className = 'mx-auto min-w-0 w-full max-w-3xl'
 	}: Props = $props();
 
 	const modalStore = getModalStore();
@@ -69,7 +72,7 @@
 			}
 		});
 	}}
-	class="mx-auto min-w-0 w-full max-w-3xl"
+	class={className}
 	noReset
 >
 	<SearchField
