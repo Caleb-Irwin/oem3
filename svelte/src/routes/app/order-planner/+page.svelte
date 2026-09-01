@@ -192,7 +192,7 @@
 	</div>
 {/if}
 
-<div class="mx-auto w-full max-w-[1500px] p-4 sm:p-6">
+<div class="order-planner-route mx-auto w-full max-w-[1500px] p-4 sm:p-6">
 	<header class="mb-5 text-center">
 		<h1 class="h2 font-semibold">Order Planner</h1>
 	</header>
@@ -209,7 +209,7 @@
 				onclick={() => (view = 'list')}
 			>
 				<Boxes size={18} />
-				Basic view
+				Items
 			</button>
 			<button
 				class="btn gap-2 {view === 'orders' ? 'bg-surface-50 shadow dark:bg-surface-800' : ''}"

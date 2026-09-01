@@ -6,11 +6,13 @@
 	import ClipboardPenLine from 'lucide-svelte/icons/clipboard-pen-line';
 	import History from 'lucide-svelte/icons/history';
 	import Plus from 'lucide-svelte/icons/plus';
+	import Printer from 'lucide-svelte/icons/printer';
 	import Send from 'lucide-svelte/icons/send';
 	import Trash2 from 'lucide-svelte/icons/trash-2';
 	import { client, handleTRPCError } from '$lib/client';
 	import CreateOrder from './CreateOrder.svelte';
 	import OrderPlannerItem from './OrderPlannerItem.svelte';
+	import PrintOrder from './PrintOrder.svelte';
 	import type {
 		CompletedOrder,
 		OrderPlannerData,
@@ -230,6 +232,10 @@
 		selectedItemIds = [];
 	}
 
+	function printOrder() {
+		window.print();
+	}
+
 	function openCreateOrder() {
 		modalStore.trigger({
 			type: 'component',
@@ -308,346 +314,268 @@
 	}
 </script>
 
-<div class="grid min-w-0 gap-4 lg:grid-cols-[270px_minmax(0,1fr)]">
-	<div class="h-fit space-y-4">
-		{#if canEdit}
-			<button
-				class="btn variant-filled-primary w-full justify-center gap-2 py-3"
-				onclick={openCreateOrder}
-			>
-				<Plus size={19} />
-				Create a new order
-			</button>
-		{/if}
+<div class="order-planner-page">
+	<div class="screen-order-planner grid min-w-0 gap-4 lg:grid-cols-[270px_minmax(0,1fr)]">
+		<div class="h-fit space-y-4">
+			{#if canEdit}
+				<button
+					class="btn variant-filled-primary w-full justify-center gap-2 py-3"
+					onclick={openCreateOrder}
+				>
+					<Plus size={19} />
+					Create a new order
+				</button>
+			{/if}
 
-		<aside class="card p-3">
-			<div class="px-2 pb-3">
-				<h2 class="flex items-center gap-2 font-semibold">
-					<ClipboardPenLine size={18} />
-					Current orders
-				</h2>
-				<p class="mt-1 text-xs text-surface-600 dark:text-surface-300">
-					Orders still being prepared or sent to a vendor.
-				</p>
-			</div>
-
-			<nav class="space-y-4" aria-label="Current order planner orders">
-				{#each ['draft', 'sent'] as status}
-					{@const statusOrders = data.orders.filter((order) => order.status === status)}
-					{#if statusOrders.length > 0}
-						<section>
-							<h3
-								class="mb-1 px-2 text-xs font-semibold uppercase tracking-wide text-surface-500 dark:text-surface-300"
-							>
-								{status === 'draft' ? 'Open' : 'Sent to vendor'}
-							</h3>
-							<div class="space-y-1">
-								{#each statusOrders as order (order.id)}
-									<button
-										class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left {selectedOrderId ===
-										order.id
-											? 'bg-primary-100 text-primary-900 dark:bg-primary-900/40 dark:text-primary-100'
-											: 'hover:bg-surface-100 dark:hover:bg-surface-700'}"
-										onclick={() => selectOrder(order.id)}
-									>
-										<span class="min-w-0 flex-1 truncate font-medium">{order.name}</span>
-										<span
-											class="rounded-full bg-surface-200 px-2 py-0.5 text-xs tabular-nums dark:bg-surface-600"
-										>
-											{data.items.filter((item) => item.orderId === order.id).length}
-										</span>
-									</button>
-								{/each}
-							</div>
-						</section>
-					{/if}
-				{/each}
-				{#if data.orders.length === 0}
-					<p
-						class="rounded-md bg-surface-100 px-3 py-4 text-center text-sm text-surface-600 dark:bg-surface-700 dark:text-surface-300"
-					>
-						No current orders.
+			<aside class="card p-3">
+				<div class="px-2 pb-3">
+					<h2 class="flex items-center gap-2 font-semibold">
+						<ClipboardPenLine size={18} />
+						Current orders
+					</h2>
+					<p class="mt-1 text-xs text-surface-600 dark:text-surface-300">
+						Orders still being prepared or sent to a vendor.
 					</p>
-				{/if}
-			</nav>
-		</aside>
+				</div>
 
-		<aside class="card p-3">
-			<div class="px-2 pb-3">
-				<h2 class="flex items-center gap-2 font-semibold">
-					<History size={18} />
-					Order history
-				</h2>
-				<p class="mt-1 text-xs text-surface-600 dark:text-surface-300">
-					Completed orders are kept here for reference.
-					{#if data.completedCount > 0}
-						Showing {completedOrders.length} of {data.completedCount}.
-					{/if}
-				</p>
-			</div>
-			<nav aria-label="Completed order planner orders">
-				<div class="space-y-1">
-					{#each completedOrders as order (order.id)}
-						<button
-							class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left {selectedOrderId ===
-							order.id
-								? 'bg-success-100 text-success-900 dark:bg-success-900/40 dark:text-success-100'
-								: 'hover:bg-surface-100 dark:hover:bg-surface-700'}"
-							onclick={() => selectOrder(order.id)}
-						>
-							<span class="min-w-0 flex-1 truncate font-medium">{order.name}</span>
-							<span
-								class="rounded-full bg-surface-200 px-2 py-0.5 text-xs tabular-nums dark:bg-surface-600"
-							>
-								{order.itemCount}
-							</span>
-						</button>
-					{:else}
+				<nav class="space-y-4" aria-label="Current order planner orders">
+					{#each ['draft', 'sent'] as status}
+						{@const statusOrders = data.orders.filter((order) => order.status === status)}
+						{#if statusOrders.length > 0}
+							<section>
+								<h3
+									class="mb-1 px-2 text-xs font-semibold uppercase tracking-wide text-surface-500 dark:text-surface-300"
+								>
+									{status === 'draft' ? 'Open' : 'Sent to vendor'}
+								</h3>
+								<div class="space-y-1">
+									{#each statusOrders as order (order.id)}
+										<button
+											class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left {selectedOrderId ===
+											order.id
+												? 'bg-primary-100 text-primary-900 dark:bg-primary-900/40 dark:text-primary-100'
+												: 'hover:bg-surface-100 dark:hover:bg-surface-700'}"
+											onclick={() => selectOrder(order.id)}
+										>
+											<span class="min-w-0 flex-1 truncate font-medium">{order.name}</span>
+											<span
+												class="rounded-full bg-surface-200 px-2 py-0.5 text-xs tabular-nums dark:bg-surface-600"
+											>
+												{data.items.filter((item) => item.orderId === order.id).length}
+											</span>
+										</button>
+									{/each}
+								</div>
+							</section>
+						{/if}
+					{/each}
+					{#if data.orders.length === 0}
 						<p
 							class="rounded-md bg-surface-100 px-3 py-4 text-center text-sm text-surface-600 dark:bg-surface-700 dark:text-surface-300"
 						>
-							{loadingHistory ? 'Loading…' : 'No completed orders yet.'}
+							No current orders.
 						</p>
-					{/each}
-				</div>
-				{#if completedOrders.length < data.completedCount}
-					<button
-						class="mt-2 w-full rounded-md border border-surface-300 px-2 py-2 text-center text-sm font-medium hover:bg-surface-100 disabled:opacity-60 dark:border-surface-600 dark:hover:bg-surface-700"
-						disabled={loadingHistory}
-						onclick={() => loadHistory()}
-					>
-						{loadingHistory
-							? 'Loading…'
-							: `Load ${Math.min(HISTORY_PAGE_SIZE, data.completedCount - completedOrders.length)} more`}
-					</button>
-				{/if}
-			</nav>
-		</aside>
-	</div>
-
-	<section class="min-w-0">
-		{#if selectedOrder}
-			<div class="card mb-4 p-4">
-				<div class="flex items-start gap-3">
-					<div class="min-w-0 flex-1">
-						<div class="flex flex-wrap items-center gap-2">
-							<h2 class="h3 truncate font-semibold">{selectedOrder.name}</h2>
-							<span class="badge {statusClass(selectedOrder.status)}">
-								{statusLabel(selectedOrder.status)}
-							</span>
-						</div>
-						<p class="mt-1 text-sm text-surface-600 dark:text-surface-300">
-							Created by {selectedOrder.createdBy} · {orderItems.length}
-							{orderItems.length === 1 ? 'item' : 'items'}
-						</p>
-					</div>
-
-					{#if canEdit && selectedOrder.status === 'draft'}
-						<Button
-							action={client.orderPlanner.order.delete}
-							input={{ id: selectedOrder.id }}
-							confirm="Delete this open order? Its items will return to the unassigned list."
-							successMessage="Order deleted"
-							class="btn btn-icon shrink-0 variant-ghost-error"
-						>
-							<Trash2 size={18} />
-							<span class="sr-only">Delete order</span>
-						</Button>
 					{/if}
-				</div>
+				</nav>
+			</aside>
 
-				<div class="mt-4 border-t border-surface-200 pt-4 dark:border-surface-700">
-					<h3 class="font-semibold">Order notes</h3>
-					<p class="mt-0.5 text-sm text-surface-600 dark:text-surface-300">
-						Store reference numbers, vendor contacts, and delivery details here.
+			<aside class="card p-3">
+				<div class="px-2 pb-3">
+					<h2 class="flex items-center gap-2 font-semibold">
+						<History size={18} />
+						Order history
+					</h2>
+					<p class="mt-1 text-xs text-surface-600 dark:text-surface-300">
+						Completed orders are kept here for reference.
+						{#if data.completedCount > 0}
+							Showing {completedOrders.length} of {data.completedCount}.
+						{/if}
 					</p>
-					{#if canEdit}
-						<textarea
-							class="textarea mt-2 min-h-24 w-full resize-y"
-							maxlength="4000"
-							placeholder="Add notes about this order"
-							value={notes}
-							oninput={(event) => {
-								notes = event.currentTarget.value;
-								notesDirty = notes !== selectedOrder?.notes;
-							}}
-						></textarea>
-						<div class="mt-2 flex items-center justify-end gap-3">
-							{#if notesDirty}
-								<span class="text-xs text-warning-700 dark:text-warning-300">Unsaved changes</span>
-							{/if}
-							<button
-								class="btn variant-filled-primary"
-								disabled={!notesDirty || savingNotes}
-								onclick={saveNotes}
-							>
-								{savingNotes ? 'Saving…' : 'Save notes'}
-							</button>
-						</div>
-					{:else if selectedOrder.notes}
-						<p
-							class="mt-2 whitespace-pre-wrap rounded-md bg-surface-100 p-3 text-sm dark:bg-surface-700"
-						>
-							{selectedOrder.notes}
-						</p>
-					{:else}
-						<p class="mt-2 text-sm italic text-surface-500">No notes for this order.</p>
-					{/if}
 				</div>
-
-				{#if canEdit}
-					<div class="mt-4 border-t border-surface-200 pt-4 dark:border-surface-700">
-						<h3 class="font-semibold">Change order status</h3>
-						<p class="mt-0.5 text-sm text-surface-600 dark:text-surface-300">
-							Choose the step that matches what has happened with this order.
-						</p>
-						<div class="mt-3 grid gap-2 sm:grid-cols-3">
+				<nav aria-label="Completed order planner orders">
+					<div class="space-y-1">
+						{#each completedOrders as order (order.id)}
 							<button
-								class="rounded-lg border p-3 text-left transition {selectedOrder.status === 'draft'
-									? 'border-warning-500 bg-warning-100 text-warning-950 ring-1 ring-warning-500 dark:bg-warning-900/40 dark:text-warning-50'
-									: 'border-surface-300 hover:bg-surface-100 dark:border-surface-600 dark:hover:bg-surface-700'}"
-								onclick={() => setOrderStatus('draft')}
-								aria-pressed={selectedOrder.status === 'draft'}
+								class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left {selectedOrderId ===
+								order.id
+									? 'bg-success-100 text-success-900 dark:bg-success-900/40 dark:text-success-100'
+									: 'hover:bg-surface-100 dark:hover:bg-surface-700'}"
+								onclick={() => selectOrder(order.id)}
 							>
-								<span class="flex items-center gap-2 font-semibold">
-									<ClipboardPenLine size={18} />
-									1. Open
+								<span class="min-w-0 flex-1 truncate font-medium">{order.name}</span>
+								<span
+									class="rounded-full bg-surface-200 px-2 py-0.5 text-xs tabular-nums dark:bg-surface-600"
+								>
+									{order.itemCount}
 								</span>
-								<span class="mt-1 block text-xs opacity-80">Still being prepared</span>
 							</button>
-							<button
-								class="rounded-lg border p-3 text-left transition {selectedOrder.status === 'sent'
-									? 'border-primary-500 bg-primary-100 text-primary-950 ring-1 ring-primary-500 dark:bg-primary-900/40 dark:text-primary-50'
-									: 'border-surface-300 hover:bg-surface-100 dark:border-surface-600 dark:hover:bg-surface-700'}"
-								onclick={() => setOrderStatus('sent')}
-								aria-pressed={selectedOrder.status === 'sent'}
+						{:else}
+							<p
+								class="rounded-md bg-surface-100 px-3 py-4 text-center text-sm text-surface-600 dark:bg-surface-700 dark:text-surface-300"
 							>
-								<span class="flex items-center gap-2 font-semibold">
-									<Send size={18} />
-									2. Sent
-								</span>
-								<span class="mt-1 block text-xs opacity-80">Sent to the vendor</span>
-							</button>
-							<button
-								class="rounded-lg border p-3 text-left transition {selectedOrder.status ===
-								'completed'
-									? 'border-success-500 bg-success-100 text-success-950 ring-1 ring-success-500 dark:bg-success-900/40 dark:text-success-50'
-									: 'border-surface-300 hover:bg-surface-100 dark:border-surface-600 dark:hover:bg-surface-700'}"
-								onclick={() => setOrderStatus('completed')}
-								aria-pressed={selectedOrder.status === 'completed'}
-							>
-								<span class="flex items-center gap-2 font-semibold">
-									<CircleCheck size={18} />
-									3. Completed
-								</span>
-								<span class="mt-1 block text-xs opacity-80">Finished and saved in history</span>
-							</button>
-						</div>
+								{loadingHistory ? 'Loading…' : 'No completed orders yet.'}
+							</p>
+						{/each}
 					</div>
-				{/if}
-			</div>
-
-			<section class="mb-6">
-				<h3
-					class="mb-2 text-sm font-semibold uppercase tracking-wide text-surface-500 dark:text-surface-300"
-				>
-					Items in this order
-				</h3>
-				<div class="space-y-4">
-					{#each groups(orderItems) as group (group.vendor)}
-						<section>
-							<h4 class="mb-1.5 font-semibold">{group.vendor}</h4>
-							<div class="space-y-2">
-								{#each group.items as item (item.id)}
-									<OrderPlannerItem
-										{item}
-										orders={data.orders}
-										{canEdit}
-										{onAssign}
-										duplicateOrders={ordersForItem(item, selectedOrder.id)}
-									/>
-								{/each}
-							</div>
-						</section>
-					{:else}
-						<div
-							class="rounded-lg border border-dashed border-surface-300 p-7 text-center text-surface-600 dark:border-surface-600 dark:text-surface-300"
+					{#if completedOrders.length < data.completedCount}
+						<button
+							class="mt-2 w-full rounded-md border border-surface-300 px-2 py-2 text-center text-sm font-medium hover:bg-surface-100 disabled:opacity-60 dark:border-surface-600 dark:hover:bg-surface-700"
+							disabled={loadingHistory}
+							onclick={() => loadHistory()}
 						>
-							This order is empty.
-						</div>
-					{/each}
-				</div>
-			</section>
+							{loadingHistory
+								? 'Loading…'
+								: `Load ${Math.min(HISTORY_PAGE_SIZE, data.completedCount - completedOrders.length)} more`}
+						</button>
+					{/if}
+				</nav>
+			</aside>
+		</div>
 
-			{#if selectedOrder.status !== 'completed'}
-				<section>
-					<div class="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-						<h3
-							class="min-w-fit text-sm font-semibold uppercase tracking-wide text-surface-500 dark:text-surface-300"
-						>
-							Add low-stock items
-						</h3>
+		<section class="min-w-0">
+			{#if selectedOrder}
+				<div class="card mb-4 p-4">
+					<div class="flex items-start gap-3">
 						<div class="min-w-0 flex-1">
-							<SearchField
-								queryType="qb"
-								queryTypes={['qb']}
-								placeholder="Filter available items"
-								ariaLabel="Filter available low-stock items"
-								showSubmitButton={false}
-								bind:query={filter}
-							/>
+							<div class="flex flex-wrap items-center gap-2">
+								<h2 class="h3 truncate font-semibold">{selectedOrder.name}</h2>
+								<span class="badge {statusClass(selectedOrder.status)}">
+									{statusLabel(selectedOrder.status)}
+								</span>
+							</div>
+							<p class="mt-1 text-sm text-surface-600 dark:text-surface-300">
+								Created by {selectedOrder.createdBy} · {orderItems.length}
+								{orderItems.length === 1 ? 'item' : 'items'}
+							</p>
 						</div>
-						<label class="shrink-0">
-							<span class="sr-only">Filter available items by order</span>
-							<select class="select min-h-10 w-full sm:w-44" bind:value={orderFilter}>
-								<option value="all">All low-stock items</option>
-								<option value="unassigned">Not in an order</option>
-							</select>
-						</label>
+
+						<button
+							class="btn variant-soft-primary shrink-0 gap-2"
+							onclick={printOrder}
+							title="Print this order or save it as a PDF"
+						>
+							<Printer size={17} />
+							<span class="hidden sm:inline">Print</span>
+							<span class="sm:hidden">Print</span>
+						</button>
+
+						{#if canEdit && selectedOrder.status === 'draft'}
+							<Button
+								action={client.orderPlanner.order.delete}
+								input={{ id: selectedOrder.id }}
+								confirm="Delete this open order? Its items will return to the unassigned list."
+								successMessage="Order deleted"
+								class="btn btn-icon shrink-0 variant-ghost-error"
+							>
+								<Trash2 size={18} />
+								<span class="sr-only">Delete order</span>
+							</Button>
+						{/if}
 					</div>
 
-					{#if selectedItems.length > 0 && canEdit}
-						<div
-							class="sticky top-2 z-10 mb-2 flex items-center justify-between gap-3 rounded-lg bg-primary-700 p-2.5 text-white shadow-lg"
-						>
-							<span class="font-medium">
-								{selectedItems.length} selected
-								{#if selectedDuplicateCount > 0}
-									· {selectedDuplicateCount} already in another order
+					<div class="mt-4 border-t border-surface-200 pt-4 dark:border-surface-700">
+						<h3 class="font-semibold">Order notes</h3>
+						<p class="mt-0.5 text-sm text-surface-600 dark:text-surface-300">
+							Store reference numbers, vendor contacts, and delivery details here.
+						</p>
+						{#if canEdit}
+							<textarea
+								class="textarea mt-2 min-h-24 w-full resize-y"
+								maxlength="4000"
+								placeholder="Add notes about this order"
+								value={notes}
+								oninput={(event) => {
+									notes = event.currentTarget.value;
+									notesDirty = notes !== selectedOrder?.notes;
+								}}
+							></textarea>
+							<div class="mt-2 flex items-center justify-end gap-3">
+								{#if notesDirty}
+									<span class="text-xs text-warning-700 dark:text-warning-300">Unsaved changes</span
+									>
 								{/if}
-							</span>
-							<button
-								class="btn bg-white text-primary-800 hover:bg-primary-50"
-								onclick={addSelectedItems}
+								<button
+									class="btn variant-filled-primary"
+									disabled={!notesDirty || savingNotes}
+									onclick={saveNotes}
+								>
+									{savingNotes ? 'Saving…' : 'Save notes'}
+								</button>
+							</div>
+						{:else if selectedOrder.notes}
+							<p
+								class="mt-2 whitespace-pre-wrap rounded-md bg-surface-100 p-3 text-sm dark:bg-surface-700"
 							>
-								Add to {selectedOrder.name}
-							</button>
+								{selectedOrder.notes}
+							</p>
+						{:else}
+							<p class="mt-2 text-sm italic text-surface-500">No notes for this order.</p>
+						{/if}
+					</div>
+
+					{#if canEdit}
+						<div class="mt-4 border-t border-surface-200 pt-4 dark:border-surface-700">
+							<h3 class="font-semibold">Change order status</h3>
+							<p class="mt-0.5 text-sm text-surface-600 dark:text-surface-300">
+								Choose the step that matches what has happened with this order.
+							</p>
+							<div class="mt-3 grid gap-2 sm:grid-cols-3">
+								<button
+									class="rounded-lg border p-3 text-left transition {selectedOrder.status ===
+									'draft'
+										? 'border-warning-500 bg-warning-100 text-warning-950 ring-1 ring-warning-500 dark:bg-warning-900/40 dark:text-warning-50'
+										: 'border-surface-300 hover:bg-surface-100 dark:border-surface-600 dark:hover:bg-surface-700'}"
+									onclick={() => setOrderStatus('draft')}
+									aria-pressed={selectedOrder.status === 'draft'}
+								>
+									<span class="flex items-center gap-2 font-semibold">
+										<ClipboardPenLine size={18} />
+										1. Open
+									</span>
+									<span class="mt-1 block text-xs opacity-80">Still being prepared</span>
+								</button>
+								<button
+									class="rounded-lg border p-3 text-left transition {selectedOrder.status === 'sent'
+										? 'border-primary-500 bg-primary-100 text-primary-950 ring-1 ring-primary-500 dark:bg-primary-900/40 dark:text-primary-50'
+										: 'border-surface-300 hover:bg-surface-100 dark:border-surface-600 dark:hover:bg-surface-700'}"
+									onclick={() => setOrderStatus('sent')}
+									aria-pressed={selectedOrder.status === 'sent'}
+								>
+									<span class="flex items-center gap-2 font-semibold">
+										<Send size={18} />
+										2. Sent
+									</span>
+									<span class="mt-1 block text-xs opacity-80">Sent to the vendor</span>
+								</button>
+								<button
+									class="rounded-lg border p-3 text-left transition {selectedOrder.status ===
+									'completed'
+										? 'border-success-500 bg-success-100 text-success-950 ring-1 ring-success-500 dark:bg-success-900/40 dark:text-success-50'
+										: 'border-surface-300 hover:bg-surface-100 dark:border-surface-600 dark:hover:bg-surface-700'}"
+									onclick={() => setOrderStatus('completed')}
+									aria-pressed={selectedOrder.status === 'completed'}
+								>
+									<span class="flex items-center gap-2 font-semibold">
+										<CircleCheck size={18} />
+										3. Completed
+									</span>
+									<span class="mt-1 block text-xs opacity-80">Finished and saved in history</span>
+								</button>
+							</div>
 						</div>
 					{/if}
+				</div>
 
+				<section class="mb-6">
+					<h3
+						class="mb-2 text-sm font-semibold uppercase tracking-wide text-surface-500 dark:text-surface-300"
+					>
+						Items in this order
+					</h3>
 					<div class="space-y-4">
-						{#each groups(availableItems) as group (group.vendor)}
+						{#each groups(orderItems) as group (group.vendor)}
 							<section>
-								<div class="mb-1.5 flex items-center gap-2">
-									<h4 class="font-semibold">{group.vendor}</h4>
-									<span
-										class="rounded-full bg-surface-200 px-2 py-0.5 text-xs tabular-nums dark:bg-surface-700"
-									>
-										{group.items.length}
-									</span>
-									{#if canEdit}
-										{@const supplierSelected = group.items.every((item) =>
-											selectedItemIds.includes(item.id)
-										)}
-										<button
-											class="ml-auto rounded-md px-2 py-1 text-xs font-medium text-primary-700 hover:bg-primary-50 dark:text-primary-300 dark:hover:bg-primary-900/30"
-											aria-pressed={supplierSelected}
-											onclick={() => toggleSupplier(group.items)}
-										>
-											{supplierSelected ? 'Clear supplier' : 'Select supplier'}
-										</button>
-									{/if}
-								</div>
+								<h4 class="mb-1.5 font-semibold">{group.vendor}</h4>
 								<div class="space-y-2">
 									{#each group.items as item (item.id)}
 										<OrderPlannerItem
@@ -655,9 +583,6 @@
 											orders={data.orders}
 											{canEdit}
 											{onAssign}
-											selected={selectedItemIds.includes(item.id)}
-											onSelect={(selected) => toggleItem(item.id, selected)}
-											showRemove={false}
 											duplicateOrders={ordersForItem(item, selectedOrder.id)}
 										/>
 									{/each}
@@ -667,26 +592,125 @@
 							<div
 								class="rounded-lg border border-dashed border-surface-300 p-7 text-center text-surface-600 dark:border-surface-600 dark:text-surface-300"
 							>
-								{#if filter.trim()}
-									No matching items.
-								{:else if orderFilter === 'unassigned'}
-									Every low-stock item is already in an order. Choose "All low-stock items" to add
-									one to this order as well.
-								{:else}
-									Every low-stock item is already in this order.
-								{/if}
+								This order is empty.
 							</div>
 						{/each}
 					</div>
 				</section>
+
+				{#if selectedOrder.status !== 'completed'}
+					<section>
+						<div class="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+							<h3
+								class="min-w-fit text-sm font-semibold uppercase tracking-wide text-surface-500 dark:text-surface-300"
+							>
+								Add low-stock items
+							</h3>
+							<div class="min-w-0 flex-1">
+								<SearchField
+									queryType="qb"
+									queryTypes={['qb']}
+									placeholder="Filter available items"
+									ariaLabel="Filter available low-stock items"
+									showSubmitButton={false}
+									bind:query={filter}
+								/>
+							</div>
+							<label class="shrink-0">
+								<span class="sr-only">Filter available items by order</span>
+								<select class="select min-h-10 w-full sm:w-44" bind:value={orderFilter}>
+									<option value="all">All low-stock items</option>
+									<option value="unassigned">Not in an order</option>
+								</select>
+							</label>
+						</div>
+
+						{#if selectedItems.length > 0 && canEdit}
+							<div
+								class="sticky top-2 z-10 mb-2 flex items-center justify-between gap-3 rounded-lg bg-primary-700 p-2.5 text-white shadow-lg"
+							>
+								<span class="font-medium">
+									{selectedItems.length} selected
+									{#if selectedDuplicateCount > 0}
+										· {selectedDuplicateCount} already in another order
+									{/if}
+								</span>
+								<button
+									class="btn bg-white text-primary-800 hover:bg-primary-50"
+									onclick={addSelectedItems}
+								>
+									Add to {selectedOrder.name}
+								</button>
+							</div>
+						{/if}
+
+						<div class="space-y-4">
+							{#each groups(availableItems) as group (group.vendor)}
+								<section>
+									<div class="mb-1.5 flex items-center gap-2">
+										<h4 class="font-semibold">{group.vendor}</h4>
+										<span
+											class="rounded-full bg-surface-200 px-2 py-0.5 text-xs tabular-nums dark:bg-surface-700"
+										>
+											{group.items.length}
+										</span>
+										{#if canEdit}
+											{@const supplierSelected = group.items.every((item) =>
+												selectedItemIds.includes(item.id)
+											)}
+											<button
+												class="ml-auto rounded-md px-2 py-1 text-xs font-medium text-primary-700 hover:bg-primary-50 dark:text-primary-300 dark:hover:bg-primary-900/30"
+												aria-pressed={supplierSelected}
+												onclick={() => toggleSupplier(group.items)}
+											>
+												{supplierSelected ? 'Clear supplier' : 'Select supplier'}
+											</button>
+										{/if}
+									</div>
+									<div class="space-y-2">
+										{#each group.items as item (item.id)}
+											<OrderPlannerItem
+												{item}
+												orders={data.orders}
+												{canEdit}
+												{onAssign}
+												selected={selectedItemIds.includes(item.id)}
+												onSelect={(selected) => toggleItem(item.id, selected)}
+												showRemove={false}
+												duplicateOrders={ordersForItem(item, selectedOrder.id)}
+											/>
+										{/each}
+									</div>
+								</section>
+							{:else}
+								<div
+									class="rounded-lg border border-dashed border-surface-300 p-7 text-center text-surface-600 dark:border-surface-600 dark:text-surface-300"
+								>
+									{#if filter.trim()}
+										No matching items.
+									{:else if orderFilter === 'unassigned'}
+										Every low-stock item is already in an order. Choose "All low-stock items" to add
+										one to this order as well.
+									{:else}
+										Every low-stock item is already in this order.
+									{/if}
+								</div>
+							{/each}
+						</div>
+					</section>
+				{/if}
+			{:else}
+				<div class="card p-10 text-center">
+					<h2 class="h3 font-semibold">No orders yet</h2>
+					<p class="mt-1 text-surface-600 dark:text-surface-300">
+						Create an order to start collecting low-stock items.
+					</p>
+				</div>
 			{/if}
-		{:else}
-			<div class="card p-10 text-center">
-				<h2 class="h3 font-semibold">No orders yet</h2>
-				<p class="mt-1 text-surface-600 dark:text-surface-300">
-					Create an order to start collecting low-stock items.
-				</p>
-			</div>
-		{/if}
-	</section>
+		</section>
+	</div>
+
+	{#if selectedOrder}
+		<PrintOrder order={selectedOrder} items={orderItems} {notes} />
+	{/if}
 </div>
