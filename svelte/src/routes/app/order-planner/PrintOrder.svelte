@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { groupByVendor, statusLabel } from './planner';
 	import type { OrderPlannerItemData, OrderPlannerOrder } from './types';
 
 	interface Props {
@@ -8,21 +9,6 @@
 	}
 
 	let { order, items, notes }: Props = $props();
-
-	function statusLabel(status: OrderPlannerOrder['status']) {
-		return status === 'draft' ? 'Open' : status === 'sent' ? 'Sent' : 'Completed';
-	}
-
-	function groups(items: OrderPlannerItemData[]) {
-		const grouped = new Map<string, OrderPlannerItemData[]>();
-		for (const item of items) {
-			const vendor = item.vendor || 'No preferred vendor';
-			grouped.set(vendor, [...(grouped.get(vendor) ?? []), item]);
-		}
-		return [...grouped.entries()]
-			.map(([vendor, vendorItems]) => ({ vendor, items: vendorItems }))
-			.sort((a, b) => a.vendor.localeCompare(b.vendor));
-	}
 </script>
 
 <section class="print-order" aria-label="Printable order">
@@ -42,7 +28,7 @@
 	{/if}
 
 	<div class="print-order-items">
-		{#each groups(items) as group (group.vendor)}
+		{#each groupByVendor(items) as group (group.vendor)}
 			<section class="print-vendor">
 				<h2>{group.vendor}</h2>
 				{#each group.items as item (item.id)}

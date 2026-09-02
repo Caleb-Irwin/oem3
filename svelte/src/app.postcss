@@ -59,3 +59,14 @@
 	outline: 2px solid rgb(var(--color-primary-500));
 	outline-offset: 2px;
 }
+
+/* Skeleton's AppShell scrolls #page rather than the document, so with the default
+   `auto` a classic scrollbar appears only on views tall enough to overflow it — and its
+   arrival narrows everything inside, shifting the page header sideways. Holding the
+   scrollbar permanently keeps that width constant, both between views and while a view
+   grows as its data loads. `scrollbar-gutter: stable` expresses this better but needs
+   Safari 18.2+, so it is not relied on. Overlay scrollbars reserve nothing either way,
+   so this costs those platforms nothing. Printing overrides it in PrintOrder.svelte. */
+#page {
+	overflow-y: scroll;
+}
