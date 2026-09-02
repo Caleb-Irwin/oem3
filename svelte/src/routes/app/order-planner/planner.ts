@@ -97,21 +97,3 @@ export function toggleGroup(ids: number[], groupIds: number[]) {
 		? ids.filter((id) => !groupIds.includes(id))
 		: [...new Set([...ids, ...groupIds])];
 }
-
-/** Item identifiers in Windows-style lines for the plain-text clipboard fallback. */
-export function quickBooksPurchaseOrderTsv(items: OrderPlannerItemData[]) {
-	return items.map((item) => item.qbId.replace(/[\t\r\n]/g, ' ')).join('\r\n');
-}
-
-/** Excel-style table data for applications that understand HTML clipboard content. */
-export function quickBooksPurchaseOrderHtml(items: OrderPlannerItemData[]) {
-	const escapeHtml = (value: string) =>
-		value
-			.replace(/&/g, '&amp;')
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;')
-			.replace(/"/g, '&quot;');
-	return `<table><tbody>${items
-		.map((item) => `<tr><td>${escapeHtml(item.qbId.replace(/[\t\r\n]/g, ' '))}</td></tr>`)
-		.join('')}</tbody></table>`;
-}
