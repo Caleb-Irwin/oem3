@@ -98,10 +98,20 @@ export function toggleGroup(ids: number[], groupIds: number[]) {
 		: [...new Set([...ids, ...groupIds])];
 }
 
-/**
- * QuickBooks accepts one item identifier per row when pasting into a purchase order.
- * Keep this as a single-column TSV so the paste does not fill supplier or quantity fields.
- */
+/** Item identifiers in Windows-style lines for the plain-text clipboard fallback. */
 export function quickBooksPurchaseOrderTsv(items: OrderPlannerItemData[]) {
-	return items.map((item) => item.qbId.replace(/[\t\r\n]/g, ' ')).join('\n');
+	return items.map((item) => item.qbId.replace(/[\t\r\n]/g, ' ')).join('\r\n');
+}
+
+/** Excel-style table data for applications that understand HTML clipboard content. */
+export function quickBooksPurchaseOrderHtml(items: OrderPlannerItemData[]) {
+	const escapeHtml = (value: string) =>
+		value
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;');
+	return `<table><tbody>${items
+		.map((item) => `<tr><td>${escapeHtml(item.qbId.replace(/[\t\r\n]/g, ' '))}</td></tr>`)
+		.join('')}</tbody></table>`;
 }

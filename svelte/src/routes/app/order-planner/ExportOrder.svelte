@@ -2,7 +2,7 @@
 	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
 	import ClipboardCopy from 'lucide-svelte/icons/clipboard-copy';
 	import X from 'lucide-svelte/icons/x';
-	import { quickBooksPurchaseOrderTsv } from './planner';
+	import { quickBooksPurchaseOrderHtml, quickBooksPurchaseOrderTsv } from './planner';
 	import type { OrderPlannerItemData, OrderPlannerOrder } from './types';
 
 	interface Props {
@@ -20,7 +20,16 @@
 		if (!tsv || copying) return;
 		copying = true;
 		try {
-			await navigator.clipboard.writeText(tsv);
+			if ('ClipboardItem' in window && navigator.clipboard.write) {
+				await navigator.clipboard.write([
+					new ClipboardItem({
+						'text/plain': new Blob([tsv], { type: 'text/plain' }),
+						'text/html': new Blob([quickBooksPurchaseOrderHtml(items)], { type: 'text/html' })
+					})
+				]);
+			} else {
+				await navigator.clipboard.writeText(tsv);
+			}
 			toastStore.trigger({
 				message: `${items.length} ${items.length === 1 ? 'item' : 'items'} copied for QuickBooks`,
 				background: 'variant-filled-success'
@@ -62,7 +71,7 @@
 		<span class="min-w-0">
 			<strong class="block">QuickBooks purchase order</strong>
 			<span class="mt-0.5 block text-sm text-surface-600 dark:text-surface-300">
-				Copy item numbers as TSV for pasting into QuickBooks Desktop Enterprise.
+				Copy an Excel-style item table for pasting into QuickBooks Desktop Enterprise.
 			</span>
 		</span>
 	</div>
@@ -82,7 +91,8 @@
 			aria-label="QuickBooks item TSV"
 		></textarea>
 		<p class="mt-1 text-xs text-surface-500 dark:text-surface-400">
-			Only item numbers are included. Supplier and quantity are left for QuickBooks.
+			Only item numbers are included. Supplier and quantity are left for QuickBooks. This copies
+			spreadsheet-style rows and plain text for compatibility with Windows.
 		</p>
 	</div>
 
@@ -94,7 +104,7 @@
 			onclick={copyItems}
 		>
 			<ClipboardCopy size={17} />
-			{copying ? 'Copying…' : 'Copy TSV'}
+			{copying ? 'Copying…' : 'Copy item table'}
 		</button>
 	</div>
 </div>
