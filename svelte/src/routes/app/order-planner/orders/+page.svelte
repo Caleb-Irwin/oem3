@@ -5,6 +5,7 @@
 	import Plus from 'lucide-svelte/icons/plus';
 	import Printer from 'lucide-svelte/icons/printer';
 	import Trash2 from 'lucide-svelte/icons/trash-2';
+	import Download from 'lucide-svelte/icons/download';
 	import Button from '$lib/Button.svelte';
 	import { client, handleTRPCError } from '$lib/client';
 	import SearchField from '$lib/search/SearchField.svelte';
@@ -14,6 +15,7 @@
 	import OrderStatusStepper from '../OrderStatusStepper.svelte';
 	import QuickAdd from '../QuickAdd.svelte';
 	import PrintOrder from '../PrintOrder.svelte';
+	import ExportOrder from '../ExportOrder.svelte';
 	import {
 		getPlannerContext,
 		matchesQuery,
@@ -208,6 +210,17 @@
 		});
 	}
 
+	function openExport() {
+		if (!selectedOrder) return;
+		modalStore.trigger({
+			type: 'component',
+			component: {
+				ref: ExportOrder,
+				props: { order: selectedOrder, items: orderItems }
+			}
+		});
+	}
+
 	async function setOrderStatus(status: OrderPlannerOrder['status']) {
 		if (!selectedOrder || selectedOrder.status === status) return;
 		const order = selectedOrder;
@@ -315,6 +328,15 @@
 						>
 							<Printer size={17} />
 							Print
+						</button>
+
+						<button
+							class="btn variant-soft-primary shrink-0 gap-2"
+							onclick={openExport}
+							title="Export this order"
+						>
+							<Download size={17} />
+							Export
 						</button>
 
 						{#if canEdit && selectedOrder.status === 'draft'}
