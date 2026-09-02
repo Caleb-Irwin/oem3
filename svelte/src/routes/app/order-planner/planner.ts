@@ -34,7 +34,13 @@ export function statusClass(status: OrderPlannerOrder['status']) {
 			: 'variant-soft-success';
 }
 
-/** Vendor-grouped items, sorted by vendor, for every list the planner renders. */
+/**
+ * Vendor-grouped items for every list the planner renders, newest first at both levels:
+ * the most recently flagged item leads its vendor, and that vendor leads the page, so
+ * fresh work surfaces without scrolling. Items flagged in the same millisecond — a bulk
+ * copy into an order does that — fall back to insertion order, and vendors tied the same
+ * way fall back to alphabetical, so neither ordering wobbles between renders.
+ */
 export function groupByVendor(items: OrderPlannerItemData[]) {
 	const grouped = new Map<string, OrderPlannerItemData[]>();
 	for (const item of items) {
@@ -42,8 +48,12 @@ export function groupByVendor(items: OrderPlannerItemData[]) {
 		grouped.set(vendor, [...(grouped.get(vendor) ?? []), item]);
 	}
 	return [...grouped.entries()]
-		.map(([vendor, vendorItems]) => ({ vendor, items: vendorItems }))
-		.sort((a, b) => a.vendor.localeCompare(b.vendor));
+		.map(([vendor, vendorItems]) => {
+			// These arrays are built above, so sorting in place cannot disturb the caller.
+			const sorted = vendorItems.sort((a, b) => b.addedAt - a.addedAt || b.id - a.id);
+			return { vendor, items: sorted, addedAt: sorted[0].addedAt };
+		})
+		.sort((a, b) => b.addedAt - a.addedAt || a.vendor.localeCompare(b.vendor));
 }
 
 /** Matches an item against an already trimmed, lowercased filter query. */

@@ -12,6 +12,7 @@
 	import ItemGroupList from '../ItemGroupList.svelte';
 	import OrderSidebar from '../OrderSidebar.svelte';
 	import OrderStatusStepper from '../OrderStatusStepper.svelte';
+	import QuickAdd from '../QuickAdd.svelte';
 	import PrintOrder from '../PrintOrder.svelte';
 	import {
 		getPlannerContext,
@@ -376,11 +377,22 @@
 				</div>
 
 				<section class="mb-6">
-					<h3
-						class="mb-2 text-sm font-semibold uppercase tracking-wide text-surface-500 dark:text-surface-300"
-					>
-						Items in this order
-					</h3>
+					<div class="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+						<h3
+							class="min-w-fit text-sm font-semibold uppercase tracking-wide text-surface-500 dark:text-surface-300"
+						>
+							Items in this order
+						</h3>
+						{#if canEdit && selectedOrder.status !== 'completed'}
+							<div class="min-w-0 flex-1">
+								<QuickAdd
+									{data}
+									orderId={selectedOrder.id}
+									placeholder="Quick add an item to this order"
+								/>
+							</div>
+						{/if}
+					</div>
 					<ItemGroupList
 						items={orderItems}
 						orders={data.orders}

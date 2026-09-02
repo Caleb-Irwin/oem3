@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
+	import PackagePlus from 'lucide-svelte/icons/package-plus';
 	import SearchField from '$lib/search/SearchField.svelte';
 	import CreateOrder from './CreateOrder.svelte';
 	import ItemGroupList from './ItemGroupList.svelte';
-	import QuickAddPanel from './QuickAddPanel.svelte';
+	import QuickAdd from './QuickAdd.svelte';
 	import { getPlannerContext, matchesQuery, ordersForItem, toggleGroup, toggleId } from './planner';
 	import type { OrderPlannerItemData, OrderPlannerOrder } from './types';
 
@@ -54,7 +55,16 @@
 </script>
 
 {#if canEdit}
-	<QuickAddPanel data={planner} />
+	<section class="card mb-4 p-4">
+		<h2 class="mb-3 flex items-center gap-2 font-semibold">
+			<PackagePlus size={18} class="text-primary-600 dark:text-primary-400" />
+			Add an item to the planner
+			<span class="font-normal text-surface-500 dark:text-surface-300">
+				— search QuickBooks to flag a low-stock item
+			</span>
+		</h2>
+		<QuickAdd data={planner} size="lg" />
+	</section>
 {/if}
 
 <div class="mb-4">

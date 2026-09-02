@@ -170,10 +170,12 @@ export const orderPlannerRouter = router({
 		.input(
 			z.object({
 				qbRow: z.number().int().positive(),
-				allowDuplicate: z.boolean().default(false)
+				allowDuplicate: z.boolean().default(false),
+				/** Drops the item straight into an order instead of the unassigned list. */
+				orderId: z.number().int().positive().nullish()
 			})
 		)
-		.mutation(async ({ ctx, input: { qbRow, allowDuplicate } }) => {
+		.mutation(async ({ ctx, input: { qbRow, allowDuplicate, orderId } }) => {
 			const item = await db.query.qb.findFirst({ where: eq(qb.id, qbRow) });
 			if (!item || item.deleted || item.type !== 'Inventory Part') {
 				throw new TRPCError({
@@ -199,9 +201,16 @@ export const orderPlannerRouter = router({
 				throw new TRPCError({ code: 'CONFLICT', message: 'This item is already on the list' });
 			}
 
+			if (orderId != null) assertOpen(await assertOrder(orderId));
+
 			const [created] = await db
 				.insert(orderPlannerItems)
-				.values({ qbRow, addedAt: Date.now(), addedBy: ctx.user.username })
+				.values({
+					qbRow,
+					orderId: orderId ?? null,
+					addedAt: Date.now(),
+					addedBy: ctx.user.username
+				})
 				.returning({ id: orderPlannerItems.id });
 			update();
 			return created;

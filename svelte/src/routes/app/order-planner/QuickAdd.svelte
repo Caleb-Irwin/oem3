@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { getToastStore } from '@skeletonlabs/skeleton';
-	import PackagePlus from 'lucide-svelte/icons/package-plus';
 	import TriangleAlert from 'lucide-svelte/icons/triangle-alert';
 	import { client, handleTRPCError } from '$lib/client';
 	import OldSearch from '$lib/search/OldSearch.svelte';
@@ -9,23 +8,29 @@
 
 	interface Props {
 		data: OrderPlannerData;
+		/** Adds straight into this order rather than the unassigned list. */
+		orderId?: number | null;
+		size?: 'sm' | 'lg';
+		placeholder?: string;
 	}
 
-	let { data }: Props = $props();
+	let { data, orderId = null, size = 'sm', placeholder }: Props = $props();
 	let duplicateWarning: { qbRow: number; locations: string[] } | null = $state(null);
 	const toastStore = getToastStore();
 
-	async function flagItem(selection: { uniref: number }) {
+	async function search(selection: { uniref: number }) {
 		try {
 			const resource = await client.resources.get.query({ uniId: selection.uniref });
 			if (!resource?.qbData) throw new Error('This result is not linked to a QuickBooks item');
 			const qbRow = resource.qbData.id;
 
+			// A row left behind in a completed order is a finished purchase, not a place
+			// the item still sits, so it never counts as a duplicate. Matches the server.
 			const existing = data.items.filter(
 				(item) => item.qbRow === qbRow && item.orderStatus !== 'completed'
 			);
 			if (existing.length === 0) {
-				await addToPlanner(qbRow, false);
+				await add(qbRow, false);
 				return;
 			}
 
@@ -47,13 +52,11 @@
 		}
 	}
 
-	async function addToPlanner(qbRow: number, allowDuplicate: boolean) {
+	async function add(qbRow: number, allowDuplicate: boolean) {
 		try {
-			await client.orderPlanner.flag.mutate({ qbRow, allowDuplicate });
+			await client.orderPlanner.flag.mutate({ qbRow, allowDuplicate, orderId });
 			toastStore.trigger({
-				message: allowDuplicate
-					? 'Added to the order planner again'
-					: 'Item added to the order planner',
+				message: orderId === null ? 'Item added to the order planner' : 'Item added to this order',
 				background: 'variant-filled-success'
 			});
 		} catch (error) {
@@ -83,7 +86,9 @@
 				This item is already in {warning.locations.join(' and ')}.
 			</p>
 			<p class="mt-2 text-sm text-surface-600 dark:text-surface-300">
-				Adding it again gives you a second copy to put in another order.
+				{orderId === null
+					? 'Adding it again gives you a second copy to put in another order.'
+					: 'Adding it again puts a second copy in this order.'}
 			</p>
 			<div class="mt-5 flex justify-end gap-2">
 				<button class="btn variant-ghost-surface" onclick={() => (duplicateWarning = null)}>
@@ -94,7 +99,7 @@
 					onclick={() => {
 						const { qbRow } = warning;
 						duplicateWarning = null;
-						addToPlanner(qbRow, true);
+						add(qbRow, true);
 					}}
 				>
 					Add anyway
@@ -104,13 +109,11 @@
 	</div>
 {/if}
 
-<section class="card mb-4 p-4">
-	<h2 class="mb-3 flex items-center gap-2 font-semibold">
-		<PackagePlus size={18} class="text-primary-600 dark:text-primary-400" />
-		Add an item to the planner
-		<span class="font-normal text-surface-500 dark:text-surface-300">
-			— search QuickBooks to flag a low-stock item
-		</span>
-	</h2>
-	<OldSearch quickAdd quickAddQueryType="qb" select={flagItem} size="lg" class="w-full min-w-0" />
-</section>
+<OldSearch
+	quickAdd
+	quickAddQueryType="qb"
+	select={search}
+	{size}
+	{placeholder}
+	class="w-full min-w-0"
+/>

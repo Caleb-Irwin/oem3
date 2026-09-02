@@ -17,6 +17,8 @@
 		size?: 'sm' | 'lg';
 		/** Overrides the form wrapper, whose default centres the field at a readable width. */
 		class?: string;
+		/** Overrides the prompt in the field, which otherwise reflects `quickAdd`. */
+		placeholder?: string;
 	}
 
 	let {
@@ -26,7 +28,8 @@
 		initQuery = '',
 		altRes,
 		size,
-		class: className = 'mx-auto min-w-0 w-full max-w-3xl'
+		class: className = 'mx-auto min-w-0 w-full max-w-3xl',
+		placeholder
 	}: Props = $props();
 
 	const modalStore = getModalStore();
@@ -80,6 +83,6 @@
 		bind:query
 		bind:queryType
 		queryTypes={quickAdd ? [quickAddQueryType] : undefined}
-		placeholder={quickAdd ? 'Quick Add' : 'Search items…'}
+		placeholder={placeholder ?? (quickAdd ? 'Quick Add' : 'Search items…')}
 	/>
 </Form>
