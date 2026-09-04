@@ -675,8 +675,8 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				'Etilize ID': unifiedProduct.etilizeId,
 				Category: unifiedProduct.category,
 				'In Flyer': unifiedProduct.inFlyer ? 'Yes' : 'No',
-				'QuickBooks Price': unifiedProduct.quickBooksPriceCents
-					? formatCurrency(unifiedProduct.quickBooksPriceCents / 100)
+				'Target QuickBooks Price': unifiedProduct.targetQuickBooksPriceCents
+					? formatCurrency(unifiedProduct.targetQuickBooksPriceCents / 100)
 					: null,
 				'Guild Cost': unifiedProduct.guildCostCents
 					? formatCurrency(unifiedProduct.guildCostCents / 100)

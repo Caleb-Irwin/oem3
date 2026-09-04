@@ -43,7 +43,7 @@ export const productUnifier = createUnifier<
 >({
 	table: unifiedProduct,
 	confTable: unifiedProductCellConfig,
-	version: 19,
+	version: 20,
 	getRow,
 	transform: (
 		item,
@@ -167,16 +167,11 @@ export const productUnifier = createUnifier<
 				}
 			}),
 			onlineComparePriceCents: t('onlineComparePriceCents', onlineComparePriceCents),
-			quickBooksPriceCents: t(
-				'quickBooksPriceCents',
-				(item) => (qb && qb.priceCents && item.onlinePriceCents ? item.onlinePriceCents : null),
+			targetQuickBooksPriceCents: t(
+				'targetQuickBooksPriceCents',
+				(item) => (qb ? (item.onlinePriceCents ?? null) : null),
 				{
 					dependsOn: new Set(['onlinePriceCents']),
-					defaultSettingOfApprove: {
-						currentThresholdPercent: 20,
-						lastThresholdPercent: null,
-						lastValueOverride: qb?.priceCents ?? null
-					},
 					shouldNotBeNull: guild?.inFlyer ?? false
 				}
 			),

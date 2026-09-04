@@ -39,7 +39,7 @@
 	otherImages={row.cells.otherImagesJsonArr}
 	price={row.cells.onlinePriceCents}
 	comparePrice={row.cells.onlineComparePriceCents}
-	thirdPrice={{ name: 'QuickBooks Price', cell: row.cells.quickBooksPriceCents }}
+	thirdPrice={{ name: 'Target QuickBooks Price', cell: row.cells.targetQuickBooksPriceCents }}
 	description={row.cells.description}
 	customStatus={status}
 >

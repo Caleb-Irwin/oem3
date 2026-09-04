@@ -72,7 +72,7 @@ export const unifiedProduct = pgTable(
 
 		onlinePriceCents: integer('onlinePriceCents'),
 		onlineComparePriceCents: integer('onlineComparePriceCents'),
-		quickBooksPriceCents: integer('quickBooksPriceCents'),
+		targetQuickBooksPriceCents: integer('targetQuickBooksPriceCents'),
 		guildCostCents: integer('guildCostCents'),
 		sprCostCents: integer('sprCostCents'),
 
@@ -173,7 +173,7 @@ export const unifiedProductColumnEnum = pgEnum('unifiedProductColumn', [
 	// Pricing
 	'onlinePriceCents',
 	'onlineComparePriceCents',
-	'quickBooksPriceCents',
+	'targetQuickBooksPriceCents',
 	'guildCostCents',
 	'sprCostCents',
 	// Units
