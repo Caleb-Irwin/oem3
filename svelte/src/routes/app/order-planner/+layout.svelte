@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import Boxes from 'lucide-svelte/icons/boxes';
 	import ClipboardList from 'lucide-svelte/icons/clipboard-list';
+	import Sparkles from 'lucide-svelte/icons/sparkles';
 	import { toStore } from 'svelte/store';
 	import { client, handleTRPCError, subVal } from '$lib/client';
 	import { setPlannerContext } from './planner';
@@ -11,8 +12,12 @@
 	let { data, children }: LayoutProps = $props();
 
 	const plannerSub = subVal(client.orderPlanner.getSub, { init: data.orderPlanner });
+	const smartOrderSummarySub = subVal(client.orderPlanner.smartOrder.summarySub, {
+		init: data.smartOrderSummary
+	});
 	// The server load always seeds the subscription, so the planner is never in a loading state.
 	const planner = $derived($plannerSub ?? data.orderPlanner);
+	const smartOrderSummary = $derived($smartOrderSummarySub ?? data.smartOrderSummary);
 	const canEdit = $derived(
 		data.user.permissionLevel === 'general' || data.user.permissionLevel === 'admin'
 	);
@@ -52,6 +57,13 @@
 			icon: ClipboardList,
 			unit: 'open',
 			count: planner.orders.filter((order) => order.status === 'draft').length
+		},
+		{
+			href: '/app/order-planner/smart-order',
+			label: 'Smart Order',
+			icon: Sparkles,
+			unit: 'suggestions',
+			count: smartOrderSummary.now + smartOrderSummary.soon
 		}
 	]);
 </script>
@@ -70,20 +82,20 @@
 		</div>
 
 		<nav
-			class="inline-flex self-start rounded-lg bg-surface-200 p-1 dark:bg-surface-700 sm:self-auto"
+			class="grid w-full grid-cols-3 self-start rounded-lg bg-surface-200 p-1 dark:bg-surface-700 sm:inline-flex sm:w-auto sm:self-auto"
 			aria-label="Order planner views"
 		>
 			{#each tabs as tab (tab.href)}
 				{@const active = page.url.pathname === tab.href}
 				<a
 					href={tab.href}
-					class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors {active
+					class="flex min-w-0 items-center justify-center gap-1 rounded-md px-1.5 py-1.5 text-xs font-medium transition-colors sm:gap-2 sm:px-3 sm:text-sm {active
 						? 'bg-surface-50 shadow-sm dark:bg-surface-800'
 						: 'text-surface-600 hover:text-surface-900 dark:text-surface-300 dark:hover:text-surface-50'}"
 					aria-current={active ? 'page' : undefined}
 				>
-					<tab.icon size={16} />
-					{tab.label}
+					<tab.icon size={16} class="hidden sm:block" />
+					<span class="whitespace-nowrap">{tab.label}</span>
 					<span
 						class="rounded-full px-1.5 py-0.5 text-xs tabular-nums {active
 							? 'bg-surface-200 dark:bg-surface-700'

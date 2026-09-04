@@ -146,6 +146,9 @@ export const managedWorker = (
 				started = false;
 
 			proc.exited.then(async () => {
+				// `processRunning` is set when the subprocess spawns, so it has to be cleared here
+				// rather than alongside `running`, which queued work may immediately set again.
+				status.processRunning = false;
 				await kv.set('lastRan', time.toString());
 				status.running = false;
 				registeredWorkersSummary.currentlyRunning--;

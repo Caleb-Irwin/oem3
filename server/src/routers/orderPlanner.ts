@@ -12,10 +12,12 @@ import {
 	uniref
 } from '../db.schema';
 import { generalProcedure, router, viewerProcedure } from '../trpc';
-import { eventSubscription } from '../utils/eventSubscription';
+import { orderPlannerEvents, smartOrderEvents } from './orderPlanner/events';
 import { qbHook } from './qb';
+import { smartOrderRouter } from './orderPlanner/smartOrder';
 
-const { update, createSub } = eventSubscription();
+const { update, createSub } = orderPlannerEvents;
+const updateSmartOrder = smartOrderEvents.update;
 const HISTORY_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 
 /** Builds the full item shape shown in the planner for whichever rows `where` selects. */
@@ -132,6 +134,7 @@ function assertOpen(order: { status: (typeof orderPlannerOrderStatusEnum.enumVal
 const itemIdsInput = z.object({ itemIds: z.array(z.number().int().positive()).min(1) });
 
 export const orderPlannerRouter = router({
+	smartOrder: smartOrderRouter,
 	get: viewerProcedure.query(getOrderPlanner),
 	getSub: createSub(async () => getOrderPlanner()),
 	/** One page of finished orders, newest first, so the history list never loads in full. */
@@ -213,6 +216,7 @@ export const orderPlannerRouter = router({
 				})
 				.returning({ id: orderPlannerItems.id });
 			update();
+			updateSmartOrder();
 			return created;
 		}),
 	remove: generalProcedure
@@ -220,6 +224,7 @@ export const orderPlannerRouter = router({
 		.mutation(async ({ input: { id } }) => {
 			await db.delete(orderPlannerItems).where(eq(orderPlannerItems.id, id));
 			update();
+			updateSmartOrder();
 		}),
 	assign: generalProcedure
 		.input(itemIdsInput.extend({ orderId: z.number().int().positive().nullable() }))
@@ -230,6 +235,7 @@ export const orderPlannerRouter = router({
 				.set({ orderId })
 				.where(inArray(orderPlannerItems.id, itemIds));
 			update();
+			updateSmartOrder();
 		}),
 	addToOrder: generalProcedure
 		.input(itemIdsInput.extend({ orderId: z.number().int().positive() }))
@@ -282,6 +288,7 @@ export const orderPlannerRouter = router({
 			}
 
 			update();
+			updateSmartOrder();
 			return {
 				added: additions.length,
 				duplicated: duplicates.length,
@@ -319,6 +326,7 @@ export const orderPlannerRouter = router({
 				await assertOrder(id);
 				await db.update(orderPlannerOrders).set({ status }).where(eq(orderPlannerOrders.id, id));
 				update();
+				updateSmartOrder();
 			}),
 		rename: generalProcedure
 			.input(z.object({ id: z.number().int().positive(), name: z.string().trim().min(1).max(128) }))
@@ -346,6 +354,7 @@ export const orderPlannerRouter = router({
 				}
 				await db.delete(orderPlannerOrders).where(eq(orderPlannerOrders.id, id));
 				update();
+				updateSmartOrder();
 			})
 	})
 });

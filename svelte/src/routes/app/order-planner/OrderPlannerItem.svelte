@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import Button from '$lib/Button.svelte';
-	import Image from '$lib/Image.svelte';
 	import { client } from '$lib/client';
 	import TriangleAlert from 'lucide-svelte/icons/triangle-alert';
 	import Trash2 from 'lucide-svelte/icons/trash-2';
 	import CreateOrder from './CreateOrder.svelte';
 	import InventoryChart from './InventoryChart.svelte';
+	import ItemIdentity from './ItemIdentity.svelte';
+	import QuantityTiles from './QuantityTiles.svelte';
 	import type { OrderPlannerItemData, OrderPlannerOrder } from './types';
 
 	interface Props {
@@ -77,69 +78,33 @@
 	class="rounded-lg border border-surface-200 bg-surface-50 p-3 dark:border-surface-700 dark:bg-surface-800"
 >
 	<div class="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center">
-		<div class="flex min-w-0 flex-1 items-start gap-3">
-			{#if onSelect}
-				<label class="mt-7 grid shrink-0 place-content-center rounded" title="Select item">
-					<input
-						type="checkbox"
-						class="checkbox border-2 border-surface-500 bg-white dark:border-surface-100 dark:bg-surface-900 dark:checked:border-primary-400 dark:checked:bg-primary-500"
-						checked={selected}
-						onchange={(event) => onSelect?.(event.currentTarget.checked)}
-					/>
-					<span class="sr-only">Select {itemName}</span>
-				</label>
-			{/if}
+		<ItemIdentity
+			name={itemName}
+			href={resourceHref}
+			qbId={item.qbId}
+			upc={item.upc}
+			image={item.primaryImage}
+			imageDescription={item.primaryImageDescription}
+			{selected}
+			onSelect={onSelect ? (next) => onSelect(next) : undefined}
+		>
+			{#snippet meta()}Added {dateAdded} by {item.addedBy}{/snippet}
+		</ItemIdentity>
 
-			<a
-				href={resourceHref}
-				class="grid h-20 w-20 shrink-0 place-content-center overflow-hidden rounded-md border border-surface-200 bg-white dark:border-surface-700"
-				title="Open item details"
-			>
-				{#if item.primaryImage}
-					<Image
-						src={item.primaryImage}
-						alt={item.primaryImageDescription ?? `Image of ${itemName}`}
-						class="h-20 w-20 object-contain p-1.5"
-						thumbnail
-					/>
-				{:else}
-					<span class="px-2 text-center text-xs text-surface-500">No image</span>
-				{/if}
-			</a>
+		<QuantityTiles
+			quantityOnHand={item.quantityOnHand}
+			availableQuantity={item.availableQuantity}
+			quantityOnPurchaseOrder={item.quantityOnPurchaseOrder}
+			quantityOnSalesOrder={item.quantityOnSalesOrder}
+		/>
 
-			<div class="min-w-0 flex-1">
-				<a href={resourceHref} class="font-semibold leading-tight hover:underline">{itemName}</a>
-				<p class="mt-0.5 break-all text-xs text-surface-500 dark:text-surface-300">
-					{item.qbId}{item.upc ? ` · UPC ${item.upc}` : ''}
-				</p>
-				<p class="mt-1 text-xs text-surface-600 dark:text-surface-300">
-					Added {dateAdded} by {item.addedBy}
-				</p>
-			</div>
-		</div>
-
-		<div class="grid grid-cols-4 gap-2 lg:w-[310px] lg:shrink-0">
-			<div class="rounded-md bg-primary-100 px-2 py-1.5 text-center dark:bg-primary-900/40">
-				<strong class="block text-xl tabular-nums text-primary-800 dark:text-primary-200">
-					{item.quantityOnHand ?? '—'}
-				</strong>
-				<span class="text-[11px] text-primary-800 dark:text-primary-200">On hand</span>
-			</div>
-			<div class="rounded-md bg-surface-100 px-2 py-1.5 text-center dark:bg-surface-700">
-				<strong class="block text-xl tabular-nums">{item.availableQuantity ?? '—'}</strong>
-				<span class="text-[11px] text-surface-600 dark:text-surface-300">Available</span>
-			</div>
-			<div class="rounded-md bg-surface-100 px-2 py-1.5 text-center dark:bg-surface-700">
-				<strong class="block text-xl tabular-nums">{item.quantityOnPurchaseOrder ?? '—'}</strong>
-				<span class="text-[11px] text-surface-600 dark:text-surface-300">On PO</span>
-			</div>
-			<div class="rounded-md bg-surface-100 px-2 py-1.5 text-center dark:bg-surface-700">
-				<strong class="block text-xl tabular-nums">{item.quantityOnSalesOrder ?? '—'}</strong>
-				<span class="text-[11px] text-surface-600 dark:text-surface-300">On SO</span>
-			</div>
-		</div>
-
-		<InventoryChart history={item.history} current={item.quantityOnHand} />
+		<InventoryChart
+			history={item.history.map((point) => ({
+				recordedAt: point.recordedAt,
+				value: point.quantityOnHand
+			}))}
+			current={item.quantityOnHand}
+		/>
 
 		<div class="min-w-0 lg:w-56 lg:shrink-0">
 			{#if duplicateOrders.length > 0}
