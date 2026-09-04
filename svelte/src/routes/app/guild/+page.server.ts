@@ -17,6 +17,7 @@ export const load: PageServerLoad = async ({ locals: { client } }) => {
 		guildFlyerStatus: client.guild.flyer.worker.status.query(),
 		guildFlyerChangeset: client.guild.flyer.worker.changeset.query(),
 		guildFlyerFiles: client.guild.flyer.files.get.query(),
+		guildFlyerSets: client.guild.flyer.sets.get.query(),
 
 		// Guild Description Worker
 		guildDescStatus: client.guild.desc.worker.status.query(),

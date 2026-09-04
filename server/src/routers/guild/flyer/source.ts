@@ -52,7 +52,8 @@ const compareFiles = (a: FlyerSourceFile, b: FlyerSourceFile) => {
 	return b.order - a.order;
 };
 
-export const getLatestFlyerFileName = (directoryHtml: string) => {
+/** Flyer file names from the directory listing, oldest first. */
+export const getFlyerFileNames = (directoryHtml: string, limit = Infinity) => {
 	const candidates: FlyerSourceFile[] = [];
 
 	for (const match of directoryHtml.matchAll(sourceFileLinkPattern)) {
@@ -69,5 +70,9 @@ export const getLatestFlyerFileName = (directoryHtml: string) => {
 		});
 	}
 
-	return candidates.sort(compareFiles).at(-1)?.name ?? null;
+	const sorted = candidates.sort(compareFiles).map((candidate) => candidate.name);
+	return limit === Infinity ? sorted : sorted.slice(Math.max(sorted.length - limit, 0));
 };
+
+export const getLatestFlyerFileName = (directoryHtml: string) =>
+	getFlyerFileNames(directoryHtml).at(-1) ?? null;

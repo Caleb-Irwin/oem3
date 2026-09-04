@@ -10,17 +10,22 @@ import type { RunWorker } from './managedWorker';
 import { scheduleDailyTask } from './scheduler';
 import { deleteFile, getFileRefById, uploadFile } from './files.s3';
 
+export interface CloudDownloadFile {
+	name: string;
+	dataUrl: string;
+	apply?: boolean;
+	onUploaded?: () => Promise<void> | void;
+}
+
+const asFileList = (res: CloudDownloadFile | CloudDownloadFile[] | null) =>
+	res === null ? [] : Array.isArray(res) ? res : [res];
+
 export const fileProcedures = (
 	type: string,
 	verifyFunction: (dataUrl: string, fileType: string) => Promise<void> | void,
 	runWorker: RunWorker,
 	cloudDownload:
-		| (() => Promise<{
-				name: string;
-				dataUrl: string;
-				apply?: boolean;
-				onUploaded?: () => Promise<void> | void;
-		  } | null>)
+		| (() => Promise<CloudDownloadFile | CloudDownloadFile[] | null>)
 		| undefined = undefined,
 	dailyRunCloudDownload = false
 ) => {
@@ -76,17 +81,17 @@ export const fileProcedures = (
 
 	if (dailyRunCloudDownload && cloudDownload) {
 		scheduleDailyTask(type, async () => {
-			const file = await cloudDownload();
-			if (!file) return;
-			await upload({
-				input: {
-					file: file.dataUrl,
-					fileName: file.name,
-					processFile: file.apply ?? true
-				},
-				ctx: { user: { username: null as any } }
-			});
-			await file.onUploaded?.();
+			for (const file of asFileList(await cloudDownload())) {
+				await upload({
+					input: {
+						file: file.dataUrl,
+						fileName: file.name,
+						processFile: file.apply ?? true
+					},
+					ctx: { user: { username: null as any } }
+				});
+				await file.onUploaded?.();
+			}
 		});
 	}
 
@@ -141,18 +146,22 @@ export const fileProcedures = (
 				});
 
 			const downloadAndUpload = async () => {
-				const file = await cloudDownload();
-				if (!file) return { message: 'Latest File Already Downloaded' };
-				const { fileId } = await upload({
-					input: {
-						file: file.dataUrl,
-						fileName: file.name,
-						processFile: file.apply ?? true
-					},
-					ctx
-				});
-				await file.onUploaded?.();
-				return { message: `File #${fileId} "${file.name}" Downloaded` };
+				const files = asFileList(await cloudDownload());
+				if (files.length === 0) return { message: 'Latest File Already Downloaded' };
+				const messages: string[] = [];
+				for (const file of files) {
+					const { fileId } = await upload({
+						input: {
+							file: file.dataUrl,
+							fileName: file.name,
+							processFile: file.apply ?? true
+						},
+						ctx
+					});
+					await file.onUploaded?.();
+					messages.push(`File #${fileId} "${file.name}" Downloaded`);
+				}
+				return { message: messages.join(', ') };
 			};
 
 			const timeout = new Promise<{ message: string }>((resolve) =>

@@ -1,18 +1,24 @@
-import { genDiffer, removeNaN } from '../../../utils/changeset.helpers';
+import { genDiffer } from '../../../utils/changeset.helpers';
 import { work } from '../../../utils/workerBase';
 import { guildFlyer } from './table';
-import * as xlsx from 'xlsx';
+import { applyActivation, importFlyer, parseFlyerFile, resolveFlyerItems } from './resolve';
 
 work({
 	process: async ({ db, message, progress, utils: { getFileDataUrl, createChangeset } }) => {
-		const fileId = (message as { fileId: number }).fileId,
-			changeset = await createChangeset(guildFlyer, fileId),
-			dataUrl = await getFileDataUrl(fileId),
-			workbook = xlsx.read(dataUrl.slice(dataUrl.indexOf(';base64,') + 8)),
-			worksheet = workbook.Sheets[workbook.SheetNames[0]],
-			flyerObjects = xlsx.utils.sheet_to_json(worksheet);
+		const fileId = (message as { fileId?: number }).fileId,
+			changeset = await createChangeset(guildFlyer, fileId);
+
+		const rawFlyers =
+			fileId === undefined ? [] : parseFlyerFile(await getFileDataUrl(fileId), fileId);
 
 		await db.transaction(async (db) => {
+			for (const raw of rawFlyers) await importFlyer(db, raw);
+
+			progress(0.25);
+
+			const sets = await applyActivation(db);
+			const resolved = await resolveFlyerItems(db, sets);
+
 			const prevItems = new Map(
 				(await db.query.guildFlyer.findMany({ with: { uniref: true } })).map((item) => [
 					item.gid,
@@ -21,14 +27,15 @@ work({
 			);
 			await changeset.process({
 				db,
-				rawItems: flyerObjects as GuildFlyerRaw[],
+				rawItems: resolved,
 				prevItems,
-				transform: transformGuildFlyer,
-				extractId: (g) => g.gid,
+				transform: (item) => item,
+				extractId: (item) => item.gid,
 				diff: genDiffer(
 					[],
 					[
 						'gid',
+						'set',
 						'flyerNumber',
 						'startDate',
 						'endDate',
@@ -41,39 +48,9 @@ work({
 						'regularPriceL1Cents'
 					]
 				),
-				progress,
+				progress: (amountDone) => progress(0.25 + amountDone * 0.75),
 				fileId
 			});
 		});
 	}
 });
-
-function transformGuildFlyer(g: GuildFlyerRaw): typeof guildFlyer.$inferInsert {
-	return {
-		gid: g['Item Stock #'].toString(),
-		flyerNumber: removeNaN(parseInt(g['Flyer # '])),
-		startDate: new Date(g['Date Flyer Starts '] + ': GMT-0600').valueOf(),
-		endDate: new Date(g['Date Flyer Ends'] + ': GMT-0600').valueOf(),
-		vendorCode: g["Manufacture's Code"],
-		flyerCostCents: removeNaN(Math.round(parseFloat(g['Flyer Cost']) * 100)),
-		flyerPriceL0Cents: removeNaN(Math.round(parseFloat(g['Flyer Price Level 0']) * 100)),
-		flyerPriceL1Cents: removeNaN(Math.round(parseFloat(g['Flyer Price Level 1']) * 100)),
-		flyerPriceRetailCents: removeNaN(Math.round(parseFloat(g['Flyer Price Retail Level']) * 100)),
-		regularPriceL0Cents: removeNaN(Math.round(parseFloat(g['Regular Price Level 0']) * 100)),
-		regularPriceL1Cents: removeNaN(Math.round(parseFloat(g['Regular Price Level 1']) * 100)),
-		lastUpdated: 0
-	};
-}
-export interface GuildFlyerRaw {
-	'Flyer # ': string;
-	'Date Flyer Starts ': string;
-	'Date Flyer Ends': string;
-	"Manufacture's Code": string;
-	'Item Stock #': string;
-	'Flyer Cost': string;
-	'Flyer Price Level 0': string;
-	'Flyer Price Level 1': string;
-	'Flyer Price Retail Level': string;
-	'Regular Price Level 0': string;
-	'Regular Price Level 1': string;
-}

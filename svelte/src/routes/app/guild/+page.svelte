@@ -7,6 +7,7 @@
 	import type { PageProps } from './$types';
 	import UnifiedSummary from '$lib/summary/UnifiedSummary.svelte';
 	import ModalSearchBar from '$lib/search/ModalSearchBar.svelte';
+	import FlyerSets from '$lib/FlyerSets.svelte';
 
 	let { data }: PageProps = $props();
 </script>
@@ -92,6 +93,7 @@
 					init: data.guildFlyerChangeset
 				})}
 			/>
+			<FlyerSets embedded initVal={data.guildFlyerSets} />
 			<Files
 				embedded
 				filesRouter={client.guild.flyer.files}

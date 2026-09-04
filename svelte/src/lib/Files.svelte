@@ -140,7 +140,7 @@
 					>
 				</p>
 				<Button
-					action={client.qb.files.del}
+					action={filesRouter.del}
 					input={{ fileId: file.id }}
 					confirm
 					successMessage="Deleted"
