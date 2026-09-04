@@ -35,8 +35,6 @@
 	let warningFilter = $state<WarningFilter>('active');
 	let selected = $state<number[]>([]);
 	let expandedVendors = $state(new Set<string>());
-	/** Until the user opens or closes something themselves, the first group is expanded for them. */
-	let expansionTouched = $state(false);
 	let openMenu = $state<'bulk' | number | null>(null);
 	let busy = $state(false);
 
@@ -114,11 +112,6 @@
 		if (typeof openMenu === 'number' && !visibleIds.has(openMenu)) openMenu = null;
 	});
 
-	$effect(() => {
-		if (!expansionTouched && expandedVendors.size === 0 && grouped.length > 0)
-			expandedVendors = new Set([grouped[0].vendor]);
-	});
-
 	const dateFormat = new Intl.DateTimeFormat('en-CA', {
 		month: 'short',
 		day: 'numeric',
@@ -173,14 +166,12 @@
 	}
 
 	function toggleVendor(vendor: string) {
-		expansionTouched = true;
 		const next = new Set(expandedVendors);
 		if (next.has(vendor)) next.delete(vendor);
 		else next.add(vendor);
 		expandedVendors = next;
 	}
 	function setAllExpanded(expanded: boolean) {
-		expansionTouched = true;
 		expandedVendors = expanded ? new Set(grouped.map((group) => group.vendor)) : new Set();
 	}
 	function closeMenus() {
