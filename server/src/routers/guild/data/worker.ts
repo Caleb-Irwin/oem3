@@ -1,21 +1,11 @@
-import { eq, gt } from 'drizzle-orm';
 import { enforceEnum, genDiffer, removeNaN } from '../../../utils/changeset.helpers';
 import { work } from '../../../utils/workerBase';
 import { guildData, guildUmEnum } from './table';
 import * as xlsx from 'xlsx';
-import { addOrSmartUpdateImage } from '../../../utils/images';
-import { changesets } from '../../../db.schema';
-import PromisePool from '@supercharge/promise-pool';
 
 work({
-	process: async ({
-		db,
-		message,
-		progress,
-		utils: { getFileDataUrl, createChangeset, notifier }
-	}) => {
+	process: async ({ db, message, progress, utils: { getFileDataUrl, createChangeset } }) => {
 		const fileId = (message as { fileId: number }).fileId,
-			startTime = Date.now(),
 			changeset = await createChangeset(guildData, fileId),
 			dataUrl = await getFileDataUrl(fileId),
 			workbook = xlsx.read(dataUrl.slice(dataUrl.indexOf(';base64,') + 8)),
@@ -69,43 +59,9 @@ work({
 				),
 				excludeFromHistory: [],
 				progress,
-				preventAutoFinish: true,
 				fileId
 			});
 		});
-
-		const allUpdated = await db.query.guildData.findMany({
-			where: gt(guildData.lastUpdated, startTime - 1),
-			columns: {
-				gid: true
-			}
-		});
-
-		progress(-1);
-		let doneSoFar = 0;
-		const total = allUpdated.length;
-
-		await PromisePool.withConcurrency(10)
-			.for(allUpdated)
-			.handleError(async (error, { gid }) => {
-				console.error('Error adding image for gid', gid, error);
-			})
-			.onTaskFinished(() => {
-				doneSoFar++;
-				if (doneSoFar % 50 === 0) {
-					progress(doneSoFar / total);
-				}
-			})
-			.process(async ({ gid }) => {
-				await addOrSmartUpdateImage(
-					`https://shopofficeonline.com/ProductImages/${gid.replace(/[\W_]+/g, '')}.jpg`,
-					gid,
-					'shopofficeonline'
-				);
-			});
-
-		await db.update(changesets).set({ status: 'completed' }).where(eq(changesets.id, changeset.id));
-		notifier();
 	}
 });
 
