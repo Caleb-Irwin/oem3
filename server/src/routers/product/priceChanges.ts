@@ -55,15 +55,14 @@ const customSettingTypes = ['setting:custom', 'setting:approveCustom'] as const;
 
 const categoryInput = z.enum(priceChangeCategoryEnum.enumValues).default('all');
 
-/**
- * Flyer items keep their guild or SPR source, so the pricing categories stay a plain view of
- * where the price came from and the flyer category is the cross cut through them.
- */
+/** Flyer items live in their own scope and never repeat in another review queue. */
 function categoryFilter(category: PriceChangeCategory): SQL | undefined {
 	if (category === 'flyer') return eq(priceChanges.inFlyer, true);
-	if (category === 'guild') return eq(priceChanges.source, 'guild');
-	if (category === 'spr') return eq(priceChanges.source, 'spr');
-	return undefined;
+	if (category === 'guild')
+		return and(eq(priceChanges.inFlyer, false), eq(priceChanges.source, 'guild'));
+	if (category === 'spr')
+		return and(eq(priceChanges.inFlyer, false), eq(priceChanges.source, 'spr'));
+	return eq(priceChanges.inFlyer, false);
 }
 
 const onlineSetting = alias(unifiedProductCellConfig, 'online_price_setting');
@@ -310,9 +309,9 @@ async function loadPriceChanges(category: PriceChangeCategory) {
 		db
 			.select({
 				flyer: sql<number>`count(*) filter (where ${priceChanges.status} = 'pending' and ${priceChanges.inFlyer} = true)`,
-				guild: sql<number>`count(*) filter (where ${priceChanges.status} = 'pending' and ${priceChanges.source} = 'guild')`,
-				spr: sql<number>`count(*) filter (where ${priceChanges.status} = 'pending' and ${priceChanges.source} = 'spr')`,
-				all: sql<number>`count(*) filter (where ${priceChanges.status} = 'pending')`
+				guild: sql<number>`count(*) filter (where ${priceChanges.status} = 'pending' and ${priceChanges.inFlyer} = false and ${priceChanges.source} = 'guild')`,
+				spr: sql<number>`count(*) filter (where ${priceChanges.status} = 'pending' and ${priceChanges.inFlyer} = false and ${priceChanges.source} = 'spr')`,
+				all: sql<number>`count(*) filter (where ${priceChanges.status} = 'pending' and ${priceChanges.inFlyer} = false)`
 			})
 			.from(priceChanges)
 			.then((rows) => rows[0])

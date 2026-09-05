@@ -33,9 +33,9 @@ export type PriceChangeExport = Awaited<
 
 export const CATEGORIES: { value: PriceChangeCategory; label: string; hint: string }[] = [
 	{ value: 'flyer', label: 'Active Flyer', hint: 'Items priced by a flyer that is running now' },
-	{ value: 'guild', label: 'Guild Pricing', hint: 'Products whose price comes from Guild' },
-	{ value: 'spr', label: 'SPR Pricing', hint: 'Products whose price comes from SPR' },
-	{ value: 'all', label: 'All', hint: 'Every product with a QuickBooks price to change' }
+	{ value: 'guild', label: 'Guild Pricing', hint: 'Non-flyer products priced by Guild' },
+	{ value: 'spr', label: 'SPR Pricing', hint: 'Non-flyer products priced by SPR' },
+	{ value: 'all', label: 'All Others', hint: 'Every non-flyer product with a price to change' }
 ];
 
 export const formatPercent = (percent: number) =>
