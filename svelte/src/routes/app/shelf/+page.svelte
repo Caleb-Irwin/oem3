@@ -9,6 +9,7 @@
 	import ChangeSheetName from './ChangeSheetName.svelte';
 	import Sheet from './Sheet.svelte';
 	import { browser } from '$app/environment';
+	import { page } from '$app/state';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -16,10 +17,20 @@
 	const allSheets = subVal(client.labels.sheet.allSub, { init: data.allSheets });
 	const modalStore = getModalStore();
 
-	let sheetId: number = $state(data.lastAccessed?.id ?? -1),
+	/**
+	 * A sheet named in the query string wins over the last sheet this browser had open, which
+	 * is what lets a price change export drop the user straight onto the sheet it just made.
+	 */
+	const requestedSheetId = (() => {
+		const raw = page.url.searchParams.get('sheet');
+		const id = Number(raw);
+		return raw !== null && Number.isInteger(id) && id > 0 ? id : null;
+	})();
+
+	let sheetId: number = $state(requestedSheetId ?? data.lastAccessed?.id ?? -1),
 		newSheet: number | undefined = $state(),
 		currentSheet = $derived(($allSheets || []).filter(({ id }) => id === sheetId)[0]),
-		mounted = $state(false);
+		mounted = $state(requestedSheetId !== null);
 	$effect(() => {
 		if (
 			$allSheets &&
@@ -119,6 +130,7 @@
 			<Sheet
 				sheetId={currentSheet.id}
 				sheetName={currentSheet.name ?? ''}
+				priceChangeExport={currentSheet.priceChangeExport}
 				init={data.lastAccessed && data.lastAccessed.id === currentSheet.id
 					? data.lastAccessed.labels
 					: undefined}

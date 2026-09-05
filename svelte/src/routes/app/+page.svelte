@@ -24,6 +24,9 @@
 		sprSummary = subVal(client.summaries.getSub, {
 			init: data.sprSummary,
 			input: { type: 'unifiedSpr' }
+		}),
+		priceChangesCount = subVal(client.priceChanges.pendingCountSub, {
+			init: data.priceChangesPending
 		});
 
 	/** A tile reports on every worker its page owns, not just the unifier. */
@@ -65,6 +68,10 @@
 				subVal(client.shopify.pushSync.worker.statusSub, { init: data.shopifyPushWorker })
 			],
 			workerState
+		),
+		priceChangesState = derivedStore(
+			[subVal(client.priceChanges.worker.statusSub, { init: data.priceChangesWorker })],
+			workerState
 		);
 
 	/** Each unifier lists its primary table first, so that connection holds the headline count. */
@@ -105,7 +112,14 @@
 			),
 			unifiedSpr: unifiedStat(($sprSummary?.data ?? null) as UnifiedErrorSummary | null, $sprState),
 			qb: sourceStat(product, 'qb', $qbState),
-			shopify: sourceStat(product, 'shopify', $shopifyState)
+			shopify: sourceStat(product, 'shopify', $shopifyState),
+			priceChanges: {
+				active: null,
+				issues: $priceChangesCount?.pending ?? null,
+				...$priceChangesState,
+				issuesLabel: 'awaiting review',
+				noIssuesLabel: 'Nothing to review'
+			}
 		};
 	});
 </script>

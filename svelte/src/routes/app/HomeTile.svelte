@@ -4,6 +4,10 @@
 		active: number | null;
 		/** Items needing a fix, or null when the page has no error summary. */
 		issues: number | null;
+		/** Overrides the "errors" wording for pages whose issues are not errors. */
+		issuesLabel?: string;
+		/** Overrides the zero-issues wording to match the page's own language. */
+		noIssuesLabel?: string;
 		/** Any of the page's workers is running. */
 		running: boolean;
 		/** Any of the page's workers ended in an error. */
@@ -69,10 +73,11 @@
 				{#if stat.issues !== null}
 					{#if stat.issues > 0}
 						<span class="font-medium tabular-nums text-error-700 dark:text-error-400">
-							{count(stat.issues)} errors
+							{count(stat.issues)}
+							{stat.issuesLabel ?? 'errors'}
 						</span>
 					{:else}
-						No errors
+						{stat.noIssuesLabel ?? 'No errors'}
 					{/if}
 				{/if}
 			</span>

@@ -10,15 +10,18 @@
 	import Copy from 'lucide-svelte/icons/copy';
 	import Button from '$lib/Button.svelte';
 	import Search from '$lib/search/OldSearch.svelte';
+	import PriceChangeDownloads from './PriceChangeDownloads.svelte';
 	import { readable } from 'svelte/store';
 
 	interface Props {
 		sheetId: number;
 		sheetName: string;
+		/** Set when the sheet came from a price change export, which unlocks the QuickBooks CSVs. */
+		priceChangeExport?: number | null;
 		init: Awaited<ReturnType<typeof client.labels.all.query>> | undefined;
 	}
 
-	let { sheetId, sheetName, init }: Props = $props();
+	let { sheetId, sheetName, priceChangeExport = null, init }: Props = $props();
 	const _sheet = subVal(client.labels.allSub, {
 			input: { sheetId },
 			updateTopic: sheetId.toString(),
@@ -34,6 +37,10 @@
 		<ProgressBar meter="bg-primary-500" track="bg-primary-100 dark:bg-primary-900" />
 	</div>
 {:else}
+	{#if priceChangeExport !== null}
+		<PriceChangeDownloads exportId={priceChangeExport} />
+	{/if}
+
 	<Download
 		labels={($sheet ?? []).map((l) => ({
 			name: l.name ?? '',

@@ -6,7 +6,7 @@ import {
 	TRPCClientError,
 	wsLink
 } from '@trpc/client';
-import { writable, type Readable } from 'svelte/store';
+import { readable, writable, type Readable } from 'svelte/store';
 import { browser } from '$app/environment';
 import type { AppRouter } from '../../../server/src';
 
@@ -82,35 +82,44 @@ type SubVal = <SI extends object | void, SO>(
 	args: SI extends void ? { init?: SO | undefined } : SI & { init?: SO | undefined }
 ) => Readable<SO | undefined>;
 
-export const subVal: SubVal = ({ subscribe: sub }, args) => {
-	const { subscribe, set } = writable(args.init ?? undefined);
+function stopSubscription(subscription: unknown) {
+	if (typeof subscription === 'function') {
+		subscription();
+		return;
+	}
+	if (
+		subscription &&
+		typeof subscription === 'object' &&
+		'unsubscribe' in subscription &&
+		typeof subscription.unsubscribe === 'function'
+	)
+		subscription.unsubscribe();
+}
 
-	if (browser) {
-		const input = args;
+export const subVal: SubVal = ({ subscribe: sub }, args) => {
+	return readable(args.init ?? undefined, (set) => {
+		if (!browser) return;
+		const input = { ...args };
 		delete input.init;
 		// @ts-expect-error Types through SubVal
-		sub(input, {
+		const subscription = sub(input, {
 			onData(val) {
-				// @ts-expect-error Types through SubVal
 				set(val);
 			},
 			onError: handleTRPCError
 		});
-	}
-
-	return { subscribe };
+		return () => stopSubscription(subscription);
+	});
 };
 
 export const subValReturnError: SubVal = ({ subscribe: sub }, args) => {
-	const { subscribe, set } = writable(args.init ?? undefined);
-
-	if (browser) {
-		const input = args;
+	return readable(args.init ?? undefined, (set) => {
+		if (!browser) return;
+		const input = { ...args };
 		delete input.init;
 		// @ts-expect-error Types through SubVal
-		sub(input, {
+		const subscription = sub(input, {
 			onData(val) {
-				// @ts-expect-error Types through SubVal
 				set(val);
 			},
 			onError: (e: unknown) => {
@@ -123,7 +132,6 @@ export const subValReturnError: SubVal = ({ subscribe: sub }, args) => {
 				set({ error: message });
 			}
 		});
-	}
-
-	return { subscribe };
+		return () => stopSubscription(subscription);
+	});
 };

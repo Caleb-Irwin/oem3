@@ -12,6 +12,7 @@ import { unifiedRouter } from './routers/unified';
 import { summariesRouter } from './routers/summaries';
 import { productRouter } from './routers/product';
 import { orderPlannerRouter } from './routers/orderPlanner';
+import { priceChangesRouter } from './routers/product/priceChanges';
 
 export const appRouter = router({
 	user: userRouter,
@@ -26,5 +27,6 @@ export const appRouter = router({
 	unified: unifiedRouter,
 	summaries: summariesRouter,
 	product: productRouter,
+	priceChanges: priceChangesRouter,
 	orderPlanner: orderPlannerRouter
 });

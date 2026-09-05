@@ -9,6 +9,9 @@ import { KV } from '../utils/kv';
 
 const { update, createSub } = eventSubscription();
 
+/** Lets the price change export refresh the sheet list after it creates a sheet. */
+export const notifyLabelsUpdated = update;
+
 const kv = new KV('labels');
 
 export const labelsRouter = router({

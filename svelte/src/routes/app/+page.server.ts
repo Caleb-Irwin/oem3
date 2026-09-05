@@ -25,6 +25,9 @@ export const load: PageServerLoad = async ({ locals: { client } }) => {
 		qbWorker: client.qb.worker.status.query(),
 
 		shopifyWorker: client.shopify.worker.status.query(),
-		shopifyPushWorker: client.shopify.pushSync.worker.status.query()
+		shopifyPushWorker: client.shopify.pushSync.worker.status.query(),
+
+		priceChangesPending: client.priceChanges.pendingCount.query(),
+		priceChangesWorker: client.priceChanges.worker.status.query()
 	});
 };

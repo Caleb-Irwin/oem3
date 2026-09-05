@@ -911,6 +911,20 @@
       "when": 1788560365610,
       "tag": "0129_target_quickbooks_price",
       "breakpoints": true
+    },
+    {
+      "idx": 130,
+      "version": "7",
+      "when": 1788564199278,
+      "tag": "0130_price_changes",
+      "breakpoints": true
+    },
+    {
+      "idx": 131,
+      "version": "7",
+      "when": 1788575526357,
+      "tag": "0131_price_change_guards",
+      "breakpoints": true
     }
   ]
 }

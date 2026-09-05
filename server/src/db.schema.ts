@@ -1,5 +1,6 @@
 export * from './utils/files.table';
 export * from './utils/kv.table';
+export * from './routers/product/priceChange.exports.table';
 export * from './routers/labels.table';
 export * from './routers/orderPlanner.table';
 export * from './routers/orderPlanner/smartOrder.table';
@@ -24,5 +25,6 @@ export * from './routers/summaries/table';
 export * from './unified/unmatchedErrors.table';
 export * from './routers/spr/table';
 export * from './routers/product/table';
+export * from './routers/product/priceChange.table';
 export * from './routers/shopify/push/media.table';
 export * from './routers/shopify/push/shopifyMetadata.table';

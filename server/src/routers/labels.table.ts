@@ -8,6 +8,7 @@ import {
 	integer,
 	index
 } from 'drizzle-orm/pg-core';
+import { priceChangeExports } from './product/priceChange.exports.table';
 import { users } from './users.table';
 
 export const labelSheets = pgTable(
@@ -18,6 +19,11 @@ export const labelSheets = pgTable(
 		public: boolean('public'),
 		owner: varchar('owner', { length: 256 }).references(() => users.username, {
 			onDelete: 'cascade'
+		}),
+		/** Set when the sheet was generated from a price change export, which is what lets the
+		 * sheet offer the QuickBooks change and revert CSVs for those same items. */
+		priceChangeExport: integer('price_change_export').references(() => priceChangeExports.id, {
+			onDelete: 'set null'
 		})
 	},
 	(labelSheet) => [uniqueIndex('labelSheet_id_idx').on(labelSheet.id)]

@@ -16,7 +16,7 @@ export interface NavItem {
 	title: string;
 	icon: ComponentType;
 	/** Key into the home page's stat map, when the page has a summary to show. */
-	stat?: 'unifiedProduct' | 'unifiedGuild' | 'unifiedSpr' | 'qb' | 'shopify';
+	stat?: 'unifiedProduct' | 'unifiedGuild' | 'unifiedSpr' | 'qb' | 'shopify' | 'priceChanges';
 }
 
 export const workflows: NavItem[] = [
@@ -38,7 +38,8 @@ export const workflows: NavItem[] = [
 	{
 		href: '/app/price-changes',
 		title: 'Price Changes',
-		icon: BadgeDollarSign
+		icon: BadgeDollarSign,
+		stat: 'priceChanges'
 	},
 	{
 		href: '/app/product',
