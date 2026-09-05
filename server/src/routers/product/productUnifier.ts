@@ -13,6 +13,7 @@ import {
 	productStatusEnum,
 	productUmEnum
 } from '../../db.schema';
+import { quickBooksTargetPriceCents } from './pricing';
 
 const getRow = async (id: number, db: typeof DB | Tx) => {
 	const res = await db.query.unifiedProduct
@@ -43,7 +44,7 @@ export const productUnifier = createUnifier<
 >({
 	table: unifiedProduct,
 	confTable: unifiedProductCellConfig,
-	version: 20,
+	version: 21,
 	getRow,
 	transform: (
 		item,
@@ -167,11 +168,24 @@ export const productUnifier = createUnifier<
 				}
 			}),
 			onlineComparePriceCents: t('onlineComparePriceCents', onlineComparePriceCents),
+			sourceToQuickBooksFactor: t('sourceToQuickBooksFactor', 1),
+			quickBooksConversionAdjustmentPercent: t('quickBooksConversionAdjustmentPercent', 0),
 			targetQuickBooksPriceCents: t(
 				'targetQuickBooksPriceCents',
-				(item) => (qb ? (item.onlinePriceCents ?? null) : null),
+				(item) =>
+					qb
+						? quickBooksTargetPriceCents(
+								item.onlinePriceCents,
+								item.sourceToQuickBooksFactor ?? 1,
+								item.quickBooksConversionAdjustmentPercent ?? 0
+							)
+						: null,
 				{
-					dependsOn: new Set(['onlinePriceCents']),
+					dependsOn: new Set([
+						'onlinePriceCents',
+						'sourceToQuickBooksFactor',
+						'quickBooksConversionAdjustmentPercent'
+					]),
 					shouldNotBeNull: guild?.inFlyer ?? false
 				}
 			),
@@ -523,6 +537,26 @@ export const productUnifier = createUnifier<
 		]
 	},
 	additionalColValidators: {
+		sourceToQuickBooksFactor: (value) => {
+			if (!Number.isFinite(value) || value <= 0) {
+				return {
+					invalidDataType: {
+						value,
+						message: 'Source-to-QuickBooks factor must be greater than zero'
+					}
+				};
+			}
+		},
+		quickBooksConversionAdjustmentPercent: (value) => {
+			if (!Number.isFinite(value) || value <= -100) {
+				return {
+					invalidDataType: {
+						value,
+						message: 'QuickBooks conversion adjustment must be greater than -100%'
+					}
+				};
+			}
+		},
 		status: (value) => {
 			if (value !== null && !productStatusEnum.enumValues.includes(value as any)) {
 				return {

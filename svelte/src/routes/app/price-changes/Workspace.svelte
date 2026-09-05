@@ -13,11 +13,13 @@
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
 	import Undo2 from 'lucide-svelte/icons/undo-2';
 	import Pencil from 'lucide-svelte/icons/pencil';
+	import PackageOpen from 'lucide-svelte/icons/package-open';
 	import Button from '$lib/Button.svelte';
 	import Form from '$lib/Form.svelte';
 	import { client, handleTRPCError, subVal } from '$lib/client';
 	import { formatPrice } from '$lib/formatPrice';
 	import CustomPriceModal from './CustomPriceModal.svelte';
+	import UnitConversionModal from './UnitConversionModal.svelte';
 	import PriceChangeIdentity from './PriceChangeIdentity.svelte';
 	import PriceMove from './PriceMove.svelte';
 	import ReviewCard from './ReviewCard.svelte';
@@ -178,15 +180,17 @@
 					...state,
 					changePercent: state.changePercentMilli / 1000
 				};
-				const targetMoved = item.targetPriceCents !== state.targetPriceCents;
-				const returnedToReview =
+				// Only a decision that no longer holds sends an item back for another look,
+				// moved to the end of the queue. An undecided item whose target refreshed stays
+				// exactly where it is — including the card the reviewer is standing on.
+				const decisionInvalidated =
 					state.status === 'pending' &&
-					(item.status !== 'pending' || targetMoved || nextDecisions[item.id] !== undefined);
-				if (returnedToReview) {
+					(item.status !== 'pending' || nextDecisions[item.id] !== undefined);
+				if (decisionInvalidated) {
 					delete nextDecisions[item.id];
-					// A row outside the current 400-item response returns in a later batch, when
-					// its full product and price breakdown can be loaded again.
-					if (fresh) requeued.push(updated);
+					// The local item still carries the product details, so it returns even when
+					// the capped server response no longer describes it.
+					requeued.push(updated);
 					continue;
 				}
 				const serverDecision =
@@ -360,6 +364,13 @@
 		});
 	}
 
+	function openUnitConversion(item: PriceChangeItem) {
+		modalStore.trigger({
+			type: 'component',
+			component: { ref: UnitConversionModal, props: { item } }
+		});
+	}
+
 	function handleKeydown(event: KeyboardEvent) {
 		if (view !== 'review' || !current) return;
 		if ($modalStore.length > 0) return;
@@ -494,6 +505,13 @@
 		<div
 			class="mt-3 flex flex-wrap items-center justify-end gap-1.5 border-t border-surface-200 pt-2 dark:border-surface-700"
 		>
+			<button
+				class="btn btn-sm whitespace-nowrap variant-ghost-secondary"
+				onclick={() => openUnitConversion(item)}
+				title="Set the source-to-QuickBooks U/M conversion"
+			>
+				<PackageOpen size={15} /><span class="pl-1">U/M</span>
+			</button>
 			<button
 				class="btn btn-sm whitespace-nowrap variant-ghost-secondary"
 				onclick={() => openCustomPrice(item)}
@@ -808,6 +826,7 @@
 					{forward}
 					undo={undoCurrent}
 					editPrice={() => openCustomPrice(current)}
+					editUnitConversion={() => openUnitConversion(current)}
 				/>
 			{:else}
 				<div class="card p-8 text-center">

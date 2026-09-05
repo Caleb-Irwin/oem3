@@ -4,6 +4,7 @@
 	import ArrowDown from 'lucide-svelte/icons/arrow-down';
 	import ArrowUp from 'lucide-svelte/icons/arrow-up';
 	import Pencil from 'lucide-svelte/icons/pencil';
+	import PackageOpen from 'lucide-svelte/icons/package-open';
 	import Undo2 from 'lucide-svelte/icons/undo-2';
 	import ExternalLink from 'lucide-svelte/icons/external-link';
 	import PriceBreakdown from '../price/PriceBreakdown.svelte';
@@ -23,6 +24,7 @@
 		forward: () => void;
 		undo: () => void;
 		editPrice: () => void;
+		editUnitConversion: () => void;
 	}
 
 	let {
@@ -36,7 +38,8 @@
 		back,
 		forward,
 		undo,
-		editPrice
+		editPrice,
+		editUnitConversion
 	}: Props = $props();
 </script>
 
@@ -114,10 +117,22 @@
 			>QuickBooks item <strong class="text-surface-900 dark:text-surface-50">{item.qbId}</strong
 			></span
 		>
-		{#if item.um}
+		{#if item.sourceUm || item.quickBooksUm}
 			<span>
-				UM <strong class="text-surface-900 dark:text-surface-50">
-					{item.um.toUpperCase()}{item.qtyPerUm ? ` · ${item.qtyPerUm}/UM` : ''}
+				U/M <strong class="text-surface-900 dark:text-surface-50">
+					{item.sourceUm?.toUpperCase() ?? '—'} → {item.quickBooksUm?.toUpperCase() ?? '—'}
+				</strong>
+			</span>
+		{/if}
+		{#if item.unitConversionConfigured}
+			<span>
+				Conversion <strong class="text-surface-900 dark:text-surface-50">
+					×{item.sourceToQuickBooksFactor.toLocaleString(undefined, {
+						maximumFractionDigits: 6
+					})}
+					· {item.quickBooksConversionAdjustmentPercent > 0
+						? '+'
+						: ''}{item.quickBooksConversionAdjustmentPercent}%
 				</strong>
 			</span>
 		{/if}
@@ -148,7 +163,7 @@
 		open
 	/>
 
-	<div class="grid grid-cols-2 gap-2 md:grid-cols-4">
+	<div class="grid grid-cols-2 gap-2 md:grid-cols-5">
 		<button
 			class="btn {decision === 'reject' ? 'variant-filled-error' : 'variant-ghost-error'}"
 			onclick={reject}
@@ -161,6 +176,9 @@
 		</button>
 		<button class="btn variant-ghost-secondary" onclick={editPrice} disabled={busy}>
 			<Pencil size={18} /><span class="pl-1">Custom price</span>
+		</button>
+		<button class="btn variant-ghost-secondary" onclick={editUnitConversion} disabled={busy}>
+			<PackageOpen size={18} /><span class="pl-1">U/M conversion</span>
 		</button>
 		<button
 			class="btn {decision === 'approve' ? 'variant-filled-success' : 'variant-ghost-success'}"

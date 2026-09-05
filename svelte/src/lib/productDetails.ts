@@ -686,6 +686,8 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 					: null,
 				'Unit of Measure': unifiedProduct.um,
 				'Quantity per Unit': unifiedProduct.qtyPerUm?.toString() ?? null,
+				'Source-to-QuickBooks Factor': unifiedProduct.sourceToQuickBooksFactor.toString(),
+				'QuickBooks Conversion Adjustment': `${unifiedProduct.quickBooksConversionAdjustmentPercent}%`,
 				'Available for Sale Online': unifiedProduct.availableForSaleOnline ? 'Yes' : 'No',
 				'Guild Inventory': unifiedProduct.guildInventory?.toString() ?? null,
 				'Local Inventory': unifiedProduct.localInventory?.toString() ?? null,

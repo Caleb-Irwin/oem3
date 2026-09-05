@@ -1,7 +1,9 @@
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
 	bigint,
 	boolean,
+	check,
+	doublePrecision,
 	index,
 	integer,
 	pgEnum,
@@ -72,6 +74,10 @@ export const unifiedProduct = pgTable(
 
 		onlinePriceCents: integer('onlinePriceCents'),
 		onlineComparePriceCents: integer('onlineComparePriceCents'),
+		sourceToQuickBooksFactor: doublePrecision('sourceToQuickBooksFactor').default(1).notNull(),
+		quickBooksConversionAdjustmentPercent: doublePrecision('quickBooksConversionAdjustmentPercent')
+			.default(0)
+			.notNull(),
 		targetQuickBooksPriceCents: integer('targetQuickBooksPriceCents'),
 		guildCostCents: integer('guildCostCents'),
 		sprCostCents: integer('sprCostCents'),
@@ -112,7 +118,15 @@ export const unifiedProduct = pgTable(
 		index('product_availableForSaleOnline_idx').on(product.availableForSaleOnline),
 		index('product_inFlyer_idx').on(product.inFlyer),
 		index('product_status_idx').on(product.status),
-		index('product_category_idx').on(product.category)
+		index('product_category_idx').on(product.category),
+		check(
+			'product_source_to_quickbooks_factor_positive',
+			sql`${product.sourceToQuickBooksFactor} > 0`
+		),
+		check(
+			'product_quickbooks_conversion_adjustment_above_negative_100',
+			sql`${product.quickBooksConversionAdjustmentPercent} > -100`
+		)
 	]
 );
 
@@ -173,6 +187,8 @@ export const unifiedProductColumnEnum = pgEnum('unifiedProductColumn', [
 	// Pricing
 	'onlinePriceCents',
 	'onlineComparePriceCents',
+	'sourceToQuickBooksFactor',
+	'quickBooksConversionAdjustmentPercent',
 	'targetQuickBooksPriceCents',
 	'guildCostCents',
 	'sprCostCents',

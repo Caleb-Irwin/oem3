@@ -55,33 +55,43 @@ export async function getCellConfigHelper(
 		return configs?.find((c) => c.confType.startsWith('setting:')) ?? null;
 	}
 
-	async function updateSetting(settingData: CellConfigRowInsert | null) {
+	async function updateSettings(
+		settings: { col: string; settingData: CellConfigRowInsert | null }[]
+	) {
 		await retryableTransaction(
 			async (db) => {
-				await modifySetting({
-					db,
-					table,
-					refId,
-					col,
-					settingData,
-					uniIdHint: uniId,
-					unifiedTable
-				});
+				for (const setting of settings) {
+					await modifySetting({
+						db,
+						table,
+						refId,
+						col: setting.col,
+						settingData: setting.settingData,
+						uniIdHint: uniId,
+						unifiedTable
+					});
+				}
 				await unifier._updateRow({ id: refId, db: db, onUpdateCallback });
 			},
 			10,
 			'serializable'
 		);
 
-		if (refCols.has(col)) {
-			await unifier.recordMatchesInvalidatedByRefCol(col);
-			updateByTableName(refColToTableName[col]);
+		for (const setting of settings) {
+			if (refCols.has(setting.col)) {
+				await unifier.recordMatchesInvalidatedByRefCol(setting.col);
+				updateByTableName(refColToTableName[setting.col]);
+			}
 		}
 		setTimeout(async () => {
 			(await UnifierMap[tablePrefix].runUnifierWorker())({});
 		}, 100);
 
 		onUpdateCallback(uniId);
+	}
+
+	async function updateSetting(settingData: CellConfigRowInsert | null) {
+		await updateSettings([{ col, settingData }]);
 	}
 
 	async function updateError(errorAction: ErrorAction, errorId: number) {
@@ -126,6 +136,7 @@ export async function getCellConfigHelper(
 		getConfigs,
 		getSetting,
 		updateSetting,
+		updateSettings,
 		updateError
 	};
 }

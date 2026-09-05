@@ -1,5 +1,4 @@
 <script lang="ts">
-	import Deleted from './Deleted.svelte';
 	import ItemLayout from './ItemLayout.svelte';
 	import Text from './Text.svelte';
 	import type { UnifiedProductRow } from './types';
@@ -54,6 +53,22 @@
 	</div>
 	<div class="p-1 flex">
 		<Text namedCell={{ name: 'Quantity per Unit', cell: row.cells.qtyPerUm }} />
+	</div>
+	<div class="p-1 flex">
+		<Text
+			namedCell={{
+				name: 'Source-to-QuickBooks Factor',
+				cell: row.cells.sourceToQuickBooksFactor
+			}}
+		/>
+	</div>
+	<div class="p-1 flex">
+		<Text
+			namedCell={{
+				name: 'QuickBooks Conversion Adjustment (%)',
+				cell: row.cells.quickBooksConversionAdjustmentPercent
+			}}
+		/>
 	</div>
 	<div class="p-1 flex">
 		<Text namedCell={{ name: 'Category', cell: row.cells.category }} />

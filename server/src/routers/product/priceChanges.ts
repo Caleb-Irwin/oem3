@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, asc, desc, eq, gte, inArray, lte, sql, type SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, isNotNull, lte, ne, sql, type SQL } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { z } from 'zod';
 import { db, type Tx } from '../../db';
@@ -27,8 +27,9 @@ import { unifiedOnUpdateCallback } from '../unified.helpers';
 import { notifyLabelsUpdated } from '../labels';
 import { productHook } from './index';
 import { buildQuickBooksPriceCsv } from './priceChange.csv';
+import { reconcilePriceChanges, type PriceChangeCandidate } from './priceChange.reconcile';
 import { notifyPriceListUpdated } from './priceList';
-import { sprSellPriceCents } from './pricing';
+import { sprSellPriceCents, suggestQuickBooksConversion } from './pricing';
 
 const { update: updatePriceChanges, createSub } = eventSubscription();
 
@@ -46,6 +47,10 @@ const LIST_LIMIT = 400;
 /** The two cells a reviewer can pin a price to from this workflow. */
 const CUSTOM_PRICE_COLUMNS = ['onlinePriceCents', 'targetQuickBooksPriceCents'] as const;
 type CustomPriceColumn = (typeof CUSTOM_PRICE_COLUMNS)[number];
+const CONVERSION_COLUMNS = [
+	'sourceToQuickBooksFactor',
+	'quickBooksConversionAdjustmentPercent'
+] as const;
 const customSettingTypes = ['setting:custom', 'setting:approveCustom'] as const;
 
 const categoryInput = z.enum(priceChangeCategoryEnum.enumValues).default('all');
@@ -63,6 +68,11 @@ function categoryFilter(category: PriceChangeCategory): SQL | undefined {
 
 const onlineSetting = alias(unifiedProductCellConfig, 'online_price_setting');
 const qbSetting = alias(unifiedProductCellConfig, 'qb_price_setting');
+const conversionFactorSetting = alias(unifiedProductCellConfig, 'conversion_factor_setting');
+const conversionAdjustmentSetting = alias(
+	unifiedProductCellConfig,
+	'conversion_adjustment_setting'
+);
 
 const listQuery = (database: typeof db | Tx = db) =>
 	database
@@ -88,6 +98,8 @@ const listQuery = (database: typeof db | Tx = db) =>
 			primaryImageDescription: unifiedProduct.primaryImageDescription,
 			um: unifiedProduct.um,
 			qtyPerUm: unifiedProduct.qtyPerUm,
+			sourceToQuickBooksFactor: unifiedProduct.sourceToQuickBooksFactor,
+			quickBooksConversionAdjustmentPercent: unifiedProduct.quickBooksConversionAdjustmentPercent,
 			localInventory: unifiedProduct.localInventory,
 			onlinePriceCents: unifiedProduct.onlinePriceCents,
 			guildCostCents: unifiedProduct.guildCostCents,
@@ -97,15 +109,20 @@ const listQuery = (database: typeof db | Tx = db) =>
 			qbProductName: qb.productName,
 			qbUpc: qb.upc,
 			qbCostCents: qb.costCents,
+			quickBooksUm: qb.um,
 			preferredVendor: qb.preferredVendor,
 			guildPriceCents: unifiedGuild.priceCents,
+			guildUm: unifiedGuild.um,
 			sprNetPriceCents: unifiedSpr.netPriceCents,
 			sprDealerNetPriceCents: unifiedSpr.dealerNetPriceCents,
+			sprUm: unifiedSpr.um,
 			shopifyPriceCents: shopify.vPriceCents,
 			customOnlineType: onlineSetting.confType,
 			customOnlineValue: onlineSetting.value,
 			customQbType: qbSetting.confType,
-			customQbValue: qbSetting.value
+			customQbValue: qbSetting.value,
+			conversionFactorSettingId: conversionFactorSetting.id,
+			conversionAdjustmentSettingId: conversionAdjustmentSetting.id
 		})
 		.from(priceChanges)
 		.innerJoin(unifiedProduct, eq(unifiedProduct.id, priceChanges.productRow))
@@ -129,11 +146,34 @@ const listQuery = (database: typeof db | Tx = db) =>
 				eq(qbSetting.col, 'targetQuickBooksPriceCents'),
 				inArray(qbSetting.confType, customSettingTypes)
 			)
+		)
+		.leftJoin(
+			conversionFactorSetting,
+			and(
+				eq(conversionFactorSetting.refId, unifiedProduct.id),
+				eq(conversionFactorSetting.col, 'sourceToQuickBooksFactor'),
+				eq(conversionFactorSetting.confType, 'setting:custom')
+			)
+		)
+		.leftJoin(
+			conversionAdjustmentSetting,
+			and(
+				eq(conversionAdjustmentSetting.refId, unifiedProduct.id),
+				eq(conversionAdjustmentSetting.col, 'quickBooksConversionAdjustmentPercent'),
+				eq(conversionAdjustmentSetting.confType, 'setting:custom')
+			)
 		);
 
 type RawChangeRow = Awaited<ReturnType<ReturnType<typeof listQuery>['execute']>>[number];
 
 function toChangeItem(row: RawChangeRow, awaitingCustomApproval: boolean) {
+	const sourceUm = (row.source === 'guild' ? row.guildUm : row.sprUm) ?? row.um;
+	const conversionSuggestion = suggestQuickBooksConversion(
+		sourceUm,
+		row.quickBooksUm,
+		row.qtyPerUm
+	);
+
 	return {
 		id: row.id,
 		productRow: row.productRow,
@@ -156,6 +196,13 @@ function toChangeItem(row: RawChangeRow, awaitingCustomApproval: boolean) {
 		primaryImageDescription: row.primaryImageDescription,
 		um: row.um,
 		qtyPerUm: row.qtyPerUm,
+		sourceUm,
+		quickBooksUm: row.quickBooksUm,
+		sourceToQuickBooksFactor: row.sourceToQuickBooksFactor,
+		quickBooksConversionAdjustmentPercent: row.quickBooksConversionAdjustmentPercent,
+		unitConversionConfigured:
+			row.conversionFactorSettingId !== null || row.conversionAdjustmentSettingId !== null,
+		conversionSuggestion,
 		localInventory: row.localInventory,
 		onlinePriceCents: row.onlinePriceCents,
 		qbId: row.qbId,
@@ -367,6 +414,113 @@ function exportFileName(name: string, revert: boolean) {
 	return `${name} (qb-${revert ? 'revert-' : ''}${date}).csv`;
 }
 
+/** The queue columns every reconciliation refreshes, shared by the upserts below. */
+const reconciledValueColumns = {
+	status: sql`excluded.status`,
+	currentPriceCents: sql`excluded.current_price_cents`,
+	targetPriceCents: sql`excluded.target_price_cents`,
+	changePercentMilli: sql`excluded.change_percent_milli`,
+	inFlyer: sql`excluded.in_flyer`,
+	source: sql`excluded.source`,
+	computedAt: sql`excluded.computed_at`
+};
+
+/** Re-queued rows drop the decision they were made against, exactly like the worker's pass. */
+const requeuedValueColumns = {
+	...reconciledValueColumns,
+	approvedPriceCents: null,
+	rejectedPriceCents: null,
+	decidedAt: null,
+	decidedBy: null,
+	exportRow: null,
+	exportedAt: null
+};
+
+/**
+ * Resolve one product's queue row now, with the same rules the worker applies to the whole
+ * table. A settings edit (custom price, U/M conversion) has already recomputed the product's
+ * target, so the review sub can push final data instead of values the worker cascade would only
+ * correct seconds later. The worker still runs afterwards and repeats this as a no-op.
+ */
+async function reconcileSinglePriceChange(productRow: number) {
+	const [row] = await db
+		.select({
+			targetPriceCents: unifiedProduct.targetQuickBooksPriceCents,
+			currentPriceCents: qb.priceCents,
+			inFlyer: unifiedProduct.inFlyer,
+			guildPriceCents: unifiedGuild.priceCents,
+			sprPriceCents: unifiedSpr.netPriceCents
+		})
+		.from(unifiedProduct)
+		.innerJoin(qb, eq(qb.id, unifiedProduct.qbRow))
+		.leftJoin(unifiedGuild, eq(unifiedGuild.id, unifiedProduct.unifiedGuildRow))
+		.leftJoin(unifiedSpr, eq(unifiedSpr.id, unifiedProduct.unifiedSprRow))
+		.where(
+			and(
+				eq(unifiedProduct.id, productRow),
+				eq(unifiedProduct.deleted, false),
+				// The same candidate rules as the worker: a valid nonnegative target that
+				// differs from the channel price. Anything else deletes the row.
+				isNotNull(unifiedProduct.targetQuickBooksPriceCents),
+				gte(unifiedProduct.targetQuickBooksPriceCents, 0),
+				gte(qb.priceCents, 0),
+				ne(unifiedProduct.targetQuickBooksPriceCents, qb.priceCents)
+			)
+		);
+
+	const candidate: PriceChangeCandidate | undefined =
+		row && row.targetPriceCents !== null
+			? {
+					productRow,
+					currentPriceCents: row.currentPriceCents,
+					targetPriceCents: row.targetPriceCents,
+					inFlyer: row.inFlyer ?? false,
+					source:
+						row.guildPriceCents !== null ? 'guild' : row.sprPriceCents !== null ? 'spr' : 'other'
+				}
+			: undefined;
+
+	await db.transaction(async (tx) => {
+		const [stored] = await tx
+			.select({
+				id: priceChanges.id,
+				productRow: priceChanges.productRow,
+				status: priceChanges.status,
+				approvedPriceCents: priceChanges.approvedPriceCents,
+				rejectedPriceCents: priceChanges.rejectedPriceCents
+			})
+			.from(priceChanges)
+			.where(and(eq(priceChanges.productRow, productRow), eq(priceChanges.channel, 'quickBooks')))
+			.for('update');
+
+		const { keep, requeue, deleteIds } = reconcilePriceChanges(
+			candidate ? [candidate] : [],
+			stored ? [stored] : [],
+			Date.now()
+		);
+
+		if (keep.length > 0)
+			await tx
+				.insert(priceChanges)
+				.values(keep)
+				.onConflictDoUpdate({
+					target: [priceChanges.productRow, priceChanges.channel],
+					set: reconciledValueColumns
+				});
+		if (requeue.length > 0)
+			await tx
+				.insert(priceChanges)
+				.values(requeue)
+				.onConflictDoUpdate({
+					target: [priceChanges.productRow, priceChanges.channel],
+					set: requeuedValueColumns
+				});
+		for (const id of deleteIds) {
+			await tx.delete(priceChanges).where(eq(priceChanges.id, id));
+		}
+	});
+}
+
 async function setCustomPriceSetting({
 	productRow,
 	col,
@@ -425,7 +579,56 @@ async function setCustomPriceSetting({
 				}
 	);
 
+	// The settings write already recomputed the target, so the queue row can be resolved
+	// immediately and the review push carries final data.
+	await reconcileSinglePriceChange(productRow);
 	if (col === 'onlinePriceCents') notifyPriceListUpdated();
+	updatePriceChanges();
+}
+
+async function setUnitConversionSettings({
+	productRow,
+	factor,
+	adjustmentPercent
+}: {
+	productRow: number;
+	factor: number | null;
+	adjustmentPercent: number | null;
+}) {
+	const [product] = await db
+		.select({ id: unifiedProduct.id })
+		.from(unifiedProduct)
+		.where(eq(unifiedProduct.id, productRow));
+	if (!product) throw new TRPCError({ code: 'NOT_FOUND', message: 'Unified product not found' });
+
+	const { updateSettings } = await getCellConfigHelper(
+		`unifiedProduct:${productRow}`,
+		CONVERSION_COLUMNS[0],
+		db,
+		unifiedOnUpdateCallback
+	);
+	const created = Date.now();
+	const values = [factor, adjustmentPercent] as const;
+	await updateSettings(
+		CONVERSION_COLUMNS.map((col, index) => ({
+			col,
+			settingData:
+				values[index] === null
+					? null
+					: {
+							refId: productRow,
+							col,
+							confType: 'setting:custom' as const,
+							value: values[index].toString(),
+							lastValue: null,
+							created,
+							isDefaultSetting: false
+						}
+		}))
+	);
+	// The settings write already recomputed the target, so the queue row can be resolved
+	// immediately and the review push carries final data.
+	await reconcileSinglePriceChange(productRow);
 	updatePriceChanges();
 }
 
@@ -670,6 +873,28 @@ export const priceChangesRouter = router({
 				col: target === 'online' ? 'onlinePriceCents' : 'targetQuickBooksPriceCents',
 				priceCents: null,
 				approveOnUnderlyingChange: false
+			});
+		}),
+
+	setUnitConversion: generalProcedure
+		.input(
+			z.object({
+				productRow: z.number().int().positive(),
+				factor: z.coerce.number().finite().gt(0).max(1_000_000),
+				adjustmentPercent: z.coerce.number().finite().gt(-100).max(100_000)
+			})
+		)
+		.mutation(async ({ input: { productRow, factor, adjustmentPercent } }) => {
+			await setUnitConversionSettings({ productRow, factor, adjustmentPercent });
+		}),
+
+	resetUnitConversion: generalProcedure
+		.input(z.object({ productRow: z.number().int().positive() }))
+		.mutation(async ({ input: { productRow } }) => {
+			await setUnitConversionSettings({
+				productRow,
+				factor: null,
+				adjustmentPercent: null
 			});
 		}),
 
