@@ -107,6 +107,7 @@ const listQuery = (database: typeof db | Tx = db) =>
 			qbId: qb.qbId,
 			qbAccount: qb.account,
 			qbProductName: qb.productName,
+			qbDescription: qb.desc,
 			qbUpc: qb.upc,
 			qbCostCents: qb.costCents,
 			quickBooksUm: qb.um,
@@ -208,9 +209,12 @@ function toChangeItem(row: RawChangeRow, awaitingCustomApproval: boolean) {
 		qbId: row.qbId,
 		qbAccount: row.qbAccount,
 		qbProductName: row.qbProductName,
+		qbDescription: row.qbDescription,
 		preferredVendor: row.preferredVendor,
 		guildPriceCents: row.guildPriceCents,
+		guildUm: row.guildUm,
 		novexcoPriceCents: sprSellPriceCents(row.sprNetPriceCents, row.sprDealerNetPriceCents),
+		sprUm: row.sprUm,
 		shopifyPriceCents: row.shopifyPriceCents,
 		guildCostCents: row.guildCostCents,
 		novexcoCostCents: row.sprCostCents,
@@ -250,12 +254,15 @@ async function loadCustomApprovals() {
 			upc: unifiedProduct.upc,
 			primaryImage: unifiedProduct.primaryImage,
 			primaryImageDescription: unifiedProduct.primaryImageDescription,
+			qbProductName: qb.productName,
+			qbDescription: qb.desc,
 			onlinePriceCents: unifiedProduct.onlinePriceCents,
 			targetQuickBooksPriceCents: unifiedProduct.targetQuickBooksPriceCents
 		})
 		.from(unifiedProductCellConfig)
 		.innerJoin(unifiedProduct, eq(unifiedProduct.id, unifiedProductCellConfig.refId))
 		.innerJoin(uniref, eq(uniref.unifiedProduct, unifiedProduct.id))
+		.leftJoin(qb, eq(qb.id, unifiedProduct.qbRow))
 		.where(
 			and(
 				eq(unifiedProductCellConfig.confType, 'error:needsApprovalCustom'),

@@ -14,6 +14,7 @@
 	import Undo2 from 'lucide-svelte/icons/undo-2';
 	import Pencil from 'lucide-svelte/icons/pencil';
 	import PackageOpen from 'lucide-svelte/icons/package-open';
+	import Image from '$lib/Image.svelte';
 	import Button from '$lib/Button.svelte';
 	import Form from '$lib/Form.svelte';
 	import { client, handleTRPCError, subVal } from '$lib/client';
@@ -79,7 +80,11 @@
 				!Array.isArray(saved.queue) ||
 				typeof saved.index !== 'number' ||
 				!saved.queue.every(
-					(item) => item && typeof item.id === 'number' && typeof item.status === 'string'
+					(item) =>
+						item &&
+						typeof item.id === 'number' &&
+						typeof item.status === 'string' &&
+						'qbDescription' in item
 				)
 			)
 				return undefined;
@@ -490,7 +495,7 @@
 					type="checkbox"
 					checked={selected.includes(item.id)}
 					onchange={() => toggleSelected(item.id)}
-					aria-label="Select {item.title ?? 'product'}"
+					aria-label="Select {item.qbDescription || item.qbProductName || item.title || 'product'}"
 				/>
 			{/if}
 			<div class="min-w-[15rem] flex-grow">
@@ -868,8 +873,31 @@
 		<ul class="space-y-2">
 			{#each data.customApprovals as row (row.errorId)}
 				<li class="card flex flex-wrap items-center gap-3 p-3">
+					<a
+						class="shrink-0 rounded-md focus-visible:ring-2 focus-visible:ring-primary-500"
+						href="/app/resource/{row.uniId}"
+						aria-label="Open {row.qbDescription || row.qbProductName || row.title || 'product'}"
+					>
+						{#if row.primaryImage}
+							<Image
+								src={row.primaryImage}
+								alt={row.primaryImageDescription ??
+									`Image of ${row.qbDescription || row.qbProductName || row.title || 'product'}`}
+								class="h-12 w-12 rounded-md bg-white object-contain transition-opacity hover:opacity-80"
+								thumbnail
+							/>
+						{:else}
+							<div
+								class="grid h-12 w-12 place-content-center rounded-md bg-surface-100 text-xs text-surface-600 dark:bg-surface-700 dark:text-surface-300"
+							>
+								No image
+							</div>
+						{/if}
+					</a>
 					<div class="min-w-0 flex-grow">
-						<p class="line-clamp-2 font-semibold">{row.title ?? 'Unnamed Product'}</p>
+						<a class="anchor line-clamp-2 font-semibold" href="/app/resource/{row.uniId}">
+							{row.qbDescription || row.qbProductName || row.title || 'Unnamed Product'}
+						</a>
 						<p class="text-sm text-surface-600 dark:text-surface-300">
 							{CUSTOM_PRICE_LABELS[row.col]} is pinned to
 							<strong class="text-surface-900 dark:text-surface-50">
@@ -882,7 +910,6 @@
 								{row.autoPriceCents === null ? 'unset' : formatPrice(row.autoPriceCents / 100)}
 							</strong>
 						</p>
-						<a class="anchor text-sm" href="/app/resource/{row.uniId}">Open product</a>
 					</div>
 					<div class="flex gap-1">
 						<button

@@ -5,8 +5,8 @@
 	import ArrowUp from 'lucide-svelte/icons/arrow-up';
 	import Pencil from 'lucide-svelte/icons/pencil';
 	import PackageOpen from 'lucide-svelte/icons/package-open';
+	import TriangleAlert from 'lucide-svelte/icons/triangle-alert';
 	import Undo2 from 'lucide-svelte/icons/undo-2';
-	import ExternalLink from 'lucide-svelte/icons/external-link';
 	import PriceBreakdown from '../price/PriceBreakdown.svelte';
 	import PriceChangeIdentity from './PriceChangeIdentity.svelte';
 	import PriceMove from './PriceMove.svelte';
@@ -41,6 +41,20 @@
 		editPrice,
 		editUnitConversion
 	}: Props = $props();
+
+	const unitMeasures = $derived([
+		{ label: 'QuickBooks', value: item.quickBooksUm },
+		{ label: 'Unified', value: item.um },
+		{ label: 'Guild', value: item.guildUm },
+		{ label: 'SPR', value: item.sprUm }
+	]);
+	const hasDifferentUnitMeasures = $derived(
+		new Set(
+			unitMeasures
+				.map(({ value }) => value?.trim().toLowerCase())
+				.filter((value): value is string => Boolean(value))
+		).size > 1
+	);
 </script>
 
 <div
@@ -54,7 +68,7 @@
 		wrap the title instead, since it clamps to two lines. -->
 	<div class="flex flex-col items-start gap-3 sm:flex-row sm:justify-between sm:gap-6">
 		<div class="min-w-0 sm:flex-1">
-			<PriceChangeIdentity {item} size="lg" />
+			<PriceChangeIdentity {item} size="lg" showUnifiedTitle />
 		</div>
 		<div class="shrink-0">
 			<PriceMove
@@ -117,13 +131,6 @@
 			>QuickBooks item <strong class="text-surface-900 dark:text-surface-50">{item.qbId}</strong
 			></span
 		>
-		{#if item.sourceUm || item.quickBooksUm}
-			<span>
-				U/M <strong class="text-surface-900 dark:text-surface-50">
-					{item.sourceUm?.toUpperCase() ?? '—'} → {item.quickBooksUm?.toUpperCase() ?? '—'}
-				</strong>
-			</span>
-		{/if}
 		{#if item.unitConversionConfigured}
 			<span>
 				Conversion <strong class="text-surface-900 dark:text-surface-50">
@@ -147,10 +154,25 @@
 				></span
 			>
 		{/if}
-		<a class="anchor inline-flex items-center gap-1" href="/app/resource/{item.uniId}">
-			Open product <ExternalLink size={14} />
-		</a>
 	</div>
+
+	{#if hasDifferentUnitMeasures}
+		<div
+			class="flex gap-2.5 rounded-lg border border-warning-300 bg-warning-50 px-3 py-2.5 text-warning-900 dark:border-warning-700 dark:bg-warning-900/20 dark:text-warning-100"
+		>
+			<TriangleAlert size={19} class="mt-0.5 shrink-0" />
+			<div class="min-w-0">
+				<p class="font-semibold">Different U/Ms</p>
+				<p class="flex flex-wrap gap-x-3 gap-y-0.5 text-sm">
+					{#each unitMeasures as unit}
+						{#if unit.value}
+							<span>{unit.label} <strong>{unit.value.toUpperCase()}</strong></span>
+						{/if}
+					{/each}
+				</p>
+			</div>
+		</div>
+	{/if}
 
 	<PriceBreakdown
 		customPriceCents={item.targetPriceCents}
@@ -160,6 +182,9 @@
 		guildCostCents={item.guildCostCents}
 		novexcoCostCents={item.novexcoCostCents}
 		quickBooksCostCents={item.quickBooksCostCents}
+		guildUm={item.guildUm}
+		novexcoUm={item.sprUm}
+		quickBooksUm={item.quickBooksUm}
 		open
 	/>
 

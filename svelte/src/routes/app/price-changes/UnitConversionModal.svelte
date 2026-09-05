@@ -15,32 +15,52 @@
 	let { item }: Props = $props();
 
 	const modalStore = getModalStore();
-	const commonPackCounts = Array.from(
-		new Set([
-			2,
-			3,
-			5,
-			...Array.from({ length: 20 }, (_, index) => (index + 1) * 6),
-			...Array.from({ length: 12 }, (_, index) => (index + 1) * 10)
-		])
-	).sort((a, b) => a - b);
-	const quickPackCounts = [2, 3, 5, 10, 12, 20, 24];
+	const commonPackCounts = Array.from({ length: 120 }, (_, index) => index + 1).filter(
+		(count) => count === 2 || count % 3 === 0 || count % 5 === 0
+	);
+	const quickPackCounts = [2, 3, 5, 6, 10, 12, 15, 20, 24, 30];
+	function nearestPackCount(value: number) {
+		return commonPackCounts.reduce((nearest, count) =>
+			Math.abs(count - value) < Math.abs(nearest - value) ? count : nearest
+		);
+	}
+
+	function estimatedPackCount(estimatedDirection: 'multiply' | 'divide', fallbackCount: number) {
+		if (item.onlinePriceCents === null || item.onlinePriceCents <= 0 || item.currentPriceCents <= 0)
+			return nearestPackCount(fallbackCount);
+		const priceRatio =
+			estimatedDirection === 'multiply'
+				? item.currentPriceCents / item.onlinePriceCents
+				: item.onlinePriceCents / item.currentPriceCents;
+		return nearestPackCount(priceRatio);
+	}
+
+	const configuredDirection = item.sourceToQuickBooksFactor < 1 ? 'divide' : 'multiply';
+	const priceDirection =
+		item.onlinePriceCents !== null && item.currentPriceCents < item.onlinePriceCents
+			? 'divide'
+			: 'multiply';
 	const suggestedDirection =
 		item.conversionSuggestion.direction === 'none'
-			? 'multiply'
+			? priceDirection
 			: item.conversionSuggestion.direction;
-	const useSuggestion =
-		!item.unitConversionConfigured && item.conversionSuggestion.direction !== 'none';
-
-	let direction = $state<'multiply' | 'divide'>(suggestedDirection);
-	let packCount = $state(item.conversionSuggestion.packCount ?? 12);
-	let factor = $state(
-		useSuggestion ? item.conversionSuggestion.factor : item.sourceToQuickBooksFactor
+	const initialDirection = item.unitConversionConfigured ? configuredDirection : suggestedDirection;
+	const configuredPackCount = nearestPackCount(
+		initialDirection === 'divide'
+			? 1 / item.sourceToQuickBooksFactor
+			: item.sourceToQuickBooksFactor
 	);
+	const initialPackCount = item.unitConversionConfigured
+		? configuredPackCount
+		: estimatedPackCount(initialDirection, item.conversionSuggestion.packCount ?? 12);
+
+	let direction = $state<'multiply' | 'divide'>(initialDirection);
+	let packCount = $state(initialPackCount);
+	let factor = $derived(conversionFactor(direction, packCount));
 	let adjustmentPercent = $state(
 		item.unitConversionConfigured
 			? item.quickBooksConversionAdjustmentPercent
-			: defaultAdjustment(suggestedDirection)
+			: defaultAdjustment(initialDirection)
 	);
 
 	const previewPriceCents = $derived.by(() => {
@@ -61,11 +81,14 @@
 		}
 		packCount = nextCount;
 		direction = nextDirection;
-		factor = nextDirection === 'multiply' ? nextCount : 1 / nextCount;
 	}
 
-	function defaultAdjustment(conversionDirection: 'multiply' | 'divide') {
-		return conversionDirection === 'divide' ? 15 : -15;
+	function conversionFactor(nextDirection: 'multiply' | 'divide', nextCount: number) {
+		return nextDirection === 'multiply' ? nextCount : 1 / nextCount;
+	}
+
+	function defaultAdjustment(defaultDirection: 'multiply' | 'divide') {
+		return defaultDirection === 'multiply' ? -10 : 10;
 	}
 
 	function unitLabel(value: string | null) {
@@ -73,11 +96,13 @@
 	}
 </script>
 
-<div class="card flex w-[calc(100vw-2rem)] max-w-xl flex-col gap-4 p-4">
+<div
+	class="card flex max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-xl flex-col gap-4 overflow-y-auto p-4 sm:p-5"
+>
 	<PriceChangeIdentity {item} />
 
 	<div
-		class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 rounded-lg bg-surface-100 p-3 text-center dark:bg-surface-800"
+		class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 rounded-xl border border-surface-200 bg-surface-100/70 p-3 text-center dark:border-surface-700 dark:bg-surface-800/70"
 	>
 		<div>
 			<p class="text-xs font-semibold uppercase tracking-wide text-surface-500">
@@ -92,19 +117,6 @@
 		</div>
 	</div>
 
-	{#if item.conversionSuggestion.direction !== 'none'}
-		<div
-			class="rounded-lg border border-primary-200 bg-primary-50 p-3 dark:border-primary-800 dark:bg-primary-900/20"
-		>
-			<p class="text-sm font-semibold">Suggested U/M fix</p>
-			<p class="pt-0.5 text-sm text-surface-600 dark:text-surface-300">
-				{item.conversionSuggestion.direction === 'multiply'
-					? `${item.conversionSuggestion.packCount} source units make 1 QuickBooks unit.`
-					: `1 source unit contains ${item.conversionSuggestion.packCount} QuickBooks units.`}
-			</p>
-		</div>
-	{/if}
-
 	<Form
 		action={client.priceChanges.setUnitConversion}
 		input={{ productRow: item.productRow }}
@@ -114,8 +126,14 @@
 		successMessage="U/M conversion saved"
 	>
 		<div class="w-full space-y-4">
-			<div>
-				<p class="text-sm font-bold">Build a factor from a pack count</p>
+			<input type="hidden" name="factor" value={factor} />
+			<div class="rounded-xl border border-surface-200 p-3 dark:border-surface-700">
+				<div>
+					<p class="text-sm font-bold">Pack relationship</p>
+					<p class="text-xs text-surface-500 dark:text-surface-400">
+						Choose which system contains the pack.
+					</p>
+				</div>
 				<div class="mt-2 grid gap-2 sm:grid-cols-2">
 					<button
 						type="button"
@@ -137,42 +155,48 @@
 					</button>
 				</div>
 
-				<div class="mt-2 flex flex-wrap gap-1.5">
-					{#each quickPackCounts as count}
-						<button
-							type="button"
-							class="btn btn-sm {packCount === count ? 'variant-ghost-primary' : 'variant-ghost'}"
-							onclick={() => applyPackCount(count)}
+				<div class="mt-3">
+					<label
+						for="pack-count"
+						class="text-xs font-semibold uppercase tracking-wide text-surface-500 dark:text-surface-400"
+					>
+						Pack count
+					</label>
+					<div class="mt-1.5 flex flex-wrap gap-1.5">
+						{#each quickPackCounts as count}
+							<button
+								type="button"
+								class="btn btn-sm {packCount === count ? 'variant-ghost-primary' : 'variant-ghost'}"
+								onclick={() => applyPackCount(count)}
+							>
+								{count}
+							</button>
+						{/each}
+						<select
+							id="pack-count"
+							class="select w-24 py-1 text-sm"
+							aria-label="More pack counts"
+							bind:value={packCount}
+							onchange={() => applyPackCount()}
 						>
-							{count}
-						</button>
-					{/each}
-					<label class="flex items-center gap-1.5 text-sm">
-						<span>More</span>
-						<select class="select py-1" bind:value={packCount} onchange={() => applyPackCount()}>
 							{#each commonPackCounts as count}
 								<option value={count}>{count}</option>
 							{/each}
 						</select>
-					</label>
+					</div>
+					<p class="mt-1.5 text-xs text-surface-500 dark:text-surface-400">
+						Only preset counts are available. The initial count is the closest match for the source
+						and QuickBooks prices.
+					</p>
 				</div>
 			</div>
 
-			<div class="grid gap-3 sm:grid-cols-2">
-				<label class="label">
-					<span class="font-bold">Source-to-QuickBooks factor</span>
-					<input
-						class="input"
-						type="number"
-						name="factor"
-						min="0.000001"
-						max="1000000"
-						step="any"
-						required
-						bind:value={factor}
-					/>
-				</label>
-				<label class="label">
+			<div class="rounded-xl bg-surface-100 p-3 dark:bg-surface-800">
+				<div class="flex items-center justify-between gap-3 text-sm">
+					<span>Conversion factor</span>
+					<strong>×{factor.toLocaleString(undefined, { maximumFractionDigits: 6 })}</strong>
+				</div>
+				<label class="label mt-3">
 					<span class="font-bold">Conversion adjustment</span>
 					<div class="input-group grid-cols-[minmax(0,1fr)_auto]">
 						<input
@@ -188,6 +212,10 @@
 						<div class="input-group-shim">%</div>
 					</div>
 				</label>
+				<p class="mt-1.5 text-xs text-surface-500 dark:text-surface-400">
+					Defaults to {defaultAdjustment(direction) > 0 ? '+' : ''}{defaultAdjustment(direction)}%
+					for this direction. You can fine-tune it.
+				</p>
 			</div>
 
 			<p class="text-sm text-surface-600 dark:text-surface-300">

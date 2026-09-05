@@ -10,6 +10,9 @@
 		guildCostCents: number | null;
 		novexcoCostCents: number | null;
 		quickBooksCostCents: number | null;
+		guildUm?: string | null;
+		novexcoUm?: string | null;
+		quickBooksUm?: string | null;
 		open?: boolean;
 		compact?: boolean;
 	}
@@ -22,15 +25,25 @@
 		guildCostCents,
 		novexcoCostCents,
 		quickBooksCostCents,
+		guildUm = null,
+		novexcoUm = null,
+		quickBooksUm = null,
 		open = false,
 		compact = false
 	}: Props = $props();
 
 	const sources = $derived([
-		{ label: 'Guild', price: guildPriceCents, cost: guildCostCents },
-		{ label: 'Novexco', price: novexcoPriceCents, cost: novexcoCostCents },
-		{ label: 'QuickBooks', price: quickBooksPriceCents, cost: quickBooksCostCents }
+		{ label: 'Guild', price: guildPriceCents, cost: guildCostCents, um: guildUm },
+		{ label: 'Novexco', price: novexcoPriceCents, cost: novexcoCostCents, um: novexcoUm },
+		{
+			label: 'QuickBooks',
+			price: quickBooksPriceCents,
+			cost: quickBooksCostCents,
+			um: quickBooksUm
+		}
 	]);
+
+	const displayUm = (um: string | null) => um?.toUpperCase() ?? '—';
 
 	const displayPrice = (priceCents: number | null) =>
 		priceCents === null ? '—' : formatPrice(priceCents / 100);
@@ -63,6 +76,7 @@
 				{#each sources as source}
 					<span class="whitespace-nowrap text-surface-600 dark:text-surface-300">
 						{source.label}
+						<span class="text-xs">{displayUm(source.um)}</span>
 						<strong class="text-surface-900 dark:text-surface-50">
 							{displayPrice(source.price)}
 						</strong>
@@ -85,18 +99,17 @@
 			{@const suggestedPercent = marginPercent(source.price, source.cost)}
 			<div class="px-2.5 py-1.5">
 				<div class="flex justify-between items-baseline gap-3">
-					<strong>{source.label}</strong>
+					<strong
+						>{source.label}
+						<span class="text-xs text-surface-500">{displayUm(source.um)}</span></strong
+					>
 					<strong class="text-base">{displayPrice(source.price)}</strong>
 				</div>
-				<div
-					class="pt-1 flex justify-between gap-3 text-sm text-surface-600 dark:text-surface-300"
-				>
+				<div class="pt-1 flex justify-between gap-3 text-sm text-surface-600 dark:text-surface-300">
 					<span>Cost</span>
 					<span class="text-surface-900 dark:text-surface-50">{displayPrice(source.cost)}</span>
 				</div>
-				<div
-					class="flex justify-between gap-3 text-sm text-surface-600 dark:text-surface-300"
-				>
+				<div class="flex justify-between gap-3 text-sm text-surface-600 dark:text-surface-300">
 					<span>Margin</span>
 					{#if margin !== null}
 						<strong
@@ -111,9 +124,7 @@
 						<span class="text-surface-900 dark:text-surface-50">—</span>
 					{/if}
 				</div>
-				<div
-					class="flex justify-between gap-3 text-sm text-surface-600 dark:text-surface-300"
-				>
+				<div class="flex justify-between gap-3 text-sm text-surface-600 dark:text-surface-300">
 					<span>Suggested margin</span>
 					{#if suggestedMargin !== null}
 						<strong

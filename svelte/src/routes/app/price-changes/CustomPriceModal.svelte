@@ -96,6 +96,9 @@
 				guildCostCents={item.guildCostCents}
 				novexcoCostCents={item.novexcoCostCents}
 				quickBooksCostCents={item.quickBooksCostCents}
+				guildUm={item.guildUm}
+				novexcoUm={item.sprUm}
+				quickBooksUm={item.quickBooksUm}
 				compact
 			/>
 		</div>
