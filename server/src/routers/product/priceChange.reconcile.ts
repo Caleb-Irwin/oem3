@@ -11,6 +11,8 @@ export interface PriceChangeCandidate {
 
 /** The parts of a stored change the reconciler needs to decide whether a decision still holds. */
 export interface StoredPriceChange {
+	targetPriceCents: number;
+	skippedAt: number | null;
 	id: number;
 	productRow: number;
 	status: PriceChangeStatus;
@@ -20,6 +22,7 @@ export interface StoredPriceChange {
 
 /** A row to write, keyed by product so it can be upserted without reading ids back. */
 export interface PriceChangeRow {
+	skippedAt: number | null;
 	productRow: number;
 	status: PriceChangeStatus;
 	currentPriceCents: number;
@@ -70,7 +73,12 @@ export function reconcilePriceChanges(
 
 	for (const candidate of candidates) {
 		seen.add(candidate.productRow);
+		const existing = storedByProduct.get(candidate.productRow);
 		const values = {
+			skippedAt:
+				existing?.status === 'pending' && existing.targetPriceCents === candidate.targetPriceCents
+					? existing.skippedAt
+					: null,
 			productRow: candidate.productRow,
 			currentPriceCents: candidate.currentPriceCents,
 			targetPriceCents: candidate.targetPriceCents,
@@ -83,7 +91,6 @@ export function reconcilePriceChanges(
 			computedAt: now
 		};
 
-		const existing = storedByProduct.get(candidate.productRow);
 		if (!existing || existing.status === 'pending') {
 			keep.push({ ...values, status: 'pending' });
 			continue;

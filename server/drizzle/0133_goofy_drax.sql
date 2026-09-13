@@ -1,0 +1,1 @@
+ALTER TABLE "price_changes" ADD COLUMN "skipped_at" bigint;

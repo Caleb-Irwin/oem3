@@ -95,6 +95,7 @@ export const priceChanges = pgTable(
 		approvedPriceCents: integer('approved_price_cents'),
 		/** The target that was turned down. Kept out of the queue until the target moves off it. */
 		rejectedPriceCents: integer('rejected_price_cents'),
+		skippedAt: bigint('skipped_at', { mode: 'number' }),
 		decidedAt: bigint('decided_at', { mode: 'number' }),
 		decidedBy: varchar('decided_by', { length: 256 }),
 		exportRow: integer('export_row').references(() => priceChangeExports.id, {
@@ -108,6 +109,9 @@ export const priceChanges = pgTable(
 		index('price_changes_status_idx').on(change.status),
 		index('price_changes_change_percent_idx').on(change.changePercentMilli),
 		index('price_changes_export_row_idx').on(change.exportRow),
+		// Serves both the pending queue's skip-first ordering and the max() the skip
+		// mutation takes to hand out the next queue position.
+		index('price_changes_skipped_at_idx').on(change.skippedAt),
 		check('price_changes_current_price_nonnegative', sql`${change.currentPriceCents} >= 0`),
 		check('price_changes_target_price_nonnegative', sql`${change.targetPriceCents} >= 0`),
 		check(

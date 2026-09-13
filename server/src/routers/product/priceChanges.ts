@@ -79,6 +79,7 @@ const listQuery = (database: typeof db | Tx = db) =>
 			id: priceChanges.id,
 			productRow: priceChanges.productRow,
 			status: priceChanges.status,
+			skippedAt: priceChanges.skippedAt,
 			currentPriceCents: priceChanges.currentPriceCents,
 			targetPriceCents: priceChanges.targetPriceCents,
 			changePercentMilli: priceChanges.changePercentMilli,
@@ -179,6 +180,7 @@ function toChangeItem(row: RawChangeRow, awaitingCustomApproval: boolean) {
 		productRow: row.productRow,
 		uniId: row.uniId,
 		status: row.status,
+		skippedAt: row.skippedAt,
 		currentPriceCents: row.currentPriceCents,
 		targetPriceCents: row.targetPriceCents,
 		changePercent: row.changePercentMilli / 1000,
@@ -330,7 +332,10 @@ async function loadPriceChanges(category: PriceChangeCategory) {
 	// approving small changes will never reach.
 	const bySize = desc(sql`abs(${priceChanges.changePercentMilli})`);
 	const [pending, approved, rejected, exported] = await Promise.all([
-		load('pending', bySize),
+		load(
+			'pending',
+			sql`${priceChanges.skippedAt} asc nulls first, ${bySize}, ${priceChanges.id} asc`
+		),
 		load('approved', desc(priceChanges.decidedAt)),
 		load('rejected', desc(priceChanges.decidedAt)),
 		load('exported', desc(priceChanges.exportedAt))
@@ -423,6 +428,7 @@ function exportFileName(name: string, revert: boolean) {
 /** The queue columns every reconciliation refreshes, shared by the upserts below. */
 const reconciledValueColumns = {
 	status: sql`excluded.status`,
+	skippedAt: sql`excluded.skipped_at`,
 	currentPriceCents: sql`excluded.current_price_cents`,
 	targetPriceCents: sql`excluded.target_price_cents`,
 	changePercentMilli: sql`excluded.change_percent_milli`,
@@ -492,6 +498,8 @@ async function reconcileSinglePriceChange(productRow: number) {
 				id: priceChanges.id,
 				productRow: priceChanges.productRow,
 				status: priceChanges.status,
+				skippedAt: priceChanges.skippedAt,
+				targetPriceCents: priceChanges.targetPriceCents,
 				approvedPriceCents: priceChanges.approvedPriceCents,
 				rejectedPriceCents: priceChanges.rejectedPriceCents
 			})
@@ -684,6 +692,7 @@ export const priceChangesRouter = router({
 				.select({
 					id: priceChanges.id,
 					status: priceChanges.status,
+					skippedAt: priceChanges.skippedAt,
 					currentPriceCents: priceChanges.currentPriceCents,
 					targetPriceCents: priceChanges.targetPriceCents,
 					changePercentMilli: priceChanges.changePercentMilli,
@@ -696,6 +705,42 @@ export const priceChangesRouter = router({
 				})
 				.from(priceChanges)
 				.where(and(inArray(priceChanges.id, [...new Set(ids)]), categoryFilter(category)));
+		}),
+
+	skip: generalProcedure
+		.input(
+			z.object({
+				id: z.number().int().positive(),
+				expectedTargetPriceCents: z.number().int().gte(0),
+				category: categoryInput
+			})
+		)
+		.mutation(async ({ input }) => {
+			const changed = await db.transaction(async (tx) => {
+				// Serialize skips so simultaneous requests receive distinct queue positions.
+				await tx.execute(sql`select pg_advisory_xact_lock(hashtext('price_changes.skip'))`);
+				return await tx
+					.update(priceChanges)
+					.set({
+						skippedAt: sql`greatest(floor(extract(epoch from clock_timestamp()) * 1000)::bigint, coalesce((select max(skipped_at) from price_changes), 0) + 1)`
+					})
+					.where(
+						and(
+							eq(priceChanges.id, input.id),
+							eq(priceChanges.status, 'pending'),
+							eq(priceChanges.targetPriceCents, input.expectedTargetPriceCents),
+							categoryFilter(input.category)
+						)
+					)
+					.returning({ id: priceChanges.id, skippedAt: priceChanges.skippedAt });
+			});
+			if (!changed.length)
+				throw new TRPCError({
+					code: 'CONFLICT',
+					message: 'This price change was updated. Refresh and try again.'
+				});
+			updatePriceChanges();
+			return changed[0];
 		}),
 
 	decide: generalProcedure
@@ -717,6 +762,7 @@ export const priceChangesRouter = router({
 					.select({
 						id: priceChanges.id,
 						status: priceChanges.status,
+						skippedAt: priceChanges.skippedAt,
 						targetPriceCents: priceChanges.targetPriceCents,
 						decidedAt: priceChanges.decidedAt
 					})
@@ -746,6 +792,7 @@ export const priceChangesRouter = router({
 						decision === 'approve'
 							? {
 									status: 'approved',
+									skippedAt: null,
 									approvedPriceCents: sql`${priceChanges.targetPriceCents}`,
 									rejectedPriceCents: null,
 									decidedAt: now,
@@ -756,6 +803,7 @@ export const priceChangesRouter = router({
 							: decision === 'reject'
 								? {
 										status: 'rejected',
+										skippedAt: null,
 										rejectedPriceCents: sql`${priceChanges.targetPriceCents}`,
 										approvedPriceCents: null,
 										decidedAt: now,
@@ -765,6 +813,7 @@ export const priceChangesRouter = router({
 									}
 								: {
 										status: 'pending',
+										skippedAt: null,
 										approvedPriceCents: null,
 										rejectedPriceCents: null,
 										decidedAt: null,
@@ -777,6 +826,7 @@ export const priceChangesRouter = router({
 					.returning({
 						id: priceChanges.id,
 						status: priceChanges.status,
+						skippedAt: priceChanges.skippedAt,
 						targetPriceCents: priceChanges.targetPriceCents,
 						decidedAt: priceChanges.decidedAt,
 						decidedBy: priceChanges.decidedBy
@@ -826,6 +876,7 @@ export const priceChangesRouter = router({
 							.update(priceChanges)
 							.set({
 								status: 'approved',
+								skippedAt: null,
 								approvedPriceCents: sql`${priceChanges.targetPriceCents}`,
 								rejectedPriceCents: null,
 								decidedAt,

@@ -20,6 +20,7 @@
 		busy: boolean;
 		approve: () => void;
 		reject: () => void;
+		skip: () => void;
 		back: () => void;
 		forward: () => void;
 		undo: () => void;
@@ -35,6 +36,7 @@
 		busy,
 		approve,
 		reject,
+		skip,
 		back,
 		forward,
 		undo,
@@ -188,7 +190,7 @@
 		open
 	/>
 
-	<div class="grid grid-cols-2 gap-2 md:grid-cols-5">
+	<div class="grid grid-cols-2 gap-2 md:grid-cols-6">
 		<button
 			class="btn {decision === 'reject' ? 'variant-filled-error' : 'variant-ghost-error'}"
 			onclick={reject}
@@ -198,6 +200,9 @@
 		</button>
 		<button class="btn variant-ghost" onclick={back} disabled={!canGoBack || busy}>
 			<ArrowUp size={18} /><span class="pl-1">Previous</span>
+		</button>
+		<button class="btn variant-ghost" onclick={skip} disabled={busy || !!decision}>
+			<ArrowDown size={18} /><span class="pl-1">Skip</span>
 		</button>
 		<button class="btn variant-ghost-secondary" onclick={editPrice} disabled={busy}>
 			<Pencil size={18} /><span class="pl-1">Custom price</span>
@@ -218,6 +223,8 @@
 		← reject · ↑ previous · → approve
 		{#if decision}
 			<span class="pl-2 font-semibold">· ↓ keep previous decision and continue</span>
+		{:else}
+			· ↓ skip
 		{/if}
 	</p>
 </div>

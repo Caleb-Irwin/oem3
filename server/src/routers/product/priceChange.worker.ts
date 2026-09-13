@@ -48,6 +48,7 @@ work({
 
 		const valueColumns = {
 			status: sql`excluded.status`,
+			skippedAt: sql`excluded.skipped_at`,
 			currentPriceCents: sql`excluded.current_price_cents`,
 			targetPriceCents: sql`excluded.target_price_cents`,
 			changePercentMilli: sql`excluded.change_percent_milli`,
@@ -64,6 +65,8 @@ work({
 					id: priceChanges.id,
 					productRow: priceChanges.productRow,
 					status: priceChanges.status,
+					skippedAt: priceChanges.skippedAt,
+					targetPriceCents: priceChanges.targetPriceCents,
 					approvedPriceCents: priceChanges.approvedPriceCents,
 					rejectedPriceCents: priceChanges.rejectedPriceCents
 				})

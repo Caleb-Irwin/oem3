@@ -1,0 +1,1 @@
+CREATE INDEX "price_changes_skipped_at_idx" ON "price_changes" USING btree ("skipped_at");

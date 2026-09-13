@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { restoreReviewQueue } from './reviewQueue';
 	import { untrack } from 'svelte';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
@@ -108,7 +109,8 @@
 			const spent =
 				review.index === 0 &&
 				Object.keys(review.decisions).length === 0 &&
-				review.bulkApproval === null;
+				review.bulkApproval === null &&
+				!review.queue.some((item) => item.skippedAt != null);
 			if (spent) localStorage.removeItem(reviewStorageKey(keyCategory));
 			else localStorage.setItem(reviewStorageKey(keyCategory), JSON.stringify(review));
 		} catch {
@@ -140,6 +142,7 @@
 	const summary = $derived(data?.summary);
 
 	async function reconcileQueue(loaded: PriceChangeData, generation: number) {
+		if (untrack(() => deciding)) return;
 		const snapshot = untrack(() => queue);
 		const decisionSnapshot = untrack(() => decisions);
 		if (snapshot.length === 0) return;
@@ -154,6 +157,7 @@
 		const states = statePages.flat();
 		if (
 			generation !== queueSyncGeneration ||
+			untrack(() => deciding) ||
 			untrack(() => queue !== snapshot || decisions !== decisionSnapshot)
 		)
 			return;
@@ -168,10 +172,8 @@
 			])
 				detailsById.set(item.id, item);
 			const stateById = new Map(states.map((state) => [state.id, state]));
-			const currentId = queue[index]?.id;
 			const nextDecisions = { ...decisions };
 			const kept: PriceChangeItem[] = [];
-			const requeued: PriceChangeItem[] = [];
 
 			for (const item of snapshot) {
 				const state = stateById.get(item.id);
@@ -185,17 +187,13 @@
 					...state,
 					changePercent: state.changePercentMilli / 1000
 				};
-				// Only a decision that no longer holds sends an item back for another look,
-				// moved to the end of the queue. An undecided item whose target refreshed stays
-				// exactly where it is — including the card the reviewer is standing on.
+				// Invalidated decisions return through the server-ordered pending list.
 				const decisionInvalidated =
 					state.status === 'pending' &&
 					(item.status !== 'pending' || nextDecisions[item.id] !== undefined);
 				if (decisionInvalidated) {
 					delete nextDecisions[item.id];
-					// The local item still carries the product details, so it returns even when
-					// the capped server response no longer describes it.
-					requeued.push(updated);
+					// Items outside this batch will return when earlier pending work is finished.
 					continue;
 				}
 				const serverDecision =
@@ -209,10 +207,10 @@
 				kept.push(updated);
 			}
 
-			queue = [...kept, ...requeued];
+			const restored = restoreReviewQueue(snapshot, index, kept, loaded.pending);
+			queue = restored.queue;
+			index = restored.index;
 			decisions = nextDecisions;
-			const nextCurrent = currentId ? queue.findIndex((item) => item.id === currentId) : -1;
-			index = nextCurrent >= 0 ? nextCurrent : Math.min(index, queue.length);
 		});
 	}
 
@@ -331,6 +329,33 @@
 		}
 	}
 
+	async function skip() {
+		const item = current;
+		if (!item || deciding || decisionFor(item)) return;
+		deciding = true;
+		++queueSyncGeneration;
+		try {
+			const changed = await client.priceChanges.skip.mutate({
+				id: item.id,
+				expectedTargetPriceCents: item.targetPriceCents,
+				category
+			});
+			// Save the successful skip even if fetching the next batch fails.
+			queue = [...queue.slice(0, index), ...queue.slice(index + 1), { ...item, ...changed }];
+			const refreshed = await client.priceChanges.get.query({ category });
+			// Rebuilt the same way a refresh does, so decided items the reviewer has gone back
+			// past stay reachable instead of falling out with the rest of the pending list.
+			const restored = restoreReviewQueue(queue, index, queue, refreshed.pending);
+			queue = restored.queue;
+			index = restored.index;
+			onSummary(refreshed.summary);
+		} catch (e) {
+			handleTRPCError(e);
+		} finally {
+			deciding = false;
+		}
+	}
+
 	function back() {
 		if (!deciding && index > 0) index -= 1;
 	}
@@ -399,9 +424,10 @@
 		} else if (event.key === 'ArrowUp') {
 			event.preventDefault();
 			back();
-		} else if (event.key === 'ArrowDown' && decisionFor(current)) {
+		} else if (event.key === 'ArrowDown') {
 			event.preventDefault();
-			forward();
+			if (decisionFor(current)) forward();
+			else skip();
 		}
 	}
 
@@ -827,6 +853,7 @@
 					canGoForward={decisionFor(current) !== undefined}
 					approve={() => decide('approve')}
 					reject={() => decide('reject')}
+					{skip}
 					{back}
 					{forward}
 					undo={undoCurrent}

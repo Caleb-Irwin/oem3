@@ -19,6 +19,8 @@ const candidate = (over: Partial<PriceChangeCandidate> = {}): PriceChangeCandida
 
 const stored = (over: Partial<StoredPriceChange> = {}): StoredPriceChange => ({
 	id: 10,
+	targetPriceCents: 1200,
+	skippedAt: null,
 	productRow: 1,
 	status: 'pending',
 	approvedPriceCents: null,
@@ -55,7 +57,8 @@ describe('reconcilePriceChanges', () => {
 				changePercentMilli: 20_000,
 				inFlyer: false,
 				source: 'guild',
-				computedAt: NOW
+				computedAt: NOW,
+				skippedAt: null
 			}
 		]);
 	});
@@ -130,4 +133,19 @@ describe('reconcilePriceChanges', () => {
 		expect(requeue).toHaveLength(0);
 		expect(deleteIds).toEqual([10]);
 	});
+});
+
+test('preserves a skip until the target changes', () => {
+	const saved = stored({ skippedAt: NOW - 100 });
+	expect(reconcilePriceChanges([candidate()], [saved], NOW).keep[0].skippedAt).toBe(NOW - 100);
+	expect(
+		reconcilePriceChanges([candidate({ targetPriceCents: 1300 })], [saved], NOW).keep[0].skippedAt
+	).toBeNull();
+	expect(
+		reconcilePriceChanges(
+			[candidate()],
+			[stored({ status: 'approved', approvedPriceCents: 1200, skippedAt: NOW })],
+			NOW
+		).keep[0].skippedAt
+	).toBeNull();
 });
