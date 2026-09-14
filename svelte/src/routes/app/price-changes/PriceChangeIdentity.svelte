@@ -65,6 +65,11 @@
 			{#if item.upc}<span class="font-semibold">UPC {item.upc}</span>{/if}
 		</p>
 		<p class="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
+			{#if item.status === 'pending' && item.skippedAt != null}
+				<span class="badge variant-soft-warning" title="Previously skipped at this suggested price"
+					>Previously skipped</span
+				>
+			{/if}
 			{#if item.inFlyer}
 				<span class="badge variant-soft-warning">In flyer</span>
 			{/if}
