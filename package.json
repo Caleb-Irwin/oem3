@@ -3,10 +3,10 @@
   "module": "index.ts",
   "devDependencies": {
     "@types/bun": "latest",
-    "prettier": "^3.6.0"
+    "prettier": "^3.9.6"
   },
   "peerDependencies": {
-    "typescript": "^5.4.2"
+    "typescript": "^5.9.3"
   },
   "scripts": {
     "dev": "cd server && bun run dev",
@@ -15,7 +15,8 @@
     "preview": "docker compose up --build",
     "count-lines": "bunx cloc . --exclude-dir=node_modules,build,.svelte-kit,.git,drizzle,types --exclude-ext=lock,json",
     "count-lines:svelte": "bunx cloc ./svelte --exclude-dir=node_modules,build,.svelte-kit --exclude-ext=lock,json",
-    "count-lines:server": "bunx cloc ./server --exclude-dir=node_modules,types,drizzle --exclude-ext=lock,json"
+    "count-lines:server": "bunx cloc ./server --exclude-dir=node_modules,types,drizzle --exclude-ext=lock,json",
+    "audit": "bun audit && (cd server && bun audit) && (cd svelte && bun audit)"
   },
   "type": "module",
   "dependencies": {}

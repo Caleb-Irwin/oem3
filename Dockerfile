@@ -1,23 +1,23 @@
 # use the official Bun image
 # see all versions at https://hub.docker.com/r/oven/bun/tags
-FROM oven/bun:1 AS base
+FROM oven/bun:1.4.2 AS base
 WORKDIR /usr/src/app
 
 # install dependencies into temp directory
 # this will cache them and speed up future builds
 FROM base AS svelte-install
 RUN mkdir -p /temp/svelte/dev/
-COPY /svelte/package.json /svelte/bun.lockb /temp/svelte/dev/
+COPY /svelte/package.json /svelte/bun.lock /temp/svelte/dev/
 RUN cd /temp/svelte/dev && bun install --frozen-lockfile
 
 # install with --production (exclude devDependencies)
 RUN mkdir -p /temp/svelte/prod
-COPY /svelte/package.json /svelte/bun.lockb /temp/svelte/prod/
+COPY /svelte/package.json /svelte/bun.lock /temp/svelte/prod/
 RUN cd /temp/svelte/prod && bun install --frozen-lockfile --production
 
 FROM base AS server-install
 RUN mkdir -p /temp/server/prod/
-COPY /server/package.json /server/bun.lockb /temp/server/prod/
+COPY /server/package.json /server/bun.lock /temp/server/prod/
 RUN cd /temp/server/prod && bun install --frozen-lockfile --production
 
 # copy node_modules from temp directory
@@ -43,4 +43,5 @@ COPY --from=server-install /temp/server/prod/node_modules ./server/node_modules
 # run the app
 USER bun
 EXPOSE 3000/tcp
-ENTRYPOINT cd server && bun run --smol ./src/index.ts
+WORKDIR /usr/src/app/server
+ENTRYPOINT ["bun", "run", "--smol", "./src/index.ts"]

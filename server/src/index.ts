@@ -4,11 +4,13 @@ import { createContext } from './trpc';
 import { kit } from './kitMiddleware';
 import { PORT, DEV } from './config';
 import { migrate } from './db';
-import { appRouter } from './appRouter';
 import { WebSocketServer } from 'ws';
 import { applyWSSHandler } from '@trpc/server/adapters/ws';
 
 await migrate();
+
+// Router initialization reads persisted worker state, so the schema must exist first.
+const { appRouter } = await import('./appRouter');
 
 const app = polka();
 
