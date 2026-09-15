@@ -11,6 +11,7 @@ import type {
 	UnifiedTables
 } from './types';
 import type { CreateUnifierConf, OnUpdateCallback, RowTypeBase } from './unifier';
+import { getPgErrorCode } from '../utils/dbErrors';
 
 export function ConnectionManager<
 	RowType extends RowTypeBase<TableType>,
@@ -57,7 +58,7 @@ export function ConnectionManager<
 			});
 			return true;
 		} catch (error: any) {
-			if (error?.code === '23505') {
+			if (getPgErrorCode(error) === '23505') {
 				await onConflict();
 			} else {
 				throw error;
