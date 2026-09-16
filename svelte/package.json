@@ -24,6 +24,7 @@
 		"@types/eslint": "8.56.0",
 		"@types/jsonwebtoken": "^9.0.10",
 		"@types/node": "^22.20.2",
+		"@types/papaparse": "^5.5.2",
 		"@typescript-eslint/eslint-plugin": "^8.70.0",
 		"@typescript-eslint/parser": "^8.70.0",
 		"autoprefixer": "^10.6.0",
@@ -53,6 +54,7 @@
 		"jsbarcode": "^3.12.3",
 		"jsonwebtoken": "^9.0.3",
 		"jspdf": "^4.2.1",
+		"papaparse": "^5.7.0",
 		"svelte-intersection-observer": "^1.2.0"
 	},
 	"overrides": {
