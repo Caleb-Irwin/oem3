@@ -8,6 +8,7 @@ import { changesetType } from './changeset.table';
 import { KV } from './kv';
 import { updateByTableName } from '../routers/resources';
 import type { Subprocess } from 'bun';
+import { getErrorMessage } from './dbErrors';
 
 export type RunWorker = (data: HostMessage, time?: number) => Promise<void>;
 export type PostRunHook = (cb: () => void) => void;
@@ -126,6 +127,7 @@ export const managedWorker = (
 					} else if (message.type === 'custom') {
 						customMessageCallback?.(message);
 					} else if (message.type === 'error') {
+						errored = true;
 						status.running = false;
 						status.error = true;
 						status.message = message.msg ?? 'Error in worker';
@@ -143,7 +145,8 @@ export const managedWorker = (
 			});
 
 			let done = false,
-				started = false;
+				started = false,
+				errored = false;
 
 			proc.exited.then(async () => {
 				// `processRunning` is set when the subprocess spawns, so it has to be cleared here
@@ -152,8 +155,15 @@ export const managedWorker = (
 				await kv.set('lastRan', time.toString());
 				status.running = false;
 				registeredWorkersSummary.currentlyRunning--;
-				status.message = done ? 'Completed' : 'Worker closed before completing task';
-				status.error = done ? false : true;
+				if (done) {
+					status.message = 'Completed';
+					status.error = false;
+				} else if (!errored) {
+					// A worker that reported an error already set a specific message; exiting
+					// afterwards must not replace it with this generic one.
+					status.message = 'Worker closed before completing task';
+					status.error = true;
+				}
 				update();
 				updateSummary();
 
@@ -221,7 +231,7 @@ export const managedWorker = (
 						await runWorker(input);
 					} catch (e: any) {
 						console.log(e);
-						throw new TRPCError({ message: e.message, code: 'CONFLICT' });
+						throw new TRPCError({ message: getErrorMessage(e), code: 'CONFLICT' });
 					}
 				}),
 			status: viewerProcedure.query(() => {

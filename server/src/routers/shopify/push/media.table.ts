@@ -34,7 +34,8 @@ export const shopifyMedia = pgTable(
 	},
 	(table) => [
 		index('shopify_media_original_url_idx').on(table.originalUploadUrl),
-		uniqueIndex('shopify_media_id_idx').on(table.shopifyMediaId)
+		uniqueIndex('shopify_media_id_idx').on(table.shopifyMediaId),
+		index('shopify_media_product_id_idx').on(table.productId)
 	]
 );
 

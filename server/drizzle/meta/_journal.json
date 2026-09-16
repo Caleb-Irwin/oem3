@@ -946,6 +946,13 @@
       "when": 1789337353646,
       "tag": "0134_blushing_wraith",
       "breakpoints": true
+    },
+    {
+      "idx": 135,
+      "version": "7",
+      "when": 1789502000456,
+      "tag": "0135_light_whiplash",
+      "breakpoints": true
     }
   ]
 }

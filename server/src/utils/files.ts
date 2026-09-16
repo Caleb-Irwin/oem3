@@ -9,6 +9,7 @@ import { TRPCClientError } from '@trpc/client';
 import type { RunWorker } from './managedWorker';
 import { scheduleDailyTask } from './scheduler';
 import { deleteFile, getFileRefById, uploadFile } from './files.s3';
+import { getErrorMessage } from './dbErrors';
 
 export interface CloudDownloadFile {
 	name: string;
@@ -25,8 +26,7 @@ export const fileProcedures = (
 	verifyFunction: (dataUrl: string, fileType: string) => Promise<void> | void,
 	runWorker: RunWorker,
 	cloudDownload:
-		| (() => Promise<CloudDownloadFile | CloudDownloadFile[] | null>)
-		| undefined = undefined,
+		(() => Promise<CloudDownloadFile | CloudDownloadFile[] | null>) | undefined = undefined,
 	dailyRunCloudDownload = false
 ) => {
 	const { update, createSub } = eventSubscription();
@@ -71,7 +71,9 @@ export const fileProcedures = (
 				throw new TRPCError({
 					code: 'CONFLICT',
 					message:
-						'Uploaded file, but could not process due to "' + (e.message ?? 'unknown reason') + '"'
+						'Uploaded file, but could not process due to "' +
+						getErrorMessage(e, 'unknown reason') +
+						'"'
 				});
 			}
 		}

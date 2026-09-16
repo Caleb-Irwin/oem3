@@ -37,17 +37,11 @@ export function convertToProductSetInput(
 	if (shopifyData?.handle) {
 		input.handle = shopifyData.handle;
 	} else if (product.title) {
-		input.handle = (
-			product.title +
-			' ' +
-			(product.gid ?? product.sprc ?? Math.random().toString(36).substring(2, 5)) +
-			' ' +
-			Math.random().toString(36).substring(2, 5)
-		)
-			.toLowerCase()
-			.replace(/[^a-z0-9]+/g, '-')
-			.replace(/^-|-$/g, '')
-			.slice(0, 255);
+		// Deterministic, so the upload hash is stable across runs; a random handle changed it
+		// every time. gid/sprc are already unique, so the id only covers products with neither.
+		const suffix = slugify(String(product.gid ?? product.sprc ?? product.id ?? '')),
+			title = slugify(slugify(product.title).slice(0, Math.max(0, 254 - suffix.length)));
+		input.handle = [title, suffix].filter(Boolean).join('-');
 	}
 
 	// Status
@@ -188,6 +182,13 @@ export function convertToProductSetInput(
 	input.variants = [variant];
 
 	return input;
+}
+
+function slugify(value: string): string {
+	return value
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '');
 }
 
 function getFiles(

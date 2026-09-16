@@ -6,6 +6,7 @@ import * as xlsx from 'xlsx';
 import { KV } from '../../../utils/kv';
 import type { GuildFlyerRaw } from './resolve';
 import { ensureSheetCols } from '../../../utils/ensureSheetCols';
+import { getErrorMessage } from '../../../utils/dbErrors';
 import { getFlyerFileNames } from './source';
 import { db } from '../../../db';
 import { guildFlyerSet } from './table';
@@ -227,7 +228,10 @@ const runFlyerResolve = async () => {
 	try {
 		await runWorker({});
 	} catch (e: any) {
-		throw new TRPCError({ message: e.message ?? 'Could not update flyers', code: 'CONFLICT' });
+		throw new TRPCError({
+			message: getErrorMessage(e, 'Could not update flyers'),
+			code: 'CONFLICT'
+		});
 	}
 };
 

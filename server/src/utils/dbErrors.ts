@@ -12,3 +12,25 @@ export function getPgErrorCode(error: unknown): string | undefined {
 	}
 	return undefined;
 }
+
+/**
+ * Best human-readable message for a thrown value.
+ *
+ * `DrizzleQueryError.message` is the SQL text plus bound parameters — useless in the
+ * UI and it leaks query values — while the driver's real message sits on `cause`, so
+ * take the innermost one. Also handles plain strings, which `runWorker` rejects with.
+ */
+export function getErrorMessage(error: unknown, fallback = 'Unknown Error Occurred'): string {
+	let current: unknown = error;
+	let message = fallback;
+	for (let depth = 0; current !== null && current !== undefined && depth < 10; depth++) {
+		if (typeof current === 'string') {
+			if (current.trim() !== '') message = current;
+			break;
+		}
+		const candidate = (current as { message?: unknown }).message;
+		if (typeof candidate === 'string' && candidate.trim() !== '') message = candidate;
+		current = (current as { cause?: unknown }).cause;
+	}
+	return message;
+}

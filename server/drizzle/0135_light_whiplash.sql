@@ -1,0 +1,1 @@
+CREATE INDEX "shopify_media_product_id_idx" ON "shopifyMedia" USING btree ("product_id");

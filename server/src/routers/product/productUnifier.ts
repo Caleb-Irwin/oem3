@@ -44,7 +44,7 @@ export const productUnifier = createUnifier<
 >({
 	table: unifiedProduct,
 	confTable: unifiedProductCellConfig,
-	version: 21,
+	version: 22,
 	getRow,
 	transform: (
 		item,
@@ -53,7 +53,6 @@ export const productUnifier = createUnifier<
 		const guild = item.unifiedGuildRowContent;
 		const spr = item.unifiedSprRowContent;
 		const qb = item.qbRowContent;
-		const shopify = item.shopifyRowContent;
 
 		// Pricing
 		const sprPriceCents =
@@ -63,8 +62,7 @@ export const productUnifier = createUnifier<
 					: roundUpToNearestTenCents(spr.dealerNetPriceCents * 1.8)
 				: (spr?.netPriceCents ?? null);
 		const defaultPriceCents = guild?.priceCents ?? sprPriceCents ?? null;
-		const onlinePriceCents =
-			defaultPriceCents ?? shopify?.vPriceCents ?? item.onlinePriceCents ?? null;
+		const onlinePriceCents = defaultPriceCents ?? item.onlinePriceCents ?? null;
 		const onlineComparePriceCents =
 			guild?.comparePriceCents && onlinePriceCents && guild.comparePriceCents > onlinePriceCents
 				? guild.comparePriceCents
@@ -97,7 +95,7 @@ export const productUnifier = createUnifier<
 		const sprAvailable = spr?.status ? spr.status === 'Active' : false;
 
 		const otherProductIDs = `<br><p><span>Product Numbers:</span> ${Array.from(new Set([guild?.gid, guild?.upc, guild?.cis, guild?.basics, guild?.spr, spr?.cws, spr?.upc].filter(Boolean).map((val) => val!.toUpperCase().trim()))).join(' ')}</p>`;
-		let description = shopify?.htmlDescription ?? item.description;
+		let description = item.description;
 		if (spr?.description && guild?.description) {
 			description = `<div class="oem-cont"><p>${guild.description}</p> ${spr.sprMarketingText ? `<p>${spr.sprMarketingText}</p>` : ''} ${spr.sprProductSpecs ?? ''} ${otherProductIDs}</div>`;
 		} else if (spr?.description) {
@@ -154,7 +152,7 @@ export const productUnifier = createUnifier<
 			cis: t('cis', guild?.cis ?? null),
 			etilizeId: t('etilizeId', spr?.etilizeId ?? null),
 
-			title: t('title', guild?.title ?? spr?.title ?? shopify?.title ?? item.title),
+			title: t('title', guild?.title ?? spr?.title ?? item.title),
 			description: t('description', description),
 			category: t('category', category),
 			inFlyer: t('inFlyer', guild?.inFlyer ?? false),

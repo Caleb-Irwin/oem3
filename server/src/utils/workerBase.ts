@@ -2,6 +2,7 @@ import * as schema from '../db.schema';
 import { createChangeset } from './changeset';
 import { db, type db as dbType } from '../db';
 import { getFileRow } from './files.s3';
+import { getErrorMessage } from './dbErrors';
 
 export interface WorkerMessage {
 	type: 'ready' | 'started' | 'progress' | 'done' | 'changesetUpdate' | 'error' | 'custom';
@@ -66,7 +67,7 @@ export const work = async ({ process: processFunc }: WorkerParams) => {
 			sendMessage('done');
 			process.exit(0);
 		} catch (e: any) {
-			sendMessage('error', e['message'] ?? 'Unknown Error Occurred');
+			sendMessage('error', getErrorMessage(e));
 			console.log(e);
 			process.exit(1);
 		}
