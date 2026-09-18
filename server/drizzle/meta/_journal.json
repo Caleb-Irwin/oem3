@@ -953,6 +953,13 @@
       "when": 1789502000456,
       "tag": "0135_light_whiplash",
       "breakpoints": true
+    },
+    {
+      "idx": 136,
+      "version": "7",
+      "when": 1789772551000,
+      "tag": "0136_price_change_descriptions",
+      "breakpoints": true
     }
   ]
 }
