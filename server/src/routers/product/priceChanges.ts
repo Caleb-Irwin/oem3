@@ -1047,7 +1047,7 @@ export const priceChangesRouter = router({
 					// The shelf tag has to scan, so fall back the way the old export did: a UPC if
 					// we have one, otherwise the QuickBooks item name.
 					barcode: (row.upc ?? row.qbUpc ?? row.qbProductName ?? '').slice(0, 256),
-					title: row.title,
+					title: row.qbDescription,
 					preferredVendor: row.preferredVendor?.slice(0, 256) ?? null,
 					previousPriceCents: row.currentPriceCents,
 					newPriceCents: row.targetPriceCents
