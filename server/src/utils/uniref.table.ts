@@ -5,6 +5,7 @@ import {
 	qb,
 	shopify,
 	sprFlatFile,
+	sprFlatFileFr,
 	sprPriceFile,
 	unifiedGuild,
 	guildInventory,
@@ -23,6 +24,7 @@ export const resourceTypeEnum = pgEnum('resource_type', [
 	'shopify',
 	'sprPriceFile',
 	'sprFlatFile',
+	'sprFlatFileFr',
 	'unifiedGuild',
 	'unifiedSpr',
 	'unifiedProduct'
@@ -70,6 +72,11 @@ export const uniref = pgTable(
 				onDelete: 'cascade'
 			})
 			.unique(),
+		sprFlatFileFr: integer('sprFlatFileFr')
+			.references(() => sprFlatFileFr.id, {
+				onDelete: 'cascade'
+			})
+			.unique(),
 		unifiedGuild: integer('unifiedGuild')
 			.references(() => unifiedGuild.id, {
 				onDelete: 'cascade'
@@ -96,6 +103,7 @@ export const uniref = pgTable(
 		uniqueIndex('uniref_shopify_idx').on(uniref.shopify),
 		uniqueIndex('uniref_spr_price_file_idx').on(uniref.sprPriceFile),
 		uniqueIndex('uniref_spr_flat_file_idx').on(uniref.sprFlatFile),
+		uniqueIndex('uniref_spr_flat_file_fr_idx').on(uniref.sprFlatFileFr),
 		uniqueIndex('uniref_unifiedGuild_idx').on(uniref.unifiedGuild),
 		uniqueIndex('uniref_unifiedSpr_idx').on(uniref.unifiedSpr),
 		uniqueIndex('uniref_unifiedProduct_idx').on(uniref.unifiedProduct)
@@ -131,6 +139,10 @@ export const unirefRelations = relations(uniref, ({ one }) => ({
 	sprFlatFileData: one(sprFlatFile, {
 		fields: [uniref.sprFlatFile],
 		references: [sprFlatFile.id]
+	}),
+	sprFlatFileFrData: one(sprFlatFileFr, {
+		fields: [uniref.sprFlatFileFr],
+		references: [sprFlatFileFr.id]
 	}),
 	unifiedGuildData: one(unifiedGuild, {
 		fields: [uniref.unifiedGuild],

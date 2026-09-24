@@ -470,6 +470,56 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			}
 		};
 	}
+	if (raw.sprFlatFileFrData) {
+		const fr = raw.sprFlatFileFrData,
+			flat = fr.sprFlatItem;
+		return {
+			idText: 'NovexcoFrenchFlatFile#' + fr.id,
+			id: fr.id,
+			name: fr.mainTitle ?? '',
+			price: '',
+			sku: fr.sprcSku ?? fr.etilizeId,
+			stock: null,
+			deleted: fr.deleted,
+			lastUpdated: fr.lastUpdated,
+			description: [fr.marketingText, fr.fullDescription, fr.productSpecs]
+				.filter(Boolean)
+				.join('<br><br>'),
+			imageUrl: flat?.image255 ?? flat?.image75 ?? undefined,
+			unifiedSprData: flat?.unifiedSprData ?? null,
+			connections: [
+				{
+					tableName: 'sprFlatFile',
+					name: 'Novexco Flat File',
+					connected: flat !== null,
+					link: flat ? `/app/resource/redirect/sprFlatFile-${flat.id}` : '/app/spr'
+				},
+				{
+					tableName: 'unifiedSpr',
+					name: 'Unified Novexco',
+					connected: flat?.unifiedSprData != null,
+					link: flat?.unifiedSprData
+						? `/app/resource/redirect/unifiedSpr-${flat.unifiedSprData.id}`
+						: '/app/spr'
+				},
+				{
+					tableName: 'unifiedProduct',
+					name: 'Unified Product',
+					connected: flat?.unifiedSprData?.unifiedProductData != null,
+					link: flat?.unifiedSprData?.unifiedProductData
+						? `/app/resource/${flat.unifiedSprData.unifiedProductData.uniref.uniId}/unified`
+						: '/app/product'
+				}
+			],
+			unifiedProductData: flat?.unifiedSprData?.unifiedProductData ?? null,
+			keyProductIds: [fr.sprcSku, fr.etilizeId].filter((id): id is string => Boolean(id)),
+			other: {
+				'Etilize ID': fr.etilizeId,
+				'Sub Title': fr.subTitle,
+				Keywords: fr.keywords
+			}
+		};
+	}
 	if (raw.unifiedGuildData) {
 		const unifiedGuild = raw.unifiedGuildData;
 		return {

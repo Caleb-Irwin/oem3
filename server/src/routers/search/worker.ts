@@ -10,6 +10,7 @@ import {
 	qb,
 	shopify,
 	sprFlatFile,
+	sprFlatFileFr,
 	sprPriceFile,
 	unifiedGuild,
 	unifiedProduct,
@@ -41,6 +42,7 @@ work({
 					shopify: db.query.shopify,
 					sprPriceFile: db.query.sprPriceFile,
 					sprFlatFile: db.query.sprFlatFile,
+					sprFlatFileFr: db.query.sprFlatFileFr,
 					unifiedGuild: db.query.unifiedGuild,
 					unifiedSpr: db.query.unifiedSpr,
 					unifiedProduct: db.query.unifiedProduct
@@ -126,6 +128,12 @@ work({
 				otherInfo: `${item.fullDescription} ${item.manufacturerName} ${
 					item.keywords
 				} ${getSubStrings(item.sprcSku ?? '')} `
+			};
+		});
+		await updateSearchIndex(sprFlatFileFr, (item) => {
+			return {
+				keyInfo: `${item.sprcSku ?? ''} ${item.etilizeId}`,
+				otherInfo: `${item.mainTitle ?? ''} ${item.keywords ?? ''} ${getSubStrings(item.sprcSku ?? '')} `
 			};
 		});
 		await updateSearchIndex(unifiedGuild, (item) => {

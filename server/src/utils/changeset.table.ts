@@ -9,6 +9,7 @@ import {
 	type guildData,
 	type qb,
 	sprFlatFile,
+	sprFlatFileFr,
 	unifiedGuild,
 	unifiedSpr,
 	unifiedProduct
@@ -23,6 +24,7 @@ export const changesetType = pgEnum('changeset_type', [
 		'shopify',
 		'sprPriceFile',
 		'sprFlatFile',
+		'sprFlatFileFr',
 		'unifiedGuild',
 		'unifiedSpr',
 		'unifiedProduct'
@@ -37,6 +39,7 @@ export type ChangesetTable =
 	| typeof shopify
 	| typeof sprPriceFile
 	| typeof sprFlatFile
+	| typeof sprFlatFileFr
 	| typeof unifiedGuild
 	| typeof unifiedSpr
 	| typeof unifiedProduct;

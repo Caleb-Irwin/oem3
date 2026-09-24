@@ -44,7 +44,7 @@ export const sprUnifier = createUnifier<
 		const price = item.sprPriceFileRowContent;
 		const flat = item.sprFlatFileRowContent;
 		const enh = flat?.enhancedContent ?? null;
-		const fr = flat?.fr ?? null;
+		const fr = flat?.fr && !flat.fr.deleted ? flat.fr : null;
 
 		const etilizePrimary = price?.etilizeId ?? null;
 		const etilizeSecondary = flat?.etilizeId ?? null;

@@ -56,6 +56,7 @@ export const resourceWith = {
 	shopifyData: unifiedProductDataWith,
 	sprPriceFileData: unifiedSprDataWith,
 	sprFlatFileData: unifiedSprDataWith,
+	sprFlatFileFrData: { with: { sprFlatItem: unifiedSprDataWith } },
 	unifiedGuildData: unifiedProductDataWith,
 	unifiedSprData: unifiedProductDataWith,
 	unifiedProductData: true as true
@@ -317,6 +318,7 @@ const resourceWithForType = {
 	shopifyData: unifiedProductDataWithForType,
 	sprPriceFileData: unifiedSprDataWithForType,
 	sprFlatFileData: unifiedSprDataWithForType,
+	sprFlatFileFrData: { with: { sprFlatItem: unifiedSprDataWithForType } },
 	unifiedGuildData: unifiedProductDataWithForType,
 	unifiedSprData: unifiedProductDataWithForType
 } as const;

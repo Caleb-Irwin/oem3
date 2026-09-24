@@ -14,7 +14,8 @@ export const queryTypeOptions: { value: QueryType; label: string }[] = [
 	{ value: 'guildInventory', label: 'Guild Inventory' },
 	{ value: 'guildFlyer', label: 'Guild Flyer' },
 	{ value: 'sprPriceFile', label: 'Novexco Price' },
-	{ value: 'sprFlatFile', label: 'Novexco Info' }
+	{ value: 'sprFlatFile', label: 'Novexco Info' },
+	{ value: 'sprFlatFileFr', label: 'Novexco French Info' }
 ];
 
 export const isQueryType = (value: string | null): value is QueryType =>

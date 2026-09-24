@@ -19,7 +19,7 @@
 
 <ModalSearchBar
 	queryType="unifiedSpr"
-	queryTypes={['unifiedSpr', 'sprPriceFile', 'sprFlatFile']}
+	queryTypes={['unifiedSpr', 'sprPriceFile', 'sprFlatFile', 'sprFlatFileFr']}
 	placeholder="Search Novexco"
 	class="max-w-3xl pb-2"
 />
@@ -82,13 +82,16 @@
 	</div>
 	<div class="w-full flex flex-col items-center p-2">
 		<div class="card w-full">
-			<div class="p-4">
-				<WorkerStatus
-					status={subVal(client.spr.flatFileFr.worker.statusSub, {
-						init: data.sprFlatFileFrStatus
-					})}
-				/>
-			</div>
+			<ChangesetStatus
+				embedded
+				name="Novexco French Flat File"
+				status={subVal(client.spr.flatFileFr.worker.statusSub, {
+					init: data.sprFlatFileFrStatus
+				})}
+				changeset={subVal(client.spr.flatFileFr.worker.changesetSub, {
+					init: data.sprFlatFileFrChangeset
+				})}
+			/>
 			<Files
 				embedded
 				filesRouter={client.spr.flatFileFr.files}

@@ -15,6 +15,7 @@ export const load: PageServerLoad = async ({ locals: { client } }) => {
 
 		// SPR French Flat File
 		sprFlatFileFrStatus: client.spr.flatFileFr.worker.status.query(),
+		sprFlatFileFrChangeset: client.spr.flatFileFr.worker.changeset.query(),
 		sprFlatFileFrFiles: client.spr.flatFileFr.files.get.query(),
 
 		// SPR Enhanced Content Worker
