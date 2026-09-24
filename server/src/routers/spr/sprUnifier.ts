@@ -15,7 +15,8 @@ const getRow = async (id: number, db: typeof DB | Tx) => {
 				sprPriceFileRowContent: true,
 				sprFlatFileRowContent: {
 					with: {
-						enhancedContent: true
+						enhancedContent: true,
+						fr: true
 					}
 				},
 				uniref: true
@@ -37,31 +38,27 @@ export const sprUnifier = createUnifier<
 >({
 	table: unifiedSpr,
 	confTable: unifiedSprCellConfig,
-	version: 30,
+	version: 31,
 	getRow,
 	transform: (item, t) => {
 		const price = item.sprPriceFileRowContent;
 		const flat = item.sprFlatFileRowContent;
 		const enh = flat?.enhancedContent ?? null;
+		const fr = flat?.fr ?? null;
 
 		const etilizePrimary = price?.etilizeId ?? null;
 		const etilizeSecondary = flat?.etilizeId ?? null;
 		const upcPrimary = price?.upc ?? null;
 		const upcSecondary = enh?.upc ?? null;
 
-		let desc = flat
-			? (flat.marketingText?.trim() ? `<p>${flat.marketingText}</p>` : '') +
-				(flat.fullDescription?.trim() ? `<p>${flat.fullDescription}</p>` : '') +
-				flat.productSpecs
-			: null;
-		if (desc) {
-			desc = desc.replace(/<\/span>:/g, ': </span>');
-			desc = desc.replace(/<\/ul><br\/>/g, '</ul>');
-		}
+		const desc = buildDescription(flat);
+		const descFr = buildDescription(fr);
+		const titleFr = fr?.mainTitle ?? price.descriptionFr;
 
 		return {
 			id: t('id', item.id),
-			sprc: t('sprc', item.sprc),
+			novexco: t('novexco', price.novexcoCode ?? item.novexco),
+			sprc: t('sprc', price.sprcSku ?? null),
 
 			sprPriceFileRow: t('sprPriceFileRow', item.sprPriceFileRow),
 			sprFlatFileRow: t('sprFlatFileRow', item.sprFlatFileRow, { shouldNotBeNull: true }),
@@ -74,8 +71,7 @@ export const sprUnifier = createUnifier<
 					ignore: etilizePrimary === null || etilizeSecondary === null
 				}
 			}),
-			cws: t('cws', enh?.cws ?? null),
-			novexco: t('novexco', enh?.novexco ?? null),
+			cws: t('cws', price.cws ?? enh?.cws ?? null),
 			gtin: t('gtin', enh?.gtin ?? null),
 			upc: t('upc', upcPrimary ?? upcSecondary ?? null, {
 				// shouldMatch: {
@@ -94,6 +90,9 @@ export const sprUnifier = createUnifier<
 					: null
 			),
 			description: t('description', desc),
+			shortTitleFr: t('shortTitleFr', price.descriptionFr ?? null),
+			titleFr: t('titleFr', titleFr ? decode(titleFr) : null),
+			descriptionFr: t('descriptionFr', descFr),
 			category: t(
 				'category',
 				flat?.masterDepartmentNumber ? (categoryMap[flat?.masterDepartmentNumber] ?? null) : null
@@ -122,7 +121,10 @@ export const sprUnifier = createUnifier<
 					flat?.image75 ??
 					(price.etilizeId ? `https://content.etilize.com/${225}/${price.etilizeId}.jpg` : null)
 			),
-			primaryImageDescription: t('primaryImageDescription', `Image of ${price.sprcSku}`),
+			primaryImageDescription: t(
+				'primaryImageDescription',
+				`Image of ${price.sprcSku ?? price.novexcoCode}`
+			),
 			otherImagesJsonArr: t(
 				'otherImagesJsonArr',
 				enh?.otherImagesJsonArr
@@ -148,16 +150,18 @@ export const sprUnifier = createUnifier<
 			table: sprPriceFile,
 			refCol: 'sprPriceFileRow',
 			findConnections: async (row, db) => {
-				const sku = row.sprc;
-				if (!sku || sku === '') return [];
+				// Legacy rows have no novexco code until their price file row is adopted by one
+				const code = row.novexco ?? row.sprPriceFileRowContent?.novexcoCode ?? null;
+				if (!code) return [];
 				const res = await db.query.sprPriceFile.findMany({
-					where: and(eq(sprPriceFile.sprcSku, sku), not(sprPriceFile.deleted)),
+					where: and(eq(sprPriceFile.novexcoCode, code), not(sprPriceFile.deleted)),
 					columns: { id: true }
 				});
 				return res.map((r) => r.id);
 			},
 			newRowTransform: (row, lastUpdated) => {
 				return {
+					novexco: row.novexcoCode,
 					sprc: row.sprcSku,
 					sprPriceFileRow: row.id,
 					sprFlatFileRow: null,
@@ -182,6 +186,8 @@ export const sprUnifier = createUnifier<
 				findConnections: async (row, db) => {
 					const sku = row.sprc;
 					const etilize = row.sprPriceFileRowContent?.etilizeId ?? null;
+					// Novexco-only items may have neither; or() of only undefined would match every row
+					if (!sku && !etilize) return [];
 					const bestMatches = (
 						await db.query.sprFlatFile
 							.findMany({
@@ -273,6 +279,23 @@ export const sprUnifier = createUnifier<
 		}
 	}
 });
+
+function buildDescription(
+	content: {
+		marketingText: string | null;
+		fullDescription: string | null;
+		productSpecs: string | null;
+	} | null
+) {
+	if (!content) return null;
+	return (
+		(content.marketingText?.trim() ? `<p>${content.marketingText}</p>` : '') +
+		(content.fullDescription?.trim() ? `<p>${content.fullDescription}</p>` : '') +
+		(content.productSpecs ?? '')
+	)
+		.replace(/<\/span>:/g, ': </span>')
+		.replace(/<\/ul><br\/>/g, '</ul>');
+}
 
 const categoryMap: {
 	[key: string]: SprCategoryEnum | null;

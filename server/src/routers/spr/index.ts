@@ -1,6 +1,7 @@
 // SPR routers (existing)
 import { router } from '../../trpc';
 import { sprFlatFileHook, sprFlatFileRouter } from './flatFile';
+import { sprFlatFileFrHook, sprFlatFileFrRouter } from './flatFileFr';
 import { enhancedContentHook, enhancedContentRouter } from './enhancedContent';
 import { sprPriceFileHook, sprPriceFileRouter } from './priceFile';
 import { managedWorker } from '../../utils/managedWorker';
@@ -10,7 +11,7 @@ import { updateByTableName } from '../resources';
 const { worker, hook, runWorker } = managedWorker(
 	new URL('worker.ts', import.meta.url).href,
 	'unifiedSpr',
-	[sprPriceFileHook, sprFlatFileHook, enhancedContentHook],
+	[sprPriceFileHook, sprFlatFileHook, sprFlatFileFrHook, enhancedContentHook],
 	({ msg }) => (msg ? updateUnifiedTopicByUniId(msg) : null),
 	1
 );
@@ -27,6 +28,7 @@ export const sprHook = hook;
 export const sprRouter = router({
 	worker,
 	flatFile: sprFlatFileRouter,
+	flatFileFr: sprFlatFileFrRouter,
 	priceFile: sprPriceFileRouter,
 	enhancedContent: enhancedContentRouter
 });

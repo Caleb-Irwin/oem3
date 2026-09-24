@@ -73,9 +73,14 @@
 						{#if item.gid}<span>GID {item.gid}</span>{/if}
 						{#if item.gid && item.sprc}<span aria-hidden="true">·</span>{/if}
 						{#if item.sprc}<span>Legacy SKU {item.sprc}</span>{/if}
-						{#if (item.gid || item.sprc) && item.upc}<span aria-hidden="true">·</span>{/if}
+						{#if (item.gid || item.sprc) && item.novexco}<span aria-hidden="true">·</span>{/if}
+						{#if item.novexco}<span>Novexco {item.novexco}</span>{/if}
+						{#if (item.gid || item.sprc || item.novexco) && item.upc}<span aria-hidden="true"
+								>·</span
+							>{/if}
 						{#if item.upc}<span class="font-semibold">UPC {item.upc}</span>{/if}
-						{#if !item.gid && !item.sprc && !item.upc}<span>No product IDs</span>{/if}
+						{#if !item.gid && !item.sprc && !item.novexco && !item.upc}<span>No product IDs</span
+							>{/if}
 					</p>
 				</div>
 				<div class="flex items-center justify-end shrink-0 gap-2.5">

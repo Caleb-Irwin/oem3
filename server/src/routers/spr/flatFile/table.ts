@@ -9,7 +9,7 @@ import {
 	varchar,
 	bigint
 } from 'drizzle-orm/pg-core';
-import { sprEnhancedContent, unifiedSpr, uniref } from '../../../db.schema';
+import { sprEnhancedContent, sprFlatFileFr, unifiedSpr, uniref } from '../../../db.schema';
 
 export const sprFlatFile = pgTable(
 	'sprFlatFile',
@@ -65,6 +65,10 @@ export const sprFlatFileRelations = relations(sprFlatFile, ({ one }) => ({
 	enhancedContent: one(sprEnhancedContent, {
 		fields: [sprFlatFile.etilizeId],
 		references: [sprEnhancedContent.etilizeId]
+	}),
+	fr: one(sprFlatFileFr, {
+		fields: [sprFlatFile.etilizeId],
+		references: [sprFlatFileFr.etilizeId]
 	}),
 	unifiedSprData: one(unifiedSpr, {
 		fields: [sprFlatFile.id],

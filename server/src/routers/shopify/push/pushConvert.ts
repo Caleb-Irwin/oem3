@@ -22,10 +22,13 @@ export function convertToProductSetInput(
 
 	// Title
 	if (product.title !== undefined && product.title !== null) {
-		input.title = (product.title || product.gid || product.sprc || 'Untitled Product').slice(
-			0,
-			255
-		);
+		input.title = (
+			product.title ||
+			product.gid ||
+			product.sprc ||
+			product.novexco ||
+			'Untitled Product'
+		).slice(0, 255);
 	}
 
 	// Description
@@ -38,8 +41,10 @@ export function convertToProductSetInput(
 		input.handle = shopifyData.handle;
 	} else if (product.title) {
 		// Deterministic, so the upload hash is stable across runs; a random handle changed it
-		// every time. gid/sprc are already unique, so the id only covers products with neither.
-		const suffix = slugify(String(product.gid ?? product.sprc ?? product.id ?? '')),
+		// every time. gid/sprc/novexco are already unique, so the id only covers products with none.
+		const suffix = slugify(
+				String(product.gid ?? product.sprc ?? product.novexco ?? product.id ?? '')
+			),
 			title = slugify(slugify(product.title).slice(0, Math.max(0, 254 - suffix.length)));
 		input.handle = [title, suffix].filter(Boolean).join('-');
 	}
@@ -117,8 +122,8 @@ export function convertToProductSetInput(
 	}
 
 	// SKU
-	if (product.gid || product.sprc) {
-		variant.sku = product.gid || product.sprc || undefined;
+	if (product.gid || product.sprc || product.novexco) {
+		variant.sku = product.gid || product.sprc || product.novexco || undefined;
 	}
 
 	// Barcode (UPC)

@@ -28,7 +28,9 @@ export const unifiedSpr = pgTable(
 	'unifiedSpr',
 	{
 		id: serial('id').primaryKey(),
-		sprc: varchar('sprc', { length: 256 }).notNull().unique(),
+		// Novexco Product Code; null only for legacy rows whose SPR price file row was never matched
+		novexco: varchar('novexco', { length: 64 }),
+		sprc: varchar('sprc', { length: 256 }),
 
 		sprPriceFileRow: integer('sprPriceFileRow')
 			.notNull()
@@ -40,13 +42,16 @@ export const unifiedSpr = pgTable(
 
 		etilizeId: varchar('etilizeId', { length: 32 }),
 		cws: varchar('cws', { length: 64 }),
-		novexco: varchar('novexco', { length: 64 }),
 		gtin: varchar('gtin', { length: 64 }),
 		upc: varchar('upc', { length: 32 }),
 
 		shortTitle: text('shortTitle'),
 		title: text('title'),
 		description: text('description'),
+		// French content is stored but not surfaced to users yet
+		shortTitleFr: text('shortTitleFr'),
+		titleFr: text('titleFr'),
+		descriptionFr: text('descriptionFr'),
 		category: sprCategoryEnum('category'),
 
 		sprMarketingText: text('sprMarketingText'),
@@ -72,6 +77,7 @@ export const unifiedSpr = pgTable(
 	(unified) => [
 		uniqueIndex('unifiedSpr_spr_price_row_idx').on(unified.sprPriceFileRow),
 		uniqueIndex('unifiedSpr_spr_flat_row_idx').on(unified.sprFlatFileRow),
+		uniqueIndex('unifiedSpr_novexco_idx').on(unified.novexco),
 		index('unifiedSpr_spr_sprc_idx').on(unified.sprc),
 		index('unifiedSpr_spr_etilizeId_idx').on(unified.etilizeId),
 		index('unifiedSpr_spr_upc_idx').on(unified.upc),
@@ -118,6 +124,9 @@ export const unifiedSprColumnEnum = pgEnum('unifiedSprColumn', [
 	'shortTitle',
 	'title',
 	'description',
+	'shortTitleFr',
+	'titleFr',
+	'descriptionFr',
 	'category',
 	'sprMarketingText',
 	'sprProductSpecs',

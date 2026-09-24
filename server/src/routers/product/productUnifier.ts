@@ -44,7 +44,7 @@ export const productUnifier = createUnifier<
 >({
 	table: unifiedProduct,
 	confTable: unifiedProductCellConfig,
-	version: 22,
+	version: 23,
 	getRow,
 	transform: (
 		item,
@@ -115,6 +115,7 @@ export const productUnifier = createUnifier<
 					ignore: spr?.sprc == null || guild?.spr == null
 				}
 			}),
+			novexco: t('novexco', spr?.novexco ?? item.novexco),
 			status: t(
 				'status',
 				(item) => (item.deleted ? 'DISABLED' : isDiscontinued ? 'DISCONTINUED' : 'ACTIVE'),
@@ -278,11 +279,23 @@ export const productUnifier = createUnifier<
 			table: unifiedSpr,
 			refCol: 'unifiedSprRow',
 			findConnections: async (row, db) => {
+				const novexco = row.novexco;
 				const sprc = row.sprc ?? row.unifiedGuildRowContent?.spr ?? null;
 				const upc = row.unifiedGuildRowContent?.upc ?? null;
 				const cis = row.unifiedGuildRowContent?.cis ?? null;
 
-				if (!sprc && !upc && !cis) return [];
+				if (!novexco && !sprc && !upc && !cis) return [];
+
+				if (novexco) {
+					const novexcoMatches = await db.query.unifiedSpr.findMany({
+						where: and(eq(unifiedSpr.novexco, novexco), not(unifiedSpr.deleted)),
+						columns: { id: true }
+					});
+
+					if (novexcoMatches.length > 0) {
+						return novexcoMatches.map((r) => r.id);
+					}
+				}
 
 				if (sprc) {
 					const sprcMatches = await db.query.unifiedSpr.findMany({
@@ -354,6 +367,7 @@ export const productUnifier = createUnifier<
 				return {
 					gid: null,
 					sprc: row.sprc,
+					novexco: row.novexco,
 					status: row.deleted
 						? 'DISABLED'
 						: row.status === 'Discontinued'
@@ -456,17 +470,21 @@ export const productUnifier = createUnifier<
 				findConnections: async (row, db) => {
 					const gid = row.gid;
 					const sprc = row.sprc ?? row.unifiedGuildRowContent?.spr ?? null;
+					// Novexco codes share a number space with Guild IDs (other products' vSkus), so only
+					// match on it when it is the SKU this product pushes (see pushConvert)
+					const novexco = !gid && !sprc ? row.novexco : null;
 					const upc = row.unifiedGuildRowContent?.upc ?? row.unifiedSprRowContent?.upc ?? null;
 
-					if (!gid && !sprc && !upc) return [];
+					if (!gid && !sprc && !novexco && !upc) return [];
 
-					// First try to match vSku to gid or sprc
-					if (gid || sprc) {
+					// First try to match vSku to gid, sprc, or novexco
+					if (gid || sprc || novexco) {
 						const skuMatches = await db.query.shopify.findMany({
 							where: and(
 								or(
 									gid ? eq(shopifyTable.vSku, gid) : undefined,
-									sprc ? eq(shopifyTable.vSku, sprc) : undefined
+									sprc ? eq(shopifyTable.vSku, sprc) : undefined,
+									novexco ? eq(shopifyTable.vSku, novexco) : undefined
 								),
 								not(shopifyTable.deleted)
 							),

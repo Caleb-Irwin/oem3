@@ -23,29 +23,32 @@ export const sprPriceFileRouter = router({
 					code: 'BAD_REQUEST'
 				});
 
-			const headers = ensureSheetCols(xlsx.read(dataUrl.slice(dataUrl.indexOf(';base64,') + 8)), [
-				'SPRC SKU',
-				'ProductID',
-				'Product Status',
-				'Description',
-				'UoM',
-				'UPC',
-				'Cat. Page',
+			ensureSheetCols(xlsx.read(dataUrl.slice(dataUrl.indexOf(';base64,') + 8)), [
+				'Novexco Product Code',
+				'Product Category Description',
+				'Number of units per pack or box',
+				'Catalogue Page',
+				'SPR Product Code',
+				'GUILD Product Code',
+				'French Short Description',
+				'English Short Description',
+				'Supplier name',
+				'Supplier Product Code Number',
+				'English Unit of Measure',
+				'Direct Cost',
+				'Retail Price',
+				'Unit Cost',
+				'Warehousing Purchasing Status',
+				'Direct Purchasing Status',
+				'UPC 1 - Unit Pack',
 				'Net Price',
-				'List Price'
+				'Laval Inventory',
+				'Calgary Inventory',
+				'Halifax Inventory',
+				'Surrey Inventory',
+				'Brampton Inventory',
+				'CWS Number'
 			]);
-
-			let valid = false;
-			headers.forEach((key) => {
-				if (key.includes('Dealer Net Price')) {
-					valid = true;
-				}
-			});
-			if (!valid)
-				throw new TRPCError({
-					message: 'Missing Dealer Net Price Column',
-					code: 'BAD_REQUEST'
-				});
 		},
 		runWorker
 	)

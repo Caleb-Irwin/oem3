@@ -4,10 +4,15 @@ import postgres from 'postgres';
 import * as schema from './db.schema';
 import { POSTGRESQL } from './env';
 
+const DB_POOL_MAX = 15;
+
 const connect = async (depth = 0): Promise<ReturnType<typeof postgres>> => {
 	if (depth > 0) console.log('Connecting to DB (try ' + (depth + 1) + ')');
 	try {
 		const sql = postgres(POSTGRESQL, {
+			// Headroom above the unifier's ROW_UPDATE_CONCURRENCY. The server plus up to 4 workers
+			// can each open this many, which must stay under Postgres max_connections (default 100).
+			max: DB_POOL_MAX,
 			onnotice: (e) => {
 				if (e['code'] === '42P06' || e['code'] === '42P07') return;
 				console.warn(e);

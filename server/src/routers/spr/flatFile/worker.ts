@@ -8,9 +8,11 @@ work({
 		const fileId = (message as { fileId: number }).fileId,
 			changeset = await createChangeset(sprFlatFile, fileId),
 			dataUrl = await getFileDataUrl(fileId),
-			res = Papa.parse(atob(dataUrl.slice(dataUrl.indexOf('base64,') + 7)), {
-				header: true
-			});
+			// The file is UTF-8; atob would decode it as Latin-1 and mangle non-ASCII characters
+			res = Papa.parse(
+				Buffer.from(dataUrl.slice(dataUrl.indexOf('base64,') + 7), 'base64').toString('utf8'),
+				{ header: true }
+			);
 
 		await db.transaction(async (db) => {
 			const prevItems = new Map(

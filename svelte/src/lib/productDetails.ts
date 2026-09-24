@@ -322,8 +322,11 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			idText: 'NovexcoPriceFile#' + sprPriceFileData.id,
 			id: sprPriceFileData.id,
 			name: sprPriceFileData.description ?? '',
-			price: formatCurrency(sprPriceFileData.netPriceCents / 100),
-			sku: sprPriceFileData.sprcSku,
+			price:
+				sprPriceFileData.netPriceCents != null
+					? formatCurrency(sprPriceFileData.netPriceCents / 100)
+					: 'No Price',
+			sku: sprPriceFileData.novexcoCode ?? sprPriceFileData.sprcSku ?? 'Unknown',
 			stock: null,
 			deleted: sprPriceFileData.deleted,
 			lastUpdated: sprPriceFileData.lastUpdated,
@@ -354,17 +357,47 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			],
 			unifiedProductData: sprPriceFileData.unifiedSprData?.unifiedProductData ?? null,
 			keyProductIds: [
+				sprPriceFileData.novexcoCode,
 				sprPriceFileData.sprcSku,
 				sprPriceFileData.upc,
 				sprPriceFileData.etilizeId
 			].filter((id): id is string => Boolean(id)),
 			other: {
+				'Novexco Code': sprPriceFileData.novexcoCode,
+				'Legacy SKU': sprPriceFileData.sprcSku,
+				'Guild Code': sprPriceFileData.guildCode,
+				CWS: sprPriceFileData.cws,
 				'Etilize Id': sprPriceFileData.etilizeId ?? 'Null',
-				'Dealer Net Price': formatCurrency(sprPriceFileData.dealerNetPriceCents / 100),
-				'Net Price': formatCurrency(sprPriceFileData.netPriceCents / 100),
-				'List Price': formatCurrency(sprPriceFileData.listPriceCents / 100),
+				Status: sprPriceFileData.status,
+				'Warehouse / Direct Status': [
+					sprPriceFileData.warehouseStatus,
+					sprPriceFileData.directStatus
+				]
+					.map((v) => v ?? '-')
+					.join(' / '),
+				'Dealer Net Price (Unit Cost)':
+					sprPriceFileData.dealerNetPriceCents != null
+						? formatCurrency(sprPriceFileData.dealerNetPriceCents / 100)
+						: null,
+				'Direct Cost':
+					sprPriceFileData.directCostCents != null
+						? formatCurrency(sprPriceFileData.directCostCents / 100)
+						: null,
+				'Net Price':
+					sprPriceFileData.netPriceCents != null
+						? formatCurrency(sprPriceFileData.netPriceCents / 100)
+						: null,
+				'List Price (Retail)':
+					sprPriceFileData.listPriceCents != null
+						? formatCurrency(sprPriceFileData.listPriceCents / 100)
+						: null,
 				'Unit of Measure': sprPriceFileData.um,
+				'Units per Pack': sprPriceFileData.unitsPerPack?.toString() ?? null,
+				'Novexco Inventory': sprPriceFileData.inventory?.toString() ?? null,
 				UPC: sprPriceFileData.upc,
+				Category: sprPriceFileData.categoryDescription,
+				Supplier: sprPriceFileData.supplierName,
+				'Supplier SKU': sprPriceFileData.supplierSku,
 				'Cat. Page': sprPriceFileData.catPage?.toString() ?? null
 			}
 		};
@@ -532,7 +565,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				unifiedSpr.netPriceCents != null
 					? formatCurrency(unifiedSpr.netPriceCents / 100)
 					: 'No Price',
-			sku: unifiedSpr.sprc,
+			sku: unifiedSpr.novexco ?? unifiedSpr.sprc ?? 'Unknown',
 			stock: null,
 			deleted: unifiedSpr.deleted,
 			lastUpdated: unifiedSpr.lastUpdated,
@@ -568,9 +601,13 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				}
 			],
 			unifiedProductData: unifiedSpr.unifiedProductData ?? null,
-			keyProductIds: [unifiedSpr.sprc, unifiedSpr.etilizeId, unifiedSpr.cws, unifiedSpr.upc].filter(
-				(id): id is string => Boolean(id)
-			),
+			keyProductIds: [
+				unifiedSpr.novexco,
+				unifiedSpr.sprc,
+				unifiedSpr.etilizeId,
+				unifiedSpr.cws,
+				unifiedSpr.upc
+			].filter((id): id is string => Boolean(id)),
 			other: {
 				Status: unifiedSpr.status ?? null,
 				'Unit of Measure': unifiedSpr.um ?? null,
@@ -586,7 +623,8 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 						: null,
 				'Etilize ID': unifiedSpr.etilizeId ?? null,
 				CWS: unifiedSpr.cws ?? null,
-				'Novexco SKU': unifiedSpr.novexco ?? null,
+				'Novexco Code': unifiedSpr.novexco ?? null,
+				'Legacy SKU': unifiedSpr.sprc ?? null,
 				GTIN: unifiedSpr.gtin ?? null,
 				UPC: unifiedSpr.upc ?? null,
 				Category: unifiedSpr.category ?? null,

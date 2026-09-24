@@ -17,7 +17,7 @@
 		($priceList ?? []).filter((item) => {
 			const query = filter.trim().toLowerCase();
 			if (!query) return true;
-			return [item.title, item.gid, item.sprc, item.upc]
+			return [item.title, item.gid, item.sprc, item.novexco, item.upc]
 				.filter(Boolean)
 				.some((value) => value!.toLowerCase().includes(query));
 		})

@@ -26,6 +26,9 @@ import { VerifyCellValue } from './cellVerification';
 import type { PrimarySecondaryTableConnection } from './types';
 import { ConnectionManager } from './connections';
 
+// Each in-flight row update holds one pooled connection for its transaction (see DB_POOL_MAX)
+const ROW_UPDATE_CONCURRENCY = 12;
+
 export function createUnifier<
 	RowType extends RowTypeBase<TableType>,
 	TableType extends UnifiedTables,
@@ -222,7 +225,7 @@ export function createUnifier<
 	}) {
 		if (progress) progress(0);
 		let done = 0;
-		await PromisePool.withConcurrency(5)
+		await PromisePool.withConcurrency(ROW_UPDATE_CONCURRENCY)
 			.for(Array.from(rowsToUpdate))
 			.handleError(async (error) => {
 				console.error('Error updating row:', error);

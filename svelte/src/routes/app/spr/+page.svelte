@@ -34,7 +34,7 @@
 	headerName="Unified Novexco"
 />
 
-<div class="w-full flex flex-col xl:grid xl:grid-cols-3 justify-center p-2">
+<div class="w-full flex flex-col xl:grid xl:grid-cols-2 justify-center p-2">
 	<div class="w-full flex flex-col items-center p-2">
 		<div class="card w-full">
 			<ChangesetStatus
@@ -77,6 +77,26 @@
 				acceptFileType=".CSV"
 				cloudSyncMutation={client.spr.flatFile.files.cloudDownload}
 				initVal={data.sprFlatFileFiles}
+			/>
+		</div>
+	</div>
+	<div class="w-full flex flex-col items-center p-2">
+		<div class="card w-full">
+			<div class="p-4">
+				<WorkerStatus
+					status={subVal(client.spr.flatFileFr.worker.statusSub, {
+						init: data.sprFlatFileFrStatus
+					})}
+				/>
+			</div>
+			<Files
+				embedded
+				filesRouter={client.spr.flatFileFr.files}
+				title="Novexco French Flat File"
+				applyMutation={client.spr.flatFileFr.worker.run}
+				acceptFileType=".CSV"
+				cloudSyncMutation={client.spr.flatFileFr.files.cloudDownload}
+				initVal={data.sprFlatFileFrFiles}
 			/>
 		</div>
 	</div>

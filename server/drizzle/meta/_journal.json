@@ -967,6 +967,13 @@
       "when": 1790274476935,
       "tag": "0137_etilize_novexco_skus",
       "breakpoints": true
+    },
+    {
+      "idx": 138,
+      "version": "7",
+      "when": 1790277114446,
+      "tag": "0138_novexco_price_file",
+      "breakpoints": true
     }
   ]
 }

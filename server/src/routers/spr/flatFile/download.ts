@@ -7,17 +7,21 @@ import {
 	type EtilizeCredentials
 } from '../etilizeLftp';
 
-const SPR_FLAT_FILE_REMOTE_PATH = '/Extras/Flat_File_Export/EN_CA/EN_CA_SPRC.csv';
+export type FlatFileLocale = 'EN_CA' | 'FR_CA';
+
+const flatFileRemotePath = (locale: FlatFileLocale) =>
+	`/Extras/Flat_File_Export/${locale}/${locale}_SPRC.csv`;
 
 export async function downloadSprFlatFile(
 	credentials: EtilizeCredentials = getEtilizeCredentials(),
-	executable = 'lftp'
+	executable = 'lftp',
+	locale: FlatFileLocale = 'EN_CA'
 ): Promise<string> {
 	const tempDirectory = mkdtempSync(join(tmpdir(), 'oem3-spr-flat-file-'));
-	const localPath = join(tempDirectory, 'EN_CA_SPRC.csv');
+	const localPath = join(tempDirectory, `${locale}_SPRC.csv`);
 
 	try {
-		await downloadEtilizeFile(credentials, SPR_FLAT_FILE_REMOTE_PATH, localPath, executable);
+		await downloadEtilizeFile(credentials, flatFileRemotePath(locale), localPath, executable);
 		const contents = await Bun.file(localPath).arrayBuffer();
 		return `data:text/csv;base64,${Buffer.from(contents).toString('base64')}`;
 	} finally {

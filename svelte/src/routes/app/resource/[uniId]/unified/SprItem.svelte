@@ -18,13 +18,13 @@
 	primaryConnection={{ name: 'Novexco Price File', cell: row.cells.sprPriceFileRow }}
 	otherConnections={[{ name: 'Novexco Flat File', cell: row.cells.sprFlatFileRow }]}
 	primaryIds={[
+		{ name: 'Novexco Code', cell: row.cells.novexco },
 		{ name: 'Legacy SKU', cell: row.cells.sprc },
 		{ name: 'UPC', cell: row.cells.upc }
 	]}
 	otherIds={[
 		{ name: 'Etilize ID', cell: row.cells.etilizeId },
 		{ name: 'CWS', cell: row.cells.cws },
-		{ name: 'Novexco', cell: row.cells.novexco },
 		{ name: 'GTIN', cell: row.cells.gtin }
 	]}
 	title={row.cells.title}

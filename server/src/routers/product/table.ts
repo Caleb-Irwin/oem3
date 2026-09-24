@@ -45,6 +45,7 @@ export const unifiedProduct = pgTable(
 		id: serial('id').primaryKey(),
 		gid: varchar('gid', { length: 256 }),
 		sprc: varchar('sprc', { length: 256 }),
+		novexco: varchar('novexco', { length: 64 }),
 
 		status: productStatusEnum('status'),
 
@@ -103,6 +104,7 @@ export const unifiedProduct = pgTable(
 	(product) => [
 		index('product_gid_idx').on(product.gid),
 		index('product_sprc_idx').on(product.sprc),
+		index('product_novexco_idx').on(product.novexco),
 		uniqueIndex('product_unifiedGuildRow_idx').on(product.unifiedGuildRow),
 		uniqueIndex('product_unifiedSprRow_idx').on(product.unifiedSprRow),
 		uniqueIndex('product_qbRow_idx').on(product.qbRow),
@@ -167,6 +169,7 @@ export const unifiedProductColumnEnum = pgEnum('unifiedProductColumn', [
 	// Identifiers
 	'gid',
 	'sprc',
+	'novexco',
 	'status',
 	// Source refs
 	'unifiedGuildRow',

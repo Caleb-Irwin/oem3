@@ -23,6 +23,7 @@
 	]}
 	primaryIds={[
 		{ name: 'Guild ID', cell: row.cells.gid },
+		{ name: 'Novexco Code', cell: row.cells.novexco },
 		{ name: 'Novexco legacy SKU', cell: row.cells.sprc },
 		{ name: 'UPC', cell: row.cells.upc }
 	]}

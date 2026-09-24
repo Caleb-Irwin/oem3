@@ -114,10 +114,10 @@ work({
 		});
 		await updateSearchIndex(sprPriceFile, (item) => {
 			return {
-				keyInfo: `${item.sprcSku} ${item.upc} ${item.etilizeId}`,
+				keyInfo: `${item.novexcoCode ?? ''} ${item.sprcSku ?? ''} ${item.upc ?? ''} ${item.etilizeId ?? ''}`,
 				otherInfo: `${item.description} ${getSubStrings(
 					item.sprcSku ?? ''
-				)} ${getSubStrings(item.upc ?? '')}`
+				)} ${getSubStrings(item.novexcoCode ?? '')} ${getSubStrings(item.upc ?? '')}`
 			};
 		});
 		await updateSearchIndex(sprFlatFile, (item) => {
@@ -140,15 +140,15 @@ work({
 		});
 		await updateSearchIndex(unifiedSpr, (item) => {
 			return {
-				keyInfo: `${item.sprc} ${item.etilizeId}`,
+				keyInfo: `${item.novexco ?? ''} ${item.sprc ?? ''} ${item.etilizeId ?? ''}`,
 				otherInfo: `${item.title} ${item.keywords} ${getSubStrings(
 					item.sprc ?? ''
-				)} ${getSubStrings(item.upc ?? '')}`
+				)} ${getSubStrings(item.novexco ?? '')} ${getSubStrings(item.upc ?? '')}`
 			};
 		});
 		await updateSearchIndex(unifiedProduct, (item) => {
 			return {
-				keyInfo: `${item.gid ?? ''} ${item.upc ?? ''} ${item.sprc ?? ''}`,
+				keyInfo: `${item.gid ?? ''} ${item.upc ?? ''} ${item.sprc ?? ''} ${item.novexco ?? ''}`,
 				otherInfo: `${item.title} ${item.description} ${getSubStrings(
 					item.gid ?? ''
 				)} ${getSubStrings(item.upc ?? '')} ${getSubStrings(item.sprc ?? '')} ${getSubStrings(item.etilizeId ?? '')}`
