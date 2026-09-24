@@ -1,4 +1,4 @@
-import { and, eq, not, or, sql } from 'drizzle-orm';
+import { and, eq, inArray, isNotNull, ne, not, or, sql } from 'drizzle-orm';
 import { db as DB, type Tx } from '../../db';
 import { createUnifier } from '../../unified/unifier';
 import { cellTransformer } from '../../unified/cellConfigurator';
@@ -44,7 +44,7 @@ export const productUnifier = createUnifier<
 >({
 	table: unifiedProduct,
 	confTable: unifiedProductCellConfig,
-	version: 23,
+	version: 24,
 	getRow,
 	transform: (
 		item,
@@ -211,6 +211,23 @@ export const productUnifier = createUnifier<
 					dependsOn: new Set(['status', 'deleted', 'category', 'weightGrams', 'localInventory'])
 				}
 			),
+			newListingHold: t(
+				'newListingHold',
+				(item) =>
+					item.deleted || item.status === 'DISABLED'
+						? null
+						: // No restocking, so a new listing would only sell through what is left
+							item.status === 'DISCONTINUED'
+							? 'discontinued'
+							: // Another Novexco code for the same item is preferred (see priceFile/duplicates)
+								spr?.duplicateOf
+								? 'duplicate'
+								: // Only Novexco's abbreviated short description: no description, rarely an image
+									!guild && spr && spr.sprFlatFileRow === null
+									? 'noEtilizeContent'
+									: null,
+				{ dependsOn: new Set(['status', 'deleted']) }
+			),
 			guildInventory: t('guildInventory', guild?.inventory ?? null),
 			localInventory: t('localInventory', qb?.quantityOnHand ?? null),
 			sprInventoryAvailability: t('sprInventoryAvailability', spr?.status ?? null),
@@ -279,89 +296,23 @@ export const productUnifier = createUnifier<
 			table: unifiedSpr,
 			refCol: 'unifiedSprRow',
 			findConnections: async (row, db) => {
-				const novexco = row.novexco;
-				const sprc = row.sprc ?? row.unifiedGuildRowContent?.spr ?? null;
-				const upc = row.unifiedGuildRowContent?.upc ?? null;
-				const cis = row.unifiedGuildRowContent?.cis ?? null;
-
-				if (!novexco && !sprc && !upc && !cis) return [];
-
-				if (novexco) {
-					const novexcoMatches = await db.query.unifiedSpr.findMany({
-						where: and(eq(unifiedSpr.novexco, novexco), not(unifiedSpr.deleted)),
-						columns: { id: true }
-					});
-
-					if (novexcoMatches.length > 0) {
-						return novexcoMatches.map((r) => r.id);
-					}
-				}
-
-				if (sprc) {
-					const sprcMatches = await db.query.unifiedSpr.findMany({
-						where: and(eq(unifiedSpr.sprc, sprc), not(unifiedSpr.deleted)),
-						columns: {
-							id: true,
-							sprc: true
-						}
-					});
-
-					if (sprcMatches.length > 0) {
-						return sprcMatches.map((r) => r.id);
-					}
-				}
-
-				if (upc) {
-					const upcMatches = await db.query.unifiedSpr.findMany({
-						where: and(eq(unifiedSpr.upc, upc), not(unifiedSpr.deleted)),
-						columns: {
-							id: true,
-							upc: true
-						}
-					});
-
-					if (upcMatches.length > 0) {
-						return upcMatches.map((r) => r.id);
-					}
-				}
-
-				const otherResults = new Set<number>();
-				if (cis) {
-					const cisMatches = await db.query.unifiedSpr.findMany({
-						where: and(eq(unifiedSpr.cws, cis), not(unifiedSpr.deleted)),
-						columns: {
-							id: true,
-							cws: true
-						}
-					});
-
-					if (cisMatches.length > 0) {
-						cisMatches.forEach((r) => otherResults.add(r.id));
-					}
-				}
-
-				if (upc) {
-					const shortUpc = upc.length >= 12 ? upc.slice(upc.length - 11, upc.length - 1) : null;
-
-					if (shortUpc) {
-						const shortUpcMatches = await db.query.unifiedSpr.findMany({
-							where: and(
-								not(unifiedSpr.deleted),
-								sql`SUBSTRING(${unifiedSpr.upc}, LENGTH(${unifiedSpr.upc}) - 10, 10) = ${shortUpc}`
-							),
-							columns: {
-								id: true,
-								upc: true
-							}
-						});
-
-						if (shortUpcMatches.length > 0) {
-							shortUpcMatches.forEach((r) => otherResults.add(r.id));
-						}
-					}
-				}
-
-				return Array.from(otherResults);
+				const matches = await novexcoMatches(row, db);
+				// Guild products follow Novexco re-codes, so they keep one listing with current data. The
+				// unifier only lets products with a Guild link change their Novexco link anyway.
+				if (row.unifiedGuildRow !== null) return await preferActiveTwins(matches, db);
+				// A product without Guild data never takes a Novexco item from one with it. Otherwise the
+				// Novexco-only product left behind by a re-code takes it back, and resolving that conflict
+				// strips the Guild product's Novexco link and Shopify listing.
+				if (matches.length === 0) return matches;
+				const heldByGuildProducts = await db.query.unifiedProduct.findMany({
+					where: and(
+						inArray(unifiedProduct.unifiedSprRow, matches),
+						isNotNull(unifiedProduct.unifiedGuildRow),
+						ne(unifiedProduct.id, row.id)
+					),
+					columns: { unifiedSprRow: true }
+				});
+				return matches.filter((id) => !heldByGuildProducts.some((p) => p.unifiedSprRow === id));
 			},
 			newRowTransform: (row, lastUpdated) => {
 				return {
@@ -468,78 +419,30 @@ export const productUnifier = createUnifier<
 				table: shopifyTable,
 				refCol: 'shopifyRow',
 				findConnections: async (row, db) => {
-					const gid = row.gid;
-					const sprc = row.sprc ?? row.unifiedGuildRowContent?.spr ?? null;
-					// Novexco codes share a number space with Guild IDs (other products' vSkus), so only
-					// match on it when it is the SKU this product pushes (see pushConvert)
-					const novexco = !gid && !sprc ? row.novexco : null;
-					const upc = row.unifiedGuildRowContent?.upc ?? row.unifiedSprRowContent?.upc ?? null;
+					const own = await ownShopifyMatches(row, db);
+					const spr = row.unifiedSprRowContent;
 
-					if (!gid && !sprc && !novexco && !upc) return [];
-
-					// First try to match vSku to gid, sprc, or novexco
-					if (gid || sprc || novexco) {
-						const skuMatches = await db.query.shopify.findMany({
-							where: and(
-								or(
-									gid ? eq(shopifyTable.vSku, gid) : undefined,
-									sprc ? eq(shopifyTable.vSku, sprc) : undefined,
-									novexco ? eq(shopifyTable.vSku, novexco) : undefined
-								),
-								not(shopifyTable.deleted)
-							),
-							columns: {
-								id: true,
-								vSku: true
-							}
-						});
-
-						if (skuMatches.length > 0) {
-							// Prefer exact GID match over SPRC match
-							if (gid) {
-								const exactGidMatch = skuMatches.find((r) => r.vSku === gid);
-								if (exactGidMatch) return [exactGidMatch.id];
-							}
-
-							return skuMatches.map((r) => r.id);
-						}
+					// An old Novexco code hands its listing to the active code that replaces it (see
+					// priceFile/duplicates), unless that code has a listing of its own. It often matches
+					// this same listing by UPC, which doesn't count.
+					if (own.length > 0 && isReplacedTwin(row)) {
+						const replacement = await getProductByNovexco(spr!.duplicateOf!, db);
+						if (
+							replacement?.unifiedSprRowContent?.status === 'Active' &&
+							(await ownShopifyMatches(replacement, db)).every((id) => own.includes(id))
+						)
+							return [];
 					}
+					if (own.length > 0 || spr?.status !== 'Active' || !spr.duplicateCodes) return own;
 
-					// If no SKU match, try to match vBarcode to UPC
-					if (upc) {
-						const barcodeMatches = await db.query.shopify.findMany({
-							where: and(eq(shopifyTable.vBarcode, upc), not(shopifyTable.deleted)),
-							columns: {
-								id: true,
-								vBarcode: true
-							}
-						});
-
-						if (barcodeMatches.length > 0) {
-							return barcodeMatches.map((r) => r.id);
-						}
+					// The active code takes over the listings of the old codes it replaces
+					const twinListings: number[] = [];
+					for (const code of spr.duplicateCodes.split(',')) {
+						const twin = await getProductByNovexco(code, db);
+						if (twin && isReplacedTwin(twin))
+							twinListings.push(...(await ownShopifyMatches(twin, db)));
 					}
-
-					// Finally, try to match handle to shortened UPC
-					if (upc) {
-						const shortUpc = upc.length >= 12 ? upc.slice(upc.length - 11, upc.length - 1) : null;
-
-						if (shortUpc) {
-							const handleMatches = await db.query.shopify.findMany({
-								where: and(eq(shopifyTable.handle, shortUpc), not(shopifyTable.deleted)),
-								columns: {
-									id: true,
-									handle: true
-								}
-							});
-
-							if (handleMatches.length > 0) {
-								return handleMatches.map((r) => r.id);
-							}
-						}
-					}
-
-					return [];
+					return twinListings;
 				},
 				isDeleted: (row) => {
 					return row.shopifyRowContent?.deleted ?? true;
@@ -600,6 +503,236 @@ export const productUnifier = createUnifier<
 		}
 	}
 });
+
+/** Novexco items matching the product's Novexco code, legacy SKU, UPC or CIS number */
+async function novexcoMatches(row: ProductRowType, db: typeof DB | Tx): Promise<number[]> {
+	const novexco = row.novexco;
+	const sprc = row.sprc ?? row.unifiedGuildRowContent?.spr ?? null;
+	const upc = row.unifiedGuildRowContent?.upc ?? null;
+	const cis = row.unifiedGuildRowContent?.cis ?? null;
+
+	if (!novexco && !sprc && !upc && !cis) return [];
+
+	if (novexco) {
+		const novexcoMatches = await db.query.unifiedSpr.findMany({
+			where: and(eq(unifiedSpr.novexco, novexco), not(unifiedSpr.deleted)),
+			columns: { id: true }
+		});
+
+		if (novexcoMatches.length > 0) {
+			return novexcoMatches.map((r) => r.id);
+		}
+	}
+
+	if (sprc) {
+		const sprcMatches = await db.query.unifiedSpr.findMany({
+			where: and(eq(unifiedSpr.sprc, sprc), not(unifiedSpr.deleted)),
+			columns: {
+				id: true,
+				sprc: true
+			}
+		});
+
+		if (sprcMatches.length > 0) {
+			return sprcMatches.map((r) => r.id);
+		}
+	}
+
+	if (upc) {
+		const upcMatches = await db.query.unifiedSpr.findMany({
+			where: and(eq(unifiedSpr.upc, upc), not(unifiedSpr.deleted)),
+			columns: {
+				id: true,
+				upc: true
+			}
+		});
+
+		if (upcMatches.length > 0) {
+			return upcMatches.map((r) => r.id);
+		}
+	}
+
+	const otherResults = new Set<number>();
+	if (cis) {
+		const cisMatches = await db.query.unifiedSpr.findMany({
+			where: and(eq(unifiedSpr.cws, cis), not(unifiedSpr.deleted)),
+			columns: {
+				id: true,
+				cws: true
+			}
+		});
+
+		if (cisMatches.length > 0) {
+			cisMatches.forEach((r) => otherResults.add(r.id));
+		}
+	}
+
+	if (upc) {
+		const shortUpc = upc.length >= 12 ? upc.slice(upc.length - 11, upc.length - 1) : null;
+
+		if (shortUpc) {
+			const shortUpcMatches = await db.query.unifiedSpr.findMany({
+				where: and(
+					not(unifiedSpr.deleted),
+					sql`SUBSTRING(${unifiedSpr.upc}, LENGTH(${unifiedSpr.upc}) - 10, 10) = ${shortUpc}`
+				),
+				columns: {
+					id: true,
+					upc: true
+				}
+			});
+
+			if (shortUpcMatches.length > 0) {
+				shortUpcMatches.forEach((r) => otherResults.add(r.id));
+			}
+		}
+	}
+
+	return Array.from(otherResults);
+}
+
+/** Swap Novexco items that were re-coded for the active code replacing them */
+async function preferActiveTwins(ids: number[], db: typeof DB | Tx): Promise<number[]> {
+	if (ids.length === 0) return ids;
+	const rows = await db.query.unifiedSpr.findMany({
+		where: inArray(unifiedSpr.id, ids),
+		columns: { id: true, status: true, duplicateOf: true }
+	});
+	const result = new Set<number>();
+	for (const id of ids) {
+		const row = rows.find((r) => r.id === id);
+		const twin =
+			row?.duplicateOf && row.status !== 'Active'
+				? await db.query.unifiedSpr.findFirst({
+						where: and(
+							eq(unifiedSpr.novexco, row.duplicateOf),
+							eq(unifiedSpr.status, 'Active'),
+							not(unifiedSpr.deleted)
+						),
+						columns: { id: true }
+					})
+				: undefined;
+		result.add(twin?.id ?? id);
+	}
+	return Array.from(result);
+}
+
+type ShopifyMatchRow = Pick<ProductRowType, 'gid' | 'sprc' | 'novexco' | 'unifiedGuildRow'> & {
+	unifiedGuildRowContent: Pick<
+		NonNullable<ProductRowType['unifiedGuildRowContent']>,
+		'spr' | 'upc'
+	> | null;
+	unifiedSprRowContent: Pick<
+		NonNullable<ProductRowType['unifiedSprRowContent']>,
+		'upc' | 'status' | 'duplicateOf' | 'duplicateCodes'
+	> | null;
+};
+
+/** Shopify listings matching the product's own SKU, UPC or UPC-based handle */
+async function ownShopifyMatches(row: ShopifyMatchRow, db: typeof DB | Tx): Promise<number[]> {
+	const gid = row.gid;
+	const sprc = row.sprc ?? row.unifiedGuildRowContent?.spr ?? null;
+	// Novexco codes share a number space with Guild IDs (other products' vSkus), so only
+	// match on it when it is the SKU this product pushes (see pushConvert)
+	const novexco = !gid && !sprc ? row.novexco : null;
+	const upc = row.unifiedGuildRowContent?.upc ?? row.unifiedSprRowContent?.upc ?? null;
+
+	if (!gid && !sprc && !novexco && !upc) return [];
+
+	// First try to match vSku to gid, sprc, or novexco
+	if (gid || sprc || novexco) {
+		const skuMatches = await db.query.shopify.findMany({
+			where: and(
+				or(
+					gid ? eq(shopifyTable.vSku, gid) : undefined,
+					sprc ? eq(shopifyTable.vSku, sprc) : undefined,
+					novexco ? eq(shopifyTable.vSku, novexco) : undefined
+				),
+				not(shopifyTable.deleted)
+			),
+			columns: {
+				id: true,
+				vSku: true
+			}
+		});
+
+		if (skuMatches.length > 0) {
+			// Prefer exact GID match over SPRC match
+			if (gid) {
+				const exactGidMatch = skuMatches.find((r) => r.vSku === gid);
+				if (exactGidMatch) return [exactGidMatch.id];
+			}
+
+			return skuMatches.map((r) => r.id);
+		}
+	}
+
+	// If no SKU match, try to match vBarcode to UPC
+	if (upc) {
+		const barcodeMatches = await db.query.shopify.findMany({
+			where: and(eq(shopifyTable.vBarcode, upc), not(shopifyTable.deleted)),
+			columns: {
+				id: true,
+				vBarcode: true
+			}
+		});
+
+		if (barcodeMatches.length > 0) {
+			return barcodeMatches.map((r) => r.id);
+		}
+	}
+
+	// Finally, try to match handle to shortened UPC
+	if (upc) {
+		const shortUpc = upc.length >= 12 ? upc.slice(upc.length - 11, upc.length - 1) : null;
+
+		if (shortUpc) {
+			const handleMatches = await db.query.shopify.findMany({
+				where: and(eq(shopifyTable.handle, shortUpc), not(shopifyTable.deleted)),
+				columns: {
+					id: true,
+					handle: true
+				}
+			});
+
+			if (handleMatches.length > 0) {
+				return handleMatches.map((r) => r.id);
+			}
+		}
+	}
+
+	return [];
+}
+
+/** A Novexco-only product whose code is no longer active and has a preferred twin */
+function isReplacedTwin(row: ShopifyMatchRow) {
+	const spr = row.unifiedSprRowContent;
+	// Products with Guild data keep their listing: Guild still supplies them
+	return row.unifiedGuildRow === null && !!spr?.duplicateOf && spr.status !== 'Active';
+}
+
+async function getProductByNovexco(
+	novexco: string,
+	db: typeof DB | Tx
+): Promise<ShopifyMatchRow | null> {
+	const spr = await db.query.unifiedSpr.findFirst({
+		where: and(eq(unifiedSpr.novexco, novexco), not(unifiedSpr.deleted)),
+		columns: { id: true }
+	});
+	if (!spr) return null;
+	return (
+		(await db.query.unifiedProduct.findFirst({
+			where: eq(unifiedProduct.unifiedSprRow, spr.id),
+			columns: { gid: true, sprc: true, novexco: true, unifiedGuildRow: true },
+			with: {
+				unifiedGuildRowContent: { columns: { spr: true, upc: true } },
+				unifiedSprRowContent: {
+					columns: { upc: true, status: true, duplicateOf: true, duplicateCodes: true }
+				}
+			}
+		})) ?? null
+	);
+}
 
 function mapCategory(
 	guildCategory: string | null | undefined,

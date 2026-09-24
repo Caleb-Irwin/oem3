@@ -175,12 +175,17 @@ export function ConnectionManager<
 			} else {
 				return await db.transaction(async (tx) => {
 					await _updateRow({ id: existingId, db: tx, onUpdateCallback, nestedMode: true });
-					const deleted = await tx
-						.select({ deleted: table.deleted })
+					const existing = await tx
+						.select({
+							deleted: table.deleted,
+							connection: table[connectionRowKey as keyof TableType] as any
+						})
 						.from(table as any)
 						.where(eq(table.id, existingId))
 						.execute();
-					if (deleted[0].deleted || conType === 'secondary') {
+					// Re-evaluating the other row can make it let go of the connection by itself
+					if (existing[0].connection !== newVal) return true;
+					if (existing[0].deleted || conType === 'secondary') {
 						await _updateRow({
 							id: existingId,
 							db: tx,

@@ -48,6 +48,10 @@ export const sprPriceFile = pgTable(
 		netPriceCents: integer('netPriceCents'),
 		listPriceCents: integer('listPriceCents'),
 		inventory: integer('inventory'),
+		// Novexco code of the preferred twin when this row is a duplicate of it (see findDuplicates)
+		duplicateOf: varchar('duplicateOf', { length: 64 }),
+		// Comma-separated codes of this row's duplicates, so the preferred twin also changes with them
+		duplicateCodes: text('duplicateCodes'),
 		deleted: boolean('deleted').default(false).notNull(),
 		lastUpdated: bigint('lastUpdated', { mode: 'number' }).notNull()
 	},

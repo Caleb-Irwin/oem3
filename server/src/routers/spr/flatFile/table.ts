@@ -57,7 +57,7 @@ export const sprFlatFile = pgTable(
 	}
 );
 
-export const sprFlatFileRelations = relations(sprFlatFile, ({ one }) => ({
+export const sprFlatFileRelations = relations(sprFlatFile, ({ one, many }) => ({
 	uniref: one(uniref, {
 		fields: [sprFlatFile.id],
 		references: [uniref.sprFlatFile]
@@ -73,5 +73,7 @@ export const sprFlatFileRelations = relations(sprFlatFile, ({ one }) => ({
 	unifiedSprData: one(unifiedSpr, {
 		fields: [sprFlatFile.id],
 		references: [unifiedSpr.sprFlatFileRow]
-	})
+	}),
+	// Every Novexco item using this content (unifiedSprData is just the first of them)
+	unifiedSprItems: many(unifiedSpr, { relationName: 'unifiedSprFlatFileRow' })
 }));

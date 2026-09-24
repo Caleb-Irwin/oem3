@@ -39,6 +39,15 @@ export type ProductStatus = (typeof productStatusEnum.enumValues)[number];
 export const productUmEnum = pgEnum('productUm', ['ea', 'pk', 'bx']);
 export type ProductUm = (typeof productUmEnum.enumValues)[number];
 
+// Why a product without a Shopify listing should not get one (null: it should). Existing listings
+// are always kept up to date.
+export const productListingHoldEnum = pgEnum('productListingHold', [
+	'discontinued',
+	'duplicate',
+	'noEtilizeContent'
+]);
+export type ProductListingHold = (typeof productListingHoldEnum.enumValues)[number];
+
 export const unifiedProduct = pgTable(
 	'unifiedProduct',
 	{
@@ -91,6 +100,7 @@ export const unifiedProduct = pgTable(
 		otherImagesJsonArr: text('otherImagesJsonArr'),
 
 		availableForSaleOnline: boolean('availableForSaleOnline').default(true).notNull(),
+		newListingHold: productListingHoldEnum('newListingHold'),
 		guildInventory: integer('guildInventory'),
 		localInventory: integer('localInventory'),
 		sprInventoryAvailability: sprPriceStatusEnum('sprInventoryAvailability'),
@@ -204,6 +214,7 @@ export const unifiedProductColumnEnum = pgEnum('unifiedProductColumn', [
 	'otherImagesJsonArr',
 	// Inventory and availability
 	'availableForSaleOnline',
+	'newListingHold',
 	'guildInventory',
 	'localInventory',
 	'sprInventoryAvailability',

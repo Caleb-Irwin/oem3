@@ -394,6 +394,8 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				'Unit of Measure': sprPriceFileData.um,
 				'Units per Pack': sprPriceFileData.unitsPerPack?.toString() ?? null,
 				'Novexco Inventory': sprPriceFileData.inventory?.toString() ?? null,
+				'Duplicate Of': sprPriceFileData.duplicateOf,
+				'Duplicate Codes': sprPriceFileData.duplicateCodes,
 				UPC: sprPriceFileData.upc,
 				Category: sprPriceFileData.categoryDescription,
 				Supplier: sprPriceFileData.supplierName,
@@ -439,7 +441,16 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 					link: sprFlatFileData.unifiedSprData?.unifiedProductData
 						? `/app/resource/${sprFlatFileData.unifiedSprData.unifiedProductData.uniref.uniId}/unified`
 						: '/app/product'
-				}
+				},
+				// Other pack sizes of the same product share this Etilize content
+				...sprFlatFileData.unifiedSprItems
+					.filter((item) => item.id !== sprFlatFileData.unifiedSprData?.id)
+					.map((item): Connection => ({
+						tableName: 'unifiedSpr',
+						name: `Unified Novexco ${item.novexco ?? '#' + item.id}`,
+						connected: true,
+						link: `/app/resource/redirect/unifiedSpr-${item.id}`
+					}))
 			],
 			unifiedProductData: sprFlatFileData.unifiedSprData?.unifiedProductData ?? null,
 			keyProductIds: [sprFlatFileData.sprcSku, sprFlatFileData.etilizeId].filter(

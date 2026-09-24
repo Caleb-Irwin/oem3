@@ -1,6 +1,7 @@
 import { db } from '../../../db';
 import { work } from '../../../utils/workerBase';
 import { diffUpload } from './diffUpload';
+import { newListingHoldReason, type ListingHoldReason } from './listingEligibility';
 import type { ImageMap } from './types';
 import { executeBulkMutation } from '../bulk';
 import { shopifyMetadata } from './shopifyMetadata.table';
@@ -120,7 +121,15 @@ function prepareUploads(
 	products: Awaited<ReturnType<typeof fetchData>>['products'],
 	imageMap: ImageMap
 ) {
-	const { toUploadUpdate, toUploadNew } = diffUpload(products, { imageMap });
+	const { toUploadUpdate, toUploadNew: allNew } = diffUpload(products, { imageMap });
+
+	const heldBack: Partial<Record<ListingHoldReason, number>> = {};
+	const toUploadNew = allNew.filter((u) => {
+		const reason = newListingHoldReason(u.product);
+		if (reason) heldBack[reason] = (heldBack[reason] ?? 0) + 1;
+		return reason === null;
+	});
+	console.log('Not creating new Shopify listings for:', heldBack);
 
 	return [
 		...toUploadUpdate.map((u) => ({

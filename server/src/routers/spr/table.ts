@@ -36,14 +36,17 @@ export const unifiedSpr = pgTable(
 			.notNull()
 			.unique()
 			.references(() => sprPriceFile.id, { onDelete: 'cascade' }),
-		sprFlatFileRow: integer('sprFlatFileRow')
-			.unique()
-			.references(() => sprFlatFile.id, { onDelete: 'set null' }),
+		sprFlatFileRow: integer('sprFlatFileRow').references(() => sprFlatFile.id, {
+			onDelete: 'set null'
+		}),
 
 		etilizeId: varchar('etilizeId', { length: 32 }),
 		cws: varchar('cws', { length: 64 }),
 		gtin: varchar('gtin', { length: 64 }),
 		upc: varchar('upc', { length: 32 }),
+		// Novexco re-codes of the same item (see priceFile/duplicates)
+		duplicateOf: varchar('duplicateOf', { length: 64 }),
+		duplicateCodes: text('duplicateCodes'),
 
 		shortTitle: text('shortTitle'),
 		title: text('title'),
@@ -76,7 +79,8 @@ export const unifiedSpr = pgTable(
 	},
 	(unified) => [
 		uniqueIndex('unifiedSpr_spr_price_row_idx').on(unified.sprPriceFileRow),
-		uniqueIndex('unifiedSpr_spr_flat_row_idx').on(unified.sprFlatFileRow),
+		// Not unique: Novexco codes for the same product in different pack sizes share Etilize content
+		index('unifiedSpr_spr_flat_row_idx').on(unified.sprFlatFileRow),
 		uniqueIndex('unifiedSpr_novexco_idx').on(unified.novexco),
 		index('unifiedSpr_spr_sprc_idx').on(unified.sprc),
 		index('unifiedSpr_spr_etilizeId_idx').on(unified.etilizeId),
@@ -96,7 +100,8 @@ export const unifiedSprRelations = relations(unifiedSpr, ({ one }) => ({
 	}),
 	sprFlatFileRowContent: one(sprFlatFile, {
 		fields: [unifiedSpr.sprFlatFileRow],
-		references: [sprFlatFile.id]
+		references: [sprFlatFile.id],
+		relationName: 'unifiedSprFlatFileRow'
 	}),
 	unifiedProductData: one(unifiedProduct, {
 		fields: [unifiedSpr.id],
@@ -120,6 +125,8 @@ export const unifiedSprColumnEnum = pgEnum('unifiedSprColumn', [
 	'novexco',
 	'gtin',
 	'upc',
+	'duplicateOf',
+	'duplicateCodes',
 	// Titles and descriptions
 	'shortTitle',
 	'title',

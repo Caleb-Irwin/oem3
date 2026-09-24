@@ -55,7 +55,12 @@ export const resourceWith = {
 	guildFlyerData: unifiedGuildDataWith,
 	shopifyData: unifiedProductDataWith,
 	sprPriceFileData: unifiedSprDataWith,
-	sprFlatFileData: unifiedSprDataWith,
+	sprFlatFileData: {
+		with: {
+			...unifiedSprDataWith.with,
+			unifiedSprItems: { columns: { id: true as true, novexco: true as true } }
+		}
+	},
 	sprFlatFileFrData: { with: { sprFlatItem: unifiedSprDataWith } },
 	unifiedGuildData: unifiedProductDataWith,
 	unifiedSprData: unifiedProductDataWith,
@@ -317,7 +322,12 @@ const resourceWithForType = {
 	guildFlyerData: unifiedGuildDataWithForType,
 	shopifyData: unifiedProductDataWithForType,
 	sprPriceFileData: unifiedSprDataWithForType,
-	sprFlatFileData: unifiedSprDataWithForType,
+	sprFlatFileData: {
+		with: {
+			...unifiedSprDataWithForType.with,
+			unifiedSprItems: { columns: { id: true as true, novexco: true as true } }
+		}
+	},
 	sprFlatFileFrData: { with: { sprFlatItem: unifiedSprDataWithForType } },
 	unifiedGuildData: unifiedProductDataWithForType,
 	unifiedSprData: unifiedProductDataWithForType

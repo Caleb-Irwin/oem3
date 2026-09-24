@@ -39,6 +39,14 @@
 	</div>
 
 	<div class="p-1 flex">
+		<Text namedCell={{ name: 'Duplicate Of', cell: row.cells.duplicateOf }} />
+	</div>
+
+	<div class="p-1 flex">
+		<Text namedCell={{ name: 'Duplicate Codes', cell: row.cells.duplicateCodes }} />
+	</div>
+
+	<div class="p-1 flex">
 		<Text namedCell={{ name: 'Dealer Net Price', cell: row.cells.dealerNetPriceCents }} price />
 	</div>
 

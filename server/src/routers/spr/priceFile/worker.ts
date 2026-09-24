@@ -4,6 +4,7 @@ import { sprPriceFile } from './table';
 import { sprSkus } from '../enhancedContent/table';
 import { genDiffer, removeNaN } from '../../../utils/changeset.helpers';
 import { inArray } from 'drizzle-orm';
+import { findDuplicates } from './duplicates';
 
 work({
 	process: async ({ db, message, progress, utils: { getFileDataUrl, createChangeset } }) => {
@@ -32,6 +33,11 @@ work({
 			if (!map.has(sku)) map.set(sku, etilizeId);
 		});
 
+		const items = priceFileObjects.map((item) =>
+			transformPriceFile(item, etilizeByNovexco, etilizeBySprc)
+		);
+		findDuplicates(items);
+
 		await db.transaction(async (db) => {
 			const prevItems = new Map(
 				(await db.query.sprPriceFile.findMany({ with: { uniref: true } })).map((item) => [
@@ -43,9 +49,9 @@ work({
 
 			await changeset.process({
 				db,
-				rawItems: priceFileObjects,
+				rawItems: items,
 				prevItems,
-				transform: (item) => transformPriceFile(item, etilizeByNovexco, etilizeBySprc),
+				transform: (item) => item,
 				extractId: (item) => item.novexcoCode!,
 				diff: genDiffer(
 					['inventory'],
@@ -71,7 +77,9 @@ work({
 						'directCostCents',
 						'netPriceCents',
 						'listPriceCents',
-						'inventory'
+						'inventory',
+						'duplicateOf',
+						'duplicateCodes'
 					]
 				),
 				progress,
@@ -149,6 +157,8 @@ function transformPriceFile(
 		inventory: inventory.every((v) => v === null)
 			? null
 			: inventory.reduce<number>((sum, v) => sum + (v ?? 0), 0),
+		duplicateOf: null,
+		duplicateCodes: null,
 		lastUpdated: 0
 	};
 }

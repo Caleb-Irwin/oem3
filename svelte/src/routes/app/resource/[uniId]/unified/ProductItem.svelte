@@ -102,7 +102,7 @@
 </ItemLayout>
 
 {#snippet status()}
-	<div class="pb-2 w-full grid lg:grid-cols-3 lg:gap-x-2 lg:gap-y-0 gap-y-2">
+	<div class="pb-2 w-full grid lg:grid-cols-4 lg:gap-x-2 lg:gap-y-0 gap-y-2">
 		<Text
 			namedCell={{ name: 'Status', cell: row.cells.status }}
 			class={row.cells.status.value === 'DISABLED'
@@ -115,6 +115,10 @@
 		<Text
 			namedCell={{ name: 'Available for Sale Online', cell: row.cells.availableForSaleOnline }}
 			class={row.cells.availableForSaleOnline.value === false ? 'variant-ghost-error' : ''}
+		/>
+		<Text
+			namedCell={{ name: 'New Listing Hold', cell: row.cells.newListingHold }}
+			class={row.cells.newListingHold.value ? 'variant-ghost-warning' : ''}
 		/>
 		<Text
 			namedCell={{ name: 'Deleted', cell: row.cells.deleted }}

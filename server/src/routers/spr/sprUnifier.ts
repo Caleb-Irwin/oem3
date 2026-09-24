@@ -38,7 +38,7 @@ export const sprUnifier = createUnifier<
 >({
 	table: unifiedSpr,
 	confTable: unifiedSprCellConfig,
-	version: 31,
+	version: 33,
 	getRow,
 	transform: (item, t) => {
 		const price = item.sprPriceFileRowContent;
@@ -81,6 +81,8 @@ export const sprUnifier = createUnifier<
 				// 	ignore: upcPrimary === null || upcSecondary === null
 				// }
 			}),
+			duplicateOf: t('duplicateOf', price.duplicateOf ?? null),
+			duplicateCodes: t('duplicateCodes', price.duplicateCodes ?? null),
 
 			shortTitle: t('shortTitle', price.description ?? null),
 			title: t(
