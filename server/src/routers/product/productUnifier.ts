@@ -118,13 +118,13 @@ export const productUnifier = createUnifier<
 			status: t(
 				'status',
 				(item) =>
-					item.deleted || isGenericHpInkToner(item)
+					item.deleted
 						? 'DISABLED'
 						: isDiscontinued
 							? 'DISCONTINUED'
 							: 'ACTIVE',
 				{
-					dependsOn: new Set(['deleted', 'title', 'description', 'category', 'vendor'])
+					dependsOn: new Set(['deleted'])
 				}
 			),
 
@@ -646,65 +646,4 @@ const umMap: { [key: string]: 'ea' | 'pk' | 'bx' } = {
 function roundUpToNearestTenCents(value: number | null): number | null {
 	if (value === null) return null;
 	return Math.ceil(value / 10) * 10 - 1;
-}
-
-const hpRegex = /\b(HP|H\.P\.|HEWLETT[\s\-]*PACKARD)\b/i;
-function isGenericHpInkToner(item: {
-	category?: string | null | undefined;
-	title?: string | null | undefined;
-	description?: string | null | undefined;
-	vendor?: string | null | undefined;
-}): boolean {
-	const isHpInkToner =
-		item.category === 'technologyInk' &&
-		((item.title && hpRegex.test(item.title)) ||
-			(item.description && hpRegex.test(item.description)));
-
-	if (
-		!isHpInkToner ||
-		(item.title && item.title.toLowerCase().includes('original')) ||
-		(item.vendor && item.vendor.toUpperCase().includes('HP INC'))
-	)
-		return false;
-	if (
-		item.vendor &&
-		(item.vendor.toUpperCase().includes('CLOVER') ||
-			item.vendor.toUpperCase().includes('GENUINE SUPPLY SOURCE'))
-	)
-		return true;
-
-	if (item.title) {
-		const title = item.title.toLowerCase();
-		const keywords = [
-			'fuzion',
-			'ecotone',
-			'remanufactured',
-			'generic',
-			'compatible',
-			'refill',
-			'premium tone',
-			'clover'
-		];
-		if (keywords.some((keyword) => title.includes(keyword))) {
-			return true;
-		}
-	}
-	if (item.description) {
-		const description = item.description.toLowerCase();
-		const keywords = [
-			'fuzion',
-			'ecotone',
-			'remanufactured',
-			'generic',
-			'compatible',
-			'refill',
-			'premium tone',
-			'clover'
-		];
-		if (keywords.some((keyword) => description.includes(keyword))) {
-			return true;
-		}
-	}
-
-	return false;
 }
