@@ -8,7 +8,6 @@ import { shopifyMedia } from './media.table';
 import { eq } from 'drizzle-orm';
 import type { ProductPushMutation } from '../../../../types/admin.generated';
 import { appRouter } from '../../../appRouter';
-import { TRPCError } from '@trpc/server';
 
 work({
 	process: async ({ progress }) => {

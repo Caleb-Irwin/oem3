@@ -103,6 +103,7 @@
 						{/if}
 					</h2>
 					{#if product.description}
+						<!-- eslint-disable-next-line svelte/no-at-html-tags -- sanitized -->
 						<p class="pb-2">{@html DOMPurify.sanitize(product.description)}</p>
 					{/if}
 					<div class="grid grid-cols-2">

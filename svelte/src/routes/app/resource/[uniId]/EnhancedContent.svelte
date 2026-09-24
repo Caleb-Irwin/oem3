@@ -56,6 +56,7 @@
 					{/if}
 				</h2>
 			{:else}
+				<!-- eslint-disable-next-line svelte/no-at-html-tags -- sanitized -->
 				<p class="px-2">{@html $res.guild?.sanitizedDescription}</p>
 			{/if}
 

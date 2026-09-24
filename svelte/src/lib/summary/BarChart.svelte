@@ -99,7 +99,7 @@
 	}
 
 	// Function to get text color class for a specific key
-	function getTextColor(key: string): string {
+	function getTextColor(_key: string): string {
 		return variant === 'error'
 			? 'text-error-800 dark:text-error-200'
 			: variant === 'warning'
@@ -108,7 +108,7 @@
 	}
 
 	// Function to get badge class for a specific key
-	function getBadgeClass(key: string): string {
+	function getBadgeClass(_key: string): string {
 		return variant === 'error'
 			? 'badge variant-soft-error text-xs'
 			: variant === 'warning'

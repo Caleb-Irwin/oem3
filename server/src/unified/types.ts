@@ -32,11 +32,7 @@ export const OtherSourceTableNamesArray = [
 	'shopify'
 ] as const;
 export type OtherSourceTables =
-	| typeof guildInventory
-	| typeof guildFlyer
-	| typeof sprFlatFile
-	| typeof qb
-	| typeof shopify;
+	typeof guildInventory | typeof guildFlyer | typeof sprFlatFile | typeof qb | typeof shopify;
 
 export type AllSourceTables = PrimarySourceTables | SecondarySourceTables | OtherSourceTables;
 export const AllSourceTableNamesArray = [
@@ -47,9 +43,7 @@ export const AllSourceTableNamesArray = [
 export type AllSourceTableNames = (typeof AllSourceTableNamesArray)[number];
 
 export type CellConfigTable =
-	| typeof unifiedGuildCellConfig
-	| typeof unifiedSprCellConfig
-	| typeof unifiedProductCellConfig;
+	typeof unifiedGuildCellConfig | typeof unifiedSprCellConfig | typeof unifiedProductCellConfig;
 
 // Generic types that work with any unified table's config table
 export type CellConfigRowInsert = CellConfigTable['$inferInsert'];

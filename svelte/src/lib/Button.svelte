@@ -22,7 +22,7 @@
 		reloadPage = false,
 		action,
 		queryMode = false,
-		res = (output: T) => undefined,
+		res = () => undefined,
 		successMessage = null,
 		confirm = false,
 		input = {},

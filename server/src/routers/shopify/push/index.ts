@@ -7,9 +7,7 @@ import { archiveUnmatchedProducts } from './archiveUnmatched';
 const { worker } = managedWorker(
 	new URL('worker.ts', import.meta.url).href,
 	'shopifyPush',
-	[
-		/*productHook TODO*/
-	],
+	[/*productHook TODO*/],
 	undefined,
 	1
 );

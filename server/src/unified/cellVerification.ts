@@ -40,8 +40,7 @@ export function VerifyCellValue<
 			notNull = colTypes[col].notNull;
 
 		let value: TableType['$inferSelect'][K] | null = rawValue as
-			| TableType['$inferSelect'][K]
-			| null;
+			TableType['$inferSelect'][K] | null;
 		if (typeof rawValue === 'string') {
 			if (rawValue.toLowerCase() === 'null') {
 				value = null;

@@ -11,12 +11,7 @@ export function getErrorTitle(confType: CellConfigType) {
 }
 
 export type ErrorDisplay =
-	| 'none'
-	| 'valueOnly'
-	| 'multipleOptions'
-	| 'approval'
-	| 'customApproval'
-	| 'contradictorySources';
+	'none' | 'valueOnly' | 'multipleOptions' | 'approval' | 'customApproval' | 'contradictorySources';
 
 export type ErrorActions = ErrorAction;
 

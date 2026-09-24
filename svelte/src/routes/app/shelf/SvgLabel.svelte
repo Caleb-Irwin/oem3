@@ -25,7 +25,7 @@
 		const phrase = label?.name
 			.split(' ')
 			.slice(0, 50)
-			.reduce<string[]>((list, elem, i) => {
+			.reduce<string[]>((list, elem) => {
 				list.push(elem);
 				list.push(' ');
 				return list;

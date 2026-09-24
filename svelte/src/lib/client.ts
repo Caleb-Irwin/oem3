@@ -97,7 +97,7 @@ function stopSubscription(subscription: unknown) {
 }
 
 export const subVal: SubVal = ({ subscribe: sub }, args) => {
-	return readable(args.init ?? undefined, (set) => {
+	return readable(args.init, (set) => {
 		if (!browser) return;
 		const input = { ...args };
 		delete input.init;
@@ -113,7 +113,7 @@ export const subVal: SubVal = ({ subscribe: sub }, args) => {
 };
 
 export const subValReturnError: SubVal = ({ subscribe: sub }, args) => {
-	return readable(args.init ?? undefined, (set) => {
+	return readable(args.init, (set) => {
 		if (!browser) return;
 		const input = { ...args };
 		delete input.init;

@@ -148,10 +148,10 @@ work({
 		});
 		await updateSearchIndex(unifiedProduct, (item) => {
 			return {
-				keyInfo: `${item.gid ?? ''} ${item.upc ?? ''} ${item.spr ?? ''}`,
+				keyInfo: `${item.gid ?? ''} ${item.upc ?? ''} ${item.sprc ?? ''}`,
 				otherInfo: `${item.title} ${item.description} ${getSubStrings(
 					item.gid ?? ''
-				)} ${getSubStrings(item.upc ?? '')} ${getSubStrings(item.spr ?? '')} ${getSubStrings(item.etilizeId ?? '')}`
+				)} ${getSubStrings(item.upc ?? '')} ${getSubStrings(item.sprc ?? '')} ${getSubStrings(item.etilizeId ?? '')}`
 			};
 		});
 	}

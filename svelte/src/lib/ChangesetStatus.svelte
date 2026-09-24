@@ -49,14 +49,6 @@
 		}
 	}
 
-	let chartValues = $derived([
-		summary['nop'] ?? 0,
-		summary['inventoryUpdate'] ?? 0,
-		summary['update'] ?? 0,
-		summary['create'] ?? 0,
-		summary['delete'] ?? 0
-	]);
-
 	const changesetColors = {
 		nop: 'bg-secondary-100',
 		inventoryUpdate: 'bg-secondary-300',

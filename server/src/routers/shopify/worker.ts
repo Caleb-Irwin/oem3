@@ -20,10 +20,7 @@ work({
 			.filter((row) => row !== '' && row[0] === '{')
 			.forEach((row) => {
 				const obj = JSON.parse(row) as
-					| PartialProduct
-					| VariantWithParent
-					| DeletionEvent
-					| MediaWithParent;
+					PartialProduct | VariantWithParent | DeletionEvent | MediaWithParent;
 
 				if ((obj as VariantWithParent)?.__parentId) {
 					if ((obj as VariantWithParent)?.id.startsWith('gid://shopify/ProductVariant/')) {

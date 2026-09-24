@@ -5,10 +5,9 @@ export async function genKit() {
 	process.env['ORIGIN'] = process.env['RAILWAY_PUBLIC_DOMAIN']
 		? `https://${process.env['RAILWAY_PUBLIC_DOMAIN']}`
 		: `http://localhost:${PORT}`;
-	return (
-		// @ts-expect-error Will not show TS error after first build
-		(await import('../../svelte/build/handler')).handler
-	);
+	// Non-literal specifier so TS doesn't resolve (and type-check) the build output
+	const handlerPath = '../../svelte/build/handler';
+	return (await import(handlerPath)).handler;
 }
 
 async function devKit() {

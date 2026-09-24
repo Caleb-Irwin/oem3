@@ -24,6 +24,7 @@
 
 {#snippet valueRenderer(value: string | number | boolean | null)}
 	<p class="desc p-2 {value === null ? 'text-surface-400 dark:text-surface-200' : ''}">
+		<!-- eslint-disable-next-line svelte/no-at-html-tags -- sanitized -->
 		{@html value ? DOMPurify.sanitize(value as string) : 'Null'}
 	</p>
 {/snippet}

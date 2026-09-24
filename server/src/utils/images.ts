@@ -13,7 +13,7 @@ async function uploadImage({
 	productId
 }: {
 	filePath: string;
-	content: string | ArrayBuffer | Blob | Buffer;
+	content: ArrayBuffer | Buffer;
 	isThumb?: boolean;
 	sourceURL?: string;
 	sourceHash?: string;

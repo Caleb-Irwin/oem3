@@ -13,7 +13,6 @@
 	import Info from 'lucide-svelte/icons/info';
 	import X from 'lucide-svelte/icons/x';
 	import ArrowRight from 'lucide-svelte/icons/arrow-right';
-	import ArrowDown from 'lucide-svelte/icons/arrow-down';
 	import type { Snippet } from 'svelte';
 	import Button from '$lib/Button.svelte';
 	import { client } from '$lib/client';

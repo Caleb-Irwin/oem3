@@ -40,12 +40,13 @@
 				editSearchQuery({ query: searchPages[0].query, queryType: searchPages[0].queryType });
 				return;
 			}
-			//@ts-expect-error
-			$modalStore[0].response({ query: res.query, queryType: res.queryType });
+			$modalStore[0].response?.({
+				query: searchPages[0].query,
+				queryType: searchPages[0].queryType
+			});
 			modalStore.close();
 		};
 
-	let lastPage = searchPages[searchPages.length - 1].page;
 	async function addPage(pageToAdd: number) {
 		if (more && !searchPages[pageToAdd]) {
 			const newPage = await client.search.search.query({
@@ -53,7 +54,6 @@
 				type: searchPages[0].queryType,
 				page: pageToAdd
 			});
-			lastPage++;
 			searchPages[pageToAdd] = newPage;
 			searchPages = searchPages;
 			count = newPage.count;
@@ -95,11 +95,7 @@
 	{/each}
 	{#if more}
 		<div class="w-full h-4 p-4">
-			<ProgressBar
-				height="h-4"
-				meter="bg-primary-500"
-				track="bg-primary-100 dark:bg-primary-900"
-			/>
+			<ProgressBar height="h-4" meter="bg-primary-500" track="bg-primary-100 dark:bg-primary-900" />
 		</div>
 	{/if}
 </div>

@@ -5,7 +5,7 @@
 	import Button from './Button.svelte';
 	import UploadFile from '$lib/UploadFile.svelte';
 	import { getModalStore, getToastStore } from '@skeletonlabs/skeleton';
-	import { client, subVal } from './client';
+	import { subVal } from './client';
 	import type { FileRouterType } from '../../../server/src/utils/files';
 	import type { Resolver } from '@trpc/client';
 
@@ -25,7 +25,7 @@
 		cloudSyncMutation?:
 			| {
 					mutate: Resolver<{
-						input: {};
+						input: Record<string, never>;
 						output: { message: string };
 						errorShape: any;
 						transformer: false;

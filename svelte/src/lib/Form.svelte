@@ -26,7 +26,7 @@
 		reloadPage = false,
 		action,
 		queryMode = false,
-		res = (output) => undefined,
+		res = () => undefined,
 		successMessage = null,
 		noReset = false,
 		confirm = false,
@@ -80,7 +80,7 @@
 				formData.fileName = formData.file.name;
 				formData.file = await readFile(formData.file);
 			}
-			//@ts-ignore
+			// @ts-expect-error `action` is a union of mutate/query procedures
 			const actionRes = await action[queryMode ? 'query' : 'mutate']({ ...input, ...formData });
 			if (!noReset) formEl.reset();
 			if (successMessage !== null)

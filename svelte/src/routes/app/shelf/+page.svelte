@@ -74,7 +74,7 @@
 							ref: AddSheet,
 							props: {
 								res:
-									//@ts-ignore
+									// @ts-expect-error Modal component props are untyped
 									(n) => {
 										newSheet = n;
 									}

@@ -25,7 +25,7 @@
 					background: 'variant-filled-error'
 				})
 		)}
-	onkeypress={(e) => {
+	onkeypress={() => {
 		/* to make svelte happy */
 	}}
 	role="button"

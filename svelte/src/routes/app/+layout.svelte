@@ -12,7 +12,7 @@
 
 	let { data, children }: Props = $props();
 
-	let timer: Timer;
+	let timer: ReturnType<typeof setTimeout>;
 	function updateTimer(exp: number) {
 		clearTimeout(timer);
 		timer = setTimeout(

@@ -16,6 +16,7 @@
 	let url = $derived(imageRedirect(src, thumbnail));
 
 	$effect(() => {
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions -- track `src` so the effect reruns
 		src;
 		loading = true;
 		error = false;

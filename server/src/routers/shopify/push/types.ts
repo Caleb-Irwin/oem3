@@ -28,10 +28,7 @@ export const WeightUnit = {
 } as const;
 
 export type ShopifyProductTypes =
-	| 'Printing/Technology'
-	| 'Office/School'
-	| 'Furniture'
-	| 'Cleaning/Breakroom';
+	'Printing/Technology' | 'Office/School' | 'Furniture' | 'Cleaning/Breakroom';
 
 export type ImageMap = Map<
 	string,

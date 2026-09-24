@@ -85,7 +85,7 @@ async function runLftp(
 	executable: string
 ): Promise<void> {
 	const script = buildLftpScript(credentials, operation);
-	let subprocess: ReturnType<typeof Bun.spawn>;
+	let subprocess: Bun.Subprocess<'pipe', 'pipe', 'pipe'>;
 
 	try {
 		subprocess = Bun.spawn([executable, '--norc'], {
