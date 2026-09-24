@@ -34,6 +34,11 @@
 							SPRC: <CopyableText text={$res.spr.sprc} />
 						</span>
 					{/if}
+					{#if $res.spr.novexco}
+						<span class="cursor-default chip text-md variant-soft-tertiary m-1">
+							Novexco: <CopyableText text={$res.spr.novexco} />
+						</span>
+					{/if}
 					{#if $res.spr.cws}
 						<span class="cursor-default chip text-md variant-soft-tertiary m-1">
 							CWS: <CopyableText text={$res.spr.cws} />

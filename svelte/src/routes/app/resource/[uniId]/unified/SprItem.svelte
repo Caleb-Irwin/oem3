@@ -24,6 +24,7 @@
 	otherIds={[
 		{ name: 'Etilize ID', cell: row.cells.etilizeId },
 		{ name: 'CWS', cell: row.cells.cws },
+		{ name: 'Novexco', cell: row.cells.novexco },
 		{ name: 'GTIN', cell: row.cells.gtin }
 	]}
 	title={row.cells.title}

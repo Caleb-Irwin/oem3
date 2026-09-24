@@ -37,7 +37,7 @@ export const sprUnifier = createUnifier<
 >({
 	table: unifiedSpr,
 	confTable: unifiedSprCellConfig,
-	version: 29,
+	version: 30,
 	getRow,
 	transform: (item, t) => {
 		const price = item.sprPriceFileRowContent;
@@ -75,6 +75,7 @@ export const sprUnifier = createUnifier<
 				}
 			}),
 			cws: t('cws', enh?.cws ?? null),
+			novexco: t('novexco', enh?.novexco ?? null),
 			gtin: t('gtin', enh?.gtin ?? null),
 			upc: t('upc', upcPrimary ?? upcSecondary ?? null, {
 				// shouldMatch: {

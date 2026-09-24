@@ -40,6 +40,7 @@ export const unifiedSpr = pgTable(
 
 		etilizeId: varchar('etilizeId', { length: 32 }),
 		cws: varchar('cws', { length: 64 }),
+		novexco: varchar('novexco', { length: 64 }),
 		gtin: varchar('gtin', { length: 64 }),
 		upc: varchar('upc', { length: 32 }),
 
@@ -110,6 +111,7 @@ export const unifiedSprColumnEnum = pgEnum('unifiedSprColumn', [
 	// Identifiers
 	'etilizeId',
 	'cws',
+	'novexco',
 	'gtin',
 	'upc',
 	// Titles and descriptions

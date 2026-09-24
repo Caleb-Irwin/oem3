@@ -586,6 +586,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 						: null,
 				'Etilize ID': unifiedSpr.etilizeId ?? null,
 				CWS: unifiedSpr.cws ?? null,
+				'Novexco SKU': unifiedSpr.novexco ?? null,
 				GTIN: unifiedSpr.gtin ?? null,
 				UPC: unifiedSpr.upc ?? null,
 				Category: unifiedSpr.category ?? null,

@@ -35,7 +35,7 @@ export const sprImagesRelations = relations(sprImages, ({ one }) => ({
 	})
 }));
 
-export const skuTypeEnum = pgEnum('spr_sku_type', ['CWS', 'UPC', 'GTIN', 'SPRC']);
+export const skuTypeEnum = pgEnum('spr_sku_type', ['CWS', 'UPC', 'GTIN', 'SPRC', 'NOVEXCO']);
 
 export const sprSkus = pgTable(
 	'sprSkus',
@@ -61,6 +61,7 @@ export const sprEnhancedContent = pgTable(
 		etilizeId: varchar('etilizeId', { length: 32 }).notNull(),
 		sprc: varchar('sprc', { length: 64 }),
 		cws: varchar('cws', { length: 64 }),
+		novexco: varchar('novexco', { length: 64 }),
 		upc: varchar('upc', { length: 64 }),
 		gtin: varchar('gtin', { length: 64 }),
 		primaryImage: varchar('primaryImage', { length: 64 }),

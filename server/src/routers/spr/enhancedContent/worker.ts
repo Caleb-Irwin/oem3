@@ -4,7 +4,7 @@ import { join } from 'path';
 import unzipper from 'unzipper';
 import { sprEnhancedContent, sprImages, sprSkus } from './table';
 import { readFileSync } from 'fs';
-import papa from 'papaparse';
+import { parseEtilizeCsv, readSkuMappings } from './skuMappings';
 import { sprFlatFile } from '../flatFile/table';
 import { eq, isNull } from 'drizzle-orm';
 import { DEV } from '../../../config';
@@ -64,42 +64,9 @@ work({
 		progress(6 / totalSteps);
 
 		//skus
-		const cwsData = readCSV<[string, string, string, string, string, string]>(
-				'/sku/EN_CA_SKU_CWS_A_productskus.csv'
-			).map((row): typeof sprSkus.$inferInsert => {
-				return {
-					etilizeId: row[0],
-					type: 'CWS',
-					sku: row[2]
-				};
-			}),
-			upcData = readCSV<[string, string, string, string, string, string]>(
-				'/sku/EN_CA_SKU_UPC_productskus.csv'
-			).map((row): typeof sprSkus.$inferInsert => {
-				return {
-					etilizeId: row[0],
-					type: 'UPC',
-					sku: row[2]
-				};
-			}),
-			gtinData = readCSV<[string, string, string, string, string, string]>(
-				'/sku/EN_CA_SKU_GTIN_productskus.csv'
-			).map((row): typeof sprSkus.$inferInsert => {
-				return {
-					etilizeId: row[0],
-					type: 'GTIN',
-					sku: row[2]
-				};
-			}),
-			sprcData = readCSV<[string, string, string, string, string, string]>(
-				'/sku/EN_CA_SKU_SPRC_productskus.csv'
-			).map((row): typeof sprSkus.$inferInsert => {
-				return {
-					etilizeId: row[0],
-					type: 'SPRC',
-					sku: row[2]
-				};
-			});
+		const skuData = readSkuMappings((file) =>
+			readFileSync(join(tempFolderPath, 'sku', file), 'utf8')
+		);
 		if (existsSync(tempFolderPath)) {
 			rmSync(tempFolderPath, { recursive: true, force: true });
 		}
@@ -107,16 +74,7 @@ work({
 
 		await db.transaction(async (db) => {
 			await db.delete(sprSkus).execute();
-			for (const c of chunk(cwsData)) {
-				await db.insert(sprSkus).values(c).execute();
-			}
-			for (const c of chunk(upcData)) {
-				await db.insert(sprSkus).values(c).execute();
-			}
-			for (const c of chunk(gtinData)) {
-				await db.insert(sprSkus).values(c).execute();
-			}
-			for (const c of chunk(sprcData)) {
+			for (const c of chunk(skuData)) {
 				await db.insert(sprSkus).values(c).execute();
 			}
 		});
@@ -219,6 +177,7 @@ work({
 
 				const n: Partial<typeof sprEnhancedContent.$inferInsert> = {
 					sprc: row.skus.find((v) => v.type === 'SPRC')?.sku ?? null,
+					novexco: row.skus.find((v) => v.type === 'NOVEXCO')?.sku ?? null,
 					cws: row.skus.find((v) => v.type === 'CWS')?.sku ?? null,
 					upc: row.skus.find((v) => v.type === 'UPC')?.sku ?? null,
 					gtin: row.skus.find((v) => v.type === 'GTIN')?.sku ?? null,
@@ -234,6 +193,7 @@ work({
 					row.etilizeId &&
 					(row.sprc !== n.sprc ||
 						row.cws !== n.cws ||
+						row.novexco !== n.novexco ||
 						row.upc !== n.upc ||
 						row.gtin !== n.gtin ||
 						row.primaryImage !== n.primaryImage ||
@@ -274,11 +234,7 @@ work({
 });
 
 function readCSV<T>(filePath: string): T[] {
-	const { data } = papa.parse<T>(readFileSync(tempFolderPath + filePath).toString(), {
-		header: false
-	});
-	data.pop(); //Last row empty
-	return data;
+	return parseEtilizeCsv<T>(readFileSync(tempFolderPath + filePath, 'utf8'));
 }
 
 async function unzipFile(zipFile: string, outputFolder: string) {
