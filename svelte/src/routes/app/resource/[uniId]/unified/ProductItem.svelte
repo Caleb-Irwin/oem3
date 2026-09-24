@@ -16,14 +16,14 @@
 	lastUpdated={row.cells.lastUpdated}
 	deleted={row.cells.deleted}
 	primaryConnection={{ name: 'Guild Data', cell: row.cells.unifiedGuildRow }}
-	secondaryConnection={{ name: 'SPR Data', cell: row.cells.unifiedSprRow }}
+	secondaryConnection={{ name: 'Novexco Data', cell: row.cells.unifiedSprRow }}
 	otherConnections={[
 		{ name: 'QuickBooks Data', cell: row.cells.qbRow },
 		{ name: 'Shopify Data', cell: row.cells.shopifyRow }
 	]}
 	primaryIds={[
 		{ name: 'Guild ID', cell: row.cells.gid },
-		{ name: 'SPR Code', cell: row.cells.sprc },
+		{ name: 'Novexco legacy SKU', cell: row.cells.sprc },
 		{ name: 'UPC', cell: row.cells.upc }
 	]}
 	otherIds={[
@@ -46,7 +46,7 @@
 		<Text namedCell={{ name: 'Guild Cost', cell: row.cells.guildCostCents }} price />
 	</div>
 	<div class="p-1 flex">
-		<Text namedCell={{ name: 'SPR Cost', cell: row.cells.sprCostCents }} price />
+		<Text namedCell={{ name: 'Novexco Cost', cell: row.cells.sprCostCents }} price />
 	</div>
 	<div class="p-1 flex">
 		<Text namedCell={{ name: 'Unit of Measure', cell: row.cells.um }} />
@@ -84,7 +84,9 @@
 		<Text namedCell={{ name: 'Local Inventory', cell: row.cells.localInventory }} />
 	</div>
 	<div class="p-1 flex">
-		<Text namedCell={{ name: 'SPR Inventory Status', cell: row.cells.sprInventoryAvailability }} />
+		<Text
+			namedCell={{ name: 'Novexco Inventory Status', cell: row.cells.sprInventoryAvailability }}
+		/>
 	</div>
 
 	<div class="p-1 flex">

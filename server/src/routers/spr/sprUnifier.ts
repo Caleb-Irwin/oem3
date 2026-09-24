@@ -22,7 +22,7 @@ const getRow = async (id: number, db: typeof DB | Tx) => {
 			}
 		})
 		.execute();
-	if (res === undefined) throw new Error(`UnifiedSPR#${id} not found`);
+	if (res === undefined) throw new Error(`UnifiedNovexco#${id} not found`);
 	return res;
 };
 

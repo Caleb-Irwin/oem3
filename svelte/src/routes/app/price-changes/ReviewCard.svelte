@@ -48,7 +48,7 @@
 		{ label: 'QuickBooks', value: item.quickBooksUm },
 		{ label: 'Unified', value: item.um },
 		{ label: 'Guild', value: item.guildUm },
-		{ label: 'SPR', value: item.sprUm }
+		{ label: 'Novexco', value: item.sprUm }
 	]);
 	const hasDifferentUnitMeasures = $derived(
 		new Set(

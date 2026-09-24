@@ -57,7 +57,7 @@
 			<p class="text-sm text-surface-600 dark:text-surface-300 flex flex-wrap gap-x-1.5">
 				{#if item.gid}<span>GID {item.gid}</span>{/if}
 				{#if item.gid && item.sprc}<span aria-hidden="true">·</span>{/if}
-				{#if item.sprc}<span>SPRC {item.sprc}</span>{/if}
+				{#if item.sprc}<span>Legacy SKU {item.sprc}</span>{/if}
 				{#if (item.gid || item.sprc) && item.upc}<span aria-hidden="true">·</span>{/if}
 				{#if item.upc}<span class="font-semibold">UPC {item.upc}</span>{/if}
 			</p>

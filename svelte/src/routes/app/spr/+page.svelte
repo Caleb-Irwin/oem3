@@ -12,15 +12,15 @@
 </script>
 
 <svelte:head>
-	<title>OEM3 SPR</title>
+	<title>OEM3 Novexco</title>
 </svelte:head>
 
-<h1 class="text-center h2 p-2 pt-4">SPR</h1>
+<h1 class="text-center h2 p-2 pt-4">Novexco</h1>
 
 <ModalSearchBar
 	queryType="unifiedSpr"
 	queryTypes={['unifiedSpr', 'sprPriceFile', 'sprFlatFile']}
-	placeholder="Search SPR"
+	placeholder="Search Novexco"
 	class="max-w-3xl pb-2"
 />
 
@@ -31,7 +31,7 @@
 		init: data.sprWorkerStatus
 	})}
 	workerRun={client.spr.worker.run}
-	headerName="Unified SPR"
+	headerName="Unified Novexco"
 />
 
 <div class="w-full flex flex-col xl:grid xl:grid-cols-3 justify-center p-2">
@@ -39,7 +39,7 @@
 		<div class="card w-full">
 			<ChangesetStatus
 				embedded
-				name="SPR Price File"
+				name="Novexco Price File"
 				status={subVal(client.spr.priceFile.worker.statusSub, {
 					init: data.sprPriceFileStatus
 				})}
@@ -50,7 +50,7 @@
 			<Files
 				embedded
 				filesRouter={client.spr.priceFile.files}
-				title="SPR Price File"
+				title="Novexco Price File"
 				applyMutation={client.spr.priceFile.worker.run}
 				acceptFileType=".XLSX"
 				initVal={data.sprPriceFileFiles}
@@ -61,7 +61,7 @@
 		<div class="card w-full">
 			<ChangesetStatus
 				embedded
-				name="SPR Flat File"
+				name="Novexco Flat File"
 				status={subVal(client.spr.flatFile.worker.statusSub, {
 					init: data.sprFlatFileStatus
 				})}
@@ -72,7 +72,7 @@
 			<Files
 				embedded
 				filesRouter={client.spr.flatFile.files}
-				title="SPR Flat File"
+				title="Novexco Flat File"
 				applyMutation={client.spr.flatFile.worker.run}
 				acceptFileType=".CSV"
 				cloudSyncMutation={client.spr.flatFile.files.cloudDownload}

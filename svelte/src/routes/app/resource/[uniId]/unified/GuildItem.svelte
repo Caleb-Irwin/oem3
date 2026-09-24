@@ -25,7 +25,7 @@
 		{ name: 'UPC', cell: row.cells.upc }
 	]}
 	otherIds={[
-		{ name: 'SPR ID', cell: row.cells.spr },
+		{ name: 'Novexco legacy SKU', cell: row.cells.spr },
 		{ name: 'Basics ID', cell: row.cells.basics },
 		{ name: 'CIS ID', cell: row.cells.cis }
 	]}

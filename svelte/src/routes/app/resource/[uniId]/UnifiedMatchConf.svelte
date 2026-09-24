@@ -32,9 +32,7 @@
 				title: string;
 				name: string;
 				item:
-					| Product['unifiedGuildData']
-					| Product['unifiedSprData']
-					| Product['unifiedProductData'];
+					Product['unifiedGuildData'] | Product['unifiedSprData'] | Product['unifiedProductData'];
 				rawItem: ({ uniId: number } & RawProduct) | null;
 				queryType: QueryType;
 				unifiedColumn: string;
@@ -60,8 +58,8 @@
 			};
 		if (product?.unifiedSprData !== undefined)
 			return {
-				title: 'Unified SPR',
-				name: 'unified spr',
+				title: 'Unified Novexco',
+				name: 'unified Novexco',
 				item: product.unifiedSprData,
 				rawItem: product.unifiedSprData
 					? {
@@ -199,9 +197,7 @@
 						{/if}
 					</button>
 					<Button
-						class="btn w-56 {allowUnmatched
-							? 'variant-ghost-secondary'
-							: 'variant-ghost-warning'} "
+						class="btn w-56 {allowUnmatched ? 'variant-ghost-secondary' : 'variant-ghost-warning'} "
 						action={client.unified.updateUnmatched}
 						input={{
 							uniId,

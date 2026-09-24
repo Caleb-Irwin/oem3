@@ -7,14 +7,14 @@ export const queryTypeOptions: { value: QueryType; label: string }[] = [
 	{ value: 'unifiedProduct', label: 'Unified Products' },
 	{ value: 'all', label: 'All Items' },
 	{ value: 'unifiedGuild', label: 'Unified Guild' },
-	{ value: 'unifiedSpr', label: 'Unified SPR' },
+	{ value: 'unifiedSpr', label: 'Unified Novexco' },
 	{ value: 'qb', label: 'QuickBooks' },
 	{ value: 'shopify', label: 'Shopify' },
 	{ value: 'guildData', label: 'Guild Data' },
 	{ value: 'guildInventory', label: 'Guild Inventory' },
 	{ value: 'guildFlyer', label: 'Guild Flyer' },
-	{ value: 'sprPriceFile', label: 'SPR Price' },
-	{ value: 'sprFlatFile', label: 'SPR Info' }
+	{ value: 'sprPriceFile', label: 'Novexco Price' },
+	{ value: 'sprFlatFile', label: 'Novexco Info' }
 ];
 
 export const isQueryType = (value: string | null): value is QueryType =>

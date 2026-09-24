@@ -31,7 +31,7 @@
 				<h2 class="h2 font-semibold flex flex-wrap justify-center w-full">
 					{#if $res.spr.sprc}
 						<span class="cursor-default chip text-md variant-soft-tertiary m-1">
-							SPRC: <CopyableText text={$res.spr.sprc} />
+							Legacy SKU: <CopyableText text={$res.spr.sprc} />
 						</span>
 					{/if}
 					{#if $res.spr.novexco}

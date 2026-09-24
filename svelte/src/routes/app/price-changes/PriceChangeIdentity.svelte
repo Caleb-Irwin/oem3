@@ -60,7 +60,7 @@
 		<p class="flex flex-wrap gap-x-1.5 text-sm text-surface-600 dark:text-surface-300">
 			{#if item.gid}<span>GID {item.gid}</span>{/if}
 			{#if item.gid && item.sprc}<span aria-hidden="true">·</span>{/if}
-			{#if item.sprc}<span>SPRC {item.sprc}</span>{/if}
+			{#if item.sprc}<span>Legacy SKU {item.sprc}</span>{/if}
 			{#if (item.gid || item.sprc) && item.upc}<span aria-hidden="true">·</span>{/if}
 			{#if item.upc}<span class="font-semibold">UPC {item.upc}</span>{/if}
 		</p>
@@ -74,7 +74,7 @@
 				<span class="badge variant-soft-warning">In flyer</span>
 			{/if}
 			<span class="badge variant-soft">
-				{item.source === 'guild' ? 'Guild' : item.source === 'spr' ? 'SPR' : 'Other'} priced
+				{item.source === 'guild' ? 'Guild' : item.source === 'spr' ? 'Novexco' : 'Other'} priced
 			</span>
 			{#if item.customOnline}
 				<span class="badge variant-soft-secondary">Custom online price</span>

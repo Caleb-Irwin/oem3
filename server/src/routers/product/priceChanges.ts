@@ -965,7 +965,9 @@ export const priceChangesRouter = router({
 		)
 		.mutation(async ({ ctx, input: { category, ids, name } }) => {
 			const now = Date.now();
-			const categoryLabel = { flyer: 'Flyer', guild: 'Guild', spr: 'SPR', all: 'All' }[category];
+			const categoryLabel = { flyer: 'Flyer', guild: 'Guild', spr: 'Novexco', all: 'All' }[
+				category
+			];
 			const sheetName = (
 				name ?? `Price Changes ${new Date(now).toISOString().slice(0, 10)} (${categoryLabel})`
 			).slice(0, 128);

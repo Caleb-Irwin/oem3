@@ -11,14 +11,14 @@
 </script>
 
 <ItemLayout
-	tableName="UnifiedSpr"
+	tableName="UnifiedNovexco"
 	id={row.cells.id}
 	lastUpdated={row.cells.lastUpdated}
 	deleted={row.cells.deleted}
-	primaryConnection={{ name: 'SPR Price File', cell: row.cells.sprPriceFileRow }}
-	otherConnections={[{ name: 'SPR Flat File', cell: row.cells.sprFlatFileRow }]}
+	primaryConnection={{ name: 'Novexco Price File', cell: row.cells.sprPriceFileRow }}
+	otherConnections={[{ name: 'Novexco Flat File', cell: row.cells.sprFlatFileRow }]}
 	primaryIds={[
-		{ name: 'SPRC', cell: row.cells.sprc },
+		{ name: 'Legacy SKU', cell: row.cells.sprc },
 		{ name: 'UPC', cell: row.cells.upc }
 	]}
 	otherIds={[

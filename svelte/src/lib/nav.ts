@@ -64,7 +64,7 @@ export const dataSources: NavItem[] = [
 	},
 	{
 		href: '/app/spr',
-		title: 'SPRichards',
+		title: 'Novexco',
 		icon: Truck,
 		stat: 'unifiedSpr'
 	},

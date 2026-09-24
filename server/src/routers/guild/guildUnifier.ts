@@ -65,8 +65,8 @@ export const guildUnifier = createUnifier<
 			}),
 			spr: t('spr', item.dataRowContent.spr || item.inventoryRowContent?.spr || null, {
 				shouldMatch: {
-					primary: 'Guild Data SPR Product ID',
-					secondary: 'Guild Inventory SPR Product ID',
+					primary: 'Guild Data legacy supplier SKU',
+					secondary: 'Guild Inventory legacy supplier SKU',
 					val: item.inventoryRowContent?.spr ?? null,
 					ignore:
 						!item.dataRowContent.spr || !item.inventoryRowContent || !item.inventoryRowContent.spr

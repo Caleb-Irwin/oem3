@@ -30,10 +30,10 @@
 		GuildInventory: 'Guild Inventory',
 		GuildFlyer: 'Guild Flyer',
 		Shopify: 'Shopify',
-		SPRPriceFile: 'SPR Price',
-		SPRFlatFile: 'SPR Flat',
+		NovexcoPriceFile: 'Novexco Price',
+		NovexcoFlatFile: 'Novexco Flat',
 		UnifiedGuild: 'Guild',
-		UnifiedSPR: 'SPR',
+		UnifiedNovexco: 'Novexco',
 		UnifiedProduct: 'Product',
 		Unknown: 'Unknown'
 	};

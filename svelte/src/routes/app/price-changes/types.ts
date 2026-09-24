@@ -34,7 +34,7 @@ export type PriceChangeExport = Awaited<
 export const CATEGORIES: { value: PriceChangeCategory; label: string; hint: string }[] = [
 	{ value: 'flyer', label: 'Active Flyer', hint: 'Items priced by a flyer that is running now' },
 	{ value: 'guild', label: 'Guild Pricing', hint: 'Non-flyer products priced by Guild' },
-	{ value: 'spr', label: 'SPR Pricing', hint: 'Non-flyer products priced by SPR' },
+	{ value: 'spr', label: 'Novexco Pricing', hint: 'Non-flyer products priced by Novexco' },
 	{ value: 'all', label: 'All Others', hint: 'Every non-flyer product with a price to change' }
 ];
 

@@ -15,8 +15,7 @@
 
 	let { item, index, edit }: Props = $props();
 
-	const displayPrice = (price: number | null) =>
-		price === null ? '—' : formatPrice(price / 100);
+	const displayPrice = (price: number | null) => (price === null ? '—' : formatPrice(price / 100));
 
 	const formattedUm = $derived(
 		item.um ? `${item.um.toUpperCase()}${item.qtyPerUm ? ` · ${item.qtyPerUm}/UM` : ''}` : '—'
@@ -40,7 +39,9 @@
 				<Image
 					src={item.primaryImage}
 					alt={item.primaryImageDescription ?? `Image of ${item.title ?? 'product'}`}
-					class="w-full aspect-square object-contain p-2 {item.deleted ? 'grayscale opacity-60' : ''}"
+					class="w-full aspect-square object-contain p-2 {item.deleted
+						? 'grayscale opacity-60'
+						: ''}"
 					thumbnail
 				/>
 			{:else}
@@ -71,7 +72,7 @@
 					<p class="text-sm text-surface-600 dark:text-surface-300 flex flex-wrap gap-x-1.5">
 						{#if item.gid}<span>GID {item.gid}</span>{/if}
 						{#if item.gid && item.sprc}<span aria-hidden="true">·</span>{/if}
-						{#if item.sprc}<span>SPRC {item.sprc}</span>{/if}
+						{#if item.sprc}<span>Legacy SKU {item.sprc}</span>{/if}
 						{#if (item.gid || item.sprc) && item.upc}<span aria-hidden="true">·</span>{/if}
 						{#if item.upc}<span class="font-semibold">UPC {item.upc}</span>{/if}
 						{#if !item.gid && !item.sprc && !item.upc}<span>No product IDs</span>{/if}

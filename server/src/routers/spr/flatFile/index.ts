@@ -75,7 +75,7 @@ export const sprFlatFileRouter = router({
 					dataUrl: await downloadSprFlatFile()
 				};
 			} catch (err) {
-				console.error('Could not download SPR flat file:', err);
+				console.error('Could not download Novexco flat file:', err);
 			}
 			throw new TRPCError({
 				message: 'Could not download file',

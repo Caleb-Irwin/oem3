@@ -61,7 +61,7 @@
 								{/each}
 							</div>
 						{/if}
-						{#if product.idText.startsWith('SPRFlatFile#') || product.idText.startsWith('GuildData#')}
+						{#if product.idText.startsWith('NovexcoFlatFile#') || product.idText.startsWith('GuildData#')}
 							<EnhancedImages
 								etilizeId={product.other['Etilize ID'] ?? undefined}
 								gid={product.idText.startsWith('GuildData#') ? product.sku : undefined}

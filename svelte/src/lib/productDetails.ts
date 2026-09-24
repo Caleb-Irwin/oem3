@@ -123,7 +123,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			),
 			other: {
 				'Basics Number': guild.basics,
-				'SPR Number': guild.spr,
+				'Novexco legacy SKU': guild.spr,
 				'CIS Number': guild.cis,
 				'Unit of Measure': guild.um,
 				'Standard Pack Quantity': guild.standardPackQty.toString(),
@@ -192,7 +192,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			].filter((id): id is string => Boolean(id)),
 			other: {
 				'UPC#': inventory.upc,
-				'SPR#': inventory.spr,
+				'Novexco legacy SKU': inventory.spr,
 				'Basics#': inventory.basics,
 				'CIS#': inventory.cis,
 				'Unit of Measure': inventory.um,
@@ -319,7 +319,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 	if (raw.sprPriceFileData) {
 		const sprPriceFileData = raw.sprPriceFileData;
 		return {
-			idText: 'SPRPriceFile#' + sprPriceFileData.id,
+			idText: 'NovexcoPriceFile#' + sprPriceFileData.id,
 			id: sprPriceFileData.id,
 			name: sprPriceFileData.description ?? '',
 			price: formatCurrency(sprPriceFileData.netPriceCents / 100),
@@ -335,7 +335,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			connections: [
 				{
 					tableName: 'unifiedSpr',
-					name: 'Unified SPR',
+					name: 'Unified Novexco',
 					connected: sprPriceFileData.unifiedSprData !== null,
 					link: sprPriceFileData.unifiedSprData
 						? `/app/resource/redirect/unifiedSpr-${sprPriceFileData.unifiedSprData.id}`
@@ -372,7 +372,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 	if (raw.sprFlatFileData) {
 		const sprFlatFileData = raw.sprFlatFileData;
 		return {
-			idText: 'SPRFlatFile#' + sprFlatFileData.id,
+			idText: 'NovexcoFlatFile#' + sprFlatFileData.id,
 			id: sprFlatFileData.id,
 			name: sprFlatFileData.mainTitle ?? '',
 			price: '',
@@ -391,7 +391,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			connections: [
 				{
 					tableName: 'unifiedSpr',
-					name: 'Unified SPR',
+					name: 'Unified Novexco',
 					connected: sprFlatFileData.unifiedSprData !== null,
 					link: sprFlatFileData.unifiedSprData
 						? `/app/resource/redirect/unifiedSpr-${sprFlatFileData.unifiedSprData.id}`
@@ -503,7 +503,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				unifiedGuild.upc
 			].filter((id): id is string => Boolean(id)),
 			other: {
-				'SPR Number': unifiedGuild.spr,
+				'Novexco legacy SKU': unifiedGuild.spr,
 				'CIS Number': unifiedGuild.cis,
 				'Basics Number': unifiedGuild.basics,
 				UPC: unifiedGuild.upc,
@@ -525,7 +525,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 		const unifiedSpr = raw.unifiedSprData;
 
 		return {
-			idText: 'UnifiedSPR#' + unifiedSpr.id,
+			idText: 'UnifiedNovexco#' + unifiedSpr.id,
 			id: unifiedSpr.id,
 			name: unifiedSpr.title ?? unifiedSpr.shortTitle ?? 'No Title',
 			price:
@@ -633,7 +633,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				},
 				{
 					tableName: 'unifiedSpr',
-					name: 'Unified SPR',
+					name: 'Unified Novexco',
 					connected: unifiedProduct.unifiedSprRow !== null,
 					link: unifiedProduct.unifiedSprRow
 						? `/app/resource/redirect/unifiedSpr-${unifiedProduct.unifiedSprRow}`
@@ -667,7 +667,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			].filter((id): id is string => Boolean(id)),
 			other: {
 				GID: unifiedProduct.gid,
-				SPRC: unifiedProduct.sprc,
+				'Novexco legacy SKU': unifiedProduct.sprc,
 				Status: unifiedProduct.status,
 				UPC: unifiedProduct.upc,
 				'CWS Number': unifiedProduct.cws,
@@ -682,7 +682,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				'Guild Cost': unifiedProduct.guildCostCents
 					? formatCurrency(unifiedProduct.guildCostCents / 100)
 					: null,
-				'SPR Cost': unifiedProduct.sprCostCents
+				'Novexco Cost': unifiedProduct.sprCostCents
 					? formatCurrency(unifiedProduct.sprCostCents / 100)
 					: null,
 				'Unit of Measure': unifiedProduct.um,
@@ -692,7 +692,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				'Available for Sale Online': unifiedProduct.availableForSaleOnline ? 'Yes' : 'No',
 				'Guild Inventory': unifiedProduct.guildInventory?.toString() ?? null,
 				'Local Inventory': unifiedProduct.localInventory?.toString() ?? null,
-				'SPR Inventory Availability': unifiedProduct.sprInventoryAvailability ?? null,
+				'Novexco Inventory Availability': unifiedProduct.sprInventoryAvailability ?? null,
 				Weight: unifiedProduct.weightGrams ? unifiedProduct.weightGrams + ' grams' : null,
 				Vendor: unifiedProduct.vendor,
 				'Primary Image Description': unifiedProduct.primaryImageDescription ?? null

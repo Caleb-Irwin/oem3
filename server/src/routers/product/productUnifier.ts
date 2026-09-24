@@ -109,20 +109,15 @@ export const productUnifier = createUnifier<
 			gid: t('gid', guild?.gid ?? item.gid),
 			sprc: t('sprc', spr?.sprc ?? guild?.spr ?? item.sprc, {
 				shouldMatch: {
-					primary: 'SPR SPRC',
-					secondary: 'Guild SPR ID',
+					primary: 'Novexco legacy SKU',
+					secondary: 'Guild legacy supplier SKU',
 					val: guild?.spr ?? null,
 					ignore: spr?.sprc == null || guild?.spr == null
 				}
 			}),
 			status: t(
 				'status',
-				(item) =>
-					item.deleted
-						? 'DISABLED'
-						: isDiscontinued
-							? 'DISCONTINUED'
-							: 'ACTIVE',
+				(item) => (item.deleted ? 'DISABLED' : isDiscontinued ? 'DISCONTINUED' : 'ACTIVE'),
 				{
 					dependsOn: new Set(['deleted'])
 				}
@@ -136,7 +131,7 @@ export const productUnifier = createUnifier<
 			upc: t('upc', guild?.upc ?? spr?.upc ?? item.upc, {
 				shouldMatch: {
 					primary: 'Guild UPC',
-					secondary: 'SPR UPC',
+					secondary: 'Novexco UPC',
 					val: spr?.upc ?? null,
 					ignore:
 						guild?.upc == null ||
@@ -193,7 +188,7 @@ export const productUnifier = createUnifier<
 			um: t('um', mapUm(guild?.um, spr?.um, qb?.um) ?? item.um, {
 				shouldMatch: {
 					primary: 'Guild UM',
-					secondary: 'SPR UM',
+					secondary: 'Novexco UM',
 					val: mapUm(null, spr?.um, null) ?? null,
 					ignore: guild?.um == null || spr?.um == null
 				}
