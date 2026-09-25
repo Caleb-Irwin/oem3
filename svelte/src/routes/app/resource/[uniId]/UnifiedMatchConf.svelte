@@ -52,7 +52,6 @@
 				queryType: 'unifiedGuild',
 				unifiedColumn: {
 					guildData: 'dataRow',
-					guildInventory: 'inventoryRow',
 					guildFlyer: 'flyerRow'
 				}[tableName]!
 			};

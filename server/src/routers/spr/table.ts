@@ -64,6 +64,8 @@ export const unifiedSpr = pgTable(
 		netPriceCents: integer('netPriceCents'),
 		listPriceCents: integer('listPriceCents'),
 		status: sprPriceStatusEnum('status'),
+		// Total across all Novexco warehouses
+		inventory: integer('inventory'),
 		um: sprPriceUmEnum('um'),
 
 		primaryImage: varchar('primaryImage', { length: 256 }),
@@ -142,6 +144,7 @@ export const unifiedSprColumnEnum = pgEnum('unifiedSprColumn', [
 	'netPriceCents',
 	'listPriceCents',
 	'status',
+	'inventory',
 	'um',
 	// Media (from Enhanced/Flat)
 	'primaryImage',

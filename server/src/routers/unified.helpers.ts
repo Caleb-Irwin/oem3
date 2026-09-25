@@ -3,7 +3,6 @@ import type { OnUpdateCallback } from '../unified/unifier';
 
 export const ColToTableName = {
 	dataRow: 'guildData',
-	inventoryRow: 'guildInventory',
 	flyerRow: 'guildFlyer',
 	sprPriceFileRow: 'sprPriceFile',
 	sprFlatFileRow: 'sprFlatFile',

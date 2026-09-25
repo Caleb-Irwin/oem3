@@ -43,7 +43,6 @@
 			[
 				subVal(client.guild.worker.statusSub, { init: data.guildWorker }),
 				subVal(client.guild.data.worker.statusSub, { init: data.guildDataWorker }),
-				subVal(client.guild.inventory.worker.statusSub, { init: data.guildInventoryWorker }),
 				subVal(client.guild.flyer.worker.statusSub, { init: data.guildFlyerWorker }),
 				subVal(client.guild.desc.worker.statusSub, { init: data.guildDescWorker })
 			],

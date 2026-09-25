@@ -11,7 +11,6 @@ export const queryTypeOptions: { value: QueryType; label: string }[] = [
 	{ value: 'qb', label: 'QuickBooks' },
 	{ value: 'shopify', label: 'Shopify' },
 	{ value: 'guildData', label: 'Guild Data' },
-	{ value: 'guildInventory', label: 'Guild Inventory' },
 	{ value: 'guildFlyer', label: 'Guild Flyer' },
 	{ value: 'sprPriceFile', label: 'Novexco Price' },
 	{ value: 'sprFlatFile', label: 'Novexco Info' },

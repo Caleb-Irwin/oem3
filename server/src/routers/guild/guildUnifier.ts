@@ -1,10 +1,9 @@
-import { and, eq, not, or } from 'drizzle-orm';
+import { and, eq, not } from 'drizzle-orm';
 import { db as DB, type Tx } from '../../db';
 import { createUnifier } from '../../unified/unifier';
 import {
 	unifiedGuild,
 	guildData,
-	guildInventory,
 	guildFlyer,
 	unifiedGuildCellConfig,
 	categoryEnum,
@@ -21,7 +20,6 @@ const getRow = async (id: number, db: typeof DB | Tx) => {
 						desc: true
 					}
 				},
-				inventoryRowContent: true,
 				flyerRowContent: true,
 				uniref: true
 			}
@@ -38,11 +36,11 @@ export const guildUnifier = createUnifier<
 	typeof unifiedGuild,
 	typeof unifiedGuildCellConfig,
 	typeof guildData,
-	typeof guildInventory | typeof guildFlyer
+	typeof guildFlyer
 >({
 	table: unifiedGuild,
 	confTable: unifiedGuildCellConfig,
-	version: 36,
+	version: 37,
 	getRow,
 	transform: (item, t) => {
 		return {
@@ -51,47 +49,12 @@ export const guildUnifier = createUnifier<
 			lastUpdated: t('lastUpdated', item.lastUpdated),
 
 			dataRow: t('dataRow', item.dataRow),
-			inventoryRow: t('inventoryRow', item.inventoryRow),
 			flyerRow: t('flyerRow', item.flyerRow),
 
-			upc: t('upc', item.dataRowContent.upc || item.inventoryRowContent?.upc || null, {
-				shouldMatch: {
-					primary: 'Guild Data UPC',
-					secondary: 'Guild Inventory UPC',
-					val: item.inventoryRowContent?.upc ?? null,
-					ignore:
-						!item.dataRowContent.upc || !item.inventoryRowContent || !item.inventoryRowContent.upc
-				}
-			}),
-			spr: t('spr', item.dataRowContent.spr || item.inventoryRowContent?.spr || null, {
-				shouldMatch: {
-					primary: 'Guild Data legacy supplier SKU',
-					secondary: 'Guild Inventory legacy supplier SKU',
-					val: item.inventoryRowContent?.spr ?? null,
-					ignore:
-						!item.dataRowContent.spr || !item.inventoryRowContent || !item.inventoryRowContent.spr
-				}
-			}),
-			basics: t('basics', item.dataRowContent.basics || item.inventoryRowContent?.basics || null, {
-				shouldMatch: {
-					primary: 'Guild Data Basics Product ID',
-					secondary: 'Guild Inventory Basics Product ID',
-					val: item.inventoryRowContent?.basics ?? null,
-					ignore:
-						!item.dataRowContent.basics ||
-						!item.inventoryRowContent ||
-						!item.inventoryRowContent.basics
-				}
-			}),
-			cis: t('cis', item.dataRowContent.cis || item.inventoryRowContent?.cis || null, {
-				shouldMatch: {
-					primary: 'Guild Data CIS Product ID',
-					secondary: 'Guild Inventory CIS Product ID',
-					val: item.inventoryRowContent?.cis ?? null,
-					ignore:
-						!item.dataRowContent.cis || !item.inventoryRowContent || !item.inventoryRowContent.cis
-				}
-			}),
+			upc: t('upc', item.dataRowContent.upc || null),
+			spr: t('spr', item.dataRowContent.spr || null),
+			basics: t('basics', item.dataRowContent.basics || null),
+			cis: t('cis', item.dataRowContent.cis || null),
 			title: t('title', item.dataRowContent.shortDesc),
 			description: t('description', item.dataRowContent.longDesc || item.dataRowContent.shortDesc),
 			priceCents: t(
@@ -115,15 +78,8 @@ export const guildUnifier = createUnifier<
 						? null
 						: item.dataRowContent.memberPriceCents)
 			),
-			// Inventory no longer provides unit-of-measure data; use Guild Data only.
 			um: t('um', item.dataRowContent.um),
-			qtyPerUm: t('qtyPerUm', item.dataRowContent.standardPackQty, {
-				// shouldMatch: {
-				//   name: "Guild Inventory Qty Per UM",
-				//   val: item.inventoryRowContent?.qtyPerUm ?? null,
-				//   ignore: item.inventoryRowContent === null,
-				// },
-			}),
+			qtyPerUm: t('qtyPerUm', item.dataRowContent.standardPackQty),
 			masterPackQty: t('masterPackQty', item.dataRowContent.masterPackQty),
 			imageUrl: t(
 				'imageUrl',
@@ -159,7 +115,6 @@ export const guildUnifier = createUnifier<
 				'heavyGoodsChargeSkCents',
 				item.dataRowContent.heavyGoodsChargeSkCents
 			),
-			inventory: t('inventory', item.inventoryRowContent?.onHand ?? null),
 			freightFlag: t('freightFlag', item.dataRowContent.freightFlag),
 			deleted: t('deleted', item.dataRowContent.deleted)
 		};
@@ -192,43 +147,6 @@ export const guildUnifier = createUnifier<
 		},
 		secondaryTable: null,
 		otherTables: [
-			{
-				table: guildInventory,
-				refCol: 'inventoryRow',
-				findConnections: async (row, db) => {
-					if (
-						(row.gid === null || row.gid === '') &&
-						(row.dataRowContent === null ||
-							row.dataRowContent.upc === '' ||
-							row.dataRowContent.upc === null)
-					)
-						return [];
-					const rows = await db.query.guildInventory
-						.findMany({
-							where: or(
-								row.gid !== null && row.gid !== ''
-									? and(eq(guildInventory.gid, row.gid), not(guildInventory.deleted))
-									: undefined,
-								row.dataRowContent !== null &&
-									row.dataRowContent.upc !== null &&
-									row.dataRowContent.upc !== ''
-									? and(eq(guildInventory.upc, row.dataRowContent.upc), not(guildInventory.deleted))
-									: undefined
-							),
-							columns: {
-								id: true,
-								gid: true
-							}
-						})
-						.execute();
-					const exactMatch = rows.find((r) => r.gid === row.gid);
-					if (exactMatch) return [exactMatch.id];
-					return rows.map((r) => r.id);
-				},
-				isDeleted: (row) => {
-					return row.inventoryRowContent?.deleted ?? true;
-				}
-			},
 			{
 				table: guildFlyer,
 				refCol: 'flyerRow',

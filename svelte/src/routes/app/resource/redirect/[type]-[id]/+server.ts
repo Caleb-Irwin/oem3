@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ params, locals: { client } }) => {
 	const res = await client.resources.getUniId.query({
-		type: params.type as 'guildInventory', // Fake as any
+		type: params.type as 'guildData', // Fake as any
 		id: parseInt(params.id)
 	});
 

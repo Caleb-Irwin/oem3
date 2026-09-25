@@ -995,6 +995,20 @@
       "when": 1790289327864,
       "tag": "0141_novexco_duplicates_listing_hold",
       "breakpoints": true
+    },
+    {
+      "idx": 142,
+      "version": "7",
+      "when": 1790296862855,
+      "tag": "0142_remove_guild_inventory",
+      "breakpoints": true
+    },
+    {
+      "idx": 143,
+      "version": "7",
+      "when": 1790296924832,
+      "tag": "0143_novexco_inventory",
+      "breakpoints": true
     }
   ]
 }

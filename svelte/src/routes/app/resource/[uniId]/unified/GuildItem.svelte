@@ -16,10 +16,7 @@
 	lastUpdated={row.cells.lastUpdated}
 	deleted={row.cells.deleted}
 	primaryConnection={{ name: 'Guild Data', cell: row.cells.dataRow }}
-	otherConnections={[
-		{ name: 'Guild Inventory', cell: row.cells.inventoryRow },
-		{ name: 'Guild Flyer', cell: row.cells.flyerRow }
-	]}
+	otherConnections={[{ name: 'Guild Flyer', cell: row.cells.flyerRow }]}
 	primaryIds={[
 		{ name: 'Guild ID', cell: row.cells.gid },
 		{ name: 'UPC', cell: row.cells.upc }
@@ -37,9 +34,6 @@
 	comparePrice={row.cells.comparePriceCents}
 	description={row.cells.description}
 >
-	<div class="p-1 flex">
-		<Text namedCell={{ name: 'Inventory', cell: row.cells.inventory }} />
-	</div>
 	<div class="p-1 flex">
 		<Text namedCell={{ name: 'Cost', cell: row.cells.costCents }} price />
 	</div>

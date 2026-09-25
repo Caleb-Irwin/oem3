@@ -20,7 +20,7 @@
 
 <ModalSearchBar
 	queryType="unifiedGuild"
-	queryTypes={['unifiedGuild', 'guildData', 'guildInventory', 'guildFlyer']}
+	queryTypes={['unifiedGuild', 'guildData', 'guildFlyer']}
 	placeholder="Search Guild"
 	class="max-w-3xl pb-2"
 />
@@ -55,29 +55,6 @@
 				applyMutation={client.guild.data.worker.run}
 				acceptFileType=".XLSX"
 				initVal={data.guildDataFiles}
-			/>
-		</div>
-	</div>
-	<div class="p-2 w-full xl:w-auto flex flex-col items-center min-w-96">
-		<div class="card w-full">
-			<ChangesetStatus
-				embedded
-				name="Guild Inventory"
-				status={subVal(client.guild.inventory.worker.statusSub, {
-					init: data.guildInventoryStatus
-				})}
-				changeset={subVal(client.guild.inventory.worker.changesetSub, {
-					init: data.guildInventoryChangeset
-				})}
-			/>
-			<Files
-				embedded
-				filesRouter={client.guild.inventory.files}
-				title="Guild Inventory"
-				applyMutation={client.guild.inventory.worker.run}
-				acceptFileType=".CSV"
-				cloudSyncMutation={client.guild.inventory.files.cloudDownload}
-				initVal={data.guildInventoryFiles}
 			/>
 		</div>
 	</div>

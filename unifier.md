@@ -221,8 +221,8 @@ Use these as canonical patterns while creating SPR equivalents:
   - Runs `guildUnifier.updateUnifiedTable` and publishes `uniId`
 
 - Router: `server/src/routers/guild/index.ts`
-  - `managedWorker(..., 'unifiedGuild', [guildDataHook, guildFlyerHook, guildInventoryHook, guildDescHook], ...)`
-  - `hook(() => { updateByChangesetType('guildData'); updateByChangesetType('guildInventory'); updateByChangesetType('guildFlyer'); })`
+  - `managedWorker(..., 'unifiedGuild', [guildDataHook, guildFlyerHook, guildDescHook], ...)`
+  - `hook(() => { updateByChangesetType('guildData'); updateByChangesetType('guildFlyer'); })`
   - Exposes `runGuildWorker`, `guildHook`, `guildRouter`
 
 - Unifier engine: `server/src/unified/unifier.ts`

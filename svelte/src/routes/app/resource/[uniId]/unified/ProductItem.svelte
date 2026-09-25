@@ -79,10 +79,10 @@
 	</div>
 
 	<div class="p-1 flex">
-		<Text namedCell={{ name: 'Guild Inventory', cell: row.cells.guildInventory }} />
+		<Text namedCell={{ name: 'Local Inventory', cell: row.cells.localInventory }} />
 	</div>
 	<div class="p-1 flex">
-		<Text namedCell={{ name: 'Local Inventory', cell: row.cells.localInventory }} />
+		<Text namedCell={{ name: 'Novexco Inventory', cell: row.cells.novexcoInventory }} />
 	</div>
 	<div class="p-1 flex">
 		<Text

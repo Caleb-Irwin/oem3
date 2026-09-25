@@ -13,7 +13,6 @@ export * from './utils/history.table';
 export * from './unified/cellConfig.tableBuilder';
 export * from './routers/search/table';
 export * from './routers/guild/data/table';
-export * from './routers/guild/inventory/table';
 export * from './routers/guild/flyer/table';
 export * from './routers/shopify/table';
 export * from './routers/guild/desc/table';

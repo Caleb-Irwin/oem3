@@ -7,7 +7,6 @@ import { db } from '../../db';
 import { qbHook } from '../qb';
 import { resourceWith, normalizeRelationNames, type ResourceResult } from '../resources';
 import { guildDataHook } from '../guild/data';
-import { guildInventoryHook } from '../guild/inventory';
 import { changesetType } from '../../db.schema';
 import { guildFlyerHook } from '../guild/flyer';
 import { shopifyHook } from '../shopify';
@@ -21,7 +20,6 @@ import { productHook } from '../product';
 const { worker } = managedWorker(new URL('worker.ts', import.meta.url).href, 'search', [
 	qbHook,
 	guildDataHook,
-	guildInventoryHook,
 	guildFlyerHook,
 	shopifyHook,
 	sprPriceFileHook,

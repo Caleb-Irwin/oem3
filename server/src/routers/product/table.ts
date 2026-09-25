@@ -101,8 +101,9 @@ export const unifiedProduct = pgTable(
 
 		availableForSaleOnline: boolean('availableForSaleOnline').default(true).notNull(),
 		newListingHold: productListingHoldEnum('newListingHold'),
-		guildInventory: integer('guildInventory'),
 		localInventory: integer('localInventory'),
+		// Total across all Novexco warehouses
+		novexcoInventory: integer('novexcoInventory'),
 		sprInventoryAvailability: sprPriceStatusEnum('sprInventoryAvailability'),
 
 		weightGrams: integer('weightGrams'),
@@ -215,8 +216,8 @@ export const unifiedProductColumnEnum = pgEnum('unifiedProductColumn', [
 	// Inventory and availability
 	'availableForSaleOnline',
 	'newListingHold',
-	'guildInventory',
 	'localInventory',
+	'novexcoInventory',
 	'sprInventoryAvailability',
 	// Physical properties
 	'weightGrams',

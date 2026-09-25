@@ -23,7 +23,6 @@ import type { ColToTableName as ColToTableNameType } from '../../../../../../../
 
 export const ColToTableName: typeof ColToTableNameType = {
 	dataRow: 'guildData',
-	inventoryRow: 'guildInventory',
 	flyerRow: 'guildFlyer',
 	sprFlatFileRow: 'sprFlatFile',
 	sprPriceFileRow: 'sprPriceFile',

@@ -147,59 +147,6 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			}
 		};
 	}
-	if (raw.guildInventoryData) {
-		const inventory = raw.guildInventoryData;
-		return {
-			idText: 'GuildInventory#' + inventory.id,
-			id: inventory.id,
-			name: inventory.gid,
-			sku: inventory.sku ?? 'Unknown',
-			price: '',
-			deleted: inventory.deleted,
-			stock: inventory.onHand,
-			lastUpdated: inventory.lastUpdated,
-			description: undefined,
-			imageUrl: undefined,
-			connections: [
-				{
-					tableName: 'unifiedGuild',
-					name: 'Unified Guild',
-					connected: inventory.unifiedGuildData !== null,
-					link: inventory.unifiedGuildData?.id
-						? `/app/resource/${inventory.unifiedGuildData.uniref.uniId}/unified`
-						: '/app/guild'
-				},
-				{
-					tableName: 'unifiedProduct',
-					name: 'Unified Product',
-					connected:
-						inventory.unifiedGuildData?.unifiedProductData !== null &&
-						inventory.unifiedGuildData?.unifiedProductData !== undefined,
-					link: inventory.unifiedGuildData?.unifiedProductData
-						? `/app/resource/${inventory.unifiedGuildData.unifiedProductData.uniref.uniId}/unified`
-						: '/app/product'
-				}
-			],
-			unifiedGuildData: inventory.unifiedGuildData ?? null,
-			unifiedProductData: inventory.unifiedGuildData?.unifiedProductData ?? null,
-			keyProductIds: [
-				inventory.gid,
-				inventory.sku,
-				inventory.upc,
-				inventory.spr,
-				inventory.basics,
-				inventory.cis
-			].filter((id): id is string => Boolean(id)),
-			other: {
-				'UPC#': inventory.upc,
-				'Novexco legacy SKU': inventory.spr,
-				'Basics#': inventory.basics,
-				'CIS#': inventory.cis,
-				'Unit of Measure': inventory.um,
-				'Qty/UoM': inventory.qtyPerUm ? inventory.qtyPerUm.toString() : null
-			}
-		};
-	}
 	if (raw.guildFlyerData) {
 		const flyer = raw.guildFlyerData;
 		return {
@@ -542,7 +489,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				? formatCurrency(unifiedGuild.comparePriceCents / 100)
 				: null,
 			sku: unifiedGuild.gid,
-			stock: unifiedGuild.inventory,
+			stock: null,
 			deleted: unifiedGuild.deleted,
 			lastUpdated: unifiedGuild.lastUpdated,
 			description: unifiedGuild.description ?? undefined,
@@ -560,14 +507,6 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 					connected: unifiedGuild.dataRow !== null,
 					link: unifiedGuild.dataRow
 						? `/app/resource/redirect/guildData-${unifiedGuild.dataRow}`
-						: '/app/guild'
-				},
-				{
-					tableName: 'guildInventory',
-					name: 'Inventory',
-					connected: unifiedGuild.inventoryRow !== null,
-					link: unifiedGuild.inventoryRow
-						? `/app/resource/redirect/guildInventory-${unifiedGuild.inventoryRow}`
 						: '/app/guild'
 				},
 				{
@@ -627,7 +566,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 					? formatCurrency(unifiedSpr.netPriceCents / 100)
 					: 'No Price',
 			sku: unifiedSpr.novexco ?? unifiedSpr.sprc ?? 'Unknown',
-			stock: null,
+			stock: unifiedSpr.inventory,
 			deleted: unifiedSpr.deleted,
 			lastUpdated: unifiedSpr.lastUpdated,
 			description: unifiedSpr.description ?? undefined,
@@ -671,6 +610,7 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 			].filter((id): id is string => Boolean(id)),
 			other: {
 				Status: unifiedSpr.status ?? null,
+				Inventory: unifiedSpr.inventory?.toString() ?? null,
 				'Unit of Measure': unifiedSpr.um ?? null,
 				'Dealer Net Price':
 					unifiedSpr.dealerNetPriceCents != null
@@ -711,8 +651,8 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				: null,
 			sku: unifiedProduct.gid ?? unifiedProduct.sprc ?? 'Unknown',
 			stock:
-				unifiedProduct.guildInventory || unifiedProduct.localInventory
-					? (unifiedProduct.guildInventory ?? 0) + (unifiedProduct.localInventory ?? 0)
+				unifiedProduct.novexcoInventory || unifiedProduct.localInventory
+					? (unifiedProduct.novexcoInventory ?? 0) + (unifiedProduct.localInventory ?? 0)
 					: null,
 			deleted: unifiedProduct.deleted,
 			lastUpdated: unifiedProduct.lastUpdated,
@@ -789,8 +729,8 @@ export const productDetails = (raw: RawProduct): Product | undefined => {
 				'Source-to-QuickBooks Factor': unifiedProduct.sourceToQuickBooksFactor.toString(),
 				'QuickBooks Conversion Adjustment': `${unifiedProduct.quickBooksConversionAdjustmentPercent}%`,
 				'Available for Sale Online': unifiedProduct.availableForSaleOnline ? 'Yes' : 'No',
-				'Guild Inventory': unifiedProduct.guildInventory?.toString() ?? null,
 				'Local Inventory': unifiedProduct.localInventory?.toString() ?? null,
+				'Novexco Inventory': unifiedProduct.novexcoInventory?.toString() ?? null,
 				'Novexco Inventory Availability': unifiedProduct.sprInventoryAvailability ?? null,
 				Weight: unifiedProduct.weightGrams ? unifiedProduct.weightGrams + ' grams' : null,
 				Vendor: unifiedProduct.vendor,

@@ -89,7 +89,7 @@ export function convertToProductSetInput(
 			}
 			input.tags = existingTags;
 		}
-	} catch (e) {
+	} catch {
 		// Invalid JSON
 		input.tags = ['OEM3'];
 	}
@@ -144,9 +144,10 @@ export function convertToProductSetInput(
 				quantity: (product.localInventory ?? 0) >= 0 ? (product.localInventory ?? 0) : 0
 			},
 			{
+				// Novexco's stock, across all its warehouses
 				locationId: SHOPIFY_LOCATION_ID_WAREHOUSE,
 				name: 'on_hand',
-				quantity: (product.guildInventory ?? 0) >= 0 ? (product.guildInventory ?? 0) : 0
+				quantity: (product.novexcoInventory ?? 0) >= 0 ? (product.novexcoInventory ?? 0) : 0
 			}
 		];
 	} else {
@@ -225,7 +226,7 @@ function getFiles(
 					}
 				}
 			}
-		} catch (e) {
+		} catch {
 			// Invalid JSON, skip other images
 		}
 	}
@@ -325,7 +326,7 @@ export function shopifyToProductSetInput(shopify: Shopify): ProductSetInput {
 			if (Array.isArray(tags)) {
 				input.tags = tags;
 			}
-		} catch (e) {
+		} catch {
 			// ignore
 		}
 	}
@@ -340,7 +341,7 @@ export function shopifyToProductSetInput(shopify: Shopify): ProductSetInput {
 					alt: m.alt || undefined
 				}));
 			}
-		} catch (e) {
+		} catch {
 			// ignore
 		}
 	}

@@ -8,7 +8,6 @@ import {
 	sprFlatFileFr,
 	sprPriceFile,
 	unifiedGuild,
-	guildInventory,
 	guildFlyer,
 	unifiedSpr,
 	unifiedProduct
@@ -19,7 +18,6 @@ export const resourceTypeEnum = pgEnum('resource_type', [
 	'changeset',
 	'qb',
 	'guildData',
-	'guildInventory',
 	'guildFlyer',
 	'shopify',
 	'sprPriceFile',
@@ -46,11 +44,6 @@ export const uniref = pgTable(
 			.unique(),
 		guildData: integer('guildData')
 			.references(() => guildData.id, { onDelete: 'cascade' })
-			.unique(),
-		guildInventory: integer('guildInventory')
-			.references(() => guildInventory.id, {
-				onDelete: 'cascade'
-			})
 			.unique(),
 		guildFlyer: integer('guildFlyer')
 			.references(() => guildFlyer.id, {
@@ -98,7 +91,6 @@ export const uniref = pgTable(
 		uniqueIndex('uniref_changesets_idx').on(uniref.changeset),
 		uniqueIndex('uniref_qb_idx').on(uniref.qb),
 		uniqueIndex('uniref_guild_idx').on(uniref.guildData),
-		uniqueIndex('uniref_guildInventory_idx').on(uniref.guildInventory),
 		uniqueIndex('uniref_guildFlyer_idx').on(uniref.guildFlyer),
 		uniqueIndex('uniref_shopify_idx').on(uniref.shopify),
 		uniqueIndex('uniref_spr_price_file_idx').on(uniref.sprPriceFile),
@@ -115,10 +107,6 @@ export const unirefRelations = relations(uniref, ({ one }) => ({
 	guildData: one(guildData, {
 		fields: [uniref.guildData],
 		references: [guildData.id]
-	}),
-	guildInventoryData: one(guildInventory, {
-		fields: [uniref.guildInventory],
-		references: [guildInventory.id]
 	}),
 	guildFlyerData: one(guildFlyer, {
 		fields: [uniref.guildFlyer],

@@ -229,8 +229,8 @@ export const productUnifier = createUnifier<
 									: null,
 				{ dependsOn: new Set(['status', 'deleted']) }
 			),
-			guildInventory: t('guildInventory', guild?.inventory ?? null),
 			localInventory: t('localInventory', qb?.quantityOnHand ?? null),
+			novexcoInventory: t('novexcoInventory', spr?.inventory ?? null),
 			sprInventoryAvailability: t('sprInventoryAvailability', spr?.status ?? null),
 
 			weightGrams: t('weightGrams', guild?.weightGrams ?? null),

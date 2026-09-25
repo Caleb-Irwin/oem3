@@ -8,11 +8,6 @@ export const load: PageServerLoad = async ({ locals: { client } }) => {
 		guildDataChangeset: client.guild.data.worker.changeset.query(),
 		guildDataFiles: client.guild.data.files.get.query(),
 
-		// Guild Inventory
-		guildInventoryStatus: client.guild.inventory.worker.status.query(),
-		guildInventoryChangeset: client.guild.inventory.worker.changeset.query(),
-		guildInventoryFiles: client.guild.inventory.files.get.query(),
-
 		// Guild Flyer
 		guildFlyerStatus: client.guild.flyer.worker.status.query(),
 		guildFlyerChangeset: client.guild.flyer.worker.changeset.query(),

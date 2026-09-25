@@ -38,7 +38,7 @@ export const sprUnifier = createUnifier<
 >({
 	table: unifiedSpr,
 	confTable: unifiedSprCellConfig,
-	version: 33,
+	version: 34,
 	getRow,
 	transform: (item, t) => {
 		const price = item.sprPriceFileRowContent;
@@ -112,6 +112,7 @@ export const sprUnifier = createUnifier<
 				shouldNotBeNull: true
 			}),
 			status: t('status', price.status ?? null),
+			inventory: t('inventory', price.inventory ?? null),
 			um: t('um', price.um ?? null),
 
 			primaryImage: t(
@@ -207,7 +208,7 @@ export const sprUnifier = createUnifier<
 					).map((r) => r.id);
 					if (bestMatches.length > 0) return bestMatches;
 
-					const skuNoDash = sku ? sku.replace(/[-\/\\]/g, '') : '';
+					const skuNoDash = sku ? sku.replace(/[-/\\]/g, '') : '';
 					const noDashMatches =
 						skuNoDash && skuNoDash !== '' && sku !== skuNoDash
 							? (

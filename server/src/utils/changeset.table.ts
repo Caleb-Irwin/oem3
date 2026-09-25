@@ -2,7 +2,6 @@ import { pgTable, serial, bigint, text, pgEnum, integer } from 'drizzle-orm/pg-c
 import { files } from './files.table';
 import {
 	guildFlyer,
-	guildInventory,
 	sprPriceFile,
 	shopify,
 	uniref,
@@ -19,7 +18,6 @@ import { relations } from 'drizzle-orm';
 export const changesetType = pgEnum('changeset_type', [
 		'qb',
 		'guildData',
-		'guildInventory',
 		'guildFlyer',
 		'shopify',
 		'sprPriceFile',
@@ -34,7 +32,6 @@ export type ChangesetType = (typeof changesetType.enumValues)[number];
 export type ChangesetTable =
 	| typeof qb
 	| typeof guildData
-	| typeof guildInventory
 	| typeof guildFlyer
 	| typeof shopify
 	| typeof sprPriceFile

@@ -20,7 +20,6 @@ export const runProductWorker = runWorker;
 
 hook(() => {
 	updateByTableName('guildData');
-	updateByTableName('guildInventory');
 	updateByTableName('guildFlyer');
 	updateByTableName('sprPriceFile');
 	updateByTableName('sprFlatFile');

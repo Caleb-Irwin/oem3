@@ -39,6 +39,10 @@
 	</div>
 
 	<div class="p-1 flex">
+		<Text namedCell={{ name: 'Inventory', cell: row.cells.inventory }} />
+	</div>
+
+	<div class="p-1 flex">
 		<Text namedCell={{ name: 'Duplicate Of', cell: row.cells.duplicateOf }} />
 	</div>
 

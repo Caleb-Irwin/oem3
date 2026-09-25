@@ -13,7 +13,6 @@ export const load: PageServerLoad = async ({ locals: { client } }) => {
 
 		guildWorker: client.guild.worker.status.query(),
 		guildDataWorker: client.guild.data.worker.status.query(),
-		guildInventoryWorker: client.guild.inventory.worker.status.query(),
 		guildFlyerWorker: client.guild.flyer.worker.status.query(),
 		guildDescWorker: client.guild.desc.worker.status.query(),
 

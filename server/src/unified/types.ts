@@ -2,7 +2,6 @@ import type { db as DB, Tx } from '../db';
 import type {
 	guildData,
 	guildFlyer,
-	guildInventory,
 	qb,
 	shopify,
 	sprFlatFile,
@@ -24,15 +23,8 @@ export const PrimarySourceTableNamesArray = ['unifiedGuild', 'guildData', 'sprPr
 export type PrimarySourceTables = typeof unifiedGuild | typeof guildData | typeof sprPriceFile;
 export const SecondarySourceTableNamesArray = ['unifiedSpr'] as const;
 export type SecondarySourceTables = typeof unifiedSpr;
-export const OtherSourceTableNamesArray = [
-	'guildInventory',
-	'guildFlyer',
-	'sprFlatFile',
-	'qb',
-	'shopify'
-] as const;
-export type OtherSourceTables =
-	typeof guildInventory | typeof guildFlyer | typeof sprFlatFile | typeof qb | typeof shopify;
+export const OtherSourceTableNamesArray = ['guildFlyer', 'sprFlatFile', 'qb', 'shopify'] as const;
+export type OtherSourceTables = typeof guildFlyer | typeof sprFlatFile | typeof qb | typeof shopify;
 
 export type AllSourceTables = PrimarySourceTables | SecondarySourceTables | OtherSourceTables;
 export const AllSourceTableNamesArray = [

@@ -22,7 +22,7 @@ const unifiedProductDataWith = {
 	with: {
 		upd: {
 			with: {
-				u: true as true
+				u: true as const
 			}
 		}
 	}
@@ -31,7 +31,7 @@ const unifiedGuildDataWith = {
 	with: {
 		unifiedGuildData: {
 			with: {
-				uniref: true as true,
+				uniref: true as const,
 				...unifiedProductDataWith.with
 			}
 		}
@@ -41,30 +41,29 @@ const unifiedSprDataWith = {
 	with: {
 		unifiedSprData: {
 			with: {
-				uniref: true as true,
+				uniref: true as const,
 				...unifiedProductDataWith.with
 			}
 		}
 	}
 };
 export const resourceWith = {
-	changesetData: true as true,
+	changesetData: true as const,
 	qbData: unifiedProductDataWith,
 	guildData: unifiedGuildDataWith,
-	guildInventoryData: unifiedGuildDataWith,
 	guildFlyerData: unifiedGuildDataWith,
 	shopifyData: unifiedProductDataWith,
 	sprPriceFileData: unifiedSprDataWith,
 	sprFlatFileData: {
 		with: {
 			...unifiedSprDataWith.with,
-			unifiedSprItems: { columns: { id: true as true, novexco: true as true } }
+			unifiedSprItems: { columns: { id: true as const, novexco: true as const } }
 		}
 	},
 	sprFlatFileFrData: { with: { sprFlatItem: unifiedSprDataWith } },
 	unifiedGuildData: unifiedProductDataWith,
 	unifiedSprData: unifiedProductDataWith,
-	unifiedProductData: true as true
+	unifiedProductData: true as const
 } as const;
 
 export const getResource = async ({
@@ -289,7 +288,7 @@ const unifiedProductDataWithForType = {
 	with: {
 		unifiedProductData: {
 			with: {
-				uniref: true as true
+				uniref: true as const
 			}
 		}
 	}
@@ -298,7 +297,7 @@ const unifiedGuildDataWithForType = {
 	with: {
 		unifiedGuildData: {
 			with: {
-				uniref: true as true,
+				uniref: true as const,
 				...unifiedProductDataWithForType.with
 			}
 		}
@@ -308,7 +307,7 @@ const unifiedSprDataWithForType = {
 	with: {
 		unifiedSprData: {
 			with: {
-				uniref: true as true,
+				uniref: true as const,
 				...unifiedProductDataWithForType.with
 			}
 		}
@@ -318,14 +317,13 @@ const resourceWithForType = {
 	...resourceWith,
 	qbData: unifiedProductDataWithForType,
 	guildData: unifiedGuildDataWithForType,
-	guildInventoryData: unifiedGuildDataWithForType,
 	guildFlyerData: unifiedGuildDataWithForType,
 	shopifyData: unifiedProductDataWithForType,
 	sprPriceFileData: unifiedSprDataWithForType,
 	sprFlatFileData: {
 		with: {
 			...unifiedSprDataWithForType.with,
-			unifiedSprItems: { columns: { id: true as true, novexco: true as true } }
+			unifiedSprItems: { columns: { id: true as const, novexco: true as const } }
 		}
 	},
 	sprFlatFileFrData: { with: { sprFlatItem: unifiedSprDataWithForType } },

@@ -6,7 +6,6 @@ export const UnifiedTableNamesReadable: {
 	unifiedGuild: 'Unified Guild',
 	unifiedSpr: 'Unified Novexco',
 	guildData: 'Guild Data',
-	guildInventory: 'Guild Inventory',
 	guildFlyer: 'Guild Flyer',
 	sprPriceFile: 'Novexco Price File',
 	sprFlatFile: 'Novexco Flat File',

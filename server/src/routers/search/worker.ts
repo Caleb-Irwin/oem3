@@ -6,7 +6,6 @@ import { search } from './table';
 import {
 	guildData,
 	guildFlyer,
-	guildInventory,
 	qb,
 	shopify,
 	sprFlatFile,
@@ -37,7 +36,6 @@ work({
 				{
 					qb: db.query.qb,
 					guildData: db.query.guildData,
-					guildInventory: db.query.guildInventory,
 					guildFlyer: db.query.guildFlyer,
 					shopify: db.query.shopify,
 					sprPriceFile: db.query.sprPriceFile,
@@ -90,14 +88,6 @@ work({
 				otherInfo: `${item.shortDesc} ${item.longDesc} ${getSubStrings(
 					item.gid
 				)} ${getSubStrings(item.upc ?? '')}`
-			};
-		});
-		await updateSearchIndex(guildInventory, (item) => {
-			return {
-				keyInfo: `${item.gid} ${item.upc ?? ''} ${item.basics ?? ''} ${
-					item.cis ?? ''
-				} ${item.spr ?? ''}`,
-				otherInfo: `${getSubStrings(item.gid)} ${getSubStrings(item.upc ?? '')}`
 			};
 		});
 		await updateSearchIndex(guildFlyer, (item) => {

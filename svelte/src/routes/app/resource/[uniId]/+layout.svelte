@@ -27,7 +27,6 @@
 	const idTextToName: Record<string, string> = {
 		QB: 'QuickBooks',
 		GuildData: 'Guild Data',
-		GuildInventory: 'Guild Inventory',
 		GuildFlyer: 'Guild Flyer',
 		Shopify: 'Shopify',
 		NovexcoPriceFile: 'Novexco Price',
