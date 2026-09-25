@@ -1,0 +1,1 @@
+ALTER TABLE "shopifyMetadata" ADD COLUMN "last_error" text;

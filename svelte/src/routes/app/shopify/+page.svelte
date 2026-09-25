@@ -63,6 +63,13 @@
 				<div class="card flex flex-col mt-2 p-4 gap-2">
 					<h5 class="h4 font-semibold">Utilities</h5>
 					<Button
+						class="btn variant-ghost-warning"
+						action={client.shopify.pushSync.resetFailedUploads}
+						confirm="Retry all failed products on the next push, including ones that have failed 3 or more times?"
+						successMessage="Failed products will be retried on the next push."
+						>Retry Failed Products</Button
+					>
+					<Button
 						class="btn variant-ghost-error"
 						action={client.shopify.pushSync.archiveAllUnmatchedProducts}
 						confirm="Are you sure you want to archive ALL unmatched products? This action cannot be undone. Admin access is required."

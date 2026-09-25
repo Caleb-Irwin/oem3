@@ -6,6 +6,7 @@ import {
 	serial,
 	bigint,
 	uniqueIndex,
+	text,
 	varchar
 } from 'drizzle-orm/pg-core';
 import { unifiedProduct } from '../../product/table';
@@ -29,7 +30,9 @@ export const shopifyMetadata = pgTable(
 		lastUpdated: bigint('lastUpdated', { mode: 'number' }).notNull(),
 		status: shopifyUploadStatusEnum('status').notNull(),
 		failureCount: integer('failure_count').notNull().default(0),
-		lastUploadedHash: varchar('last_uploaded_hash', { length: 128 })
+		lastUploadedHash: varchar('last_uploaded_hash', { length: 128 }),
+		// JSON array of the userErrors from the last failed upload
+		lastError: text('last_error')
 	},
 	(table) => [
 		uniqueIndex('shopify_metadata_product_id_idx').on(table.productId),

@@ -1009,6 +1009,13 @@
       "when": 1790296924832,
       "tag": "0143_novexco_inventory",
       "breakpoints": true
+    },
+    {
+      "idx": 144,
+      "version": "7",
+      "when": 1790306931590,
+      "tag": "0144_shopify_upload_last_error",
+      "breakpoints": true
     }
   ]
 }
