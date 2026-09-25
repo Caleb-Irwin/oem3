@@ -94,7 +94,7 @@ export function sprSellPriceCents(
 export function costsMatch(
 	guildCostCents: number | null | undefined,
 	novexcoCostCents: number | null | undefined,
-	tolerance = 0.25
+	tolerance = 0.35
 ): boolean {
 	if (!guildCostCents || !novexcoCostCents || guildCostCents < 0 || novexcoCostCents < 0)
 		return false;

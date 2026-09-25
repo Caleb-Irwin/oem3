@@ -6,7 +6,7 @@ import { sprCategoryEnum, type SprCategoryEnum } from './table';
 import { sprPriceFile, sprPriceStatusEnum, sprPriceUmEnum } from './priceFile/table';
 import { sprFlatFile } from './flatFile/table';
 import { decode } from 'he';
-import { etilizeTitle } from './etilizeTitle';
+import { etilizeTitle, packSizeAgrees, type PackSize } from './etilizeTitle';
 
 const getRow = async (id: number, db: typeof DB | Tx) => {
 	const res = await db.query.unifiedSpr
@@ -39,7 +39,7 @@ export const sprUnifier = createUnifier<
 >({
 	table: unifiedSpr,
 	confTable: unifiedSprCellConfig,
-	version: 35,
+	version: 37,
 	getRow,
 	transform: (item, t) => {
 		const price = item.sprPriceFileRowContent;
@@ -54,8 +54,10 @@ export const sprUnifier = createUnifier<
 
 		const desc = buildDescription(flat);
 		const descFr = buildDescription(fr);
-		const title = etilizeTitle(flat?.mainTitle, flat?.subTitle) ?? price.description;
-		const titleFr = etilizeTitle(fr?.mainTitle, fr?.subTitle) ?? price.descriptionFr;
+		const packAgrees = (packSize: PackSize) =>
+			packSizeAgrees(packSize, price.um, price.unitsPerPack);
+		const title = etilizeTitle(flat?.mainTitle, flat?.subTitle, packAgrees) ?? price.description;
+		const titleFr = etilizeTitle(fr?.mainTitle, fr?.subTitle, packAgrees) ?? price.descriptionFr;
 
 		return {
 			id: t('id', item.id),

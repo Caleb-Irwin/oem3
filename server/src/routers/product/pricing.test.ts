@@ -54,10 +54,10 @@ describe('suggestQuickBooksConversion', () => {
 });
 
 describe('costsMatch', () => {
-	test('matches costs within 25% either way', () => {
-		expect(costsMatch(1000, 1250)).toBe(true);
-		expect(costsMatch(1250, 1000)).toBe(true);
-		expect(costsMatch(1000, 1251)).toBe(false);
+	test('matches costs within 35% either way', () => {
+		expect(costsMatch(1000, 1350)).toBe(true);
+		expect(costsMatch(1350, 1000)).toBe(true);
+		expect(costsMatch(1000, 1351)).toBe(false);
 	});
 
 	test('does not match a different pack size', () => {

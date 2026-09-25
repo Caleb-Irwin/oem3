@@ -14,6 +14,8 @@ import {
 	productUmEnum
 } from '../../db.schema';
 import { costsMatch, quickBooksTargetPriceCents } from './pricing';
+import { fixAllCapsTitle } from './titleCase';
+import { withoutPackSize } from '../spr/etilizeTitle';
 
 const getRow = async (id: number, db: typeof DB | Tx) => {
 	const res = await db.query.unifiedProduct
@@ -44,7 +46,7 @@ export const productUnifier = createUnifier<
 >({
 	table: unifiedProduct,
 	confTable: unifiedProductCellConfig,
-	version: 26,
+	version: 27,
 	getRow,
 	transform: (
 		item,
@@ -101,7 +103,14 @@ export const productUnifier = createUnifier<
 			!!spr?.title &&
 			spr.sprFlatFileRow !== null &&
 			costsMatch(guild.costCents, spr.dealerNetPriceCents);
-		const title = (sameItemAsGuild ? spr?.title : null) ?? guild?.title ?? spr?.title ?? item.title;
+		// Guild's price may be for a different pack than Novexco's, so leave out Novexco's pack size
+		const sprTitle =
+			spr?.title && sameItemAsGuild && guild.priceCents !== null
+				? withoutPackSize(spr.title)
+				: spr?.title;
+		const title =
+			fixAllCapsTitle((sameItemAsGuild ? sprTitle : null) ?? guild?.title ?? sprTitle ?? null) ??
+			item.title;
 		const sprAvailable = spr?.status ? spr.status === 'Active' : false;
 
 		const otherProductIDs = `<br><p><span>Product Numbers:</span> ${Array.from(new Set([guild?.gid, guild?.upc, guild?.cis, guild?.basics, guild?.spr, spr?.cws, spr?.upc].filter(Boolean).map((val) => val!.toUpperCase().trim()))).join(' ')}</p>`;
