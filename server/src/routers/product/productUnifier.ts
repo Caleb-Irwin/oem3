@@ -13,7 +13,7 @@ import {
 	productStatusEnum,
 	productUmEnum
 } from '../../db.schema';
-import { quickBooksTargetPriceCents } from './pricing';
+import { costsMatch, quickBooksTargetPriceCents } from './pricing';
 
 const getRow = async (id: number, db: typeof DB | Tx) => {
 	const res = await db.query.unifiedProduct
@@ -44,7 +44,7 @@ export const productUnifier = createUnifier<
 >({
 	table: unifiedProduct,
 	confTable: unifiedProductCellConfig,
-	version: 25,
+	version: 26,
 	getRow,
 	transform: (
 		item,
@@ -91,7 +91,17 @@ export const productUnifier = createUnifier<
 
 		const isDiscontinued =
 			((guild?.deleted ?? true) && (spr?.deleted ?? true)) || spr?.status === 'Discontinued';
-		const category = mapCategory(guild?.category, spr?.category) ?? item.category;
+		const category = mapCategory(spr?.category, guild?.category) ?? item.category;
+
+		// Novexco's Etilize titles name the brand, colour and size, so prefer them when the Novexco
+		// item is surely the same item in the same unit as Guild's. Without Etilize content Novexco
+		// only has an abbreviated title.
+		const sameItemAsGuild =
+			!!guild &&
+			!!spr?.title &&
+			spr.sprFlatFileRow !== null &&
+			costsMatch(guild.costCents, spr.dealerNetPriceCents);
+		const title = (sameItemAsGuild ? spr?.title : null) ?? guild?.title ?? spr?.title ?? item.title;
 		const sprAvailable = spr?.status ? spr.status === 'Active' : false;
 
 		const otherProductIDs = `<br><p><span>Product Numbers:</span> ${Array.from(new Set([guild?.gid, guild?.upc, guild?.cis, guild?.basics, guild?.spr, spr?.cws, spr?.upc].filter(Boolean).map((val) => val!.toUpperCase().trim()))).join(' ')}</p>`;
@@ -148,7 +158,7 @@ export const productUnifier = createUnifier<
 			cis: t('cis', guild?.cis ?? null),
 			etilizeId: t('etilizeId', spr?.etilizeId ?? null),
 
-			title: t('title', guild?.title ?? spr?.title ?? item.title),
+			title: t('title', title),
 			description: t('description', description),
 			category: t('category', category),
 			inFlyer: t('inFlyer', guild?.inFlyer ?? false),
@@ -736,10 +746,10 @@ async function getProductByNovexco(
 }
 
 function mapCategory(
-	guildCategory: string | null | undefined,
-	sprCategory: string | null | undefined
+	sprCategory: string | null | undefined,
+	guildCategory: string | null | undefined
 ): 'office' | 'technologyInk' | 'furniture' | 'cleaningBreakRoom' | null {
-	const category = guildCategory ?? sprCategory;
+	const category = sprCategory ?? guildCategory;
 
 	if (!category) return null;
 

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { quickBooksTargetPriceCents, suggestQuickBooksConversion } from './pricing';
+import { costsMatch, quickBooksTargetPriceCents, suggestQuickBooksConversion } from './pricing';
 
 describe('quickBooksTargetPriceCents', () => {
 	test('converts source prices in either direction', () => {
@@ -50,5 +50,22 @@ describe('suggestQuickBooksConversion', () => {
 			packCount: null,
 			factor: 1
 		});
+	});
+});
+
+describe('costsMatch', () => {
+	test('matches costs within 25% either way', () => {
+		expect(costsMatch(1000, 1250)).toBe(true);
+		expect(costsMatch(1250, 1000)).toBe(true);
+		expect(costsMatch(1000, 1251)).toBe(false);
+	});
+
+	test('does not match a different pack size', () => {
+		expect(costsMatch(145, 1635)).toBe(false);
+	});
+
+	test('does not match without both costs', () => {
+		expect(costsMatch(null, 1000)).toBe(false);
+		expect(costsMatch(1000, 0)).toBe(false);
 	});
 });

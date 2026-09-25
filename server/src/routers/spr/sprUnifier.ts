@@ -6,6 +6,7 @@ import { sprCategoryEnum, type SprCategoryEnum } from './table';
 import { sprPriceFile, sprPriceStatusEnum, sprPriceUmEnum } from './priceFile/table';
 import { sprFlatFile } from './flatFile/table';
 import { decode } from 'he';
+import { etilizeTitle } from './etilizeTitle';
 
 const getRow = async (id: number, db: typeof DB | Tx) => {
 	const res = await db.query.unifiedSpr
@@ -38,7 +39,7 @@ export const sprUnifier = createUnifier<
 >({
 	table: unifiedSpr,
 	confTable: unifiedSprCellConfig,
-	version: 34,
+	version: 35,
 	getRow,
 	transform: (item, t) => {
 		const price = item.sprPriceFileRowContent;
@@ -53,7 +54,8 @@ export const sprUnifier = createUnifier<
 
 		const desc = buildDescription(flat);
 		const descFr = buildDescription(fr);
-		const titleFr = fr?.mainTitle ?? price.descriptionFr;
+		const title = etilizeTitle(flat?.mainTitle, flat?.subTitle) ?? price.description;
+		const titleFr = etilizeTitle(fr?.mainTitle, fr?.subTitle) ?? price.descriptionFr;
 
 		return {
 			id: t('id', item.id),
@@ -85,12 +87,7 @@ export const sprUnifier = createUnifier<
 			duplicateCodes: t('duplicateCodes', price.duplicateCodes ?? null),
 
 			shortTitle: t('shortTitle', price.description ?? null),
-			title: t(
-				'title',
-				(flat?.mainTitle ?? price.description)
-					? decode((flat?.mainTitle ?? price.description) as string)
-					: null
-			),
+			title: t('title', title ? decode(title) : null),
 			description: t('description', desc),
 			shortTitleFr: t('shortTitleFr', price.descriptionFr ?? null),
 			titleFr: t('titleFr', titleFr ? decode(titleFr) : null),

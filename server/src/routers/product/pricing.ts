@@ -85,3 +85,21 @@ export function sprSellPriceCents(
 	}
 	return netPriceCents ?? null;
 }
+
+/**
+ * Whether Guild's and Novexco's wholesale costs are close enough that both sell the same item in
+ * the same unit. A different pack size (a box of 12 against each) shows up as a far bigger gap,
+ * and costs compare better than retail prices, which carry Guild's varying markups.
+ */
+export function costsMatch(
+	guildCostCents: number | null | undefined,
+	novexcoCostCents: number | null | undefined,
+	tolerance = 0.25
+): boolean {
+	if (!guildCostCents || !novexcoCostCents || guildCostCents < 0 || novexcoCostCents < 0)
+		return false;
+	return (
+		Math.max(guildCostCents, novexcoCostCents) / Math.min(guildCostCents, novexcoCostCents) <=
+		1 + tolerance
+	);
+}
