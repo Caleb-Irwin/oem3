@@ -3,6 +3,7 @@ import type { ImageMap, Product, Shopify, ShopifyMedia, ShopifyProductTypes } fr
 import { ProductStatus, ProductVariantInventoryPolicy, WeightUnit } from './types';
 import { SHOPIFY_LOCATION_ID_STORE, SHOPIFY_LOCATION_ID_WAREHOUSE } from '../../../env';
 import { getAccessURLByFilePath } from '../../../utils/images';
+import { shopifyListingStatus, shopifyListingTags } from './listingEligibility';
 
 /**
  * Converts a partial Shopify product object to ProductSetInput format
@@ -50,13 +51,8 @@ export function convertToProductSetInput(
 	}
 
 	// Status
-	if (product.status !== undefined) {
-		if (product.status === 'ACTIVE' || product.status === 'DISCONTINUED') {
-			input.status = ProductStatus.Active;
-		} else if (product.status === 'DISABLED') {
-			input.status = ProductStatus.Archived;
-		}
-	}
+	const status = shopifyListingStatus(product.status, shopifyData?.status);
+	if (status) input.status = status === 'ACTIVE' ? ProductStatus.Active : ProductStatus.Archived;
 
 	// Vendor
 	if (product.vendor) {
@@ -75,24 +71,7 @@ export function convertToProductSetInput(
 	}
 
 	// Tags
-	try {
-		const existingTags = JSON.parse(shopifyData?.tagsJsonArr ?? '[]');
-		if (Array.isArray(existingTags)) {
-			if (product.inFlyer && !existingTags.includes('Flyer')) {
-				existingTags.push('Flyer');
-				input.tags = existingTags satisfies string[];
-			} else if (!product.inFlyer && existingTags.includes('Flyer')) {
-				input.tags = existingTags.filter((tag) => tag !== 'Flyer') satisfies string[];
-			}
-			if (!existingTags.includes('OEM3')) {
-				existingTags.push('OEM3');
-			}
-			input.tags = existingTags;
-		}
-	} catch {
-		// Invalid JSON
-		input.tags = ['OEM3'];
-	}
+	input.tags = shopifyListingTags(shopifyData?.tagsJsonArr, product.inFlyer);
 
 	// Images
 	input.files = getFiles(product, options);

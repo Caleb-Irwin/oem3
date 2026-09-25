@@ -1,5 +1,9 @@
 import { describe, expect, test } from 'bun:test';
-import { newListingHoldReason } from './listingEligibility';
+import {
+	newListingHoldReason,
+	shopifyListingStatus,
+	shopifyListingTags
+} from './listingEligibility';
 
 const base = {
 	deleted: false,
@@ -23,5 +27,37 @@ describe('newListingHoldReason', () => {
 		expect(newListingHoldReason({ ...base, newListingHold: 'noEtilizeContent' })).toBe(
 			'noEtilizeContent'
 		);
+	});
+});
+
+describe('shopifyListingStatus', () => {
+	test('lists active products and archives disabled ones', () => {
+		expect(shopifyListingStatus('ACTIVE', 'ARCHIVED')).toBe('ACTIVE');
+		expect(shopifyListingStatus('DISABLED', 'ACTIVE')).toBe('ARCHIVED');
+	});
+
+	test('keeps discontinued products listed but does not unarchive them', () => {
+		expect(shopifyListingStatus('DISCONTINUED', 'ACTIVE')).toBe('ACTIVE');
+		expect(shopifyListingStatus('DISCONTINUED', undefined)).toBe('ACTIVE');
+		expect(shopifyListingStatus('DISCONTINUED', 'ARCHIVED')).toBe('ARCHIVED');
+	});
+
+	test('leaves the status alone when the product has none', () => {
+		expect(shopifyListingStatus(null, 'ACTIVE')).toBeUndefined();
+	});
+});
+
+describe('shopifyListingTags', () => {
+	test('always tags the listing as OEM3', () => {
+		expect(shopifyListingTags(null, false)).toEqual(['OEM3']);
+		expect(shopifyListingTags('[]', false)).toEqual(['OEM3']);
+		expect(shopifyListingTags('not json', false)).toEqual(['OEM3']);
+		expect(shopifyListingTags('["Sale"]', false)).toEqual(['Sale', 'OEM3']);
+	});
+
+	test('adds and removes the Flyer tag', () => {
+		expect(shopifyListingTags('["OEM3"]', true)).toEqual(['OEM3', 'Flyer']);
+		expect(shopifyListingTags('["Flyer","OEM3"]', true)).toEqual(['Flyer', 'OEM3']);
+		expect(shopifyListingTags('["Flyer","OEM3"]', false)).toEqual(['OEM3']);
 	});
 });

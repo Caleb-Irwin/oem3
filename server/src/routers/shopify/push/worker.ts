@@ -145,7 +145,8 @@ function prepareUploads(
 
 		const meta = u.product.shopifyMetadata;
 		if (!meta) {
-			if (u.product.deleted || u.product.status === 'DISABLED') return false;
+			// New listings are already filtered above; existing ones are pushed so they are tagged
+			// and archived
 			return true;
 		} else if (!u.product.shopifyRowContent && meta.status === 'UPLOADED') {
 			return false;
