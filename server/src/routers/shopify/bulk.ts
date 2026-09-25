@@ -200,6 +200,8 @@ export async function createBulkMutation(mutation: string, stagedUploadPath: str
 	return response.data.bulkOperationRunMutation.bulkOperation;
 }
 
+const MAX_FAILED_POLLS = 5;
+
 /**
  * Poll a bulk operation until it completes
  *
@@ -217,7 +219,8 @@ export async function pollBulkOperation(
 ): Promise<BulkOperationResult> {
 	const { client } = shopifyConnect();
 	const startTime = Date.now();
-	let iterations = 0;
+	let iterations = 0,
+		failedPolls = 0;
 
 	while (true) {
 		const elapsed = Date.now() - startTime;
@@ -230,9 +233,20 @@ export async function pollBulkOperation(
 			});
 		}
 
-		const response = await client.request<PollCurrentBulkOperationQuery>(pollBulkOperationQuery, {
-			variables: { type: type.toUpperCase() }
-		});
+		// The operation keeps running on Shopify if a status check fails, so keep polling through a
+		// few failed checks instead of giving up on it.
+		let response;
+		try {
+			response = await client.request<PollCurrentBulkOperationQuery>(pollBulkOperationQuery, {
+				variables: { type: type.toUpperCase() }
+			});
+			failedPolls = 0;
+		} catch (e) {
+			if (++failedPolls > MAX_FAILED_POLLS) throw e;
+			console.warn(`Bulk operation status check failed (${failedPolls}/${MAX_FAILED_POLLS}):`, e);
+			await new Promise((resolve) => setTimeout(resolve, 5000 * failedPolls));
+			continue;
+		}
 
 		const operation = response.data?.currentBulkOperation;
 

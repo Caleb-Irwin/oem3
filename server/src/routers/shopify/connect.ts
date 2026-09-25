@@ -36,11 +36,19 @@ export function shopifyConnect() {
 		isOnline: false // must have a boolean value, will be ignored
 	});
 
-	const getShopifyGQlClient = () =>
-		new shopify.clients.Graphql({
+	const getShopifyGQlClient = () => {
+		const graphqlClient = new shopify.clients.Graphql({
 			session,
 			apiVersion: ApiVersion.July24
 		});
+		// Retry throttled (429) and unavailable (503) responses by default; 3 is the client's maximum
+		const request = ((...[operation, options]: Parameters<typeof graphqlClient.request>) =>
+			graphqlClient.request(operation, {
+				retries: 3,
+				...options
+			})) as typeof graphqlClient.request;
+		return { request };
+	};
 
 	const client = getShopifyGQlClient();
 
