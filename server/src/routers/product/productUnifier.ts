@@ -44,7 +44,7 @@ export const productUnifier = createUnifier<
 >({
 	table: unifiedProduct,
 	confTable: unifiedProductCellConfig,
-	version: 24,
+	version: 25,
 	getRow,
 	transform: (
 		item,
@@ -206,7 +206,8 @@ export const productUnifier = createUnifier<
 					!item.deleted &&
 					item.status !== 'DISABLED' &&
 					// (item.category !== 'furniture' || (!!item.weightGrams && item.weightGrams < 30000)) && // Allow all furniture
-					((item.localInventory ?? 0) > 0 || sprAvailable || (guild?.deleted ?? true) === false),
+					// Guild can't supply items directly, so only store stock or Novexco make them orderable
+					((item.localInventory ?? 0) > 0 || sprAvailable),
 				{
 					dependsOn: new Set(['status', 'deleted', 'category', 'weightGrams', 'localInventory'])
 				}
