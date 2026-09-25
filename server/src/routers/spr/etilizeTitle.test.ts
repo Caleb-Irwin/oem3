@@ -31,6 +31,16 @@ describe('etilizeTitle', () => {
 		);
 	});
 
+	test('skips spec segments the main title already has', () => {
+		expect(etilizeTitle('Duracell Coppertop AA Batteries', 'AA - 1.5 V DC - Red')).toBe(
+			'Duracell Coppertop AA Batteries - 1.5 V DC - Red'
+		);
+		expect(etilizeTitle('Crownhill Cushioned Mailers #4', '#4 - Golden')).toBe(
+			'Crownhill Cushioned Mailers #4 - Golden'
+		);
+		expect(etilizeTitle('Redwood Pen', 'Red')).toBe('Redwood Pen - Red');
+	});
+
 	test('uses the main title alone without a subtitle', () => {
 		expect(etilizeTitle('Quartet Marker Board', null)).toBe('Quartet Marker Board');
 		expect(etilizeTitle('Quartet Marker Board', '')).toBe('Quartet Marker Board');

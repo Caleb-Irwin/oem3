@@ -46,7 +46,7 @@ export const productUnifier = createUnifier<
 >({
 	table: unifiedProduct,
 	confTable: unifiedProductCellConfig,
-	version: 27,
+	version: 28,
 	getRow,
 	transform: (
 		item,

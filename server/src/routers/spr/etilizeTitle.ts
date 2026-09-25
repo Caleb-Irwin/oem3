@@ -34,6 +34,12 @@ export function packSizeAgrees(
 	return count === unitsPerPack;
 }
 
+/** Whether text has the phrase as whole words, ignoring case */
+function containsWords(text: string, phrase: string): boolean {
+	const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	return new RegExp(`(?<![\\p{L}\\d])${escaped}(?![\\p{L}\\d])`, 'iu').test(text);
+}
+
 /**
  * Etilize splits a title into a main title ("Prang Washable Paint") and a subtitle of specs
  * ("Red - 16 oz (453.59 g) - 1 Each"). The main title alone can't tell variants apart, so combine
@@ -64,8 +70,9 @@ export function etilizeTitle(
 	const seen = new Set<string>();
 	for (const segment of (subTitle ?? '').split(' - ')) {
 		const trimmed = segment.trim();
-		// Etilize repeats specs, as in "Black - Laser - 60000 Pages - Black"
-		if (!trimmed || seen.has(trimmed.toLowerCase())) continue;
+		// Etilize repeats specs, as in "Black - Laser - 60000 Pages - Black", or repeats the main
+		// title, as in "Duracell Coppertop Alkaline AA Batteries - AA"
+		if (!trimmed || seen.has(trimmed.toLowerCase()) || containsWords(main, trimmed)) continue;
 		seen.add(trimmed.toLowerCase());
 		if (unwanted(trimmed)) continue;
 		const next = `${title} - ${trimmed}`;
