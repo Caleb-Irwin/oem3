@@ -14,7 +14,9 @@ const connect = async (depth = 0): Promise<ReturnType<typeof postgres>> => {
 			// can each open this many, which must stay under Postgres max_connections (default 100).
 			max: DB_POOL_MAX,
 			onnotice: (e) => {
-				if (e['code'] === '42P06' || e['code'] === '42P07') return;
+				// 42622: Drizzle names nested joins by their relation path; long paths get truncated
+				// consistently, so the query still works
+				if (e['code'] === '42P06' || e['code'] === '42P07' || e['code'] === '42622') return;
 				console.warn(e);
 			}
 		});
