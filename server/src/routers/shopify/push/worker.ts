@@ -16,6 +16,7 @@ import { KV } from '../../../utils/kv';
 import { unifiedProduct } from '../../product/table';
 import type { ProductPushMutation } from '../../../../types/admin.generated';
 import type { ProductSetInput } from '../../../../types/admin.types';
+import { archiveUnmatchedListings } from './archiveUnmatched';
 import {
 	isFilesError,
 	matchNewMedia,
@@ -138,6 +139,8 @@ work({
 		}
 
 		progress(-1);
+
+		await archiveUnmatchedListings();
 	}
 });
 

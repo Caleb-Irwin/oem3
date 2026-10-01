@@ -58,11 +58,7 @@ export const unifiedRouter = router({
 		)
 		.mutation(async ({ input: { refId, table } }) => {
 			const unifier = UnifierMap[table].unifier;
-			await unifier._updateRow({
-				id: refId,
-				db: db,
-				onUpdateCallback: unifiedOnUpdateCallback
-			});
+			await unifier.updateRow(refId, unifiedOnUpdateCallback);
 		}),
 	updateSetting: generalProcedure
 		.input(

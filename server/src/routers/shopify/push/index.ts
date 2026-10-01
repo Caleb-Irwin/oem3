@@ -1,7 +1,6 @@
 import { adminProcedure, router } from '../../../trpc';
 import { managedWorker } from '../../../utils/managedWorker';
 import { activateAllInventoryLocations } from './activateInventoryLocations';
-import { archiveUnmatchedProducts } from './archiveUnmatched';
 import { db } from '../../../db';
 import { shopifyMetadata } from './shopifyMetadata.table';
 import { and, eq, gt } from 'drizzle-orm';
@@ -19,9 +18,6 @@ export const shopifyPushHook = hook;
 
 export const shopifyPushRouter = router({
 	worker,
-	archiveAllUnmatchedProducts: adminProcedure.mutation(async () => {
-		await archiveUnmatchedProducts();
-	}),
 	resetFailedUploads: adminProcedure.mutation(async () => {
 		// Failing products are retried once they change; this retries all of them on the next push
 		await db

@@ -1,6 +1,6 @@
 import { uniref } from '../db.schema';
 import { db, db as DB, type Tx } from '../db';
-import { eq, isNull, type SQLWrapper, gt, or, and } from 'drizzle-orm';
+import { eq, isNull, type SQLWrapper, gt, or, and, sql } from 'drizzle-orm';
 import { getTableConfig } from 'drizzle-orm/pg-core';
 import { chunk } from '../utils/chunk';
 import {
@@ -25,6 +25,7 @@ import type {
 import { VerifyCellValue } from './cellVerification';
 import type { PrimarySecondaryTableConnection } from './types';
 import { ConnectionManager } from './connections';
+import { holdMatchingLock } from './matchingLock';
 
 // Each in-flight row update holds one pooled connection for its transaction (see DB_POOL_MAX)
 const ROW_UPDATE_CONCURRENCY = 12;
@@ -82,6 +83,8 @@ export function createUnifier<
 		nestedMode?: boolean;
 		removeAutoMatch?: boolean;
 	}) {
+		// Nested updates run inside a top-level one, which already holds it
+		if (!nestedMode) await holdMatchingLock(db, unifiedTableName);
 		const originalRow = await getRow(id, db);
 		let updatedRow = structuredClone(originalRow);
 		const cellConfigurator = await createCellConfigurator({
@@ -241,6 +244,14 @@ export function createUnifier<
 		if (progress) progress(1);
 	}
 
+	/** The newest change to a source table, or null if it is empty */
+	async function latestSourceUpdate(connection: AnyConnection) {
+		const [res] = await DB.select({
+			latest: sql<string | null>`max(${connection.table.lastUpdated})`
+		}).from(connection.table as any);
+		return res?.latest == null ? null : Number(res.latest);
+	}
+
 	async function updateUnifiedTable({
 		updateAll = false,
 		progress,
@@ -261,6 +272,14 @@ export function createUnifier<
 		if (parseInt((await initKV.get('version')) ?? '-1') < version) {
 			updateAll = true;
 		}
+		// Lets readers tell whether a run is in progress; runFinished is set to the same value. Waits
+		// while matching is paused, so a reader holding the lock sees either no run or this one.
+		const runStarted = newLastUpdated;
+		await DB.transaction(async (tx) => {
+			await holdMatchingLock(tx, unifiedTableName);
+			await new KV('unifier/' + unifiedTableName, tx).set('runStarted', runStarted.toString());
+		});
+		const rematchedSources: string[] = [];
 
 		// 0. Delete orphaned unified rows
 		if (connections.secondaryTable) {
@@ -301,6 +320,11 @@ export function createUnifier<
 
 		// 2. Determine which rows need to be updated
 		if (updateAll) {
+			for (const sourceTable of allConnections) {
+				const latest = await latestSourceUpdate(sourceTable);
+				if (latest !== null) lastUpdatedBySource[sourceTable.refCol as string] = latest;
+				rematchedSources.push(sourceTable.refCol as string);
+			}
 			const allRows = await db
 				.select({ id: table.id })
 				.from(table as UnifiedTables)
@@ -309,6 +333,11 @@ export function createUnifier<
 		} else {
 			for (const sourceTable of allConnections) {
 				const lastUpdated = lastUpdatedBySource[sourceTable.refCol as string] ?? 0;
+				// Any change to the source can make new connections, including changes to rows that
+				// are not connected to anything yet
+				const latest = await latestSourceUpdate(sourceTable);
+				if (latest === null || latest <= lastUpdated) continue;
+				// Includes every row without a connection to this source
 				const rows = await db
 					.select({ id: table.id, lastUpdated: sourceTable.table.lastUpdated })
 					.from(table as UnifiedTables)
@@ -322,13 +351,9 @@ export function createUnifier<
 							gt(sourceTable.table.lastUpdated, lastUpdated)
 						)
 					);
-				lastUpdatedBySource[sourceTable.refCol as string] = rows.reduce(
-					(prev, curr) => (curr.lastUpdated && prev < curr.lastUpdated ? curr.lastUpdated : prev),
-					lastUpdated
-				);
-				if (lastUpdatedBySource[sourceTable.refCol as string] > lastUpdated)
-					// If no rows are updated, there will also be no new connections
-					rows.forEach((r) => rowsToUpdate.add(r.id!));
+				rows.forEach((r) => rowsToUpdate.add(r.id!));
+				lastUpdatedBySource[sourceTable.refCol as string] = latest;
+				rematchedSources.push(sourceTable.refCol as string);
 			}
 		}
 
@@ -360,14 +385,30 @@ export function createUnifier<
 				const kv = new KV('unifier/' + unifiedTableName, db);
 				const lastUpdatedNew = JSON.parse((await kv.get('lastUpdatedBySource')) ?? '{}');
 				const newLastUpdated: { [key: string]: number } = {};
+				const invalidatedDuringRun = new Set<string>();
 				for (const k of Object.keys(lastUpdatedBySource)) {
-					newLastUpdated[k] =
-						lastUpdatedNew[k] && lastUpdatedNew[k] < (originalLastUpdatedBySource[k] ?? 2)
-							? lastUpdatedNew[k]
-							: lastUpdatedBySource[k];
+					// recordMatchesInvalidatedByRefCol lowers the value (to 0 or below) during the run
+					if (
+						typeof lastUpdatedNew[k] === 'number' &&
+						lastUpdatedNew[k] < (originalLastUpdatedBySource[k] ?? 2)
+					) {
+						newLastUpdated[k] = lastUpdatedNew[k];
+						invalidatedDuringRun.add(k);
+					} else {
+						newLastUpdated[k] = lastUpdatedBySource[k];
+					}
 				}
 				await kv.set('lastUpdatedBySource', JSON.stringify(newLastUpdated));
 				await kv.set('version', version.toString());
+
+				const unconnectedMatchedAt = JSON.parse((await kv.get('unconnectedMatchedAt')) ?? '{}');
+				// Every row without a connection to these sources was matched against them after
+				// runStarted, unless their matches were invalidated during the run
+				for (const refCol of rematchedSources) {
+					if (!invalidatedDuringRun.has(refCol)) unconnectedMatchedAt[refCol] = runStarted;
+				}
+				await kv.set('unconnectedMatchedAt', JSON.stringify(unconnectedMatchedAt));
+				await kv.set('runFinished', runStarted.toString());
 			},
 			10,
 			'serializable'
@@ -388,12 +429,36 @@ export function createUnifier<
 		);
 	}
 
+	/**
+	 * Makes the next run match every row without a connection to this source, even if the source
+	 * has not changed. Unlike recordMatchesInvalidatedByRefCol, connected rows are not rematched.
+	 */
+	async function requestUnconnectedRematch(refCol: string) {
+		const connection = allConnections.find((c) => c.refCol === refCol);
+		if (!connection) throw new Error(`${unifiedTableName} has no connection ${refCol}`);
+		const latest = await latestSourceUpdate(connection);
+		if (latest === null) return;
+		await retryableTransaction(
+			async (db) => {
+				const kv = new KV('unifier/' + unifiedTableName, db);
+				const lastUpdatedBySource = JSON.parse((await kv.get('lastUpdatedBySource')) ?? '{}');
+				// Just below the newest source row, so only rows connected to that one are rematched too
+				if ((lastUpdatedBySource[refCol] ?? 0) < latest) return;
+				lastUpdatedBySource[refCol] = latest - 1;
+				await kv.set('lastUpdatedBySource', JSON.stringify(lastUpdatedBySource));
+			},
+			10,
+			'serializable'
+		);
+	}
+
 	return {
 		updateUnifiedTable,
 		updateRow,
 		_updateRow,
 		verifyCellValue,
 		recordMatchesInvalidatedByRefCol,
+		requestUnconnectedRematch,
 		conf
 	};
 }

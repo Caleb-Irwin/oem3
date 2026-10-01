@@ -1,72 +1,104 @@
-import { eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull, ne } from 'drizzle-orm';
 import { db } from '../../../db';
+import { KV } from '../../../utils/kv';
 import { unifiedProduct } from '../../product/table';
 import { shopify } from '../table';
 import { executeBulkMutation } from '../bulk';
-import { TRPCError } from '@trpc/server';
+import { shopifyMetadata } from './shopifyMetadata.table';
+import { isOem3Listing, listingsToArchive } from './listingEligibility';
+import type { ProductSetInput } from '../../../../types/admin.types';
+import { ProductStatus } from './types';
+import { whileMatchingPaused } from '../../../unified/matchingLock';
+import { productUnifier } from '../../product/productUnifier';
 
-export async function archiveUnmatchedProducts() {
-	await db.transaction(async (tx) => {
-		const res = await tx
-			.select()
+/**
+ * Archives OEM3 listings whose product no longer exists, e.g. after the unifier deletes it.
+ * Listings without the OEM3 tag were not created by OEM3 and are left alone. See
+ * listingsToArchive for how long a listing must stay unmatched first.
+ */
+export async function archiveUnmatchedListings() {
+	// Matching could otherwise connect a listing to a product while it is being archived
+	const ran = await whileMatchingPaused('unifiedProduct', archiveWhileMatchingPaused);
+	if (!ran) console.log('Not archiving unmatched listings while products are being matched.');
+}
+
+async function archiveWhileMatchingPaused() {
+	const unifierKv = new KV<'runStarted' | 'runFinished' | 'unconnectedMatchedAt'>(
+		'unifier/unifiedProduct'
+	);
+	const runStarted = await unifierKv.get('runStarted');
+	// A run in progress can delete a product before connecting its listing to another one
+	if (!runStarted || runStarted !== (await unifierKv.get('runFinished'))) {
+		console.log('Not archiving unmatched listings while the product unifier is running.');
+		return;
+	}
+
+	const unmatched = (
+		await db
+			.select({
+				productId: shopify.productId,
+				tagsJsonArr: shopify.tagsJsonArr,
+				lastUpdated: shopify.lastUpdated
+			})
 			.from(shopify)
 			.leftJoin(unifiedProduct, eq(unifiedProduct.shopifyRow, shopify.id))
-			.where(isNull(unifiedProduct.id));
+			// A listing created by a push is not linked until the next Shopify sync and unifier run
+			.leftJoin(shopifyMetadata, eq(shopifyMetadata.shopifyProductId, shopify.productId))
+			.where(
+				and(
+					isNull(unifiedProduct.id),
+					isNull(shopifyMetadata.id),
+					eq(shopify.deleted, false),
+					ne(shopify.status, 'ARCHIVED')
+				)
+			)
+	).filter((row) => isOem3Listing(row.tagsJsonArr));
 
-		console.log(`Archiving ${res.length} unmatched Shopify products`);
+	const pushKv = new KV<'unmatchedSince'>('shopifyPush');
+	const { toArchive, unmatchedSince } = listingsToArchive(
+		unmatched,
+		JSON.parse((await pushKv.get('unmatchedSince')) ?? '{}'),
+		JSON.parse((await unifierKv.get('unconnectedMatchedAt')) ?? '{}')['shopifyRow'],
+		Date.now()
+	);
+	await pushKv.set('unmatchedSince', JSON.stringify(unmatchedSince));
+	// The rest wait for a run that matches products against them, which happens on its own only
+	// once Shopify listings change
+	if (toArchive.length < unmatched.length) {
+		await productUnifier.requestUnconnectedRematch('shopifyRow');
+	}
+	if (toArchive.length === 0) return;
 
-		const productsToArchive = res.filter((r) => r.shopify.status !== 'ARCHIVED');
+	console.log(`Archiving ${toArchive.length} OEM3 Shopify listings with no matching product.`);
 
-		console.log(`Found ${productsToArchive.length} products to archive`);
-
-		if (productsToArchive.length === 0) {
-			console.log('No products to archive');
-			throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'No products to archive' });
-		}
-
-		// Prepare bulk mutation variables
-		const variables = productsToArchive.map((row) => ({
-			input: {
-				id: row.shopify.productId,
-				status: 'ARCHIVED'
-			}
-		}));
-
-		// GraphQL mutation for productSet
-		const mutation = `#graphql
-			mutation productSet($input: ProductSetInput!) {
-				productSet(input: $input) {
-					product {
-						id
-						status
-					}
-					userErrors {
-						field
-						message
-					}
+	const mutation = `#graphql
+		mutation productArchive($input: ProductSetInput!) {
+			productSet(input: $input) {
+				product {
+					id
+				}
+				userErrors {
+					field
+					message
 				}
 			}
-		`;
-
-		console.log(`Executing bulk mutation to archive ${productsToArchive.length} products...`);
-
-		// Execute bulk mutation
-		const results = await executeBulkMutation(
-			mutation,
-			variables,
-			'archive_products.jsonl',
-			500,
-			(objectCount, elapsedSeconds) => {
-				console.log(`Progress: ${objectCount} products processed (${elapsedSeconds}s elapsed)`);
-			}
-		);
-
-		console.log(`Bulk mutation completed. ${results.length} results returned.`);
-
-		// Log any errors
-		const errors = results.filter((r: any) => r.userErrors && r.userErrors.length > 0);
-		if (errors.length > 0) {
-			console.error(`Encountered ${errors.length} errors:`, errors);
 		}
+	`;
+	const variables = toArchive.map((row) => {
+		const input: ProductSetInput = { status: ProductStatus.Archived };
+		//@ts-expect-error This field exists but it is deprecated. However, it is needed for bulk mutations still.
+		input.id = row.productId;
+		return { input };
 	});
+	const results = await executeBulkMutation(mutation, variables, 'archive_products.jsonl');
+
+	for (const { data, errors, __lineNumber } of results) {
+		const lineErrors = [...(errors ?? []), ...(data?.productSet?.userErrors ?? [])];
+		if (lineErrors.length > 0) {
+			console.error(
+				`Failed to archive Shopify product ${toArchive[__lineNumber]?.productId}:`,
+				JSON.stringify(lineErrors)
+			);
+		}
+	}
 }

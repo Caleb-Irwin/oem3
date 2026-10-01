@@ -28,21 +28,57 @@ export function shopifyListingStatus(
 	return undefined;
 }
 
+const OEM3_TAG = 'OEM3';
+
+function parseTags(tagsJsonArr: string | null | undefined): string[] {
+	let tags: unknown;
+	try {
+		tags = JSON.parse(tagsJsonArr ?? '[]');
+	} catch {
+		// Invalid JSON
+	}
+	return (Array.isArray(tags) ? tags : []).filter((tag): tag is string => typeof tag === 'string');
+}
+
 /** Keeps the listing's existing tags, syncs the Flyer tag, and always marks it as OEM3 managed. */
 export function shopifyListingTags(
 	tagsJsonArr: string | null | undefined,
 	inFlyer: boolean | null | undefined
 ): string[] {
-	let existing: unknown;
-	try {
-		existing = JSON.parse(tagsJsonArr ?? '[]');
-	} catch {
-		// Invalid JSON
-	}
-	const tags = (Array.isArray(existing) ? existing : []).filter(
-		(tag): tag is string => typeof tag === 'string' && (inFlyer || tag !== 'Flyer')
-	);
+	const tags = parseTags(tagsJsonArr).filter((tag) => inFlyer || tag !== 'Flyer');
 	if (inFlyer && !tags.includes('Flyer')) tags.push('Flyer');
-	if (!tags.includes('OEM3')) tags.push('OEM3');
+	if (!tags.includes(OEM3_TAG)) tags.push(OEM3_TAG);
 	return tags;
+}
+
+/** Whether OEM3 created or manages the listing. Only these are archived when their product is gone. */
+export function isOem3Listing(tagsJsonArr: string | null | undefined): boolean {
+	return parseTags(tagsJsonArr).includes(OEM3_TAG);
+}
+
+/**
+ * Picks the unmatched listings to archive, and returns when each was first seen unmatched. A
+ * listing is archived once a product unifier run has matched every unconnected product against
+ * it and still left it unmatched: one that started after the listing was first seen unmatched
+ * and after its last change. `unconnectedMatchedAt` is when the latest such run started.
+ */
+export function listingsToArchive<L extends { productId: string; lastUpdated: number }>(
+	unmatched: L[],
+	previouslyUnmatchedSince: Record<string, number>,
+	unconnectedMatchedAt: number | undefined,
+	now: number
+): { toArchive: L[]; unmatchedSince: Record<string, number> } {
+	const toArchive: L[] = [],
+		unmatchedSince: Record<string, number> = {};
+	for (const listing of unmatched) {
+		const since = previouslyUnmatchedSince[listing.productId] ?? now;
+		unmatchedSince[listing.productId] = since;
+		if (
+			unconnectedMatchedAt !== undefined &&
+			since < unconnectedMatchedAt &&
+			listing.lastUpdated < unconnectedMatchedAt
+		)
+			toArchive.push(listing);
+	}
+	return { toArchive, unmatchedSince };
 }

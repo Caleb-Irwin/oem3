@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import {
+	isOem3Listing,
+	listingsToArchive,
 	newListingHoldReason,
 	shopifyListingStatus,
 	shopifyListingTags
@@ -59,5 +61,49 @@ describe('shopifyListingTags', () => {
 		expect(shopifyListingTags('["OEM3"]', true)).toEqual(['OEM3', 'Flyer']);
 		expect(shopifyListingTags('["Flyer","OEM3"]', true)).toEqual(['Flyer', 'OEM3']);
 		expect(shopifyListingTags('["Flyer","OEM3"]', false)).toEqual(['OEM3']);
+	});
+});
+
+describe('isOem3Listing', () => {
+	test('only matches listings tagged OEM3', () => {
+		expect(isOem3Listing('["Sale","OEM3"]')).toBe(true);
+		expect(isOem3Listing('["Sale"]')).toBe(false);
+		expect(isOem3Listing('["oem3"]')).toBe(false);
+		expect(isOem3Listing(null)).toBe(false);
+		expect(isOem3Listing('not json')).toBe(false);
+	});
+});
+
+describe('listingsToArchive', () => {
+	const listing = { productId: 'gid://shopify/Product/1', lastUpdated: 100 };
+
+	test('waits for a unifier run that starts after the listing is first seen unmatched', () => {
+		const first = listingsToArchive([listing], {}, 500, 1000);
+		expect(first.toArchive).toEqual([]);
+		expect(first.unmatchedSince).toEqual({ [listing.productId]: 1000 });
+
+		expect(listingsToArchive([listing], first.unmatchedSince, 1000, 2000).toArchive).toEqual([]);
+		expect(listingsToArchive([listing], first.unmatchedSince, 1500, 2000).toArchive).toEqual([
+			listing
+		]);
+	});
+
+	test('waits for a unifier run that starts after the listing last changed', () => {
+		const changed = { ...listing, lastUpdated: 1600 };
+		expect(
+			listingsToArchive([changed], { [listing.productId]: 1000 }, 1500, 2000).toArchive
+		).toEqual([]);
+	});
+
+	test('archives nothing before the unifier has recorded a run', () => {
+		expect(
+			listingsToArchive([listing], { [listing.productId]: 1000 }, undefined, 2000).toArchive
+		).toEqual([]);
+	});
+
+	test('forgets listings that are matched again', () => {
+		expect(listingsToArchive([], { [listing.productId]: 1000 }, 1500, 2000).unmatchedSince).toEqual(
+			{}
+		);
 	});
 });

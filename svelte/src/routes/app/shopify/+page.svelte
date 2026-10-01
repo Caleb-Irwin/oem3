@@ -71,12 +71,6 @@
 					>
 					<Button
 						class="btn variant-ghost-error"
-						action={client.shopify.pushSync.archiveAllUnmatchedProducts}
-						confirm="Are you sure you want to archive ALL unmatched products? This action cannot be undone. Admin access is required."
-						>Archive All Unmatched Products</Button
-					>
-					<Button
-						class="btn variant-ghost-error"
 						action={client.shopify.pushSync.activateAllInventoryLocations}
 						confirm="Are you sure you want to activate ALL inventory locations? This action cannot be undone. Admin access is required."
 						successMessage="Started. DO NOT RETRY UNTIL PREVIOUS ACTIVATION IS COMPLETE."
