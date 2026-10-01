@@ -21,6 +21,17 @@ export interface CloudDownloadFile {
 const asFileList = (res: CloudDownloadFile | CloudDownloadFile[] | null) =>
 	res === null ? [] : Array.isArray(res) ? res : [res];
 
+type DownloadCtx = { user: { username: string } };
+
+const cloudDownloads = new Map<string, (ctx: DownloadCtx) => Promise<{ message: string }>>();
+
+/** Runs a file type's cloud download and resolves once it is uploaded and its worker started. */
+export const runCloudDownload = async (type: string, ctx: DownloadCtx) => {
+	const download = cloudDownloads.get(type);
+	if (!download) throw new Error(`No cloud download for ${type}`);
+	return await download(ctx);
+};
+
 export const fileProcedures = (
 	type: string,
 	verifyFunction: (dataUrl: string, fileType: string) => Promise<void> | void,
@@ -81,19 +92,41 @@ export const fileProcedures = (
 		return { fileId };
 	};
 
+	const downloadAndUpload = async (
+		download: NonNullable<typeof cloudDownload>,
+		ctx: DownloadCtx
+	) => {
+		const files = asFileList(await download());
+		if (files.length === 0) return { message: 'Latest File Already Downloaded' };
+		const messages: string[] = [];
+		for (const file of files) {
+			const { fileId } = await upload({
+				input: {
+					file: file.dataUrl,
+					fileName: file.name,
+					processFile: file.apply ?? true
+				},
+				ctx
+			});
+			await file.onUploaded?.();
+			messages.push(`File #${fileId} "${file.name}" Downloaded`);
+		}
+		return { message: messages.join(', ') };
+	};
+
+	// One download at a time, so overlapping requests do not start competing downloads. A request
+	// made during a download runs after it, so it still picks up later changes.
+	let downloadQueue: Promise<unknown> = Promise.resolve();
+	const queueDownload = (download: NonNullable<typeof cloudDownload>, ctx: DownloadCtx) => {
+		const run = downloadQueue.catch(() => {}).then(() => downloadAndUpload(download, ctx));
+		downloadQueue = run;
+		return run;
+	};
+	if (cloudDownload) cloudDownloads.set(type, (ctx) => queueDownload(cloudDownload, ctx));
+
 	if (dailyRunCloudDownload && cloudDownload) {
 		scheduleDailyTask(type, async () => {
-			for (const file of asFileList(await cloudDownload())) {
-				await upload({
-					input: {
-						file: file.dataUrl,
-						fileName: file.name,
-						processFile: file.apply ?? true
-					},
-					ctx: { user: { username: null as any } }
-				});
-				await file.onUploaded?.();
-			}
+			await queueDownload(cloudDownload, { user: { username: null as any } });
 		});
 	}
 
@@ -147,30 +180,12 @@ export const fileProcedures = (
 					message: 'Cloud Download Not Supported'
 				});
 
-			const downloadAndUpload = async () => {
-				const files = asFileList(await cloudDownload());
-				if (files.length === 0) return { message: 'Latest File Already Downloaded' };
-				const messages: string[] = [];
-				for (const file of files) {
-					const { fileId } = await upload({
-						input: {
-							file: file.dataUrl,
-							fileName: file.name,
-							processFile: file.apply ?? true
-						},
-						ctx
-					});
-					await file.onUploaded?.();
-					messages.push(`File #${fileId} "${file.name}" Downloaded`);
-				}
-				return { message: messages.join(', ') };
-			};
+			const operation = queueDownload(cloudDownload, ctx);
 
 			const timeout = new Promise<{ message: string }>((resolve) =>
 				setTimeout(() => resolve({ message: 'Cloud Download Started Successfully' }), 30000)
 			);
 
-			const operation = downloadAndUpload();
 			const result = await Promise.race([operation, timeout]);
 
 			// Ensure the original operation completes even if we returned early
