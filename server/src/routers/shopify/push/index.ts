@@ -7,13 +7,15 @@ import { shopifyMetadata } from './shopifyMetadata.table';
 import { and, eq, gt } from 'drizzle-orm';
 // import { productHook } from '../../product';
 
-const { worker } = managedWorker(
+const { worker, hook } = managedWorker(
 	new URL('worker.ts', import.meta.url).href,
 	'shopifyPush',
 	[/*productHook TODO*/],
 	undefined,
 	1
 );
+
+export const shopifyPushHook = hook;
 
 export const shopifyPushRouter = router({
 	worker,

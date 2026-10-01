@@ -273,6 +273,31 @@ export async function pollBulkOperation(
 }
 
 /**
+ * The latest bulk operation of a type this app started, whether or not it has finished
+ *
+ * @param type - Type of bulk operation ('query' or 'mutation')
+ * @returns The operation, or null if there has never been one
+ */
+export async function getCurrentBulkOperation(
+	type: BulkOperationType
+): Promise<BulkOperationResult | null> {
+	const { client } = shopifyConnect();
+
+	const response = await client.request<PollCurrentBulkOperationQuery>(pollBulkOperationQuery, {
+		variables: { type: type.toUpperCase() }
+	});
+	// A failed lookup must not read as there being no operation
+	if (!response.data) {
+		throw new TRPCError({
+			code: 'INTERNAL_SERVER_ERROR',
+			message: 'Failed to get the current bulk operation'
+		});
+	}
+
+	return response.data.currentBulkOperation ?? null;
+}
+
+/**
  * Get a specific bulk operation by ID
  *
  * @param id - Bulk operation ID (e.g., "gid://shopify/BulkOperation/123")
@@ -293,6 +318,32 @@ export async function getBulkOperation(id: string): Promise<BulkOperationResult>
 	}
 
 	return response.data.node;
+}
+
+/**
+ * Poll a specific bulk operation until it finishes. Unlike pollBulkOperation, this does not follow
+ * whichever operation is current, so it works for operations started by an earlier run.
+ *
+ * @param id - Bulk operation ID
+ * @param maxDuration - Maximum duration in milliseconds to wait
+ * @returns Final bulk operation result
+ */
+export async function waitForBulkOperation(
+	id: string,
+	maxDuration: number = 30 * 60 * 1000
+): Promise<BulkOperationResult> {
+	const startTime = Date.now();
+	while (true) {
+		const operation = await getBulkOperation(id);
+		if (!['CREATED', 'RUNNING', 'CANCELING'].includes(operation.status)) return operation;
+		if (Date.now() - startTime > maxDuration) {
+			throw new TRPCError({
+				code: 'TIMEOUT',
+				message: `Bulk operation ${id} is still ${operation.status} after ${maxDuration / 1000}s`
+			});
+		}
+		await new Promise((resolve) => setTimeout(resolve, 2000));
+	}
 }
 
 /**
@@ -471,6 +522,8 @@ export async function executeBulkQuery<T = any>(
  * @param filename - Name for the uploaded file
  * @param pollInterval - Polling interval in ms
  * @param onProgress - Progress callback
+ * @param onCreated - Called with the operation ID before polling, so a caller can recover the
+ * results later if this run does not get them
  * @returns Downloaded and parsed results
  */
 export async function executeBulkMutation<T = any>(
@@ -478,7 +531,8 @@ export async function executeBulkMutation<T = any>(
 	variables: any[],
 	filename: string = 'bulk_mutation_vars.jsonl',
 	pollInterval: number = 500,
-	onProgress?: (objectCount: string, elapsedSeconds: number) => void
+	onProgress?: (objectCount: string, elapsedSeconds: number) => void,
+	onCreated?: (operationId: string) => Promise<void> | void
 ): Promise<T[]> {
 	// Create JSONL content
 	const jsonlContent = variables.map((v) => JSON.stringify(v)).join('\n');
@@ -503,6 +557,7 @@ export async function executeBulkMutation<T = any>(
 	// Create bulk mutation
 	const operation = await createBulkMutation(mutation, keyParam.value);
 	console.log(`Bulk mutation created: ${operation.id}`);
+	await onCreated?.(operation.id);
 
 	// Poll until complete
 	const result = await pollBulkOperation('mutation', pollInterval, undefined, onProgress);

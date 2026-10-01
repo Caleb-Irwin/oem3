@@ -1,10 +1,10 @@
 import { TRPCError } from '@trpc/server';
 import { router } from '../../trpc';
-import { fileProcedures } from '../../utils/files';
+import { fileProcedures, runCloudDownload } from '../../utils/files';
 import { managedWorker } from '../../utils/managedWorker';
 import { KV } from '../../utils/kv';
 import { SHOPIFY_LOCATION_ID_STORE, SHOPIFY_LOCATION_ID_WAREHOUSE } from '../../env';
-import { shopifyPushRouter } from './push';
+import { shopifyPushHook, shopifyPushRouter } from './push';
 import type { RecentlyUpdatedProductsQuery } from '../../../types/admin.generated';
 import { createBulkQuery, pollBulkOperation } from './bulk';
 
@@ -116,6 +116,16 @@ const files = fileProcedures(
 	},
 	true
 );
+
+// Pull the listings a push changed, so the unifier links the ones it created. A push that starts
+// before then skips those products (see uploadSkipReason 'notSynced'), so it need not wait.
+shopifyPushHook(async () => {
+	try {
+		await runCloudDownload('shopify', { user: { username: 'admin' } });
+	} catch (e) {
+		console.error('Downloading Shopify changes after push failed:', e);
+	}
+});
 
 export const shopifyRouter = router({
 	pushSync: shopifyPushRouter,
