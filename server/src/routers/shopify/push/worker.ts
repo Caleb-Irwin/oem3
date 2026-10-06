@@ -2,7 +2,7 @@ import { db, type Tx } from '../../../db';
 import { work } from '../../../utils/workerBase';
 import { diffUpload } from './diffUpload';
 import { newListingHoldReason, type ListingHoldReason } from './listingEligibility';
-import type { ImageMap } from './types';
+import { PushWorkerMessage, type ImageMap, type PushHostMessage } from './types';
 import {
 	downloadBulkResults,
 	executeBulkMutation,
@@ -12,6 +12,8 @@ import {
 import { shopifyMetadata } from './shopifyMetadata.table';
 import { shopifyMedia } from './media.table';
 import { and, eq, inArray, isNull } from 'drizzle-orm';
+import { shopifyPushRuns } from './pushRuns.table';
+import { getErrorMessage } from '../../../utils/dbErrors';
 import { KV } from '../../../utils/kv';
 import { unifiedProduct } from '../../product/table';
 import type { ProductPushMutation } from '../../../../types/admin.generated';
@@ -45,104 +47,175 @@ type PendingBatch = {
 const pendingBatchKv = (database: typeof db | Tx = db) =>
 	new KV<'pendingBatch'>('shopifyPush', database);
 
+type RunResults = Required<
+	Pick<
+		typeof shopifyPushRuns.$inferInsert,
+		'created' | 'updated' | 'failed' | 'archived' | 'recovered'
+	>
+> &
+	Pick<typeof shopifyPushRuns.$inferInsert, 'skipped' | 'heldBack'>;
+
 work({
-	process: async ({ progress }) => {
-		progress(-1);
-
-		await recoverPendingBatch();
-
-		const { products, images } = await fetchData();
-		const imageMap = createImageMap(images);
-		const allUploads = prepareUploads(products, imageMap);
-
-		console.log(`Preparing to upload ${allUploads.length} products to Shopify.`);
-
-		// throw new TRPCError({
-		// 	code: 'FORBIDDEN',
-		// 	message: `Shopify uploads are currently disabled. ${allUploads.length} products were ready to upload.`
-		// });
-
-		const batchSize = 256; // Arbitrary
-		for (let i = 0; i < allUploads.length; i += batchSize) {
-			const batch = await markBatchPending(allUploads.slice(i, i + batchSize));
-			if (batch.length === 0) continue;
-
-			const variables = batch.map((item) => ({
-				input: item.productSetInput
-			}));
-
-			const mutation = `#graphql
-				mutation productPush($input: ProductSetInput!) {
-					productSet(input: $input) {
-						product {
-							id
-							handle
-							media(first: 250) {
-								nodes {
-									id
-									status
-									alt
-								}
-							}
-						}
-						userErrors {
-							field
-							message
-						}
-					}
-				}
-			`;
-
-			// Batch-level failures stop the run: a timed out operation may still be running on
-			// Shopify, so later batches would fail too. The next push recovers its results.
-			let results: BulkResultLine[];
-			try {
-				const pending: PendingBatch = {
-					productIds: batch.map((item) => item.product.id),
-					operationId: null,
-					previousOperationId: (await getCurrentBulkOperation('mutation'))?.id ?? null
-				};
-				await pendingBatchKv().set('pendingBatch', JSON.stringify(pending));
-				results = await executeBulkMutation(
-					mutation,
-					variables,
-					undefined,
-					undefined,
-					undefined,
-					async (operationId) => {
-						try {
-							await pendingBatchKv().set(
-								'pendingBatch',
-								JSON.stringify({ ...pending, operationId } satisfies PendingBatch)
-							);
-						} catch (e) {
-							// Recovery can still find the operation, so keep waiting for its results
-							console.error(`Saving the ID of bulk mutation ${operationId} failed:`, e);
-						}
-					}
-				);
-			} catch (e) {
-				console.error('Bulk mutation failed:', e);
-				await markBatchFailed(batch, `Bulk mutation failed: ${e}`);
-				throw e;
-			}
-			try {
-				await processBatchResults(results, batch);
-			} catch (e) {
-				// Local persistence failures do not consume the product's validation retry budget.
-				console.error('Saving bulk mutation results failed:', e);
-				await markBatchFailed(batch, `Saving results failed: ${e}`);
-				throw e;
-			}
-
-			progress((i + batch.length) / allUploads.length);
+	process: async ({ message, progress, utils: { customMessage } }) => {
+		const runId = await startRun((message as PushHostMessage).trigger ?? 'manual');
+		customMessage(PushWorkerMessage.RunsChanged);
+		const results: RunResults = { created: 0, updated: 0, failed: 0, archived: 0, recovered: 0 };
+		let syncNeeded: boolean;
+		try {
+			syncNeeded = await push(progress, results);
+		} catch (e) {
+			await finishRun(runId, { status: 'failed', ...results, error: getErrorMessage(e) });
+			customMessage(PushWorkerMessage.RunsChanged);
+			throw e;
 		}
-
-		progress(-1);
-
-		await archiveUnmatchedListings();
+		customMessage(syncNeeded ? PushWorkerMessage.SyncNeeded : PushWorkerMessage.SyncNotNeeded);
+		await finishRun(runId, { status: 'completed', ...results });
+		customMessage(PushWorkerMessage.RunsChanged);
 	}
 });
+
+/** Records a new run. Only one push runs at a time, so any other unfinished run was cut off. */
+async function startRun(trigger: (typeof shopifyPushRuns.$inferInsert)['trigger']) {
+	return await db.transaction(async (tx) => {
+		await tx
+			.update(shopifyPushRuns)
+			.set({ status: 'interrupted' })
+			.where(eq(shopifyPushRuns.status, 'running'));
+		const [{ id }] = await tx
+			.insert(shopifyPushRuns)
+			.values({ trigger, status: 'running', startedAt: Date.now() })
+			.returning({ id: shopifyPushRuns.id });
+		return id;
+	});
+}
+
+/** Failing to record the result must not fail a push or hide the error that ended it */
+async function finishRun(
+	runId: number,
+	update: RunResults & Pick<typeof shopifyPushRuns.$inferInsert, 'status' | 'error'>
+) {
+	try {
+		await db
+			.update(shopifyPushRuns)
+			.set({ ...update, finishedAt: Date.now() })
+			.where(eq(shopifyPushRuns.id, runId));
+	} catch (e) {
+		console.error(`Saving the result of push run ${runId} failed:`, e);
+	}
+}
+
+/**
+ * Fills in results as it goes, so a failed push still records what it did. Returns whether it
+ * changed listings, or recovered ones, that the Shopify sync has to pull.
+ */
+async function push(progress: (percentDone: number) => void, results: RunResults) {
+	progress(-1);
+
+	results.recovered = await recoverPendingBatch();
+	let syncNeeded = results.recovered > 0;
+
+	const { products, images } = await fetchData();
+	const imageMap = createImageMap(images);
+	const { uploads: allUploads, skipped, heldBack } = prepareUploads(products, imageMap);
+	results.skipped = JSON.stringify(skipped);
+	results.heldBack = JSON.stringify(heldBack);
+
+	console.log(`Preparing to upload ${allUploads.length} products to Shopify.`);
+
+	// throw new TRPCError({
+	// 	code: 'FORBIDDEN',
+	// 	message: `Shopify uploads are currently disabled. ${allUploads.length} products were ready to upload.`
+	// });
+
+	const batchSize = 256; // Arbitrary
+	for (let i = 0; i < allUploads.length; i += batchSize) {
+		const batch = await markBatchPending(allUploads.slice(i, i + batchSize));
+		if (batch.length === 0) continue;
+		syncNeeded = true;
+
+		const variables = batch.map((item) => ({
+			input: item.productSetInput
+		}));
+
+		const mutation = `#graphql
+			mutation productPush($input: ProductSetInput!) {
+				productSet(input: $input) {
+					product {
+						id
+						handle
+						media(first: 250) {
+							nodes {
+								id
+								status
+								alt
+							}
+						}
+					}
+					userErrors {
+						field
+						message
+					}
+				}
+			}
+		`;
+
+		// Batch-level failures stop the run: a timed out operation may still be running on
+		// Shopify, so later batches would fail too. The next push recovers its results.
+		let batchResults: BulkResultLine[];
+		try {
+			const pending: PendingBatch = {
+				productIds: batch.map((item) => item.product.id),
+				operationId: null,
+				previousOperationId: (await getCurrentBulkOperation('mutation'))?.id ?? null
+			};
+			await pendingBatchKv().set('pendingBatch', JSON.stringify(pending));
+			batchResults = await executeBulkMutation(
+				mutation,
+				variables,
+				undefined,
+				undefined,
+				undefined,
+				async (operationId) => {
+					try {
+						await pendingBatchKv().set(
+							'pendingBatch',
+							JSON.stringify({ ...pending, operationId } satisfies PendingBatch)
+						);
+					} catch (e) {
+						// Recovery can still find the operation, so keep waiting for its results
+						console.error(`Saving the ID of bulk mutation ${operationId} failed:`, e);
+					}
+				}
+			);
+		} catch (e) {
+			console.error('Bulk mutation failed:', e);
+			results.failed += batch.length;
+			await markBatchFailed(batch, `Bulk mutation failed: ${e}`);
+			throw e;
+		}
+		try {
+			const counts = await processBatchResults(batchResults, batch);
+			results.created += counts.created;
+			results.updated += counts.updated;
+			results.failed += counts.failed;
+		} catch (e) {
+			// Local persistence failures do not consume the product's validation retry budget.
+			console.error('Saving bulk mutation results failed:', e);
+			results.failed += batch.length;
+			await markBatchFailed(batch, `Saving results failed: ${e}`);
+			throw e;
+		}
+
+		progress((i + batch.length) / allUploads.length);
+	}
+
+	progress(-1);
+
+	results.archived = await archiveUnmatchedListings();
+	if (results.archived > 0) syncNeeded = true;
+
+	return syncNeeded;
+}
 
 async function fetchData() {
 	return await db.transaction(async (tx) => {
@@ -224,10 +297,10 @@ function prepareUploads(
 			return { ...u, attempt, filesOmitted, productSetInput, newMedia: [] };
 		});
 	console.log('Skipped Shopify uploads:', skipped);
-	return uploads;
+	return { uploads, skipped, heldBack };
 }
 
-type UploadItem = ReturnType<typeof prepareUploads>[number];
+type UploadItem = ReturnType<typeof prepareUploads>['uploads'][number];
 
 /** One line of the bulk results; GraphQL errors for that line come back in `errors` */
 type BulkResultLine = {
@@ -288,14 +361,17 @@ async function markBatchPending(batch: UploadItem[]) {
 	});
 }
 
+/** Returns how many products were created, updated, or failed to upload */
 async function processBatchResults(results: BulkResultLine[], batch: UploadItem[]) {
-	await db.transaction(async (tx) => {
+	return await db.transaction(async (tx) => {
+		const counts = { created: 0, updated: 0, failed: 0 };
 		const unanswered = new Set(batch);
 		// Products deleted during the mutation have no rows left to update or attach media to
 		const existing = new Set(await lockExisting(tx, batch));
 
 		const markFailed = async (item: UploadItem, errors: UploadError[], countFailure = true) => {
 			console.error(`Failed to upload product ${item.product.id}:`, JSON.stringify(errors));
+			counts.failed++;
 			await tx
 				.update(shopifyMetadata)
 				.set({
@@ -368,6 +444,8 @@ async function processBatchResults(results: BulkResultLine[], batch: UploadItem[
 					...successfulUploadState(item.hash, item.filesOmitted, item.attempt.lastError)
 				})
 				.where(eq(shopifyMetadata.productId, item.product.id));
+			if (item.identifier) counts.updated++;
+			else counts.created++;
 
 			const matched = matchNewMedia(
 				item.newMedia,
@@ -401,17 +479,18 @@ async function processBatchResults(results: BulkResultLine[], batch: UploadItem[
 			await markFailed(item, [{ message: 'Missing from bulk mutation results' }], false);
 		}
 		await pendingBatchKv(tx).del('pendingBatch');
+		return counts;
 	});
 }
 
 /**
  * A push that stopped before saving a batch's results may have created listings on Shopify. Saves
  * their IDs so the products are not created again; they are updated once the Shopify sync and
- * unifier link them. Waits for the operation if it is still running.
+ * unifier link them. Waits for the operation if it is still running. Returns how many it saved.
  */
 async function recoverPendingBatch() {
 	const saved = await pendingBatchKv().get('pendingBatch');
-	if (!saved) return;
+	if (!saved) return 0;
 	const pending: PendingBatch = JSON.parse(saved);
 	const { productIds } = pending;
 	let operationId = pending.operationId;
@@ -422,7 +501,7 @@ async function recoverPendingBatch() {
 		if (!current || current.id === pending.previousOperationId) {
 			console.log('An unfinished push batch never started on Shopify; nothing to recover.');
 			await pendingBatchKv().del('pendingBatch');
-			return;
+			return 0;
 		}
 		operationId = current.id;
 	}
@@ -435,11 +514,11 @@ async function recoverPendingBatch() {
 			`Bulk mutation ${operationId} ended ${operation.status} without results; any products it created were not recorded.`
 		);
 		await pendingBatchKv().del('pendingBatch');
-		return;
+		return 0;
 	}
 
 	const results = await downloadBulkResults<BulkResultLine>(url);
-	await db.transaction(async (tx) => {
+	return await db.transaction(async (tx) => {
 		let recovered = 0;
 		for (const { data, __lineNumber } of results) {
 			const productId = productIds[__lineNumber];
@@ -456,6 +535,7 @@ async function recoverPendingBatch() {
 		}
 		console.log(`Recovered ${recovered} Shopify listings created by ${operationId}.`);
 		await pendingBatchKv(tx).del('pendingBatch');
+		return recovered;
 	});
 }
 

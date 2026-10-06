@@ -4,14 +4,9 @@
 	import { client, subVal } from '$lib/client';
 	import Files from '$lib/Files.svelte';
 	import ModalSearchBar from '$lib/search/ModalSearchBar.svelte';
-	import WorkerStatus from '$lib/WorkerStatus.svelte';
-	import RotateCw from 'lucide-svelte/icons/rotate-cw';
+	import ShopifySync from './ShopifySync.svelte';
 	import type { PageProps } from './$types';
 	let { data }: PageProps = $props();
-
-	const workerStatus = subVal(client.shopify.pushSync.worker.statusSub, {
-		init: undefined
-	});
 </script>
 
 <svelte:head>
@@ -48,19 +43,12 @@
 	</div>
 	<div class="w-full flex flex-col items-center p-2">
 		<div class="w-full max-w-xl mb-2">
-			<div class="card p-4 min-w-72">
-				<div class="flex justify-between pb-2 items-center">
-					<h4 class="pr-2 h4 font-semibold">Shopify Product Push Sync</h4>
-					<Button
-						class="btn btn-icon btn-icon-sm text-secondary-500"
-						action={client.shopify.pushSync.worker.run}
-						disabled={$workerStatus?.running ?? false}
-					>
-						<RotateCw />
-					</Button>
-				</div>
-				<WorkerStatus status={workerStatus} />
-				<div class="card flex flex-col mt-2 p-4 gap-2">
+			<ShopifySync
+				initOverview={data.syncOverview}
+				isAdmin={data.user.permissionLevel === 'admin'}
+			/>
+			<div class="card p-4 min-w-72 mt-2">
+				<div class="flex flex-col gap-2">
 					<h5 class="h4 font-semibold">Utilities</h5>
 					<Button
 						class="btn variant-ghost-warning"

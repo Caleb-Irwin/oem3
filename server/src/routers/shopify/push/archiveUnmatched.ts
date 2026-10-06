@@ -14,15 +14,16 @@ import { productUnifier } from '../../product/productUnifier';
 /**
  * Archives OEM3 listings whose product no longer exists, e.g. after the unifier deletes it.
  * Listings without the OEM3 tag were not created by OEM3 and are left alone. See
- * listingsToArchive for how long a listing must stay unmatched first.
+ * listingsToArchive for how long a listing must stay unmatched first. Returns how many it archived.
  */
 export async function archiveUnmatchedListings() {
 	// Matching could otherwise connect a listing to a product while it is being archived
 	const ran = await whileMatchingPaused('unifiedProduct', archiveWhileMatchingPaused);
 	if (!ran) console.log('Not archiving unmatched listings while products are being matched.');
+	return ran?.result ?? 0;
 }
 
-async function archiveWhileMatchingPaused() {
+async function archiveWhileMatchingPaused(): Promise<number> {
 	const unifierKv = new KV<'runStarted' | 'runFinished' | 'unconnectedMatchedAt'>(
 		'unifier/unifiedProduct'
 	);
@@ -30,7 +31,7 @@ async function archiveWhileMatchingPaused() {
 	// A run in progress can delete a product before connecting its listing to another one
 	if (!runStarted || runStarted !== (await unifierKv.get('runFinished'))) {
 		console.log('Not archiving unmatched listings while the product unifier is running.');
-		return;
+		return 0;
 	}
 
 	const unmatched = (
@@ -67,7 +68,7 @@ async function archiveWhileMatchingPaused() {
 	if (toArchive.length < unmatched.length) {
 		await productUnifier.requestUnconnectedRematch('shopifyRow');
 	}
-	if (toArchive.length === 0) return;
+	if (toArchive.length === 0) return 0;
 
 	console.log(`Archiving ${toArchive.length} OEM3 Shopify listings with no matching product.`);
 
@@ -101,4 +102,5 @@ async function archiveWhileMatchingPaused() {
 			);
 		}
 	}
+	return toArchive.length;
 }

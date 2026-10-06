@@ -52,3 +52,13 @@ async function productQueryResFunc() {
 }
 
 export type ProductQueryRes = Awaited<ReturnType<typeof productQueryResFunc>>[number];
+
+export type PushHostMessage = { trigger?: 'auto' | 'manual' };
+
+export const PushWorkerMessage = {
+	// Sent when a push finishes, saying whether the Shopify sync has to run after it
+	SyncNeeded: 'syncNeeded',
+	SyncNotNeeded: 'syncNotNeeded',
+	// The push's row in shopifyPushRuns changed
+	RunsChanged: 'runsChanged'
+} as const;

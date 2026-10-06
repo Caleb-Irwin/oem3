@@ -1,10 +1,10 @@
 import { TRPCError } from '@trpc/server';
 import { router } from '../../trpc';
-import { fileProcedures, runCloudDownload } from '../../utils/files';
+import { fileProcedures, onCloudDownloadActivity, runCloudDownload } from '../../utils/files';
 import { managedWorker } from '../../utils/managedWorker';
 import { KV } from '../../utils/kv';
 import { SHOPIFY_LOCATION_ID_STORE, SHOPIFY_LOCATION_ID_WAREHOUSE } from '../../env';
-import { shopifyPushHook, shopifyPushRouter } from './push';
+import { notifyShopifySyncChanged, shopifyPushHook, shopifyPushRouter } from './push';
 import type { RecentlyUpdatedProductsQuery } from '../../../types/admin.generated';
 import { createBulkQuery, pollBulkOperation } from './bulk';
 
@@ -17,6 +17,9 @@ const { worker, runWorker, hook } = managedWorker(
 );
 
 export const shopifyHook = hook;
+
+hook(notifyShopifySyncChanged);
+onCloudDownloadActivity('shopify', notifyShopifySyncChanged);
 
 const verify = (dataUrl: string, fileType: string) => {
 	if (fileType !== 'application/jsonl') throw new Error('Invalid File Type (JSON Only)');

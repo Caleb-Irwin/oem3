@@ -40,6 +40,13 @@ export const registeredWorkersSummary = {
 	MAX_WORKERS: 4
 };
 
+/** Whether the worker is running, waiting for a slot to run in, or has runs queued */
+export const isWorkerBusy = (name: string) => {
+	const info = registeredWorkersInfo.get(name);
+	if (!info) throw new Error(`No worker named ${name}`);
+	return info.status.running || info.queueSize > 0;
+};
+
 export const managedWorker = (
 	workerUrl: string,
 	name: (typeof changesetType.enumValues)[number] | string,
@@ -73,6 +80,7 @@ export const managedWorker = (
 		if (status.running) {
 			if (runQueue.length < maxQueueSize) {
 				runQueue.push(data);
+				workerInfo.queueSize = runQueue.length;
 			}
 			return;
 		}
@@ -180,6 +188,7 @@ export const managedWorker = (
 					}
 					if (runQueue.length > 0) {
 						const next = runQueue.shift();
+						workerInfo.queueSize = runQueue.length;
 						if (next) {
 							runWorker(next);
 						}

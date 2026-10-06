@@ -28,3 +28,4 @@ export * from './routers/product/table';
 export * from './routers/product/priceChange.table';
 export * from './routers/shopify/push/media.table';
 export * from './routers/shopify/push/shopifyMetadata.table';
+export * from './routers/shopify/push/pushRuns.table';

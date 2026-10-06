@@ -7,6 +7,7 @@ import { qbHook } from '../qb';
 import { shopifyHook } from '../shopify';
 import { sprHook } from '../spr';
 import { notifyPriceListUpdated, priceListRouter } from './priceList';
+import { requestShopifyPush } from '../shopify/push';
 
 const { worker, hook, runWorker } = managedWorker(
 	new URL('worker.ts', import.meta.url).href,
@@ -29,6 +30,10 @@ hook(() => {
 	updateByTableName('unifiedSpr');
 	notifyPriceListUpdated();
 });
+
+// Wired up here because the push module can't import productHook: this imports shopify, which
+// imports the push module
+hook(requestShopifyPush);
 
 export const productHook = hook;
 

@@ -24,6 +24,22 @@ const asFileList = (res: CloudDownloadFile | CloudDownloadFile[] | null) =>
 type DownloadCtx = { user: { username: string } };
 
 const cloudDownloads = new Map<string, (ctx: DownloadCtx) => Promise<{ message: string }>>();
+// Running or waiting to run, by file type
+const activeDownloads = new Map<string, number>(),
+	activeDownloadListeners = new Map<string, (() => void)[]>();
+
+/** Whether a cloud download of this file type is running or waiting to run */
+export const isCloudDownloadActive = (type: string) => (activeDownloads.get(type) ?? 0) > 0;
+
+/** Calls cb whenever a cloud download of this file type is queued or finishes */
+export const onCloudDownloadActivity = (type: string, cb: () => void) => {
+	activeDownloadListeners.set(type, [...(activeDownloadListeners.get(type) ?? []), cb]);
+};
+
+const changeActiveDownloads = (type: string, by: number) => {
+	activeDownloads.set(type, (activeDownloads.get(type) ?? 0) + by);
+	activeDownloadListeners.get(type)?.forEach((cb) => cb());
+};
 
 /** Runs a file type's cloud download and resolves once it is uploaded and its worker started. */
 export const runCloudDownload = async (type: string, ctx: DownloadCtx) => {
@@ -118,7 +134,11 @@ export const fileProcedures = (
 	// made during a download runs after it, so it still picks up later changes.
 	let downloadQueue: Promise<unknown> = Promise.resolve();
 	const queueDownload = (download: NonNullable<typeof cloudDownload>, ctx: DownloadCtx) => {
-		const run = downloadQueue.catch(() => {}).then(() => downloadAndUpload(download, ctx));
+		changeActiveDownloads(type, 1);
+		const run = downloadQueue
+			.catch(() => {})
+			.then(() => downloadAndUpload(download, ctx))
+			.finally(() => changeActiveDownloads(type, -1));
 		downloadQueue = run;
 		return run;
 	};

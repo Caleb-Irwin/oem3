@@ -5,6 +5,7 @@ export const load: PageServerLoad = async ({ locals: { client } }) => {
 	return await promiseAllObject({
 		status: client.shopify.worker.status.query(),
 		changeset: client.shopify.worker.changeset.query(),
-		files: client.shopify.files.get.query()
+		files: client.shopify.files.get.query(),
+		syncOverview: client.shopify.pushSync.overview.query({ historyLimit: 10 })
 	});
 };
