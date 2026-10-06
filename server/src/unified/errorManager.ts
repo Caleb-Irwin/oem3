@@ -1,14 +1,15 @@
-import { inArray } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { db as DB, type Tx } from '../db';
 import { insertMultipleHistoryRows, type InsertHistoryRowOptions } from '../utils/history';
 import type { CellConfigTable, CellConfigRowInsert, CellConfigRowSelect } from './types';
+import type { ResourceType } from '../utils/uniref.table';
 
 export function createErrorManager(
 	db: typeof DB | Tx,
 	table: CellConfigTable,
+	resourceType: ResourceType,
 	id: number,
-	uniId: number,
-	cellConfigs: CellConfigRowSelect[]
+	uniId: number
 ) {
 	const newErrors: CellConfigRowInsert[] = [];
 
@@ -34,7 +35,10 @@ export function createErrorManager(
 	}
 
 	async function commitErrors() {
-		const existingErrors = cellConfigs.filter((c) => c.confType.startsWith('error:'));
+		// Read again: a nested update of this row during this one may have changed them
+		const existingErrors = (await db.select().from(table).where(eq(table.refId, id))).filter((c) =>
+			c.confType.startsWith('error:')
+		);
 		const errorsToRemove = new Set<number>(
 			existingErrors.filter((c) => c.resolved === false).map((c) => c.id)
 		);
@@ -90,7 +94,7 @@ export function createErrorManager(
 		if (historyRows.length > 0) {
 			await insertMultipleHistoryRows({
 				db,
-				resourceType: 'unifiedGuild',
+				resourceType,
 				rows: historyRows
 			});
 		}

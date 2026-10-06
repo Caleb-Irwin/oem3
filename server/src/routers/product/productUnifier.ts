@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNotNull, ne, not, or, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNotNull, ne, not, or, sql } from 'drizzle-orm';
 import { db as DB, type Tx } from '../../db';
 import { createUnifier } from '../../unified/unifier';
 import { cellTransformer } from '../../unified/cellConfigurator';
@@ -46,7 +46,7 @@ export const productUnifier = createUnifier<
 >({
 	table: unifiedProduct,
 	confTable: unifiedProductCellConfig,
-	version: 28,
+	version: 29,
 	getRow,
 	transform: (
 		item,
@@ -271,6 +271,7 @@ export const productUnifier = createUnifier<
 				if (!gid && !upc && !spr) return [];
 
 				const res = await db.query.unifiedGuild.findMany({
+					orderBy: asc(unifiedGuild.id),
 					where: and(
 						or(
 							gid ? eq(unifiedGuild.gid, gid) : undefined,
@@ -371,6 +372,7 @@ export const productUnifier = createUnifier<
 
 					if (upc) {
 						const exactUpcMatches = await db.query.qb.findMany({
+							orderBy: asc(qbTable.id),
 							where: and(eq(qbTable.upc, upc), not(qbTable.deleted)),
 							columns: {
 								id: true,
@@ -386,6 +388,7 @@ export const productUnifier = createUnifier<
 
 						if (shortUpc) {
 							const shortUpcMatches = await db.query.qb.findMany({
+								orderBy: asc(qbTable.id),
 								where: and(eq(qbTable.shortUpc, shortUpc), not(qbTable.deleted)),
 								columns: {
 									id: true,
@@ -417,6 +420,7 @@ export const productUnifier = createUnifier<
 
 					if (productNameConditions.length > 0) {
 						const nameMatches = await db.query.qb.findMany({
+							orderBy: asc(qbTable.id),
 							where: and(or(...productNameConditions), not(qbTable.deleted)),
 							columns: {
 								id: true,
@@ -535,6 +539,7 @@ async function novexcoMatches(row: ProductRowType, db: typeof DB | Tx): Promise<
 
 	if (novexco) {
 		const novexcoMatches = await db.query.unifiedSpr.findMany({
+			orderBy: asc(unifiedSpr.id),
 			where: and(eq(unifiedSpr.novexco, novexco), not(unifiedSpr.deleted)),
 			columns: { id: true }
 		});
@@ -546,6 +551,7 @@ async function novexcoMatches(row: ProductRowType, db: typeof DB | Tx): Promise<
 
 	if (sprc) {
 		const sprcMatches = await db.query.unifiedSpr.findMany({
+			orderBy: asc(unifiedSpr.id),
 			where: and(eq(unifiedSpr.sprc, sprc), not(unifiedSpr.deleted)),
 			columns: {
 				id: true,
@@ -560,6 +566,7 @@ async function novexcoMatches(row: ProductRowType, db: typeof DB | Tx): Promise<
 
 	if (upc) {
 		const upcMatches = await db.query.unifiedSpr.findMany({
+			orderBy: asc(unifiedSpr.id),
 			where: and(eq(unifiedSpr.upc, upc), not(unifiedSpr.deleted)),
 			columns: {
 				id: true,
@@ -575,6 +582,7 @@ async function novexcoMatches(row: ProductRowType, db: typeof DB | Tx): Promise<
 	const otherResults = new Set<number>();
 	if (cis) {
 		const cisMatches = await db.query.unifiedSpr.findMany({
+			orderBy: asc(unifiedSpr.id),
 			where: and(eq(unifiedSpr.cws, cis), not(unifiedSpr.deleted)),
 			columns: {
 				id: true,
@@ -592,6 +600,7 @@ async function novexcoMatches(row: ProductRowType, db: typeof DB | Tx): Promise<
 
 		if (shortUpc) {
 			const shortUpcMatches = await db.query.unifiedSpr.findMany({
+				orderBy: asc(unifiedSpr.id),
 				where: and(
 					not(unifiedSpr.deleted),
 					sql`SUBSTRING(${unifiedSpr.upc}, LENGTH(${unifiedSpr.upc}) - 10, 10) = ${shortUpc}`
@@ -624,6 +633,7 @@ async function preferActiveTwins(ids: number[], db: typeof DB | Tx): Promise<num
 		const twin =
 			row?.duplicateOf && row.status !== 'Active'
 				? await db.query.unifiedSpr.findFirst({
+						orderBy: asc(unifiedSpr.id),
 						where: and(
 							eq(unifiedSpr.novexco, row.duplicateOf),
 							eq(unifiedSpr.status, 'Active'),
@@ -662,6 +672,7 @@ async function ownShopifyMatches(row: ShopifyMatchRow, db: typeof DB | Tx): Prom
 	// First try to match vSku to gid, sprc, or novexco
 	if (gid || sprc || novexco) {
 		const skuMatches = await db.query.shopify.findMany({
+			orderBy: [sql`${shopifyTable.status} = 'ARCHIVED'`, asc(shopifyTable.id)],
 			where: and(
 				or(
 					gid ? eq(shopifyTable.vSku, gid) : undefined,
@@ -677,10 +688,11 @@ async function ownShopifyMatches(row: ShopifyMatchRow, db: typeof DB | Tx): Prom
 		});
 
 		if (skuMatches.length > 0) {
-			// Prefer exact GID match over SPRC match
+			// Prefer exact GID matches over SPRC matches. All of them, so a product linked to one of
+			// several duplicate listings keeps it.
 			if (gid) {
-				const exactGidMatch = skuMatches.find((r) => r.vSku === gid);
-				if (exactGidMatch) return [exactGidMatch.id];
+				const exactGidMatches = skuMatches.filter((r) => r.vSku === gid);
+				if (exactGidMatches.length > 0) return exactGidMatches.map((r) => r.id);
 			}
 
 			return skuMatches.map((r) => r.id);
@@ -690,6 +702,7 @@ async function ownShopifyMatches(row: ShopifyMatchRow, db: typeof DB | Tx): Prom
 	// If no SKU match, try to match vBarcode to UPC
 	if (upc) {
 		const barcodeMatches = await db.query.shopify.findMany({
+			orderBy: [sql`${shopifyTable.status} = 'ARCHIVED'`, asc(shopifyTable.id)],
 			where: and(eq(shopifyTable.vBarcode, upc), not(shopifyTable.deleted)),
 			columns: {
 				id: true,
@@ -708,6 +721,7 @@ async function ownShopifyMatches(row: ShopifyMatchRow, db: typeof DB | Tx): Prom
 
 		if (shortUpc) {
 			const handleMatches = await db.query.shopify.findMany({
+				orderBy: [sql`${shopifyTable.status} = 'ARCHIVED'`, asc(shopifyTable.id)],
 				where: and(eq(shopifyTable.handle, shortUpc), not(shopifyTable.deleted)),
 				columns: {
 					id: true,
@@ -736,6 +750,7 @@ async function getProductByNovexco(
 	db: typeof DB | Tx
 ): Promise<ShopifyMatchRow | null> {
 	const spr = await db.query.unifiedSpr.findFirst({
+		orderBy: asc(unifiedSpr.id),
 		where: and(eq(unifiedSpr.novexco, novexco), not(unifiedSpr.deleted)),
 		columns: { id: true }
 	});

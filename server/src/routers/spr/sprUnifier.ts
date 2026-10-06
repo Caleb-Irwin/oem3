@@ -1,4 +1,4 @@
-import { and, eq, not, or } from 'drizzle-orm';
+import { and, asc, eq, not, or } from 'drizzle-orm';
 import { db as DB, type Tx } from '../../db';
 import { createUnifier } from '../../unified/unifier';
 import { unifiedSpr, unifiedSprCellConfig } from '../../db.schema';
@@ -156,6 +156,7 @@ export const sprUnifier = createUnifier<
 				const code = row.novexco ?? row.sprPriceFileRowContent?.novexcoCode ?? null;
 				if (!code) return [];
 				const res = await db.query.sprPriceFile.findMany({
+					orderBy: asc(sprPriceFile.id),
 					where: and(eq(sprPriceFile.novexcoCode, code), not(sprPriceFile.deleted)),
 					columns: { id: true }
 				});
@@ -193,6 +194,7 @@ export const sprUnifier = createUnifier<
 					const bestMatches = (
 						await db.query.sprFlatFile
 							.findMany({
+								orderBy: asc(sprFlatFile.id),
 								where: or(
 									sku && sku !== ''
 										? and(eq(sprFlatFile.sprcSku, sku), not(sprFlatFile.deleted))
@@ -213,6 +215,7 @@ export const sprUnifier = createUnifier<
 							? (
 									await db.query.sprFlatFile
 										.findMany({
+											orderBy: asc(sprFlatFile.id),
 											where: and(
 												eq(sprFlatFile.sprcSkuNoDash, skuNoDash),
 												not(sprFlatFile.deleted)
@@ -227,6 +230,7 @@ export const sprUnifier = createUnifier<
 					const deletedMatches = (
 						await db.query.sprFlatFile
 							.findMany({
+								orderBy: asc(sprFlatFile.id),
 								where: or(
 									sku && sku !== ''
 										? and(eq(sprFlatFile.sprcSku, sku), sprFlatFile.deleted)

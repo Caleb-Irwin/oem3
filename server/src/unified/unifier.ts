@@ -1,6 +1,6 @@
 import { uniref } from '../db.schema';
 import { db, db as DB, type Tx } from '../db';
-import { eq, isNull, type SQLWrapper, gt, or, and, sql } from 'drizzle-orm';
+import { eq, isNull, type SQLWrapper, gt, or, and, sql, inArray } from 'drizzle-orm';
 import { getTableConfig } from 'drizzle-orm/pg-core';
 import { chunk } from '../utils/chunk';
 import {
@@ -17,6 +17,7 @@ import type {
 	AnyConnection,
 	CellConfigTable,
 	Connections,
+	LostConnection,
 	OtherSourceTables,
 	PrimarySourceTables,
 	SecondarySourceTables,
@@ -29,6 +30,8 @@ import { holdMatchingLock } from './matchingLock';
 
 // Each in-flight row update holds one pooled connection for its transaction (see DB_POOL_MAX)
 const ROW_UPDATE_CONCURRENCY = 12;
+// Rematches of rows without a connection after others let go of some, in one run
+const MAX_SETTLE_PASSES = 3;
 
 export function createUnifier<
 	RowType extends RowTypeBase<TableType>,
@@ -70,18 +73,24 @@ export function createUnifier<
 		_modifyRow
 	});
 
+	// Connections let go of during the current run in this process, by refCol. Another row may want
+	// one, but is only rematched in this run if updateUnifiedTable rematches it.
+	let releasedDuringRun: Map<string, Set<number>> | null = null;
+
 	async function _updateRow({
 		id,
 		db,
 		onUpdateCallback,
 		nestedMode = false,
-		removeAutoMatch = false
+		removeAutoMatch = false,
+		lostConnection
 	}: {
 		id: number;
 		db: Tx | typeof DB;
 		onUpdateCallback: OnUpdateCallback;
 		nestedMode?: boolean;
 		removeAutoMatch?: boolean;
+		lostConnection?: LostConnection;
 	}) {
 		// Nested updates run inside a top-level one, which already holds it
 		if (!nestedMode) await holdMatchingLock(db, unifiedTableName);
@@ -103,11 +112,18 @@ export function createUnifier<
 			onUpdateCallback,
 			nestedMode,
 			removeAutoMatch,
+			lostConnection,
 			originalRow,
 			updatedRow,
 			cellConfigurator,
 			_updateRow
 		});
+		for (const refCol of connectionColumns) {
+			const prev = originalRow[refCol as keyof RowType] as number | null;
+			if (releasedDuringRun && prev !== null && updatedRow[refCol as keyof RowType] !== prev) {
+				releasedDuringRun.set(refCol, (releasedDuringRun.get(refCol) ?? new Set()).add(prev));
+			}
+		}
 
 		// 2. Transform
 		const transformed = transform(updatedRow, cellTransformer);
@@ -252,6 +268,83 @@ export function createUnifier<
 		return res?.latest == null ? null : Number(res.latest);
 	}
 
+	/** Deletes rows with neither a primary nor a secondary connection, unless they have cell settings */
+	async function deleteOrphans(onUpdateCallback: OnUpdateCallback) {
+		if (!connections.secondaryTable) return;
+		const orphans = await db
+			.select({ id: table.id })
+			.from(table as any)
+			.where(
+				and(
+					isNull(table[connections.primaryTable.refCol as keyof UnifiedTables] as SQLWrapper),
+					isNull(table[connections.secondaryTable.refCol as keyof UnifiedTables] as SQLWrapper)
+				)
+			);
+
+		let deletedOrphans = 0;
+		for (const item of orphans) {
+			const uniId = (await getRow(item.id, db)).uniref.uniId;
+			const cellConfig = await createCellConfigurator({
+				table: confTable,
+				unifiedTable: table,
+				id: item.id,
+				db,
+				uniId,
+				verifyCellValue: verifyCellValue
+			});
+			if (!cellConfig.hasAnyNonDefaultCellSettings) {
+				await db.delete(table).where(eq(table.id, item.id));
+				deletedOrphans++;
+				onUpdateCallback(uniId);
+			}
+		}
+		if (deletedOrphans > 0) {
+			console.log(`Deleted ${deletedOrphans} orphaned unified rows from ${unifiedTableName}`);
+		}
+	}
+
+	/**
+	 * Rematches rows without a connection after other rows let go of some during the run, so a row
+	 * that wants one gets it in this run rather than the next time that source changes. Primary
+	 * rows let go of get new rows instead (step 1), and secondary rows nobody takes do in step 4.
+	 */
+	async function rematchReleasedConnections(
+		progress: ((progress: number) => void) | undefined,
+		onUpdateCallback: OnUpdateCallback
+	) {
+		for (let pass = 0; pass < MAX_SETTLE_PASSES && releasedDuringRun; pass++) {
+			const released = releasedDuringRun;
+			releasedDuringRun = new Map();
+			const rowsToUpdate = new Set<number>();
+			for (const [refCol, values] of released) {
+				const connection = allConnections.find((c) => c.refCol === refCol);
+				if (!connection || connection === connections.primaryTable) continue;
+				const refColumn = table[refCol as keyof UnifiedTables] as SQLWrapper;
+				// Already taken by another row, or deleted so no row can take it
+				const free = await db
+					.select({ id: connection.table.id })
+					.from(connection.table as any)
+					.leftJoin(table as UnifiedTables, eq(refColumn, connection.table.id))
+					.where(
+						and(
+							inArray(connection.table.id, Array.from(values)),
+							isNull(table.id),
+							connection.allowDeleted ? undefined : eq(connection.table.deleted, false)
+						)
+					)
+					.limit(1);
+				if (free.length === 0) continue;
+				const unconnected = await db
+					.select({ id: table.id })
+					.from(table as UnifiedTables)
+					.where(isNull(refColumn));
+				unconnected.forEach((r) => rowsToUpdate.add(r.id));
+			}
+			if (rowsToUpdate.size === 0) return;
+			await _updateRows({ progress, onUpdateCallback, rowsToUpdate });
+		}
+	}
+
 	async function updateUnifiedTable({
 		updateAll = false,
 		progress,
@@ -282,38 +375,7 @@ export function createUnifier<
 		const rematchedSources: string[] = [];
 
 		// 0. Delete orphaned unified rows
-		if (connections.secondaryTable) {
-			const orphans = await db
-				.select({ id: table.id })
-				.from(table as any)
-				.where(
-					and(
-						isNull(table[connections.primaryTable.refCol as keyof UnifiedTables] as SQLWrapper),
-						isNull(table[connections.secondaryTable.refCol as keyof UnifiedTables] as SQLWrapper)
-					)
-				);
-
-			let deletedOrphans = 0;
-			for (const item of orphans) {
-				const uniId = (await getRow(item.id, db)).uniref.uniId;
-				const cellConfig = await createCellConfigurator({
-					table: confTable,
-					unifiedTable: table,
-					id: item.id,
-					db,
-					uniId,
-					verifyCellValue: verifyCellValue
-				});
-				if (!cellConfig.hasAnyNonDefaultCellSettings) {
-					await db.delete(table).where(eq(table.id, item.id));
-					deletedOrphans++;
-					onUpdateCallback(uniId);
-				}
-			}
-			if (deletedOrphans > 0) {
-				console.log(`Deleted ${deletedOrphans} orphaned unified rows from ${unifiedTableName}`);
-			}
-		}
+		await deleteOrphans(onUpdateCallback);
 
 		// 1. Add missing primary rows
 		await _addMissingRows({ newLastUpdated, rowsToUpdate, connection: connections.primaryTable });
@@ -357,26 +419,49 @@ export function createUnifier<
 			}
 		}
 
-		// 3. Update Rows
-		await _updateRows({
-			progress,
-			onUpdateCallback,
-			rowsToUpdate
-		});
-
-		// 4. Secondary Sources
-		if (connections.secondaryTable) {
-			const secondaryRowsToUpdate = new Set<number>();
-			await _addMissingRows({
-				newLastUpdated,
-				rowsToUpdate: secondaryRowsToUpdate,
-				connection: connections.secondaryTable
-			});
+		releasedDuringRun = new Map();
+		try {
+			// 3. Update Rows
 			await _updateRows({
 				progress,
 				onUpdateCallback,
-				rowsToUpdate: secondaryRowsToUpdate
+				rowsToUpdate
 			});
+			// Before step 4, so rows with a primary connection get first pick of secondary rows
+			await rematchReleasedConnections(progress, onUpdateCallback);
+
+			// 4. Secondary Sources, including rows let go of while matching the ones just added
+			if (connections.secondaryTable) {
+				for (let pass = 0; pass < MAX_SETTLE_PASSES; pass++) {
+					const secondaryRowsToUpdate = new Set<number>();
+					await _addMissingRows({
+						newLastUpdated,
+						rowsToUpdate: secondaryRowsToUpdate,
+						connection: connections.secondaryTable
+					});
+					if (secondaryRowsToUpdate.size === 0) break;
+					await _updateRows({
+						progress,
+						onUpdateCallback,
+						rowsToUpdate: secondaryRowsToUpdate
+					});
+					await rematchReleasedConnections(progress, onUpdateCallback);
+				}
+			}
+
+			// Rows emptied during this run, so the next run starts settled
+			await deleteOrphans(onUpdateCallback);
+			const freedPrimaryRows = new Set<number>();
+			await _addMissingRows({
+				newLastUpdated,
+				rowsToUpdate: freedPrimaryRows,
+				connection: connections.primaryTable
+			});
+			if (freedPrimaryRows.size > 0) {
+				await _updateRows({ progress, onUpdateCallback, rowsToUpdate: freedPrimaryRows });
+			}
+		} finally {
+			releasedDuringRun = null;
 		}
 
 		// 5. Finish

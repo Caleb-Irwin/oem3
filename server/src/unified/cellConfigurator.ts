@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm';
+import { getTableConfig } from 'drizzle-orm/pg-core';
 import { db as DB, type Tx } from '../db';
 import { type CellSetting } from '../db.schema';
 import type { UnifiedTables, CellConfigTable } from './types';
@@ -6,6 +7,7 @@ import { createErrorManager, type ValType } from './errorManager';
 import { modifySetting } from './cellSettings';
 import type { VerifyCellValue } from './cellVerification';
 import type { RowTypeBase } from './unifier';
+import type { ResourceType } from '../utils/uniref.table';
 
 export async function createCellConfigurator<CellConfTable extends CellConfigTable>({
 	table,
@@ -28,7 +30,13 @@ export async function createCellConfigurator<CellConfTable extends CellConfigTab
 		.where(eq(table.refId, id));
 	type CellConfig = (typeof cellConfigs)[number];
 
-	const errorManager = createErrorManager(db, table, id, uniId, cellConfigs);
+	const errorManager = createErrorManager(
+		db,
+		table,
+		getTableConfig(unifiedTable).name as ResourceType,
+		id,
+		uniId
+	);
 
 	const groupedConfigs = cellConfigs.reduce(
 		(acc, config) => {

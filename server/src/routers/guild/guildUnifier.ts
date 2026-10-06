@@ -1,4 +1,4 @@
-import { and, eq, not } from 'drizzle-orm';
+import { and, asc, eq, not } from 'drizzle-orm';
 import { db as DB, type Tx } from '../../db';
 import { createUnifier } from '../../unified/unifier';
 import {
@@ -126,6 +126,7 @@ export const guildUnifier = createUnifier<
 			findConnections: async (row, db) => {
 				if (row.gid === null || row.gid === '') return [];
 				const res = await db.query.guildData.findMany({
+					orderBy: asc(guildData.id),
 					where: and(eq(guildData.gid, row.gid), not(guildData.deleted)),
 					columns: {
 						id: true
@@ -154,6 +155,7 @@ export const guildUnifier = createUnifier<
 					if (row.gid === null || row.gid === '') return [];
 					const res = await db.query.guildFlyer
 						.findMany({
+							orderBy: asc(guildFlyer.id),
 							where: and(eq(guildFlyer.gid, row.gid), not(guildFlyer.deleted)),
 							columns: {
 								id: true

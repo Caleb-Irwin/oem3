@@ -63,7 +63,9 @@ export interface TableConnection<
 > {
 	table: T;
 	refCol: keyof UnifiedTable;
-	findConnections: (row: RowType, db: typeof DB | Tx) => Promise<number[]>; // Should not return deleted items
+	// Should not return deleted items. Best first, and in the same order every time: a row without
+	// a connection takes the first one it can.
+	findConnections: (row: RowType, db: typeof DB | Tx) => Promise<number[]>;
 	isDeleted: (row: RowType) => boolean;
 	allowDeleted?: boolean;
 }
@@ -90,12 +92,16 @@ export interface Connections<
 	otherTables: TableConnection<RowType, UnifiedTable, Other>[];
 }
 
+/** A connection a row lost to a row with a stronger claim, which it must not take back */
+export type LostConnection = { refCol: string; value: number };
+
 export type _UpdateRow = (conf: {
 	id: number;
 	db: Tx | typeof DB;
 	onUpdateCallback: OnUpdateCallback;
 	nestedMode?: boolean;
 	removeAutoMatch?: boolean;
+	lostConnection?: LostConnection;
 }) => Promise<{
 	history: InsertHistoryRowOptions<any> | null;
 	newErrors: any[]; //TODO?
