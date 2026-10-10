@@ -30,6 +30,7 @@ import { buildQuickBooksPriceCsv } from './priceChange.csv';
 import { reconcilePriceChanges, type PriceChangeCandidate } from './priceChange.reconcile';
 import { notifyPriceListUpdated } from './priceList';
 import { sprSellPriceCents, suggestQuickBooksConversion } from './pricing';
+import { guildInUseJoin } from './guildInUse';
 
 const { update: updatePriceChanges, createSub } = eventSubscription();
 
@@ -130,8 +131,8 @@ const listQuery = (database: typeof db | Tx = db) =>
 		.innerJoin(unifiedProduct, eq(unifiedProduct.id, priceChanges.productRow))
 		.innerJoin(uniref, eq(uniref.unifiedProduct, unifiedProduct.id))
 		.innerJoin(qb, eq(qb.id, unifiedProduct.qbRow))
-		.leftJoin(unifiedGuild, eq(unifiedGuild.id, unifiedProduct.unifiedGuildRow))
 		.leftJoin(unifiedSpr, eq(unifiedSpr.id, unifiedProduct.unifiedSprRow))
+		.leftJoin(unifiedGuild, guildInUseJoin)
 		.leftJoin(shopify, eq(shopify.id, unifiedProduct.shopifyRow))
 		.leftJoin(
 			onlineSetting,
@@ -468,8 +469,8 @@ async function reconcileSinglePriceChange(productRow: number) {
 		})
 		.from(unifiedProduct)
 		.innerJoin(qb, eq(qb.id, unifiedProduct.qbRow))
-		.leftJoin(unifiedGuild, eq(unifiedGuild.id, unifiedProduct.unifiedGuildRow))
 		.leftJoin(unifiedSpr, eq(unifiedSpr.id, unifiedProduct.unifiedSprRow))
+		.leftJoin(unifiedGuild, guildInUseJoin)
 		.where(
 			and(
 				eq(unifiedProduct.id, productRow),
@@ -559,8 +560,8 @@ async function setCustomPriceSetting({
 			shopifyPriceCents: shopify.vPriceCents
 		})
 		.from(unifiedProduct)
-		.leftJoin(unifiedGuild, eq(unifiedGuild.id, unifiedProduct.unifiedGuildRow))
 		.leftJoin(unifiedSpr, eq(unifiedSpr.id, unifiedProduct.unifiedSprRow))
+		.leftJoin(unifiedGuild, guildInUseJoin)
 		.leftJoin(shopify, eq(shopify.id, unifiedProduct.shopifyRow))
 		.where(eq(unifiedProduct.id, productRow));
 	if (!product) throw new TRPCError({ code: 'NOT_FOUND', message: 'Unified product not found' });

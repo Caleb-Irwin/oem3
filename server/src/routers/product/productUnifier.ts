@@ -14,6 +14,7 @@ import {
 	productUmEnum
 } from '../../db.schema';
 import { costsMatch, quickBooksTargetPriceCents } from './pricing';
+import { guildInUse } from './guildInUse';
 import { fixAllCapsTitle } from './titleCase';
 import { withoutPackSize } from '../spr/etilizeTitle';
 
@@ -46,7 +47,7 @@ export const productUnifier = createUnifier<
 >({
 	table: unifiedProduct,
 	confTable: unifiedProductCellConfig,
-	version: 29,
+	version: 30,
 	getRow,
 	transform: (
 		item,
@@ -55,6 +56,12 @@ export const productUnifier = createUnifier<
 		const guild = item.unifiedGuildRowContent;
 		const spr = item.unifiedSprRowContent;
 		const qb = item.qbRowContent;
+		// Published data comes from a deleted Guild row only when no live Novexco item replaces it.
+		// Fields only Guild has (weight, Guild codes) still use `guild`.
+		const sourceGuild = guildInUse(guild, spr);
+		// Without Etilize content Novexco only has an abbreviated title, no description and rarely an
+		// image, so the deleted Guild row's title, description and images still describe the item better
+		const descriptiveGuild = sourceGuild ?? (spr?.sprFlatFileRow === null ? guild : null);
 
 		// Pricing
 		const sprPriceCents =
@@ -63,75 +70,79 @@ export const productUnifier = createUnifier<
 					? spr.netPriceCents
 					: roundUpToNearestTenCents(spr.dealerNetPriceCents * 1.8)
 				: (spr?.netPriceCents ?? null);
-		const defaultPriceCents = guild?.priceCents ?? sprPriceCents ?? null;
+		const defaultPriceCents = sourceGuild?.priceCents ?? sprPriceCents ?? null;
 		const onlinePriceCents = defaultPriceCents ?? item.onlinePriceCents ?? null;
 		const onlineComparePriceCents =
-			guild?.comparePriceCents && onlinePriceCents && guild.comparePriceCents > onlinePriceCents
-				? guild.comparePriceCents
+			sourceGuild?.comparePriceCents &&
+			onlinePriceCents &&
+			sourceGuild.comparePriceCents > onlinePriceCents
+				? sourceGuild.comparePriceCents
 				: null;
 
 		// Images
-		const primaryImage = spr?.primaryImage ?? guild?.imageUrl ?? item?.primaryImage ?? null;
+		const primaryImage =
+			spr?.primaryImage ?? descriptiveGuild?.imageUrl ?? item?.primaryImage ?? null;
 		const primaryImageDescription =
 			spr?.primaryImageDescription ??
-			guild?.imageDescription ??
+			descriptiveGuild?.imageDescription ??
 			item?.primaryImageDescription ??
 			null;
 		const otherImagesJsonArr = spr?.otherImagesJsonArr
 			? JSON.parse(spr.otherImagesJsonArr).length > 0
 				? spr.otherImagesJsonArr
-				: guild?.otherImageListJSON && guild?.imageUrl
+				: descriptiveGuild?.otherImageListJSON && descriptiveGuild?.imageUrl
 					? JSON.stringify([
-							...JSON.parse(guild?.otherImageListJSON ?? '[]'),
+							...JSON.parse(descriptiveGuild?.otherImageListJSON ?? '[]'),
 							{
-								url: guild?.imageUrl ?? null,
-								description: guild?.imageDescription ?? null
+								url: descriptiveGuild?.imageUrl ?? null,
+								description: descriptiveGuild?.imageDescription ?? null
 							}
 						])
 					: null
-			: (guild?.otherImageListJSON ?? null);
+			: (descriptiveGuild?.otherImageListJSON ?? null);
 
 		const isDiscontinued =
 			((guild?.deleted ?? true) && (spr?.deleted ?? true)) || spr?.status === 'Discontinued';
-		const category = mapCategory(spr?.category, guild?.category) ?? item.category;
+		const category = mapCategory(spr?.category, sourceGuild?.category) ?? item.category;
 
 		// Novexco's Etilize titles name the brand, colour and size, so prefer them when the Novexco
 		// item is surely the same item in the same unit as Guild's. Without Etilize content Novexco
 		// only has an abbreviated title.
 		const sameItemAsGuild =
-			!!guild &&
+			!!sourceGuild &&
 			!!spr?.title &&
 			spr.sprFlatFileRow !== null &&
-			costsMatch(guild.costCents, spr.dealerNetPriceCents);
+			costsMatch(sourceGuild.costCents, spr.dealerNetPriceCents);
 		// Guild's price may be for a different pack than Novexco's, so leave out Novexco's pack size
 		const sprTitle =
-			spr?.title && sameItemAsGuild && guild.priceCents !== null
+			spr?.title && sameItemAsGuild && sourceGuild.priceCents !== null
 				? withoutPackSize(spr.title)
 				: spr?.title;
 		const title =
-			fixAllCapsTitle((sameItemAsGuild ? sprTitle : null) ?? guild?.title ?? sprTitle ?? null) ??
-			item.title;
+			fixAllCapsTitle(
+				(sameItemAsGuild ? sprTitle : null) ?? descriptiveGuild?.title ?? sprTitle ?? null
+			) ?? item.title;
 		const sprAvailable = spr?.status ? spr.status === 'Active' : false;
 
-		const otherProductIDs = `<br><p><span>Product Numbers:</span> ${Array.from(new Set([guild?.gid, guild?.upc, guild?.cis, guild?.basics, guild?.spr, spr?.cws, spr?.upc].filter(Boolean).map((val) => val!.toUpperCase().trim()))).join(' ')}</p>`;
+		const otherProductIDs = `<br><p><span>Product Numbers:</span> ${Array.from(new Set([guild?.gid, sourceGuild?.upc, guild?.cis, guild?.basics, sourceGuild?.spr, spr?.cws, spr?.upc].filter(Boolean).map((val) => val!.toUpperCase().trim()))).join(' ')}</p>`;
 		let description = item.description;
-		if (spr?.description && guild?.description) {
-			description = `<div class="oem-cont"><p>${guild.description}</p> ${spr.sprMarketingText ? `<p>${spr.sprMarketingText}</p>` : ''} ${spr.sprProductSpecs ?? ''} ${otherProductIDs}</div>`;
+		if (spr?.description && descriptiveGuild?.description) {
+			description = `<div class="oem-cont"><p>${descriptiveGuild.description}</p> ${spr.sprMarketingText ? `<p>${spr.sprMarketingText}</p>` : ''} ${spr.sprProductSpecs ?? ''} ${otherProductIDs}</div>`;
 		} else if (spr?.description) {
 			description = `<div class="oem-cont">${spr.description} ${otherProductIDs}</div>`;
-		} else if (guild?.description) {
-			description = `<div class="oem-cont">${guild.description} ${otherProductIDs}</div>`;
+		} else if (descriptiveGuild?.description) {
+			description = `<div class="oem-cont">${descriptiveGuild.description} ${otherProductIDs}</div>`;
 		}
 
 		return {
 			id: t('id', item.id),
 			gid: t('gid', guild?.gid ?? item.gid),
-			sprc: t('sprc', spr?.sprc ?? guild?.spr ?? item.sprc, {
+			sprc: t('sprc', spr?.sprc ?? sourceGuild?.spr ?? item.sprc, {
 				shouldMatch: {
 					primary: 'Novexco legacy SKU',
 					secondary: 'Guild legacy supplier SKU',
-					val: guild?.spr ?? null,
-					ignore: spr?.sprc == null || guild?.spr == null
+					val: sourceGuild?.spr ?? null,
+					ignore: spr?.sprc == null || sourceGuild?.spr == null
 				}
 			}),
 			novexco: t('novexco', spr?.novexco ?? item.novexco),
@@ -148,17 +159,17 @@ export const productUnifier = createUnifier<
 			qbRow: t('qbRow', item.qbRow),
 			shopifyRow: t('shopifyRow', item.shopifyRow),
 
-			upc: t('upc', guild?.upc ?? spr?.upc ?? item.upc, {
+			upc: t('upc', sourceGuild?.upc ?? spr?.upc ?? item.upc, {
 				shouldMatch: {
 					primary: 'Guild UPC',
 					secondary: 'Novexco UPC',
 					val: spr?.upc ?? null,
 					ignore:
-						guild?.upc == null ||
+						sourceGuild?.upc == null ||
 						spr?.upc == null ||
-						(guild.upc.length >= 12 &&
+						(sourceGuild.upc.length >= 12 &&
 							spr.upc.length >= 12 &&
-							guild.upc.slice(guild.upc.length - 11, guild.upc.length - 1) ===
+							sourceGuild.upc.slice(sourceGuild.upc.length - 11, sourceGuild.upc.length - 1) ===
 								spr.upc.slice(spr.upc.length - 11, spr.upc.length - 1))
 				}
 			}),
@@ -170,14 +181,18 @@ export const productUnifier = createUnifier<
 			title: t('title', title),
 			description: t('description', description),
 			category: t('category', category),
-			inFlyer: t('inFlyer', guild?.inFlyer ?? false),
+			inFlyer: t('inFlyer', sourceGuild?.inFlyer ?? false),
 
 			onlinePriceCents: t('onlinePriceCents', onlinePriceCents, {
 				shouldMatch: {
-					val: guild?.priceCents ?? null,
+					val: sourceGuild?.priceCents ?? null,
 					primary: 'Calculated Online Price',
 					secondary: 'Guild Flyer Price',
-					ignore: !guild || !guild.inFlyer || guild.priceCents === null || onlinePriceCents === null
+					ignore:
+						!sourceGuild ||
+						!sourceGuild.inFlyer ||
+						sourceGuild.priceCents === null ||
+						onlinePriceCents === null
 				}
 			}),
 			onlineComparePriceCents: t('onlineComparePriceCents', onlineComparePriceCents),
@@ -199,21 +214,22 @@ export const productUnifier = createUnifier<
 						'sourceToQuickBooksFactor',
 						'quickBooksConversionAdjustmentPercent'
 					]),
-					shouldNotBeNull: guild?.inFlyer ?? false
+					shouldNotBeNull: sourceGuild?.inFlyer ?? false
 				}
 			),
-			guildCostCents: t('guildCostCents', guild?.costCents ?? null),
+			guildCostCents: t('guildCostCents', sourceGuild?.costCents ?? null),
 			sprCostCents: t('sprCostCents', spr?.dealerNetPriceCents ?? null),
 
-			um: t('um', mapUm(guild?.um, spr?.um, qb?.um) ?? item.um, {
+			um: t('um', mapUm(sourceGuild?.um, spr?.um, qb?.um) ?? item.um, {
 				shouldMatch: {
 					primary: 'Guild UM',
 					secondary: 'Novexco UM',
 					val: mapUm(null, spr?.um, null) ?? null,
-					ignore: guild?.um == null || spr?.um == null
+					ignore: sourceGuild?.um == null || spr?.um == null
 				}
 			}),
-			qtyPerUm: t('qtyPerUm', guild?.qtyPerUm ?? null),
+			// Guild's pack size, so only while Guild's unit and price are used
+			qtyPerUm: t('qtyPerUm', sourceGuild?.qtyPerUm ?? null),
 
 			primaryImage: t('primaryImage', primaryImage),
 			primaryImageDescription: t('primaryImageDescription', primaryImageDescription),
@@ -253,7 +269,7 @@ export const productUnifier = createUnifier<
 			sprInventoryAvailability: t('sprInventoryAvailability', spr?.status ?? null),
 
 			weightGrams: t('weightGrams', guild?.weightGrams ?? null),
-			vendor: t('vendor', guild?.vendor ?? spr?.manufacturerName ?? null),
+			vendor: t('vendor', sourceGuild?.vendor ?? spr?.manufacturerName ?? null),
 
 			deleted: t('deleted', (!guild || guild.deleted) && (!spr || spr.deleted)),
 			lastUpdated: t('lastUpdated', item.lastUpdated)

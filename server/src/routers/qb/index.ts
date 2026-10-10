@@ -8,6 +8,8 @@ import { and, eq, gte, isNull } from 'drizzle-orm';
 import { qb } from './table';
 import { unifiedProduct } from '../product/table';
 import { unifiedGuild } from '../guild/table';
+import { unifiedSpr } from '../spr/table';
+import { guildInUseJoin } from '../product/guildInUse';
 import { guildFlyer } from '../guild/flyer/table';
 import { files, qbInventoryHistory } from '../../db.schema';
 import { getFileRow } from '../../utils/files.s3';
@@ -152,7 +154,8 @@ export const qbRouter = router({
 				})
 				.from(qb)
 				.innerJoin(unifiedProduct, eq(qb.id, unifiedProduct.qbRow))
-				.innerJoin(unifiedGuild, eq(unifiedProduct.unifiedGuildRow, unifiedGuild.id))
+				.leftJoin(unifiedSpr, eq(unifiedProduct.unifiedSprRow, unifiedSpr.id))
+				.innerJoin(unifiedGuild, guildInUseJoin)
 				.leftJoin(guildFlyer, eq(unifiedGuild.flyerRow, guildFlyer.id))
 				.where(isNull(guildFlyer.flyerPriceL1Cents));
 

@@ -15,6 +15,7 @@ import { getCellConfigHelper } from '../../unified/cellConfigHelper';
 import { eventSubscription } from '../../utils/eventSubscription';
 import { generalProcedure, router, viewerProcedure } from '../../trpc';
 import { unifiedOnUpdateCallback } from '../unified.helpers';
+import { guildInUseJoin } from './guildInUse';
 
 const customSettingTypes = ['setting:custom', 'setting:approveCustom'] as const;
 const { update: updatePriceList, createSub } = eventSubscription();
@@ -48,8 +49,8 @@ const basePriceListQuery = () =>
 		})
 		.from(unifiedProduct)
 		.innerJoin(uniref, eq(uniref.unifiedProduct, unifiedProduct.id))
-		.leftJoin(unifiedGuild, eq(unifiedProduct.unifiedGuildRow, unifiedGuild.id))
 		.leftJoin(unifiedSpr, eq(unifiedProduct.unifiedSprRow, unifiedSpr.id))
+		.leftJoin(unifiedGuild, guildInUseJoin)
 		.leftJoin(shopify, eq(unifiedProduct.shopifyRow, shopify.id))
 		.leftJoin(qb, eq(unifiedProduct.qbRow, qb.id))
 		.leftJoin(

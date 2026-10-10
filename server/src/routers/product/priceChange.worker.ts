@@ -2,6 +2,7 @@ import { and, eq, gte, inArray, isNotNull, ne, sql } from 'drizzle-orm';
 import { work } from '../../utils/workerBase';
 import { priceChanges, qb, unifiedGuild, unifiedProduct, unifiedSpr } from '../../db.schema';
 import { reconcilePriceChanges, type PriceChangeCandidate } from './priceChange.reconcile';
+import { guildInUseJoin } from './guildInUse';
 
 const CHUNK = 500;
 
@@ -20,8 +21,8 @@ work({
 			})
 			.from(unifiedProduct)
 			.innerJoin(qb, eq(qb.id, unifiedProduct.qbRow))
-			.leftJoin(unifiedGuild, eq(unifiedGuild.id, unifiedProduct.unifiedGuildRow))
 			.leftJoin(unifiedSpr, eq(unifiedSpr.id, unifiedProduct.unifiedSprRow))
+			.leftJoin(unifiedGuild, guildInUseJoin)
 			.where(
 				and(
 					eq(unifiedProduct.deleted, false),
