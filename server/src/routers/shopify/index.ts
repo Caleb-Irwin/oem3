@@ -7,6 +7,7 @@ import { SHOPIFY_LOCATION_ID_STORE, SHOPIFY_LOCATION_ID_WAREHOUSE } from '../../
 import { notifyShopifySyncChanged, shopifyPushHook, shopifyPushRouter } from './push';
 import type { RecentlyUpdatedProductsQuery } from '../../../types/admin.generated';
 import { createBulkQuery, pollBulkOperation } from './bulk';
+import { shopifyHandlesRouter } from './handles';
 
 const { worker, runWorker, hook } = managedWorker(
 	new URL('worker.ts', import.meta.url).href,
@@ -132,6 +133,7 @@ shopifyPushHook(async () => {
 
 export const shopifyRouter = router({
 	pushSync: shopifyPushRouter,
+	handles: shopifyHandlesRouter,
 	worker,
 	files
 });

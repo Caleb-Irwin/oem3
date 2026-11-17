@@ -5,6 +5,7 @@
 	import Files from '$lib/Files.svelte';
 	import ModalSearchBar from '$lib/search/ModalSearchBar.svelte';
 	import ShopifySync from './ShopifySync.svelte';
+	import RegenerateHandles from './RegenerateHandles.svelte';
 	import type { PageProps } from './$types';
 	let { data }: PageProps = $props();
 </script>
@@ -66,6 +67,7 @@
 					>
 				</div>
 			</div>
+			<RegenerateHandles />
 		</div>
 	</div>
 </div>

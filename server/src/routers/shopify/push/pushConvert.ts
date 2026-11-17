@@ -40,14 +40,9 @@ export function convertToProductSetInput(
 	// Handle - generate from title if not provided
 	if (shopifyData?.handle) {
 		input.handle = shopifyData.handle;
-	} else if (product.title) {
-		// Deterministic, so the upload hash is stable across runs; a random handle changed it
-		// every time. gid/sprc/novexco are already unique, so the id only covers products with none.
-		const suffix = slugify(
-				String(product.gid ?? product.sprc ?? product.novexco ?? product.id ?? '')
-			),
-			title = slugify(slugify(product.title).slice(0, Math.max(0, 254 - suffix.length)));
-		input.handle = [title, suffix].filter(Boolean).join('-');
+	} else {
+		const handle = generateHandle(product);
+		if (handle) input.handle = handle;
 	}
 
 	// Status
@@ -167,6 +162,23 @@ export function convertToProductSetInput(
 	input.variants = [variant];
 
 	return input;
+}
+
+/**
+ * The handle a new listing gets, from the product's title and its most specific code. An existing
+ * listing keeps its handle on every push; see regenerateHandles for replacing a stale one.
+ */
+export function generateHandle(
+	product: Partial<Pick<Product, 'title' | 'gid' | 'sprc' | 'novexco' | 'id'>>
+): string | null {
+	if (!product.title) return null;
+	// Deterministic, so the upload hash is stable across runs; a random handle changed it
+	// every time. gid/sprc/novexco are already unique, so the id only covers products with none.
+	const suffix = slugify(
+			String(product.gid ?? product.sprc ?? product.novexco ?? product.id ?? '')
+		),
+		title = slugify(slugify(product.title).slice(0, Math.max(0, 254 - suffix.length)));
+	return [title, suffix].filter(Boolean).join('-');
 }
 
 function slugify(value: string): string {
